@@ -1,9 +1,7 @@
       # (1)
       cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
 
-      project(LithiumFiberDesign)
-
-      #include("/Applications/cern_root/root_v5.34.14/root_v5.34.14_installation/etc/cmake/FindROOT.cmake")
+      project(NextMultipleScattering)
 
       # (2)
       option(WITH_GEANT4_UIVIS "Build example with Geant4 UI and Vis drivers" ON)
@@ -12,7 +10,9 @@
       else()
         find_package(Geant4 REQUIRED)
       endif()
-      set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} /home/kyle/Downloads/root/etc/cmake)
+      set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} /opt/root/5.34.32/
+      # set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} /etc/root/cmake)
+      # /home/kyle/Downloads/root/etc/cmake)
       find_package(ROOT)
       set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
       
@@ -33,6 +33,5 @@
       # (6)
 
 
-      # (7)
-      install(TARGETS neutronDetectorDesign DESTINATION /home/kyle/geant4.10.02/config/sys/Darwin-g++)
-    #  install(TARGETS neutronDetectorDesign DESTINATION /home/kyle/geant4.9.6.p04/config/sys/Darwin-g++)
+      # (7) Left out since it will only be executed locally where built
+
