@@ -10,10 +10,9 @@
       else()
         find_package(Geant4 REQUIRED)
       endif()
-      set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} /opt/root/5.34.32/
-      # set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} /etc/root/cmake)
-      # /home/kyle/Downloads/root/etc/cmake)
-      find_package(ROOT)
+
+      set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake/modules/)
+      find_package(ROOT REQUIRED)
       set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
       
       # (3)      
