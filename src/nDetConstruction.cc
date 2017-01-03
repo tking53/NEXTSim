@@ -55,7 +55,7 @@ G4VPhysicalVolume* nDetConstruction::Construct()
   // build assembly volume
   //buildAssembly();
 
-  // build assembly volume
+  // build Disk volume
   buildDisk();
 
   return expHall_physV;
@@ -514,11 +514,12 @@ void nDetConstruction::buildDisk()
  //no longer // removing carbon to see how that effects backward scatters... KS 5/23/16
   EJ200->AddElement(elC,9);
 
-
+  G4double teflonThickness=0.11*mm;
+    
   G4double minDiskRadius=0*mm;
-  G4double maxDiskRadius=50*mm;
+  G4double maxDiskRadius=50*mm+teflonThickness;
 
-  G4double diskLength=1.5*mm;
+  G4double diskLength=1.5*mm+teflonThickness;
 
   G4double startAngle=0*deg;
   G4double endAngle=360*deg;
@@ -526,16 +527,16 @@ void nDetConstruction::buildDisk()
 
   G4Tubs* assemblyDisk = new G4Tubs("Disk",minDiskRadius,maxDiskRadius,diskLength,startAngle,endAngle);
 
-  G4double BoxX=1.65*mm;
-  G4double BoxY=1.65*mm;
+  G4double BoxX=1.52*mm;
+  G4double BoxY=1.52*mm;
   G4double BoxZ=1.65*mm;
 
   G4Box *Hole=new G4Box("Hole",BoxX,BoxY,BoxZ);
 
-  G4SubtractionSolid *theSolid=new G4SubtractionSolid("cona",assemblyDisk,Hole);
+  G4SubtractionSolid *theSolid=new G4SubtractionSolid("Wrapping",assemblyDisk,Hole);
 
 
-  assembly_logV = new G4LogicalVolume(theSolid, EJ200, "Disk");
+  assembly_logV = new G4LogicalVolume(theSolid, Teflon, "Wrap");
 
 
   G4RotationMatrix *rotationMatrix_Disk=new G4RotationMatrix;
@@ -601,48 +602,46 @@ void nDetConstruction::buildDisk()
   EJ200_MPT->AddConstProperty("YIELDRATIO",1);// the strength of the fast component as a function of total scintillation yield
 
   EJ200->SetMaterialPropertiesTable(EJ200_MPT);
-
-  G4Box* ej200_solidV = new G4Box("ej200_solidV", ej200X, ej200Y, ej200Z);
-
-  ej200_logV = new G4LogicalVolume(ej200_solidV, EJ200, "ej200_logV", 0, 0, 0);
+    
+    
+     minDiskRadius=0*mm;
+     maxDiskRadius=50*mm;
+    
+     diskLength=1.5*mm;
+    
+     startAngle=0*deg;
+     endAngle=360*deg;
+    
+    G4Tubs* scintillatorDisk = new G4Tubs("SciDisk",minDiskRadius,maxDiskRadius,diskLength,startAngle,endAngle);
+    
+    BoxX=2.70*mm;
+    BoxY=2.70*mm;
+    BoxZ=1.62*mm;
+    
+    G4Box *Hole2=new G4Box("Hole",BoxX,BoxY,BoxZ);
+    
+    G4SubtractionSolid *theScint=new G4SubtractionSolid("Detector",scintillatorDisk,Hole2);
+  
+    
+    ej200_logV = new G4LogicalVolume(theScint, EJ200, "ej200_logV", 0, 0, 0);
 
   G4VisAttributes* ej200_VisAtt= new G4VisAttributes(G4Colour(0.0,0.0,1.0));//blue
+  //ej200_VisAtt->SetForceSolid(true);
   ej200_logV->SetVisAttributes(ej200_VisAtt);
+    
 
-  // create assembly of scintillator bars
+  // create assembly of scintillator
   //
-  G4AssemblyVolume* ej200Assembly = new G4AssemblyVolume();
-  // Rotation and translation of the Fiber logical volume
-  G4RotationMatrix rotationMatrix_ej200; 
-  G4ThreeVector position_ej200(0., 0., 0.);
-  G4Transform3D transform3D_ej200;
+  
+  G4RotationMatrix *rotationMatrix_Scint=new G4RotationMatrix;
 
-//  for(G4int x_index = 0; x_index<30; x_index++){
-  for(G4int x_index = 0; x_index<10; x_index++){ //reduced array size to 10x30 KS 5/23/16
-    for(G4int z_index = 0; z_index<30; z_index++){
-      //position_ej200.setX(assemblyBoxX - assemblyBoxX/15*(1+x_index*2)/2);
-      position_ej200.setX(assemblyBoxX - assemblyBoxX/5*(1+x_index*2)/2); //reduced KS 5/23/16
-      position_ej200.setZ(assemblyBoxZ - assemblyBoxZ/15*(1+z_index*2)/2);
-      position_ej200.setY(0.0);
-
-      transform3D_ej200 = G4Transform3D(rotationMatrix_ej200, position_ej200);
-      ej200Assembly->AddPlacedVolume(ej200_logV, transform3D_ej200);
-    }
-  }
-
-
-   /*   position_ej200.setX(0.0); //reduced KS 5/23/16
-      position_ej200.setZ(0.0);
-      position_ej200.setY(0.0);
-*/
-      transform3D_ej200 = G4Transform3D(rotationMatrix_ej200, position_ej200);
-      ej200Assembly->AddPlacedVolume(ej200_logV, transform3D_ej200);
-
-  //  place the assembly
-  //
-  position_ej200.setX(0.0); position_ej200.setY(0.0); position_ej200.setZ(0.0);
-  transform3D_ej200 = G4Transform3D(rotationMatrix_ej200, position_ej200);
-  //ej200Assembly->MakeImprint(assembly_logV, transform3D_ej200);
+    
+  G4VPhysicalVolume *assembly_physV = new G4PVPlacement(rotationMatrix_Scint,
+                                       G4ThreeVector(assemblyPx, assemblyPy, assemblyPz),
+                                       ej200_logV,
+                                       "Scint_physV",
+                                       assembly_logV,
+                                       false, 0);
   
   // grease Sanit-Gobain BC-630 silicone grease
   // optical grease
@@ -682,6 +681,7 @@ void nDetConstruction::buildDisk()
   G4Box* grease_solidV = new G4Box("grease", greaseX, greaseY, greaseZ);
   grease_logV = new G4LogicalVolume(grease_solidV, grease, "grease_logV", 0, 0, 0);
   G4VisAttributes* grease_VisAtt= new G4VisAttributes(G4Colour(1.0,0.0,0.0));//red
+  //grease_VisAtt->SetForceSolid(true);
   grease_logV->SetVisAttributes(grease_VisAtt);
 
   // create assembly of grease
@@ -692,29 +692,43 @@ void nDetConstruction::buildDisk()
   G4ThreeVector position_grease(0., 0., 0.);
   G4Transform3D transform3D_grease;
 
-  //for(G4int x_index = 0; x_index<30; x_index++){
-  for(G4int x_index = 0; x_index<10; x_index++){
-    for(G4int z_index = 0; z_index<30; z_index++){
+  for(G4int i = 0; i<2; i++){
       //position_grease.setX(assemblyBoxX - assemblyBoxX/15*(1+x_index*2)/2);
-      position_grease.setX(assemblyBoxX - assemblyBoxX/5*(1+x_index*2)/2);
-      position_grease.setZ(assemblyBoxZ - assemblyBoxZ/15*(1+z_index*2)/2);
-      position_grease.setY(ej200Y+greaseY);
+      if(i==0){
+          position_grease.setX(0);
+          position_grease.setZ(0);
+          position_grease.setY(BoxY-greaseY);
 
-      transform3D_grease = G4Transform3D(rotationMatrix_grease, position_grease);
-      greaseAssembly->AddPlacedVolume(grease_logV, transform3D_grease);
+          transform3D_grease = G4Transform3D(rotationMatrix_grease, position_grease);
+          greaseAssembly->AddPlacedVolume(grease_logV, transform3D_grease);
 
-      position_grease.setY(-1*(ej200Y+greaseY));
+          position_grease.setY(-1*(BoxY-greaseY));
 
-      transform3D_grease = G4Transform3D(rotationMatrix_grease, position_grease);
-      greaseAssembly->AddPlacedVolume(grease_logV, transform3D_grease);
-    }
+          transform3D_grease = G4Transform3D(rotationMatrix_grease, position_grease);
+          greaseAssembly->AddPlacedVolume(grease_logV, transform3D_grease);
+      }
+      else{
+          rotationMatrix_grease.rotateZ(90*deg);
+          position_grease.setY(0);
+          position_grease.setZ(0);
+          position_grease.setX(BoxY-greaseY);
+          
+          transform3D_grease = G4Transform3D(rotationMatrix_grease, position_grease);
+          greaseAssembly->AddPlacedVolume(grease_logV, transform3D_grease);
+          
+          position_grease.setX(-1*(BoxY-greaseY));
+          
+          transform3D_grease = G4Transform3D(rotationMatrix_grease, position_grease);
+          greaseAssembly->AddPlacedVolume(grease_logV, transform3D_grease);
+          
+      }
   }
 
   //  place the assembly
   //
   position_grease.setX(0.0); position_grease.setY(0.0); position_grease.setZ(0.0);
   transform3D_grease = G4Transform3D(rotationMatrix_grease, position_grease);
-  //greaseAssembly->MakeImprint(assembly_logV, transform3D_grease);
+  greaseAssembly->MakeImprint(assembly_logV, transform3D_grease);
 
   // used to find materials in the lib...
   G4NistManager* manNist = G4NistManager::Instance();
@@ -736,6 +750,7 @@ void nDetConstruction::buildDisk()
 
   qwSiPM_logV = new G4LogicalVolume(qwSiPM_solidV, SiO2, "qwSiPM_logV", 0, 0, 0);
   G4VisAttributes* qwSiPM_VisAtt= new G4VisAttributes(G4Colour(0.0,1.0,0.0));//green
+  //qwSiPM_VisAtt->SetForceSolid(true);
   qwSiPM_logV->SetVisAttributes(qwSiPM_VisAtt);
 
   // create assembly of SiPM window
@@ -746,29 +761,43 @@ void nDetConstruction::buildDisk()
   G4ThreeVector position_SiPMwindow(0., 0., 0.);
   G4Transform3D transform3D_SiPMwindow;
 
-//  for(G4int x_index = 0; x_index<30; x_index++){
-  for(G4int x_index = 0; x_index<10; x_index++){
-    for(G4int z_index = 0; z_index<30; z_index++){
-      //position_SiPMwindow.setX(assemblyBoxX - assemblyBoxX/15*(1+x_index*2)/2);
-      position_SiPMwindow.setX(assemblyBoxX - assemblyBoxX/5*(1+x_index*2)/2);
-      position_SiPMwindow.setZ(assemblyBoxZ - assemblyBoxZ/15*(1+z_index*2)/2);
-      position_SiPMwindow.setY(ej200Y+2*greaseY+qwSiPMy);
+  for(G4int i = 0; i<2; i++){
+      if(i==0){
+      position_SiPMwindow.setX(0);
+      position_SiPMwindow.setZ(0);
+      position_SiPMwindow.setY(BoxY-2*greaseY-qwSiPMy);
 
       transform3D_SiPMwindow = G4Transform3D(rotationMatrix_SiPMwindow, position_SiPMwindow);
       SiPMwindowAssembly->AddPlacedVolume(qwSiPM_logV, transform3D_SiPMwindow);
 
-      position_SiPMwindow.setY(-1*(ej200Y+2*greaseY+qwSiPMy));
+      position_SiPMwindow.setY(-1*(BoxY-2*greaseY-qwSiPMy));
 
       transform3D_SiPMwindow = G4Transform3D(rotationMatrix_SiPMwindow, position_SiPMwindow);
       SiPMwindowAssembly->AddPlacedVolume(qwSiPM_logV, transform3D_SiPMwindow);
-    }
+      }
+      else{
+          rotationMatrix_SiPMwindow.rotateZ(90*deg);
+          position_SiPMwindow.setY(0);
+          position_SiPMwindow.setZ(0);
+          position_SiPMwindow.setX(BoxY-2*greaseY-qwSiPMy);
+          
+          transform3D_SiPMwindow = G4Transform3D(rotationMatrix_SiPMwindow, position_SiPMwindow);
+          SiPMwindowAssembly->AddPlacedVolume(qwSiPM_logV, transform3D_SiPMwindow);
+          
+          position_SiPMwindow.setX(-1*(BoxY-2*greaseY-qwSiPMy));
+          
+          transform3D_SiPMwindow = G4Transform3D(rotationMatrix_SiPMwindow, position_SiPMwindow);
+          SiPMwindowAssembly->AddPlacedVolume(qwSiPM_logV, transform3D_SiPMwindow);
+      
+      }
   }
+  
 
   //  place the assembly
   //
   position_SiPMwindow.setX(0.0); position_SiPMwindow.setY(0.0); position_SiPMwindow.setZ(0.0);
   transform3D_SiPMwindow = G4Transform3D(rotationMatrix_SiPMwindow, position_SiPMwindow);
-  //SiPMwindowAssembly->MakeImprint(assembly_logV, transform3D_SiPMwindow);
+  SiPMwindowAssembly->MakeImprint(assembly_logV, transform3D_SiPMwindow);
 
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   // the portion of SiPM just following the front quartz window is used for sensing the photons
@@ -801,6 +830,7 @@ void nDetConstruction::buildDisk()
 
   psSiPM_logV = new G4LogicalVolume(psSiPM_solidV, Si_SiPM, "psSiPM_logV", 0, 0, 0);
   G4VisAttributes* psSiPM_VisAtt= new G4VisAttributes(G4Colour(0.0,1.0,1.0));//
+  psSiPM_VisAtt->SetForceSolid(true);
   psSiPM_logV->SetVisAttributes(psSiPM_VisAtt);
 
   G4LogicalSkinSurface* psSiPMSurface = new G4LogicalSkinSurface("SiPMSurface", psSiPM_logV, SiPMSurface);
@@ -813,29 +843,42 @@ void nDetConstruction::buildDisk()
   G4ThreeVector position_psSiPM(0., 0., 0.);
   G4Transform3D transform3D_psSiPM;
 
-//  for(G4int x_index = 0; x_index<30; x_index++){
-  for(G4int x_index = 0; x_index<10; x_index++){
-    for(G4int z_index = 0; z_index<30; z_index++){
-//      position_psSiPM.setX(assemblyBoxX - assemblyBoxX/15*(1+x_index*2)/2);
-      position_psSiPM.setX(assemblyBoxX - assemblyBoxX/5*(1+x_index*2)/2);
-      position_psSiPM.setZ(assemblyBoxZ - assemblyBoxZ/15*(1+z_index*2)/2);
-      position_psSiPM.setY(ej200Y+2*greaseY+2*qwSiPMy+psSiPMy);
+  for(G4int i = 0; i<2; i++){
+      if(i==0){
+      position_psSiPM.setX(0);
+      position_psSiPM.setZ(0);
+      position_psSiPM.setY(BoxY-2*greaseY-2*qwSiPMy-psSiPMy);
 
       transform3D_psSiPM = G4Transform3D(rotationMatrix_psSiPM, position_psSiPM);
       psSiPMAssembly->AddPlacedVolume(psSiPM_logV, transform3D_psSiPM);
 
-      position_psSiPM.setY(-1*(ej200Y+2*greaseY+2*qwSiPMy+psSiPMy));
+      position_psSiPM.setY(-1*(BoxY-2*greaseY-2*qwSiPMy-psSiPMy));
 
       transform3D_psSiPM = G4Transform3D(rotationMatrix_psSiPM, position_psSiPM);
       psSiPMAssembly->AddPlacedVolume(psSiPM_logV, transform3D_psSiPM);
-    }
+      }
+      else{
+          rotationMatrix_psSiPM.rotateZ(90*deg);
+          position_psSiPM.setY(0);
+          position_psSiPM.setZ(0);
+          position_psSiPM.setX(BoxY-2*greaseY-2*qwSiPMy-psSiPMy);
+          
+          transform3D_psSiPM = G4Transform3D(rotationMatrix_psSiPM, position_psSiPM);
+          psSiPMAssembly->AddPlacedVolume(psSiPM_logV, transform3D_psSiPM);
+          
+          position_psSiPM.setX(-1*(BoxY-2*greaseY-2*qwSiPMy-psSiPMy));
+          
+          transform3D_psSiPM = G4Transform3D(rotationMatrix_psSiPM, position_psSiPM);
+          psSiPMAssembly->AddPlacedVolume(psSiPM_logV, transform3D_psSiPM);
+      
+      }
   }
 
   //  place the assembly
   //
   position_psSiPM.setX(0.0); position_psSiPM.setY(0.0); position_psSiPM.setZ(0.0);
   transform3D_psSiPM = G4Transform3D(rotationMatrix_psSiPM, position_psSiPM);
-  //psSiPMAssembly->MakeImprint(assembly_logV, transform3D_psSiPM);
+  psSiPMAssembly->MakeImprint(assembly_logV, transform3D_psSiPM);
 
   return;
 } // end of function. //
