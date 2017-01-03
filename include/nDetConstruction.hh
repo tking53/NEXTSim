@@ -40,6 +40,8 @@
 #include "G4PVParameterised.hh"
 #include "G4VNestedParameterisation.hh"
 
+#include "G4SubtractionSolid.hh"
+
 // Replica 
 // Assembly volumes
 // no assembly is used currently
@@ -102,6 +104,7 @@ class nDetConstruction : public G4VUserDetectorConstruction
     // member functions
     void buildExpHall();
     void buildAssembly();
+    void buildDisk();
 
 };
 
