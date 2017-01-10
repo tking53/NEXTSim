@@ -100,16 +100,16 @@ void nDetSteppingAction::UserSteppingAction(const G4Step* aStep)
           //G4cout<<"Detect one photon in SiPM"<< vName<<" Global time: "<<time<<" at the position of "<<aStep->GetPostStepPoint()->GetPosition().y()<<G4endl;
 
           if(vName.find("psSiPM")&&aStep->GetPostStepPoint()->GetPosition().y()>0) {
-		runAction->vTimeOfPhotonInSD1PushBack(time);
-                runAction->vSD1PhotonPositionXPushBack(aStep->GetPostStepPoint()->GetPosition().x());
-                runAction->vSD1PhotonPositionYPushBack(aStep->GetPostStepPoint()->GetPosition().y());
-		runAction->vSD1PhotonPositionZPushBack(aStep->GetPostStepPoint()->GetPosition().z());
+              runAction->vTimeOfPhotonInSD1PushBack(time);
+              runAction->vSD1PhotonPositionXPushBack(aStep->GetPostStepPoint()->GetPosition().x());
+              runAction->vSD1PhotonPositionYPushBack(aStep->GetPostStepPoint()->GetPosition().y());
+              runAction->vSD1PhotonPositionZPushBack(aStep->GetPostStepPoint()->GetPosition().z());
 	  }
           if(vName.find("psSiPM")&&aStep->GetPostStepPoint()->GetPosition().y()<0) {
-		runAction->vTimeOfPhotonInSD2PushBack(time);
-                runAction->vSD2PhotonPositionXPushBack(aStep->GetPostStepPoint()->GetPosition().x());
-                runAction->vSD2PhotonPositionYPushBack(aStep->GetPostStepPoint()->GetPosition().y());
-                runAction->vSD2PhotonPositionZPushBack(aStep->GetPostStepPoint()->GetPosition().z());
+              runAction->vTimeOfPhotonInSD2PushBack(time);
+              runAction->vSD2PhotonPositionXPushBack(aStep->GetPostStepPoint()->GetPosition().x());
+              runAction->vSD2PhotonPositionYPushBack(aStep->GetPostStepPoint()->GetPosition().y());
+              runAction->vSD2PhotonPositionZPushBack(aStep->GetPostStepPoint()->GetPosition().z());
           }
        }
       }

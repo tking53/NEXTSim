@@ -21,7 +21,7 @@ nDetSD::nDetSD(G4String name)
 :G4VSensitiveDetector(name)
 {
   G4String HCname;
-  collectionName.insert(HCname="hitsCollection");
+  collectionName.insert(HCname="SciCollection");
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
