@@ -1,0 +1,16 @@
+//
+// Created by David Pérez Loureiro on 1/9/17.
+//
+
+#ifndef NEXTMULTIPLESCATTERING_SIPMHITS_HH
+#define NEXTMULTIPLESCATTERING_SIPMHITS_HH
+
+
+
+class SiPMHits {
+
+};
+
+
+
+#endif //NEXTMULTIPLESCATTERING_SIPMHITS_HH
