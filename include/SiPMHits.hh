@@ -31,10 +31,13 @@ public:
     G4double GetTime() { return time; };
     void SetPos(G4ThreeVector xyz) { pos = xyz; };
     G4ThreeVector GetPos() { return pos; };
+    void SetSiPMNumber(G4int num) {SiPMnumber = num;}
+    G4int GetSiPMNumber() {return SiPMnumber;}
 
 private:
     G4double time;
     G4ThreeVector pos;
+    G4int SiPMnumber;
 
 };
 

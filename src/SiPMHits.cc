@@ -50,6 +50,7 @@ void SiPMHit::Draw()
         G4Circle circle(pos);
         circle.SetScreenSize(0.04);
         circle.SetFillStyle(G4Circle::filled);
+        //Red circle
         G4Colour colour(1.,0.,0.);
         G4VisAttributes attribs(colour);
         circle.SetVisAttributes(attribs);
