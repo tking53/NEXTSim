@@ -48,7 +48,7 @@ void SiPMHit::Draw()
     if(pVVisManager)
     {
         G4Circle circle(pos);
-        circle.SetScreenSize(0.04);
+        circle.SetScreenSize(0.08);
         circle.SetFillStyle(G4Circle::filled);
         //Red circle
         G4Colour colour(1.,0.,0.);
@@ -62,6 +62,7 @@ void SiPMHit::Draw()
 void SiPMHit::Print()
 {
     G4cout << "  time: " << G4BestUnit(time,"Time")
-           << "  position: " << G4BestUnit(pos,"Length") << G4endl;
+           << "  position: " << G4BestUnit(pos,"Length") << G4endl
+           << "  detector number: " << GetSiPMNumber() << G4endl;
 
 }

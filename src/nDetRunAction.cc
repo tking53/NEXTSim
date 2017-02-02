@@ -38,8 +38,10 @@ void nDetRunAction::BeginOfRunAction(const G4Run* aRun)
 
   // open a root file.
   openRootFile(aRun);
+    if(file)
+    G4cout << "### File " << file->GetName() << " opened." << G4endl;
 
-  // get RunId
+    // get RunId
   setRunNb(aRun->GetRunID());
 
 }
@@ -53,12 +55,15 @@ void nDetRunAction::EndOfRunAction(const G4Run* aRun)
          << " " << *timer << G4endl;
 
   // close the root file.
-  if (IsMaster()){
-    file->Write();
-    file->Close();
-
-    G4cout << "*** " << fileName << " is created." << G4endl; 
+  if(file){
+    if (IsMaster()){
+        file->Write();
+        file->Close();
+        G4cout << "*** " << fileName << " is created." << G4endl;
+    }
   }
+  else
+    G4cout << "*** No output file created." << G4endl;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

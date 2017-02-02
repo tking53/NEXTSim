@@ -37,47 +37,41 @@ G4bool SiPMSD::ProcessHits_constStep(const G4Step *aStep, G4TouchableHistory *RO
     if(aStep->GetTrack()->GetDefinition()
        != G4OpticalPhoton::OpticalPhotonDefinition()) return false;
 
-    //User replica number 1 since photocathode is a daughter volume
-    //to the pmt which was replicated
     G4int SipmNumber=
-            aStep->GetPostStepPoint()->GetTouchable()->GetReplicaNumber(1);
+            aStep->GetPostStepPoint()->GetTouchable()->GetReplicaNumber();
+    //G4cout<<"SiPM number "<<SipmNumber<<G4endl;
+
     G4VPhysicalVolume* physVol=
-            aStep->GetPostStepPoint()->GetTouchable()->GetVolume(1);
+            aStep->GetPostStepPoint()->GetTouchable()->GetVolume();
 
-    //Find the correct hit collection
-    G4int n=hitsCollection->entries();
-    SiPMHit* hit=NULL;
-    for(G4int i=0;i<n;i++){
-        if((*hitsCollection)[i]->GetSiPMNumber()==SipmNumber){
-            hit=(*hitsCollection)[i];
-            break;
-        }
-    }
+    //G4cout<<"SiPMSD::ProcessHits_constStep()-->"<<physVol->GetName()<<" "<<physVol->GetMultiplicity()<<G4endl;
+    //G4cout<<"SiPMSD::ProcessHits_constStep()-->"<<aStep->GetPostStepPoint()->GetTouchable()->GetVolume()->GetName()
+    //      <<" "<<aStep->GetPostStepPoint()->GetTouchable()->GetReplicaNumber()<<G4endl;
 
-    if(hit==NULL){//this pmt wasn't previously hit in this event
-        hit = new SiPMHit(); //so create new hit
-        hit->SetSiPMNumber(SipmNumber);
-    //    hit->SetPMTPhysVol(physVol);
-        hitsCollection->insert(hit);
-    //    hit->SetPMTPos((*fPMTPositionsX)[pmtNumber],(*fPMTPositionsY)[pmtNumber],
-    //                   (*fPMTPositionsZ)[pmtNumber]);
-    }
+    SiPMHit* hit = new SiPMHit(); //so create new hit
+    hit->SetSiPMNumber(SipmNumber);
+    hit->SetTime( aStep->GetPostStepPoint()->GetGlobalTime() );
+    hit->SetPos( aStep->GetPostStepPoint()->GetPosition() );
+    //hit->SetEventID(aStep->Ge)
+
+    hitsCollection->insert(hit);
 
     //hit->IncPhotonCount(); //increment hit for the selected pmt
+
+    return true;
 
 }
 
 void SiPMSD::EndOfEvent(G4HCofThisEvent *HCE){
 
-    if (verboseLevel>0) {
-        G4int NbHits = hitsCollection->entries();
-        G4cout << "\n-------->Hits Collection: in this event they are " << NbHits
-               << " hits in the readout pixel cathode: " << G4endl;
-        for (G4int i=0;i<NbHits;i++) (*hitsCollection)[i]->Print();
+    if (verboseLevel>0)
+        PrintAll();
+    G4int NbHits = hitsCollection->entries();
+if(verboseLevel >0) {
+    if (NbHits > 0) {
         G4cout << "Hit Number: " << NbHits << G4endl;
     }
-
-
+}
 }
 
 void SiPMSD::clear() {
@@ -90,6 +84,14 @@ void SiPMSD::DrawAll() {
 
 void SiPMSD::PrintAll() {
 
+        G4int NbHits = hitsCollection->entries();
+    if(verboseLevel>1) {
+        if (NbHits > 0) {
+            G4cout << "\n-------->Hits Collection: in this event they are " << NbHits
+                   << " hits in the SiPMs cathodes: " << G4endl;
+            for (G4int i = 0; i < NbHits; i++) (*hitsCollection)[i]->Print();
+        }
+    }
 }
 
 

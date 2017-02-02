@@ -95,7 +95,15 @@ void nDetSteppingAction::UserSteppingAction(const G4Step* aStep)
       boundaryStatus = boundary->GetStatus();
       if(aStep->GetPostStepPoint()->GetStepStatus()==fGeomBoundary ){
         if(boundaryStatus == Detection){
-          G4String vName = aStep->GetPostStepPoint()->GetPhysicalVolume()->GetName();
+
+            //Triger sensitive detector manually since photon is
+            //absorbed but status was Detection
+            G4SDManager* SDman = G4SDManager::GetSDMpointer();
+            G4String sdName="theSiPMSD";
+            SiPMSD* sipmSD = (SiPMSD*)SDman->FindSensitiveDetector(sdName);
+            if(sipmSD)sipmSD->ProcessHits_constStep(aStep,NULL);
+
+            G4String vName = aStep->GetPostStepPoint()->GetPhysicalVolume()->GetName();
           G4double time = aStep->GetPostStepPoint()->GetGlobalTime();
           //G4cout<<"Detect one photon in SiPM"<< vName<<" Global time: "<<time<<" at the position of "<<aStep->GetPostStepPoint()->GetPosition().y()<<G4endl;
 

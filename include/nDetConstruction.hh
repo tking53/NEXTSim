@@ -27,7 +27,9 @@
 #include "G4OpticalSurface.hh"
 #include "G4Box.hh"
 #include "G4Tubs.hh"
+#include "G4Polyhedra.hh"
 #include "G4Trap.hh"
+#include "G4Trd.hh"
 #include "G4LogicalVolume.hh"
 #include "G4VisAttributes.hh"
 #include "G4RotationMatrix.hh"
@@ -42,11 +44,14 @@
 
 #include "G4SubtractionSolid.hh"
 
+#include "nDetConstructionMessenger.hh"
+
 // Replica 
 // Assembly volumes
 // no assembly is used currently
 #include "G4AssemblyVolume.hh"
-
+#include "SiPMSD.hh"
+#include "nDetSD.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -58,8 +63,12 @@ class nDetConstruction : public G4VUserDetectorConstruction
 
   public:
     G4VPhysicalVolume* Construct();
+    virtual void ConstructSDandField();
+
 
   private:
+
+    nDetConstructionMessenger *fDetectorMessenger;
     // data of detector structure; half of size
     G4double expHallX;		// width
     G4double expHallY;		// length
@@ -89,6 +98,10 @@ class nDetConstruction : public G4VUserDetectorConstruction
     G4double psSiPMy;
     G4double psSiPMz;
 
+    G4int fNdetectors;
+
+    G4String fGeometry;
+
     // logical and physical volume
     G4LogicalVolume* expHall_logV;
     G4LogicalVolume* assembly_logV;
@@ -101,10 +114,53 @@ class nDetConstruction : public G4VUserDetectorConstruction
     G4VPhysicalVolume* expHall_physV;
     G4VPhysicalVolume* assembly_physV;
 
+    SiPMSD *fSiPMSD;
+    nDetSD *fScintSD;
+
+    //Materials and elements
+
+    G4Element* fH;
+    G4Element* fC;
+    G4Element* fO;
+    G4Element* fF;
+    G4Element* fSi;
+
+    G4Material* fAir;
+    G4Material* fTeflon;
+    G4Material* fEJ200;
+    G4Material* fGrease;
+    G4Material* fSiO2;
+    G4Material* fSil;
+
+    //Material table properties
+    G4MaterialPropertiesTable* fAirMPT;
+    G4MaterialPropertiesTable* fTeflonMPT;
+    G4MaterialPropertiesTable* fEJ200MPT;
+    G4MaterialPropertiesTable* fGreaseMPT;
+    G4MaterialPropertiesTable* fSiO2MPT;
+    G4MaterialPropertiesTable* fSilMPT;
+
+    //Optical Surfaces
+    G4OpticalSurface* fTeflonOpticalSurface;
+    G4OpticalSurface* fSiliconPMOpticalSurface;
+
+    //Logical Skins
+
+    G4LogicalSkinSurface* fWrapSkinSurface;
+    G4LogicalSkinSurface* fSiPMSkinSurface;
+
+
+
     // member functions
     void buildExpHall();
     void buildAssembly();
     void buildDisk();
+    void buildEllipse();
+
+    void DefineMaterials();
+
+    void buildSiPMs();
+
 
 };
 

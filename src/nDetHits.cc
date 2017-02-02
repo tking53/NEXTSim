@@ -61,6 +61,7 @@ void nDetHit::Draw()
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 void nDetHit::Print()
 {
+
   G4cout << "  time: " << G4BestUnit(time,"Time")
          << "  position: " << G4BestUnit(pos,"Length") << G4endl;
 

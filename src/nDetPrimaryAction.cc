@@ -33,17 +33,17 @@ nDetPrimaryGeneratorAction::nDetPrimaryGeneratorAction(nDetRunAction* run)
   //
   G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
 
-  G4ParticleDefinition* particle = G4Neutron::NeutronDefinition();
- // G4ParticleDefinition* particle = G4Alpha::AlphaDefinition();
-  //G4ParticleDefinition* particle = G4Gamma::GammaDefinition();
+  //G4ParticleDefinition* particle = G4Neutron::NeutronDefinition();
+ //G4ParticleDefinition* particle = G4Alpha::AlphaDefinition();
+  G4ParticleDefinition* particle = G4Gamma::GammaDefinition();
 //  G4ParticleDefinition* particle = G4Electron::ElectronDefinition();
 
   particleGun->SetParticleDefinition(particle);
 
-  particleGun->SetParticleMomentumDirection(G4ThreeVector(1, 0., 0)); // along the x-axis direction
+  particleGun->SetParticleMomentumDirection(G4ThreeVector(0, -1., 0)); // along the y-axis direction
  // particleGun->SetParticleEnergy(10*MeV);
   //changed to 1 MeV KS 5/20/16
-  particleGun->SetParticleEnergy(500.*keV);
+  particleGun->SetParticleEnergy(662.*keV);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -63,11 +63,10 @@ void nDetPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 //  G4double y = G4UniformRand()*0.00075; //
 
 // one unit of the small structure
-  G4double x = -51*mm; //(G4UniformRand()-5/6.0)*0.0015;
-  // changing the neutron incident position to study the position performance 
-  //  
-  G4double y = (G4UniformRand()-0.5)*100;
-  G4double z = 1.67*mm; // center of one pixel 
+  G4double x = 0*mm; //(G4UniformRand()-5/6.0)*0.0015;
+  // changing the neutron incident position to study the position performance
+    G4double y = 100*mm;
+    G4double z = 0*mm; // center of one pixel
 
 //  x=-2*mm;
 //  y=0;

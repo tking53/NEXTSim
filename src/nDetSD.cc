@@ -82,7 +82,7 @@ G4bool nDetSD::ProcessHits(const G4Step* aStep)
         G4cout<<"Physical volume name:"<<name<<G4endl;
         G4cout<<"Physical volume of prestep point: " << aStep->GetPreStepPoint()->GetPhysicalVolume()->GetName()<<G4endl;
         G4cout<<"Physical volume of poststep point: " << aStep->GetPostStepPoint()->GetPhysicalVolume()->GetName()<<G4endl;
-        G4cout<<"Length of tghis Step: "<<aStep->GetStepLength()/mm<<" mm"<<G4endl;
+        G4cout<<"Length of this Step: "<<aStep->GetStepLength()/mm<<" mm"<<G4endl;
         G4cout<<"**************** SD stop ************"<< G4endl;
         /// old codes used to pick off the information about hit in SD
         nDetHit* newHit = new nDetHit();
@@ -97,10 +97,10 @@ G4bool nDetSD::ProcessHits(const G4Step* aStep)
 void nDetSD::EndOfEvent(G4HCofThisEvent*)
 {
 
-  if (verboseLevel>0) {
+  if (verboseLevel>1) {
      G4int NbHits = hitsCollection->entries();
      G4cout << "\n-------->Hits Collection: in this event they are " << NbHits
-            << " hits in the readout pixel cathode: " << G4endl;
+            << " hits in the scintillator: " << G4endl;
      for (G4int i=0;i<NbHits;i++) (*hitsCollection)[i]->Print();
      G4cout << "Hit Number: " << NbHits << G4endl;
      }

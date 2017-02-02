@@ -61,20 +61,22 @@ int main(int argc, char** argv)
 
 
   // Construct the default run manager
-/*#ifdef G4MULTITHREADED
+#ifdef G4MULTITHREADED
   G4MTRunManager* runManager = new G4MTRunManager;
   runManager->SetNumberOfThreads(G4Threading::G4GetNumberOfCores());
 #else
   G4RunManager* runManager = new G4RunManager;
 #endif
-*/
 
-  G4RunManager *runManager = new G4RunManager;
+
+  //G4RunManager *runManager = new G4RunManager;
 
   // set mandatory initialization classes
   // Initialize the detector
   nDetConstruction* detector = new nDetConstruction;
   runManager->SetUserInitialization( detector );
+
+  std::cout<<"nDetConstruction()-->"<<detector<<std::endl;
 
 /*  // Initialize the physics lists
   // The LBE modular physics list is used in this program
@@ -135,7 +137,8 @@ that didn't work... this is horribly deprecated*/
   if (argc==1)   // Define UI session for interactive mode
     {
 #ifdef G4UI_USE
-      G4UIExecutive * ui = new G4UIExecutive(argc,argv);
+      G4UIExecutive * ui;
+      ui = new G4UIExecutive(argc,argv,"");
 #ifdef G4VIS_USE
       UImanager->ApplyCommand("/control/execute ./mac/vis.mac");
 #endif
@@ -156,6 +159,7 @@ that didn't work... this is horribly deprecated*/
   delete visManager;
 #endif
   delete runManager;
+    //std::cout<<"runManager is deleted"<<std::endl;
   //delete verbosity;
   
   return 0;
