@@ -64,9 +64,12 @@ class nDetConstruction : public G4VUserDetectorConstruction
   public:
     G4VPhysicalVolume* Construct();
     virtual void ConstructSDandField();
+    void SetGeometry(G4String geom){fGeometry=geom;}
+    G4String GetGeometry(){return fGeometry;}
+    void UpdateGeometry();
 
 
-  private:
+private:
 
     nDetConstructionMessenger *fDetectorMessenger;
     // data of detector structure; half of size
@@ -158,6 +161,7 @@ class nDetConstruction : public G4VUserDetectorConstruction
     void buildEllipse();
 
     void DefineMaterials();
+
 
     void buildSiPMs();
 

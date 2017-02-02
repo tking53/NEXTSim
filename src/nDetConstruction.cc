@@ -9,6 +9,10 @@
 #include "nDetConstruction.hh"
 #include "G4SDManager.hh"
 
+#include "G4SolidStore.hh"
+#include "G4LogicalVolumeStore.hh"
+#include "G4PhysicalVolumeStore.hh"
+#include "G4RunManager.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -655,14 +659,19 @@ void nDetConstruction::buildEllipse() {
 
     G4ThreeVector translation22(0,0,-1*((1.94/2+1.)*inches+1*(greaseY+qwSiPMy+psSiPMy)));
 
-    //G4UnionSolid *theWrapping=new G4UnionSolid("theWrapping",theWrapping2,wrappinBox2,rot,translation22);
+
 
     //theBox
     xdimension=1.18/2*inches+teflonThickness;
     ydimension=0.24/2*inches+teflonThickness;
     zdimension=(1.94/2+1)*inches+teflonThickness+2*(greaseY+qwSiPMy+psSiPMy);
 
-    G4Box *theWrapping=new G4Box("theWrapping",xdimension,ydimension,zdimension);
+    G4VSolid *theWrapping=NULL;
+
+    if(fGeometry == "ellipse")
+        theWrapping=new G4UnionSolid("theWrapping",theWrapping2,wrappinBox2,rot,translation22);
+    else
+        theWrapping=new G4Box("theWrapping",xdimension,ydimension,zdimension);
 
 
 
@@ -704,7 +713,6 @@ void nDetConstruction::buildEllipse() {
 
     //rot->rotateX(180*deg);
 
-    //G4UnionSolid *thePlastic=new G4UnionSolid("thePlastic",thePlastic0,theTrapezoidScint2,rot,translation2);
 
 
     //theBox
@@ -712,8 +720,11 @@ void nDetConstruction::buildEllipse() {
     ydimension=0.24/2*inches;
     zdimension=(1.94/2+1)*inches;
 
-
-    G4Box *thePlastic=new G4Box("thePlastic",xdimension,ydimension,zdimension);
+    G4VSolid *thePlastic=NULL;
+    if(fGeometry=="ellipse")
+       thePlastic=new G4UnionSolid("thePlastic",thePlastic0,theTrapezoidScint2,rot,translation2);
+    else
+       thePlastic=new G4Box("thePlastic",xdimension,ydimension,zdimension);
 
 
     ej200_logV=new G4LogicalVolume(thePlastic,fEJ200,"plastic_log");
@@ -992,5 +1003,20 @@ void nDetConstruction::ConstructSDandField(){
 
         SetSensitiveDetector(ej200_logV, fScintSD);
     }
+
+}
+
+void nDetConstruction::UpdateGeometry(){
+
+    // clean-up previous geometry
+    G4SolidStore::GetInstance()->Clean();
+    G4LogicalVolumeStore::GetInstance()->Clean();
+    G4PhysicalVolumeStore::GetInstance()->Clean();
+
+    //define new one
+    G4RunManager::GetRunManager()->DefineWorldVolume(Construct());
+    G4RunManager::GetRunManager()->GeometryHasBeenModified();
+
+    return;
 
 }

@@ -37,6 +37,7 @@ private:
 
     G4UIcmdWithAString*  fGeometryCmd;
     G4UIcmdWith3VectorAndUnit *fSiliconDimensionsCmd;
+    G4UIcommand*         fUpdateCmd;
 
 };
 

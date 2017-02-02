@@ -27,6 +27,8 @@ nDetConstructionMessenger::nDetConstructionMessenger(nDetConstruction* detector)
     fSiliconDimensionsCmd=new G4UIcmdWith3VectorAndUnit("/nDet/detector/setSiPMdimensions",this);
     fSiliconDimensionsCmd->SetGuidance("Defines the size of the SiPMs");
 
+    fUpdateCmd=new G4UIcommand("/nDet/detector/update",this);
+    fUpdateCmd->SetGuidance("Updates the detector Geometry");
     //std::cout<<"nDetConstructionMessenger::nDetConstructionMessenger()->"<<fGeometryCmd<<std::endl;
 
 }
@@ -41,16 +43,23 @@ nDetConstructionMessenger::~nDetConstructionMessenger(){
 
     delete fGeometryCmd;
 
+    delete fUpdateCmd;
+
     //G4cout<<"nDetConstructionMessenger::~nDetConstructionMessenger()->"<<fGeometryCmd<<G4endl;
 }
 
 void nDetConstructionMessenger::SetNewValue(G4UIcommand* command,G4String newValue){
 
     if(command == fGeometryCmd){
-        ;
+        fDetector->SetGeometry(newValue);
     }
 
     if(command == fSiliconDimensionsCmd) {
 ;
+    }
+
+    if(command == fUpdateCmd){
+
+       fDetector->UpdateGeometry();
     }
 }
