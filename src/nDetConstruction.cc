@@ -333,13 +333,13 @@ void nDetConstruction::buildDisk()
     const G4double maxRadius[]={maxDiskRadius,maxDiskRadius};
     const G4double minRadius[]={minDiskRadius,minDiskRadius};
 
-
+    G4VSolid *assemblyDisk=NULL;
 
     if(fGeometry=="disk")
-    G4Tubs* assemblyDisk = new G4Tubs("Disk",minDiskRadius,maxDiskRadius,diskLength,startAngle,endAngle);
+    assemblyDisk = (G4Tubs*)new G4Tubs("Disk",minDiskRadius,maxDiskRadius,diskLength,startAngle,endAngle);
 
     else
-    G4Polyhedra *assemblyDisk= new G4Polyhedra("Hexagon",startAngle,endAngle,nSides,nPlanes,zplanes,minRadius,maxRadius);
+    assemblyDisk= (G4Polyhedra*) new G4Polyhedra("Hexagon",startAngle,endAngle,nSides,nPlanes,zplanes,minRadius,maxRadius);
 
     G4double BoxX=1.52*mm;
     G4double BoxY=1.52*mm;
@@ -383,9 +383,11 @@ void nDetConstruction::buildDisk()
     const G4double maxRadius2[]={maxDiskRadius,maxDiskRadius};
     const G4double minRadius2[]={minDiskRadius,minDiskRadius};
 
-    G4Tubs* scintillatorDisk = new G4Tubs("SciDisk",minDiskRadius,maxDiskRadius,diskLength,startAngle,endAngle);
-
-    //G4Polyhedra *scintillatorDisk= new G4Polyhedra("SciHexagon",startAngle,endAngle,nSides,nPlanes,zplanes2,minRadius2,maxRadius2);
+    G4VSolid *scintillatorDisk=NULL;
+    if(fGeometry=="disk")
+        scintillatorDisk = (G4Tubs*)new G4Tubs("SciDisk",minDiskRadius,maxDiskRadius,diskLength,startAngle,endAngle);
+    else
+        scintillatorDisk= (G4Polyhedra*) new G4Polyhedra("SciHexagon",startAngle,endAngle,nSides,nPlanes,zplanes2,minRadius2,maxRadius2);
 
 
 
@@ -650,7 +652,7 @@ void nDetConstruction::buildEllipse() {
     rot->rotateX(180*deg);
 
     G4UnionSolid *theWrapping2=new G4UnionSolid("theWrapping",theWrapping1,theTrapezoid2,rot,translation2);
-    
+
     G4ThreeVector translation22(0,0,-1*((1.94/2+1.)*inches+1*(greaseY+qwSiPMy+psSiPMy)));
 
     //G4UnionSolid *theWrapping=new G4UnionSolid("theWrapping",theWrapping2,wrappinBox2,rot,translation22);
