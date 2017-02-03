@@ -320,6 +320,16 @@ void nDetConstruction::buildDisk()
   //     The assembly volume is defined as a wrapping material
   //-----------------------------------------------------------
 
+
+
+    greaseX = 1.5 * mm;
+    greaseZ = 1.5 * mm;
+    qwSiPMx = 1.5 * mm;
+    qwSiPMz = 1.5 * mm;
+    psSiPMx = 1.5 * mm;
+    psSiPMz = 1.5 * mm;
+
+
     G4double teflonThickness=0.11*mm;
 
     G4double minDiskRadius=0*mm;
@@ -892,12 +902,15 @@ void nDetConstruction::DefineMaterials() {
 void nDetConstruction::buildSiPMs() {
 
     G4double inches=25.4*mm;
-    greaseX=0.12*inches;
-    greaseZ=0.12*inches;
-    qwSiPMx=0.12*inches;
-    qwSiPMz=0.12*inches;
-    psSiPMx=0.12*inches;
-    psSiPMz=0.12*inches;
+    
+    if(fGeometry == "ellipse" || fGeometry == "rectangle") {
+        greaseX = 0.12 * inches;
+        greaseZ = 0.12 * inches;
+        qwSiPMx = 0.12 * inches;
+        qwSiPMz = 0.12 * inches;
+        psSiPMx = 0.12 * inches;
+        psSiPMz = 0.12 * inches;
+    }
 
     fNdetectors=2;
     G4int factor=1;
