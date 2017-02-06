@@ -11,6 +11,8 @@
 #include "globals.hh"
 #include "G4UserRunAction.hh"
 
+#include "nDetAnalysisManager.hh"
+
 #include "TFile.h"
 #include "TTree.h"
 #include "TBranch.h"
@@ -122,6 +124,8 @@ class nDetRunAction : public G4UserRunAction
 //The following are added by Kyle
     std::vector<std::string> particleName;
     std::vector<double>      particleCharge;
+
+    nDetAnalysisManager *fAnalysisManager;
 
 };
 

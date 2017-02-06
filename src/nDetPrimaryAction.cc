@@ -7,8 +7,6 @@
 
 #include "nDetPrimaryGeneratorAction.hh"
 
-#include "Randomize.hh"
-
 #include "G4Event.hh"
 #include "G4ParticleGun.hh"
 #include "G4ParticleTable.hh"
@@ -20,6 +18,7 @@
 #include "G4Triton.hh"
 #include "G4Deuteron.hh"
 #include "Randomize.hh"
+#include "G4GeneralParticleSource.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -63,23 +62,26 @@ void nDetPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 //  G4double y = G4UniformRand()*0.00075; //
 
 // one unit of the small structure
-  G4double x = 0*mm; //(G4UniformRand()-5/6.0)*0.0015;
+  //G4double x = 0*mm; //(G4UniformRand()-5/6.0)*0.0015;
   // changing the neutron incident position to study the position performance
-    G4double y = 100*mm;
-    G4double z = 0*mm; // center of one pixel
+  //  G4double y = 100*mm;
+  //  G4double z = 0*mm; // center of one pixel
 
 //  x=-2*mm;
 //  y=0;
 //  z=0;
 
 
-  particleGun->SetParticlePosition(G4ThreeVector(x, y, z));
-  
-  runAct->setNeutronIncidentPositionX(x);
-  runAct->setNeutronIncidentPositionY(y);
-  runAct->setNeutronIncidentPositionZ(z);
+  //particleGun->SetParticlePosition(G4ThreeVector(x, y, z));
 
   particleGun->GeneratePrimaryVertex(anEvent);
+
+  G4ThreeVector VertexPosition= particleGun->GetParticlePosition();
+
+  runAct->setNeutronIncidentPositionX(VertexPosition.x());
+  runAct->setNeutronIncidentPositionY(VertexPosition.y());
+  runAct->setNeutronIncidentPositionZ(VertexPosition.z());
+
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

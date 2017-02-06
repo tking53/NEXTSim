@@ -44,6 +44,17 @@ void nDetRunAction::BeginOfRunAction(const G4Run* aRun)
     // get RunId
   setRunNb(aRun->GetRunID());
 
+  fAnalysisManager= (nDetAnalysisManager*)nDetAnalysisManager::Instance();
+
+    fAnalysisManager->SetVerboseLevel(2);
+
+    G4cout<<"nDetRunAction::BeginOfRunAction()->fAnalysisManager "<<fAnalysisManager<<G4endl;
+
+    fAnalysisManager->OpenROOTFile("DPL_test.root");
+
+
+    G4cout<<"nDetRunAction::BeginOfRunAction()->theTree "<<fAnalysisManager->GetTree()<<G4endl;
+
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -54,7 +65,11 @@ void nDetRunAction::EndOfRunAction(const G4Run* aRun)
   G4cout << "number of event = " << aRun->GetNumberOfEvent() 
          << " " << *timer << G4endl;
 
-  // close the root file.
+
+    fAnalysisManager->WriteFile();
+    fAnalysisManager->CloseROOTFile();
+
+    // close the root file.
   if(file){
     if (IsMaster()){
         file->Write();

@@ -41,6 +41,7 @@
 #include "nDetEventAction.hh"
 #include "nDetStackingAction.hh"
 #include "nDetSteppingAction.hh"
+#include "nDetAnalysisManager.hh"
 //#include "nDetActionInitialization.hh"
 
 #include "G4OpticalPhysics.hh"
@@ -123,7 +124,9 @@ that didn't work... this is horribly deprecated*/
   
   nDetStackingAction* stackingAction = new nDetStackingAction(runAction);
   runManager->SetUserAction(stackingAction);
-  
+
+  //nDetAnalysisManager *theManager=(nDetAnalysisManager*)nDetAnalysisManager::Instance();
+
 //So we do this instead K Schmitt 6/16/16
 //  runManager->SetUserInitialization(new nDetActionInitialization());
 //end of Kyle's changes

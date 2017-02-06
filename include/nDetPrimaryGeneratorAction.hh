@@ -16,6 +16,7 @@
 #include "G4PhysicalConstants.hh"
 
 class G4ParticleGun;
+class G4GeneralParticleSource;
 class G4Event;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
