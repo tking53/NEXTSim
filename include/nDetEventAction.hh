@@ -13,6 +13,7 @@
 
 #include "G4UserEventAction.hh"
 #include "globals.hh"
+#include "nDetAnalysisManager.hh"
 
 //class G4Event;
 class nDetRunAction;
@@ -37,7 +38,7 @@ class nDetEventAction : public G4UserEventAction
   private:
     nDetRunAction* runAct;
     G4double depositedEnergy;   // deposited energy in Scintillator.
-
+    nDetAnalysisManager *fAnalysisManager;
     G4long eventID;
 };
 

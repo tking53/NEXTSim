@@ -10,6 +10,9 @@
 #include "TFile.h"
 #include "TROOT.h"
 #include <vector>
+#include "G4Run.hh"
+#include "G4Event.hh"
+#include "time.h"
 
 class nDetAnalysisManager:public G4RootAnalysisManager {
 
@@ -23,10 +26,18 @@ class nDetAnalysisManager:public G4RootAnalysisManager {
     void OpenROOTFile(const G4String fileName);
     void WriteFile();
     void CloseROOTFile();
+    void FillTree();
+    void ResetEvent();
 
+    void BeginOfRunAction(const G4Run *aRun);
+    void EndOfRunAction(const G4Run *aRun);
 
+    void BeginOfEventAction(const G4Event *anEvent);
+    void EndOfEventAction(const G4Event *anEvent);
 
-    private:
+    void OnceAWhileDoIt(const G4bool DoItNow=false);
+
+private:
 
     G4String fFileName;
 
@@ -37,6 +48,8 @@ class nDetAnalysisManager:public G4RootAnalysisManager {
     G4long fRunNb;
     G4long fEventNb;
 
+    time_t LastDoItTime;
+
 
     G4double     neutronIncidentPositionX;
     G4double     neutronIncidentPositionY;
@@ -45,25 +58,40 @@ class nDetAnalysisManager:public G4RootAnalysisManager {
     G4double     depEnergy; // energy deposition inside of the EJ200 scintillator
 
 
-    std::vector<double>     vPrimaryPhotonPositionX;
-    std::vector<double>     vPrimaryPhotonPositionY;
-    std::vector<double>     vPrimaryPhotonPositionZ;
-    std::vector<double>     vPrimaryPhotonTime;
+    std::vector<double>     fvPrimaryPhotonPositionX;
+    std::vector<double>     fvPrimaryPhotonPositionY;
+    std::vector<double>     fvPrimaryPhotonPositionZ;
+    std::vector<double>     fvPrimaryPhotonTime;
 
 
-    std::vector<double>     vSDPhotonPositionX;
-    std::vector<double>     vSDPhotonPositionY;
-    std::vector<double>     vSDPhotonPositionZ;
-    std::vector<double>     vSDPhotonTime;
-    std::vector<int>        vSDNumber;
+    std::vector<double>     fvSDPhotonPositionX;
+    std::vector<double>     fvSDPhotonPositionY;
+    std::vector<double>     fvSDPhotonPositionZ;
+    std::vector<double>     fvSDPhotonTime;
+    std::vector<int>        fvSDNumber;
 
 
-    std::vector<std::string> particleName;
-    std::vector<double>      particleCharge;
+    std::vector<std::string> fparticleName;
+    std::vector<double>      fparticleCharge;
 
 
 
 };
+
+
+
+class NEXTData:public TObject{
+
+public:
+
+    NEXTData();
+    ~NEXTData();
+    void Reset();
+    void Fill();
+
+ClassDef(NEXTData,1);
+};
+
 
 #endif //NEXTMULTIPLESCATTERING_NDETANALYSISMANAGER_HH
 

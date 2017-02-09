@@ -25,6 +25,7 @@ SiPMHit::SiPMHit(const SiPMHit &right)
 {
     time = right.time;
     pos = right.pos;
+    SiPMnumber=right.SiPMnumber;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -32,6 +33,7 @@ const SiPMHit& SiPMHit::operator=(const SiPMHit &right)
 {
     time = right.time;
     pos = right.pos;
+    SiPMnumber=right.SiPMnumber;
     return *this;
 }
 

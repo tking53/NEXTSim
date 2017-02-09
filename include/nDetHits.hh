@@ -36,10 +36,13 @@ class nDetHit : public G4VHit
       G4double GetTime() { return time; };
       void SetPos(G4ThreeVector xyz) { pos = xyz; };
       G4ThreeVector GetPos() { return pos; };
+      void SetEdep(G4double e) { edep = e; };
+      G4double GetEdep() { return edep; };
 
   private:
       G4double time;
       G4ThreeVector pos;
+      G4double edep;
 
 };
 

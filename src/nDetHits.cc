@@ -26,6 +26,7 @@ nDetHit::nDetHit(const nDetHit &right)
 { 
   time = right.time;
   pos = right.pos;
+  edep = right.edep;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -33,6 +34,7 @@ const nDetHit& nDetHit::operator=(const nDetHit &right)
 {
   time = right.time;
   pos = right.pos;
+  edep = right.edep;
   return *this;
 }
 

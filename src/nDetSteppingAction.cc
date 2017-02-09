@@ -99,13 +99,13 @@ void nDetSteppingAction::UserSteppingAction(const G4Step* aStep)
             //Triger sensitive detector manually since photon is
             //absorbed but status was Detection
             G4SDManager* SDman = G4SDManager::GetSDMpointer();
-            G4String sdName="theSiPMSD";
+            G4String sdName="/theSiPMSD";
             SiPMSD* sipmSD = (SiPMSD*)SDman->FindSensitiveDetector(sdName);
             if(sipmSD)sipmSD->ProcessHits_constStep(aStep,NULL);
 
             G4String vName = aStep->GetPostStepPoint()->GetPhysicalVolume()->GetName();
           G4double time = aStep->GetPostStepPoint()->GetGlobalTime();
-          //G4cout<<"Detect one photon in SiPM"<< vName<<" Global time: "<<time<<" at the position of "<<aStep->GetPostStepPoint()->GetPosition().y()<<G4endl;
+          G4cout<<"Detect one photon in SiPM"<< vName<<" Global time: "<<time<<" at the position of "<<aStep->GetPostStepPoint()->GetPosition().y()<<G4endl;
 
           if(vName.find("psSiPM")&&aStep->GetPostStepPoint()->GetPosition().y()>0) {
               runAction->vTimeOfPhotonInSD1PushBack(time);
@@ -128,4 +128,6 @@ void nDetSteppingAction::UserSteppingAction(const G4Step* aStep)
   }
 }
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
+
 

@@ -59,10 +59,12 @@ G4bool nDetSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
           G4cout<<"Length of this Step: "<<aStep->GetStepLength()/mm<<" mm"<<G4endl;
           G4cout<<"**************** SD stop ************"<< G4endl;
           */
+      G4double edep=aStep->GetTotalEnergyDeposit();
 
 	  nDetHit* newHit = new nDetHit();
   	  newHit->SetTime( aStep->GetPreStepPoint()->GetGlobalTime() );
-  	  newHit->SetPos( aStep->GetPreStepPoint()->GetPosition() );
+      newHit->SetPos( aStep->GetPreStepPoint()->GetPosition() );
+      newHit->SetEdep(edep);
   	  hitsCollection->insert( newHit );
         }
         else{

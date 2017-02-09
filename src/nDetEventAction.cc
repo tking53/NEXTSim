@@ -7,6 +7,7 @@
  
 #include "nDetEventAction.hh"
 #include "nDetHits.hh"
+#include "nDetAnalysisManager.hh"
 
 #include "G4Event.hh"
 #include "G4EventManager.hh"
@@ -23,8 +24,8 @@ nDetEventAction::nDetEventAction(nDetRunAction* run)
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
  
-nDetEventAction::~nDetEventAction()
-{}
+nDetEventAction::~nDetEventAction() {
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
  
@@ -37,7 +38,13 @@ void nDetEventAction::BeginOfEventAction(const G4Event* evt)
   if(eventID%1000 == 0) G4cout<<"Event ID: " << eventID << G4endl;
   // clear vector for next event
   runAct->vectorClear();
- 
+
+  fAnalysisManager=(nDetAnalysisManager*)nDetAnalysisManager::Instance();
+
+  if(fAnalysisManager)
+  fAnalysisManager->BeginOfEventAction(evt);
+
+
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -69,14 +76,17 @@ void nDetEventAction::EndOfEventAction(const G4Event* evt)
     }
   }
 */
+
+
   // set the depEnergy branch
   //G4cout<<depositedEnergy<<G4endl;
   runAct->setDepEnergy(depositedEnergy);  
   runAct->setEventNb(evt->GetEventID());
 
   // fill branches
-  runAct->fillBranch();
-
+    runAct->fillBranch();
+    if(fAnalysisManager)
+        fAnalysisManager->EndOfEventAction(evt);
   return;
 }
 

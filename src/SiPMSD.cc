@@ -64,7 +64,7 @@ G4bool SiPMSD::ProcessHits_constStep(const G4Step *aStep, G4TouchableHistory *RO
 
 void SiPMSD::EndOfEvent(G4HCofThisEvent *HCE){
 
-    if (verboseLevel>0)
+    if (verboseLevel>1)
         PrintAll();
     G4int NbHits = hitsCollection->entries();
 if(verboseLevel >0) {
