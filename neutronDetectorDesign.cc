@@ -105,7 +105,10 @@ that didn't work... this is horribly deprecated*/
 #endif
 
   //set optional user action classes
- //Geantcomplains we need ot change this for multithreading.  Moving the following to nDetActionInitialization.cc
+
+    nDetAnalysisManager *theManager= new nDetAnalysisManager();
+
+  //Geantcomplains we need ot change this for multithreading.  Moving the following to nDetActionInitialization.cc
   nDetRunAction* runAction =
                         new nDetRunAction();
   runManager->SetUserAction( runAction );
@@ -125,7 +128,6 @@ that didn't work... this is horribly deprecated*/
   nDetStackingAction* stackingAction = new nDetStackingAction(runAction);
   runManager->SetUserAction(stackingAction);
 
-  //nDetAnalysisManager *theManager=(nDetAnalysisManager*)nDetAnalysisManager::Instance();
 
 //So we do this instead K Schmitt 6/16/16
 //  runManager->SetUserInitialization(new nDetActionInitialization());

@@ -12,8 +12,17 @@
 #include "TSystem.h"
 nDetAnalysisManager::nDetAnalysisManager(){
 
-    G4cout << "nDetAnalysisManager::~nDetAnalysisManager()->"  << G4endl;
+    G4cout << "nDetAnalysisManager::nDetAnalysisManager()->"<<this<< G4endl;
+    G4cout<<"fvPrimaryPhotonPositionX "<<fvPrimaryPhotonPositionX.size()<<G4endl;
+    //std::vector<double>().swap(fvPrimaryPhotonPositionX);
+    //fvPrimaryPhotonPositionY.clear();
+    //std::vector<double>().swap(fvPrimaryPhotonPositionY);
+    G4cout<<"fvPrimaryPhotonPositionY "<<fvPrimaryPhotonPositionY.size()<<G4endl;
+    //fvPrimaryPhotonPositionZ.clear();
+    //std::vector<double>().swap(fvPrimaryPhotonPositionZ);
+    G4cout<<"fvPrimaryPhotonPositionZ "<<fvPrimaryPhotonPositionZ.size()<<G4endl;
 
+    //ResetEvent();
 }
 
 
@@ -32,13 +41,12 @@ nDetAnalysisManager::~nDetAnalysisManager(){
 void nDetAnalysisManager::OpenROOTFile( const G4String fileName){
 
     fFileName=fileName;
-
     fFile = new TFile(fileName,"RECREATE");
 
     G4cout << "nDetAnalysisManager::OpenROOTFile()->" << fFileName << " has been opened." << G4endl;
 
-    if(gSystem)
-        gSystem->ProcessEvents();
+    //if(gSystem)
+    //    gSystem->ProcessEvents();
 
     fTree=new TTree("theTree","NEXTSim Output Tree");
 
@@ -73,7 +81,7 @@ void nDetAnalysisManager::OpenROOTFile( const G4String fileName){
 
     G4cout << "nDetAnalysisManager::OpenROOTFile()->" << fTree->GetName() << " has been created." << G4endl;
 
-    OnceAWhileDoIt();
+    //OnceAWhileDoIt();
 
     return;
 
@@ -106,8 +114,8 @@ void nDetAnalysisManager::ResetEvent() {
 
     G4cout<<"nDetAnalysisManager::ResetEvent()"<<G4endl;
 
-    if(gSystem)
-        gSystem->ProcessEvents();
+    //if(gSystem)
+    //    gSystem->ProcessEvents();
 
     fEventNb=0;
 
@@ -115,26 +123,26 @@ void nDetAnalysisManager::ResetEvent() {
     neutronIncidentPositionY=0;
     neutronIncidentPositionZ=0;
 
-    fvPrimaryPhotonPositionX.resize(1);
-    fvPrimaryPhotonPositionY.resize(1);
-    fvPrimaryPhotonPositionZ.resize(1);
+    //fvPrimaryPhotonPositionX.resize(1);
+    //fvPrimaryPhotonPositionY.resize(1);
+    //fvPrimaryPhotonPositionZ.resize(1);
 
     depEnergy=0; // energy deposition inside of the EJ200 scintillator
-//    G4cout<<"fvPrimaryPhotonPositionX "<<fvPrimaryPhotonPositionX.size()<<G4endl;
-//    G4cout<<"fvPrimaryPhotonPositionY "<<fvPrimaryPhotonPositionY.size()<<G4endl;
-//    G4cout<<"fvPrimaryPhotonPositionZ "<<fvPrimaryPhotonPositionZ.size()<<G4endl;
+    //G4cout<<"fvPrimaryPhotonPositionX "<<fvPrimaryPhotonPositionX.size()<<G4endl;
+    //G4cout<<"fvPrimaryPhotonPositionY "<<fvPrimaryPhotonPositionY.size()<<G4endl;
+    //G4cout<<"fvPrimaryPhotonPositionZ "<<fvPrimaryPhotonPositionZ.size()<<G4endl;
 
 
-    G4cout<<"nDetAnalysisManager::ResetEvent()->Clearing Vectors..."<<G4endl;
+    //G4cout<<"nDetAnalysisManager::ResetEvent()->Clearing Vectors..."<<G4endl;
     //fvPrimaryPhotonPositionX.clear();
     std::vector<double>().swap(fvPrimaryPhotonPositionX);
-    G4cout<<"fvPrimaryPhotonPositionX "<<fvPrimaryPhotonPositionX.size()<<G4endl;
+    //G4cout<<"fvPrimaryPhotonPositionX "<<fvPrimaryPhotonPositionX.size()<<G4endl;
     //fvPrimaryPhotonPositionY.clear();
     std::vector<double>().swap(fvPrimaryPhotonPositionY);
-    G4cout<<"fvPrimaryPhotonPositionY "<<fvPrimaryPhotonPositionY.size()<<G4endl;
+    //G4cout<<"fvPrimaryPhotonPositionY "<<fvPrimaryPhotonPositionY.size()<<G4endl;
     //fvPrimaryPhotonPositionZ.clear();
     std::vector<double>().swap(fvPrimaryPhotonPositionZ);
-    G4cout<<"fvPrimaryPhotonPositionZ "<<fvPrimaryPhotonPositionZ.size()<<G4endl;
+    //G4cout<<"fvPrimaryPhotonPositionZ "<<fvPrimaryPhotonPositionZ.size()<<G4endl;
     //fvPrimaryPhotonTime.clear();
 
 
@@ -170,12 +178,12 @@ void nDetAnalysisManager::BeginOfRunAction(const G4Run *aRun) {
 
     ResetEvent();
 
-    if(gSystem) {
-       gSystem->ProcessEvents();
-    }
+    //if(gSystem) {
+    //   gSystem->ProcessEvents();
+    //}
     //G4cout<<"HERE!"<<G4endl;
 
-    OnceAWhileDoIt(true);
+    //OnceAWhileDoIt(true);
 
     //G4cout<<"HERE2!"<<G4endl;
     return;
@@ -187,13 +195,13 @@ void nDetAnalysisManager::EndOfRunAction(const G4Run *aRun) {
 
     G4cout<<"nDetAnalysisManager::EndOfRunAction()"<<G4endl;
 
-    if(gSystem)
-        gSystem->ProcessEvents();
+    //if(gSystem)
+    //    gSystem->ProcessEvents();
 
     WriteFile();
     CloseROOTFile();
 
-    OnceAWhileDoIt(true);
+    //OnceAWhileDoIt(true);
     return;
 
 
@@ -204,8 +212,8 @@ void nDetAnalysisManager::BeginOfEventAction(const G4Event *anEvent) {
 
     G4cout<<"nDetAnalysisManager::BeginOfEventAction()"<<G4endl;
 
-    if(gSystem)
-        gSystem->ProcessEvents();
+    //if(gSystem)
+    //    gSystem->ProcessEvents();
 
 
     ResetEvent();
@@ -216,7 +224,7 @@ void nDetAnalysisManager::BeginOfEventAction(const G4Event *anEvent) {
     fEventNb=anEvent->GetEventID();
 
 
-    OnceAWhileDoIt();
+    //OnceAWhileDoIt();
 
     return;
  }
@@ -300,7 +308,7 @@ void nDetAnalysisManager::EndOfEventAction(const G4Event *anEvent){
     FillTree();
     //ResetEvent();
 
-    OnceAWhileDoIt();
+    //OnceAWhileDoIt();
 
     return;
 
@@ -317,3 +325,4 @@ void nDetAnalysisManager::OnceAWhileDoIt(const G4bool DoItNow) {
     if (gSystem) gSystem->ProcessEvents();
 
 }
+

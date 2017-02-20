@@ -13,7 +13,7 @@
 nDetConstructionMessenger::nDetConstructionMessenger(nDetConstruction* detector)
         :fDetector(detector){
 
-    fDetectorDir=new G4UIdirectory("/nDet/detector");
+    fDetectorDir=new G4UIdirectory("/nDet/detector/");
     fDetectorDir->SetGuidance("Detector geometry control");
 
     fGeometryCmd=new G4UIcmdWithAString("/nDet/detector/setGeometry",this);

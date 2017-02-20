@@ -19,8 +19,15 @@
 
 nDetRunAction::nDetRunAction()
 {
+
+    G4cout << "nDetRunAction::nDetRunAction()->"<< G4endl;
+
+    G4cout << "nDetRunAction::nDetRunAction()->fAnalysisManager: "<<fAnalysisManager<< G4endl;
+
     timer = new G4Timer;
     fAnalysisManager= (nDetAnalysisManager*)nDetAnalysisManager::Instance();
+
+    G4cout << "nDetRunAction::nDetRunAction()->fAnalysisManager: "<<fAnalysisManager<< G4endl;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -28,7 +35,7 @@ nDetRunAction::nDetRunAction()
 nDetRunAction::~nDetRunAction()
 {
     delete timer;
-    //delete fAnalysisManager;
+    fAnalysisManager = 0;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
