@@ -50,6 +50,9 @@ private:
 
     time_t LastDoItTime;
 
+    G4int fScintCollectionID;
+    G4int fSiPMCollectionID;
+
 
     G4double     neutronIncidentPositionX;
     G4double     neutronIncidentPositionY;

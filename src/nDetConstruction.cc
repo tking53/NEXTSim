@@ -12,6 +12,7 @@
 #include "G4SolidStore.hh"
 #include "G4LogicalVolumeStore.hh"
 #include "G4PhysicalVolumeStore.hh"
+#include "G4GeometryManager.hh"
 #include "G4RunManager.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -72,7 +73,18 @@ G4VPhysicalVolume* nDetConstruction::Construct()
 {
 
     G4cout<<"nDetConstruction::Construct()-->"<<G4endl;
-  // build experiment hall
+
+    if (expHall_physV) {
+        G4GeometryManager::GetInstance()->OpenGeometry();
+        G4PhysicalVolumeStore::GetInstance()->Clean();
+        G4LogicalVolumeStore::GetInstance()->Clean();
+        G4SolidStore::GetInstance()->Clean();
+        //G4LogicalSkinSurface::CleanSurfaceTable();
+        //G4LogicalBorderSurface::CleanSurfaceTable();
+    }
+
+
+    // build experiment hall
   buildExpHall();
 
   // build assembly volume
@@ -998,6 +1010,13 @@ void nDetConstruction::ConstructSDandField(){
 
     G4cout<<"nDetConstruction::ConstructSDandField()-->"<<G4endl;
 
+    if(ej200_logV) {
+        fScintSD = new nDetSD("/theScintSD");
+
+        G4cout << "fScintSD--> " << fScintSD << G4endl;
+
+        SetSensitiveDetector(ej200_logV, fScintSD);
+    }
 
 
     if(psSiPM_logV) {
@@ -1009,14 +1028,6 @@ void nDetConstruction::ConstructSDandField(){
         SetSensitiveDetector(psSiPM_logV, fSiPMSD);
     }
 
-    if(ej200_logV) {
-        fScintSD = new nDetSD("/theScintSD");
-
-        G4cout << "fScintSD--> " << fScintSD << G4endl;
-
-        SetSensitiveDetector(ej200_logV, fScintSD);
-    }
-
 }
 
 void nDetConstruction::UpdateGeometry(){
@@ -1025,10 +1036,10 @@ void nDetConstruction::UpdateGeometry(){
     G4SolidStore::GetInstance()->Clean();
     G4LogicalVolumeStore::GetInstance()->Clean();
     G4PhysicalVolumeStore::GetInstance()->Clean();
-
     //define new one
     G4RunManager::GetRunManager()->DefineWorldVolume(Construct());
     G4RunManager::GetRunManager()->GeometryHasBeenModified();
+    G4RunManager::GetRunManager()->ReinitializeGeometry();
 
     return;
 

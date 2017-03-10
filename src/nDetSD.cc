@@ -11,7 +11,6 @@
 #include "G4HCofThisEvent.hh"
 #include "G4TouchableHistory.hh"
 #include "G4ios.hh"
-
 #include "G4OpBoundaryProcess.hh"
 #include "G4ProcessManager.hh"
 
@@ -41,12 +40,16 @@ void nDetSD::Initialize(G4HCofThisEvent* HCE)
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 G4bool nDetSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
 {
-        /*
+
+    //G4cout<<"nDetSD::ProcessHits()->"<< G4endl;
+
+
+	/*
 	G4cout<<"**************** SD start ************"<< G4endl;
 	G4cout<<"Process name:"<<aStep->GetPreStepPoint()->GetProcessDefinedStep()->GetProcessName()<<G4endl;
 	G4String name = aStep->GetTrack()->GetVolume()->GetName();
 	G4cout<<"Physical volume name:"<<name<<G4endl;
-	G4cout<<"Length of this Step: "<<aStep->GetStepLength()/mm<<" mm"<<G4endl;
+	G4cout<<"Length of this Step: "<<aStep->GetStepLength()<<" mm"<<G4endl;
 	G4cout<<"**************** SD stop ************"<< G4endl;
 	*/
 
@@ -98,13 +101,15 @@ G4bool nDetSD::ProcessHits(const G4Step* aStep)
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 void nDetSD::EndOfEvent(G4HCofThisEvent*)
 {
+    G4int NbHits = hitsCollection->entries();
 
-  if (verboseLevel>1) {
-     G4int NbHits = hitsCollection->entries();
+    if (verboseLevel>1) {
      G4cout << "\n-------->Hits Collection: in this event they are " << NbHits
             << " hits in the scintillator: " << G4endl;
      for (G4int i=0;i<NbHits;i++) (*hitsCollection)[i]->Print();
-     G4cout << "Hit Number: " << NbHits << G4endl;
+  }
+  if(verboseLevel>0){
+     G4cout << "Hit Number in Scint: " << NbHits << G4endl;
      }
 
 }

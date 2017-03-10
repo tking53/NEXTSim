@@ -52,9 +52,15 @@ G4bool SiPMSD::ProcessHits_constStep(const G4Step *aStep, G4TouchableHistory *RO
     hit->SetSiPMNumber(SipmNumber);
     hit->SetTime( aStep->GetPostStepPoint()->GetGlobalTime() );
     hit->SetPos( aStep->GetPostStepPoint()->GetPosition() );
+
+    //G4cout<<"hit->GetPos()->"<<hit->GetPos()<<G4endl;
     //hit->SetEventID(aStep->Ge)
 
+
     hitsCollection->insert(hit);
+
+    //G4cout<<"hit->Size "<<hitsCollection->GetSize()<<G4endl;
+    //G4cout<<"hit->Size "<<hitsCollection->GetSize()<<G4endl;
 
     //hit->IncPhotonCount(); //increment hit for the selected pmt
 
@@ -69,7 +75,7 @@ void SiPMSD::EndOfEvent(G4HCofThisEvent *HCE){
     G4int NbHits = hitsCollection->entries();
 if(verboseLevel >0) {
     if (NbHits > 0) {
-        G4cout << "Hit Number: " << NbHits << G4endl;
+        G4cout << "Hit Number in SiPMs: " << NbHits << G4endl;
     }
 }
 }

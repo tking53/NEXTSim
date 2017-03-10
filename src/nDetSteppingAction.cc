@@ -94,6 +94,7 @@ void nDetSteppingAction::UserSteppingAction(const G4Step* aStep)
     if(i<nprocesses){
       boundaryStatus = boundary->GetStatus();
       if(aStep->GetPostStepPoint()->GetStepStatus()==fGeomBoundary ){
+
         if(boundaryStatus == Detection){
 
             //Triger sensitive detector manually since photon is
@@ -105,15 +106,15 @@ void nDetSteppingAction::UserSteppingAction(const G4Step* aStep)
 
             G4String vName = aStep->GetPostStepPoint()->GetPhysicalVolume()->GetName();
           G4double time = aStep->GetPostStepPoint()->GetGlobalTime();
-          G4cout<<"Detect one photon in SiPM"<< vName<<" Global time: "<<time<<" at the position of "<<aStep->GetPostStepPoint()->GetPosition().y()<<G4endl;
+          //G4cout<<"Detect one photon in SiPM"<< vName<<" Global time: "<<time<<" at the position of "<<aStep->GetPostStepPoint()->GetPosition().y()<<G4endl;
 
-          if(vName.find("psSiPM")&&aStep->GetPostStepPoint()->GetPosition().y()>0) {
+          if(vName.find("psSiPM")&&aStep->GetPostStepPoint()->GetPosition().z()>0) {
               runAction->vTimeOfPhotonInSD1PushBack(time);
               runAction->vSD1PhotonPositionXPushBack(aStep->GetPostStepPoint()->GetPosition().x());
               runAction->vSD1PhotonPositionYPushBack(aStep->GetPostStepPoint()->GetPosition().y());
               runAction->vSD1PhotonPositionZPushBack(aStep->GetPostStepPoint()->GetPosition().z());
 	  }
-          if(vName.find("psSiPM")&&aStep->GetPostStepPoint()->GetPosition().y()<0) {
+          if(vName.find("psSiPM")&&aStep->GetPostStepPoint()->GetPosition().z()<0) {
               runAction->vTimeOfPhotonInSD2PushBack(time);
               runAction->vSD2PhotonPositionXPushBack(aStep->GetPostStepPoint()->GetPosition().x());
               runAction->vSD2PhotonPositionYPushBack(aStep->GetPostStepPoint()->GetPosition().y());
