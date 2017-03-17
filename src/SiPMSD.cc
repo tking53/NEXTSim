@@ -21,10 +21,10 @@ void SiPMSD::Initialize(G4HCofThisEvent *HCE) {
     static int HCID = -1;
     hitsCollection = new SiPMHitsCollection
             (SensitiveDetectorName, collectionName[0]);
-    if(HCID<0){
-        HCID=GetCollectionID(0);
-        HCE->AddHitsCollection(HCID,hitsCollection);
+    if(HCID<0) {
+        HCID = GetCollectionID(0);
     }
+        HCE->AddHitsCollection(HCID,hitsCollection);
 }
 
 G4bool SiPMSD::ProcessHits(G4Step *aStep, G4TouchableHistory *ROhist) {

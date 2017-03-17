@@ -90,9 +90,9 @@ class nDetRunAction : public G4UserRunAction
     G4Timer* timer;  // able to measure elasped user/system process time.
 
     char fileName[300];
-    TFile        *file;    // define root file
-    TTree        *tree;    // tree and its branches
-    TBranch      *branch;
+    TFile        *fFile;    // define root file
+    TTree        *fTree;    // tree and its branches
+    TBranch      *fBranch;
     bool defineRootBranch; 
 
     G4long       runNb;

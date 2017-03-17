@@ -42,17 +42,24 @@ nDetAnalysisManager::~nDetAnalysisManager(){
 
 void nDetAnalysisManager::OpenROOTFile( const G4String fileName){
 
+    G4cout << "nDetAnalysisManager::OpenROOTFile()->fFile " << fFile<< "." << G4endl;
     fFileName=fileName;
     fFile = new TFile(fileName,"RECREATE");
+    //fFile = new TFile("cona.root","RECREATE");
 
     G4cout << "nDetAnalysisManager::OpenROOTFile()->" << fFileName << " has been opened." << G4endl;
 
     //if(gSystem)
     //    gSystem->ProcessEvents();
 
+    //fFile->cd();
+    //fFile->cd();
+
     fTree=new TTree("theTree","NEXTSim Output Tree");
 
-    fTree->SetAutoSave(1000000000); // autosave when 1 Gbyte written
+    G4cout << "nDetAnalysisManager::OpenROOTFile()->fTree " << fTree << G4endl;
+
+    //fTree->SetAutoSave(1000000000); // autosave when 1 Gbyte written
 
     //if(defineRootBranch == false){
     G4int bufsize = 64000;
@@ -91,23 +98,30 @@ void nDetAnalysisManager::OpenROOTFile( const G4String fileName){
 
 void nDetAnalysisManager::WriteFile() {
 
-    fTree->Write();
+    //fFile->cd();
+    if(fTree) {
+        fTree->Write();
 
-    G4cout << "nDetAnalysisManager::WriteFile()->" << fFileName << " has been written." << G4endl;
-
+        G4cout << "nDetAnalysisManager::WriteFile()->" << fFileName << " has been written." << G4endl;
+    }
 
 }
 
 
 void nDetAnalysisManager::CloseROOTFile() {
 
-    fFile->Close();
+    if(fFile){
+        //fFile->cd();
+        fFile->Close();
+    }
 }
 
 void nDetAnalysisManager::FillTree(){
 
     //G4cout<<"Filling Tree-> "<<fTree->GetName()<<G4endl;
     //fTree->Print();
+    //fFile->cd();
+    if(fTree)
     fTree->Fill();
 }
 
@@ -171,7 +185,7 @@ void nDetAnalysisManager::BeginOfRunAction(const G4Run *aRun) {
 
     //SetVerboseLevel(2);
 
-    G4cout<<"nDetAnalysisManager::BeginOfRunAction()"<<G4endl;
+    //G4cout<<"nDetAnalysisManager::BeginOfRunAction()"<<G4endl;
 
 
     fRunNb=aRun->GetRunID();
@@ -179,7 +193,7 @@ void nDetAnalysisManager::BeginOfRunAction(const G4Run *aRun) {
 
     OpenROOTFile("DPL_test.root");
 
-    ResetEvent();
+    //ResetEvent();
 
     //if(gSystem) {
     //   gSystem->ProcessEvents();
@@ -196,7 +210,7 @@ void nDetAnalysisManager::BeginOfRunAction(const G4Run *aRun) {
 
 void nDetAnalysisManager::EndOfRunAction(const G4Run *aRun) {
 
-    G4cout<<"nDetAnalysisManager::EndOfRunAction()"<<G4endl;
+    //G4cout<<"nDetAnalysisManager::EndOfRunAction()"<<G4endl;
 
     //if(gSystem)
     //    gSystem->ProcessEvents();
@@ -225,7 +239,7 @@ void nDetAnalysisManager::BeginOfEventAction(const G4Event *anEvent) {
 
     if(fScintCollectionID<0)
         fScintCollectionID=man->GetCollectionID("SciCollection");
-    if(fSiPMCollectionID<0);
+    if(fSiPMCollectionID<0)
         fSiPMCollectionID=man->GetCollectionID("SiPMCollection");
     fEventNb=anEvent->GetEventID();
 
@@ -244,8 +258,8 @@ void nDetAnalysisManager::EndOfEventAction(const G4Event *anEvent){
 
 
 
-    G4cout<<"ScintCollectionID->"<<fScintCollectionID<<G4endl;
-    G4cout<<"SiPMCollectionID->"<<fSiPMCollectionID<<G4endl;
+    //G4cout<<"ScintCollectionID->"<<fScintCollectionID<<G4endl;
+    //G4cout<<"SiPMCollectionID->"<<fSiPMCollectionID<<G4endl;
 
     G4HCofThisEvent *HCE=anEvent->GetHCofThisEvent();
 
@@ -254,18 +268,20 @@ void nDetAnalysisManager::EndOfEventAction(const G4Event *anEvent){
 
     if(HCE) {
 
+        //G4cout<<"nDetAnalysisManager::EndOfEventAction()->HCE->GetNumberOfCollections(): "
+        //      <<HCE->GetNumberOfCollections()<<G4endl;
         if(fScintCollectionID>=0)DHC_Sci=(nDetHitsCollection*)(HCE->GetHC(fScintCollectionID));
         if(fSiPMCollectionID>=0)DHC_SiPM=(SiPMHitsCollection*)(HCE->GetHC(fSiPMCollectionID));
 
-        G4cout<<"nDetAnalysisManager::EndOfEventAction()->DHC_Sci "<<DHC_Sci<<G4endl;
-        G4cout<<"nDetAnalysisManager::EndOfEventAction()->DHC_SiPM "<<DHC_SiPM<<G4endl;
+        //G4cout<<"nDetAnalysisManager::EndOfEventAction()->DHC_Sci "<<DHC_Sci<<G4endl;
+        //G4cout<<"nDetAnalysisManager::EndOfEventAction()->DHC_SiPM "<<DHC_SiPM<<G4endl;
     }
 
     if(DHC_Sci){
 
         G4int NbHits=DHC_Sci->entries();
 
-        G4cout<<"nDetAnalysisManager::EndOfEventAction()->Nb of Hits in Scint "<<NbHits<<G4endl;
+        //G4cout<<"nDetAnalysisManager::EndOfEventAction()->Nb of Hits in Scint "<<NbHits<<G4endl;
 
         for(Int_t i=0;i<NbHits;i++){
 
@@ -289,7 +305,7 @@ void nDetAnalysisManager::EndOfEventAction(const G4Event *anEvent){
 
         G4int NbHits = DHC_SiPM->entries();
 
-        G4cout << "nDetAnalysisManager::EndOfEventAction()->Nb of Hits in SiPM " << NbHits << G4endl;
+        //G4cout << "nDetAnalysisManager::EndOfEventAction()->Nb of Hits in SiPM " << NbHits << G4endl;
 
        for (Int_t i = 0; i < NbHits; i++) {
 

@@ -42,13 +42,16 @@ nDetRunAction::~nDetRunAction()
 
 void nDetRunAction::BeginOfRunAction(const G4Run* aRun)
 {
+
+  G4cout << "nDetRunAction::BeginOfRunAction()->"<< G4endl;
   G4cout << "### Run " << aRun->GetRunID() << " start." << G4endl; 
   timer->Start();
 
   // open a root file.
-  openRootFile(aRun);
-    if(file)
-    G4cout << "### File " << file->GetName() << " opened." << G4endl;
+  //openRootFile(aRun);
+
+    if(fFile)
+    G4cout << "### File " << fFile->GetName() << " opened." << G4endl;
 
     // get RunId
   setRunNb(aRun->GetRunID());
@@ -73,15 +76,18 @@ void nDetRunAction::EndOfRunAction(const G4Run* aRun)
 
 
     // close the root file.
-  if(file){
+    //fFile->cd();
+  if(fFile){
+
     if (IsMaster()){
-        file->Write();
-        file->Close();
+        fFile->Write();
+        fFile->Close();
         G4cout << "*** " << fileName << " is created." << G4endl;
     }
   }
   else
     G4cout << "*** No output file created." << G4endl;
+
 }
 
 
@@ -108,47 +114,66 @@ bool nDetRunAction::openRootFile(const G4Run* aRun)
   // create a root file for the current run
   sprintf(fileName, "./output/run_%03d%s.root",aRun->GetRunID(), buffer);
 
-  std::cout<<fileName<<std::endl;
+  //std::cout<<fileName<<std::endl;
 
   //create a ROOT file
-  file = new TFile(fileName,"RECREATE","ROOT file for high resolution neutron detector simulation");
+  fFile = new TFile(fileName,"RECREATE","ROOT file for high resolution neutron detector simulation");
 
-  //create root tree
-  tree = new TTree("neutronEvent","Photons produced by thermal neutrons");
-  tree->SetAutoSave(1000000000); // autosave when 1 Gbyte written
+      if (fFile->IsZombie()) {
+          G4cout << "Error opening file" << G4endl;
+          //exit(-1);
+      }
+      else{
+          G4cout << "File Opened!!" << G4endl;
+      }
 
-  //if(defineRootBranch == false){
+      //create root tree
+  //fFile->cd();
+
+  fTree = new TTree("neutronEvent","Photons produced by thermal neutrons");
+
+  if(fTree) G4cout << "nDetRunAction::openRootFile()->fTree "<<fTree<< G4endl;
+
+  //fTree->SetAutoSave(1000000000); // autosave when 1 Gbyte written
+
+  //fFile->ls();
+
+      G4cout << "HERE!!" << G4endl;
+
+
+      //if(defineRootBranch == false){
     int bufsize = 64000;
-    branch = tree->Branch("runNb", &runNb, "runNb/L", bufsize);
-    branch = tree->Branch("eventNb", &eventNb, "enevtNb/L", bufsize);
+    fBranch = fTree->Branch("runNb", &runNb, "runNb/L", bufsize);
+    fBranch = fTree->Branch("eventNb", &eventNb, "enevtNb/L", bufsize);
 
-    branch = tree->Branch("neutronIncidentPositionX",&neutronIncidentPositionX,"neutronIncidentPositionX/D",bufsize);
-    branch = tree->Branch("neutronIncidentPositionY",&neutronIncidentPositionY,"neutronIncidentPositionY/D",bufsize);
-    branch = tree->Branch("neutronIncidentPositionZ",&neutronIncidentPositionZ,"neutronIncidentPositionZ/D",bufsize);
+     fTree->Branch("neutronIncidentPositionX",&neutronIncidentPositionX,"neutronIncidentPositionX/D",bufsize);
+     fTree->Branch("neutronIncidentPositionY",&neutronIncidentPositionY,"neutronIncidentPositionY/D",bufsize);
+     fTree->Branch("neutronIncidentPositionZ",&neutronIncidentPositionZ,"neutronIncidentPositionZ/D",bufsize);
 
-    branch = tree->Branch("depositedEnergy", &depEnergy, "depEnergy/D", bufsize);
+    fTree->Branch("depositedEnergy", &depEnergy, "depEnergy/D", bufsize);
 
-    branch = tree->Branch("vTimeOfPhotonInSD1", &vTimeOfPhotonInSD1);
-    branch = tree->Branch("vTimeOfPhotonInSD2", &vTimeOfPhotonInSD2);
-    branch = tree->Branch("vTimeOfPhotonInEJ200", &vTimeOfPhotonInEJ200);
+    fTree->Branch("vTimeOfPhotonInSD1", &vTimeOfPhotonInSD1);
+    fTree->Branch("vTimeOfPhotonInSD2", &vTimeOfPhotonInSD2);
+    fTree->Branch("vTimeOfPhotonInEJ200", &vTimeOfPhotonInEJ200);
 
-    branch = tree->Branch("vPrimaryPhotonPositionX", &vPrimaryPhotonPositionX);
-    branch = tree->Branch("vPrimaryPhotonPositionY", &vPrimaryPhotonPositionY);
-    branch = tree->Branch("vPrimaryPhotonPositionZ", &vPrimaryPhotonPositionZ);
+    fTree->Branch("vPrimaryPhotonPositionX", &vPrimaryPhotonPositionX);
+    fTree->Branch("vPrimaryPhotonPositionY", &vPrimaryPhotonPositionY);
+    fTree->Branch("vPrimaryPhotonPositionZ", &vPrimaryPhotonPositionZ);
 
-    branch = tree->Branch("vSD1PhotonPositionX", &vSD1PhotonPositionX);
-    branch = tree->Branch("vSD1PhotonPositionY", &vSD1PhotonPositionY);
-    branch = tree->Branch("vSD1PhotonPositionZ", &vSD1PhotonPositionZ);
+    fTree->Branch("vSD1PhotonPositionX", &vSD1PhotonPositionX);
+    fTree->Branch("vSD1PhotonPositionY", &vSD1PhotonPositionY);
+    fTree->Branch("vSD1PhotonPositionZ", &vSD1PhotonPositionZ);
 
-    branch = tree->Branch("vSD2PhotonPositionX", &vSD2PhotonPositionX);
-    branch = tree->Branch("vSD2PhotonPositionY", &vSD2PhotonPositionY);
-    branch = tree->Branch("vSD2PhotonPositionZ", &vSD2PhotonPositionZ);
+    fTree->Branch("vSD2PhotonPositionX", &vSD2PhotonPositionX);
+    fTree->Branch("vSD2PhotonPositionY", &vSD2PhotonPositionY);
+    fTree->Branch("vSD2PhotonPositionZ", &vSD2PhotonPositionZ);
 
 //Following branches are added by Kyle.
-    branch = tree->Branch("particleCharge", &particleCharge);
-    branch = tree->Branch("particleName", &particleName);
+    fBranch = fTree->Branch("particleCharge", &particleCharge);
+    fBranch = fTree->Branch("particleName", &particleName);
 
-    defineRootBranch = true;
+
+      defineRootBranch = true;
   //}
   }
   return false; // in case of success.
@@ -158,7 +183,9 @@ bool nDetRunAction::openRootFile(const G4Run* aRun)
 
 bool nDetRunAction::fillBranch()
 {
-  tree->Fill();// fill the tree
+    //fFile->cd();
+  if(fTree)
+  fTree->Fill();// fill the tree
   //nEvent++;
 
   return false; // in case of success

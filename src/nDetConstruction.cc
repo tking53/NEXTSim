@@ -43,7 +43,7 @@ nDetConstruction::nDetConstruction()
 
   fDetectorMessenger=new nDetConstructionMessenger(this);
 
-  fGeometry="disk";
+  fGeometry="hexagon";
 
   expHallX = assemblyBoxX + margin;
   expHallY = assemblyBoxY + margin;
@@ -1010,6 +1010,7 @@ void nDetConstruction::ConstructSDandField(){
 
     G4cout<<"nDetConstruction::ConstructSDandField()-->"<<G4endl;
 
+
     if(ej200_logV) {
         fScintSD = new nDetSD("/theScintSD");
 
@@ -1037,8 +1038,8 @@ void nDetConstruction::UpdateGeometry(){
     G4LogicalVolumeStore::GetInstance()->Clean();
     G4PhysicalVolumeStore::GetInstance()->Clean();
     //define new one
-    G4RunManager::GetRunManager()->DefineWorldVolume(Construct());
-    G4RunManager::GetRunManager()->GeometryHasBeenModified();
+    //G4RunManager::GetRunManager()->DefineWorldVolume(Construct());
+    //G4RunManager::GetRunManager()->GeometryHasBeenModified();
     G4RunManager::GetRunManager()->ReinitializeGeometry();
 
     return;
