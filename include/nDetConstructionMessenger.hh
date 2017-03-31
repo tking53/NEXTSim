@@ -10,8 +10,6 @@
 #include "globals.hh"
 
 
-
-
 class nDetConstruction;
 class G4UIcommand;
 class G4UIcmdWithABool;

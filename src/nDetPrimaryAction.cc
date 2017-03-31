@@ -19,6 +19,7 @@
 #include "G4Deuteron.hh"
 #include "Randomize.hh"
 #include "G4GeneralParticleSource.hh"
+#include "nDetAnalysisManager.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -26,8 +27,8 @@ nDetPrimaryGeneratorAction::nDetPrimaryGeneratorAction(nDetRunAction* run)
 : runAct(run)
 {
   G4int n_particle = 1;
-  particleGun = new G4ParticleGun(n_particle);
-  
+  //particleGun = new G4ParticleGun(n_particle);
+  particleGun = new G4GeneralParticleSource();
   //default kinematic
   //
   G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
@@ -39,17 +40,19 @@ nDetPrimaryGeneratorAction::nDetPrimaryGeneratorAction(nDetRunAction* run)
 
   particleGun->SetParticleDefinition(particle);
 
+  /*
   particleGun->SetParticleMomentumDirection(G4ThreeVector(0, -1., 0)); // along the y-axis direction
  // particleGun->SetParticleEnergy(10*MeV);
   //changed to 1 MeV KS 5/20/16
   particleGun->SetParticleEnergy(662.*keV);
-}
+  */
+   }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 nDetPrimaryGeneratorAction::~nDetPrimaryGeneratorAction()
 {
-  delete particleGun;
+    delete particleGun;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -77,6 +80,10 @@ void nDetPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
   particleGun->GeneratePrimaryVertex(anEvent);
 
   G4ThreeVector VertexPosition= particleGun->GetParticlePosition();
+
+  nDetAnalysisManager *theManager=(nDetAnalysisManager*)nDetAnalysisManager::Instance();
+
+  theManager->GeneratePrimaries(anEvent);
 
   runAct->setNeutronIncidentPositionX(VertexPosition.x());
   runAct->setNeutronIncidentPositionY(VertexPosition.y());

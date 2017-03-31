@@ -1,3 +1,4 @@
+
 //
 // $Id: nDetStackingAction.hh,v1.0 Sept., 2015 $
 //   Written by Xiaodong Zhang
@@ -32,6 +33,7 @@ class nDetStackingAction : public G4UserStackingAction
 
   private:
     nDetRunAction* runAct;
+    G4int photonNb;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

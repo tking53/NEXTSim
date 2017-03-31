@@ -8,20 +8,16 @@
 #include "nDetSD.hh"
 #include "SiPMSD.hh"
 #include "G4SystemOfUnits.hh"
+#include "G4ParticleDefinition.hh"
+#include "G4ParticleTypes.hh"
+#include "G4PrimaryVertex.hh"
 
 #include "TSystem.h"
 nDetAnalysisManager::nDetAnalysisManager(){
 
     G4cout << "nDetAnalysisManager::nDetAnalysisManager()->"<<this<< G4endl;
-    G4cout<<"fvPrimaryPhotonPositionX "<<fvPrimaryPhotonPositionX.size()<<G4endl;
-    //std::vector<double>().swap(fvPrimaryPhotonPositionX);
-    //fvPrimaryPhotonPositionY.clear();
-    //std::vector<double>().swap(fvPrimaryPhotonPositionY);
-    G4cout<<"fvPrimaryPhotonPositionY "<<fvPrimaryPhotonPositionY.size()<<G4endl;
-    //fvPrimaryPhotonPositionZ.clear();
-    //std::vector<double>().swap(fvPrimaryPhotonPositionZ);
-    G4cout<<"fvPrimaryPhotonPositionZ "<<fvPrimaryPhotonPositionZ.size()<<G4endl;
 
+    fMessenger = new nDetAnalysisMessenger(this);
     fScintCollectionID=-1;
     fSiPMCollectionID=-1;
     //ResetEvent();
@@ -40,11 +36,11 @@ nDetAnalysisManager::~nDetAnalysisManager(){
 
 }
 
-void nDetAnalysisManager::OpenROOTFile( const G4String fileName){
+void nDetAnalysisManager::OpenROOTFile(){
 
     G4cout << "nDetAnalysisManager::OpenROOTFile()->fFile " << fFile<< "." << G4endl;
-    fFileName=fileName;
-    fFile = new TFile(fileName,"RECREATE");
+    //fFileName=fileName;
+    fFile = new TFile(fFileName,"RECREATE");
     //fFile = new TFile("cona.root","RECREATE");
 
     G4cout << "nDetAnalysisManager::OpenROOTFile()->" << fFileName << " has been opened." << G4endl;
@@ -66,23 +62,27 @@ void nDetAnalysisManager::OpenROOTFile( const G4String fileName){
     fTree->Branch("runNb", &fRunNb, "runNb/L", bufsize);
     fTree->Branch("eventNb", &fEventNb, "enevtNb/L", bufsize);
 
-//    fTree->Branch("neutronIncidentPositionX",&neutronIncidentPositionX,"neutronIncidentPositionX/D",bufsize);
-//    fTree->Branch("neutronIncidentPositionY",&neutronIncidentPositionY,"neutronIncidentPositionY/D",bufsize);
-//    fTree->Branch("neutronIncidentPositionZ",&neutronIncidentPositionZ,"neutronIncidentPositionZ/D",bufsize);
+    fTree->Branch("neutronIncidentPositionX",&neutronIncidentPositionX,"neutronIncidentPositionX/D",bufsize);
+    fTree->Branch("neutronIncidentPositionY",&neutronIncidentPositionY,"neutronIncidentPositionY/D",bufsize);
+    fTree->Branch("neutronIncidentPositionZ",&neutronIncidentPositionZ,"neutronIncidentPositionZ/D",bufsize);
 
     fTree->Branch("depositedEnergy", &depEnergy, "depEnergy/D", bufsize);
+    fTree->Branch("NumberofPhotons",&fNbOfPhotons,"Ngammas/I");
+    fTree->Branch("NumberofDetectedPhotons",&fNbOfDetectedPhotons,"NgammasDet/I");
 
 
     fTree->Branch("vPrimaryPhotonPositionX", &fvPrimaryPhotonPositionX);
     fTree->Branch("vPrimaryPhotonPositionY", &fvPrimaryPhotonPositionY);
     fTree->Branch("vPrimaryPhotonPositionZ", &fvPrimaryPhotonPositionZ);
     fTree->Branch("vTimeOfPhotonInEJ200", &fvPrimaryPhotonTime);
+    fTree->Branch("vPhotonTrackIDEJ200", &fvPrimaryPhotonTrackID);
 
     fTree->Branch("vSDPhotonPositionX", &fvSDPhotonPositionX);
     fTree->Branch("vSDPhotonPositionY", &fvSDPhotonPositionY);
     fTree->Branch("vSDPhotonPositionZ", &fvSDPhotonPositionZ);
     fTree->Branch("vSDPhotonTime", &fvSDPhotonTime);
     fTree->Branch("vSDDetectorNumber", &fvSDNumber);
+    fTree->Branch("vSDTrackID", &fvSDPhotonTrackID);
 
     //Following branches are added by Kyle.
 //    fTree->Branch("particleCharge", &fparticleCharge);
@@ -135,9 +135,9 @@ void nDetAnalysisManager::ResetEvent() {
 
     fEventNb=0;
 
-    neutronIncidentPositionX=0;
-    neutronIncidentPositionY=0;
-    neutronIncidentPositionZ=0;
+    neutronIncidentPositionX=-990;
+    neutronIncidentPositionY=-990;
+    neutronIncidentPositionZ=-990;
 
     //fvPrimaryPhotonPositionX.resize(1);
     //fvPrimaryPhotonPositionY.resize(1);
@@ -148,26 +148,20 @@ void nDetAnalysisManager::ResetEvent() {
     //G4cout<<"fvPrimaryPhotonPositionY "<<fvPrimaryPhotonPositionY.size()<<G4endl;
     //G4cout<<"fvPrimaryPhotonPositionZ "<<fvPrimaryPhotonPositionZ.size()<<G4endl;
 
-
-    //G4cout<<"nDetAnalysisManager::ResetEvent()->Clearing Vectors..."<<G4endl;
-    //fvPrimaryPhotonPositionX.clear();
+    fNbOfPhotons=0;
+    fNbOfDetectedPhotons=0;
     std::vector<double>().swap(fvPrimaryPhotonPositionX);
-    //G4cout<<"fvPrimaryPhotonPositionX "<<fvPrimaryPhotonPositionX.size()<<G4endl;
-    //fvPrimaryPhotonPositionY.clear();
     std::vector<double>().swap(fvPrimaryPhotonPositionY);
-    //G4cout<<"fvPrimaryPhotonPositionY "<<fvPrimaryPhotonPositionY.size()<<G4endl;
-    //fvPrimaryPhotonPositionZ.clear();
     std::vector<double>().swap(fvPrimaryPhotonPositionZ);
-    //G4cout<<"fvPrimaryPhotonPositionZ "<<fvPrimaryPhotonPositionZ.size()<<G4endl;
-    //fvPrimaryPhotonTime.clear();
-
-
-
+    std::vector<double>().swap(fvPrimaryPhotonTime);
+    std::vector<int>().swap(fvPrimaryPhotonTrackID);
 
     std::vector<double>().swap(fvSDPhotonPositionX);
     std::vector<double>().swap(fvSDPhotonPositionY);
     std::vector<double>().swap(fvSDPhotonPositionZ);
     std::vector<double>().swap(fvSDPhotonTime);
+    std::vector<int>().swap(fvSDPhotonTrackID);
+
     std::vector<int>().swap(fvSDNumber);
 //
 //    fparticleName.clear();
@@ -191,7 +185,7 @@ void nDetAnalysisManager::BeginOfRunAction(const G4Run *aRun) {
     fRunNb=aRun->GetRunID();
 
 
-    OpenROOTFile("DPL_test.root");
+    OpenROOTFile("DPL_test_new.root");
 
     //ResetEvent();
 
@@ -233,7 +227,7 @@ void nDetAnalysisManager::BeginOfEventAction(const G4Event *anEvent) {
     //    gSystem->ProcessEvents();
 
 
-    ResetEvent();
+    //ResetEvent();
 
     G4SDManager *man=G4SDManager::GetSDMpointer();
 
@@ -289,10 +283,10 @@ void nDetAnalysisManager::EndOfEventAction(const G4Event *anEvent){
             G4double ptime = (*DHC_Sci)[i]->GetTime()/ns;
             G4double energy=(*DHC_Sci)[i]->GetEdep()/keV;
             depEnergy+=energy;
-            fvPrimaryPhotonPositionX.push_back(pos.x()/mm);
-            fvPrimaryPhotonPositionY.push_back(pos.y()/mm);
-            fvPrimaryPhotonPositionZ.push_back(pos.z()/mm);
-            fvPrimaryPhotonTime.push_back(ptime);
+            //fvPrimaryPhotonPositionX.push_back(pos.x()/mm);
+            //fvPrimaryPhotonPositionY.push_back(pos.y()/mm);
+            //fvPrimaryPhotonPositionZ.push_back(pos.z()/mm);
+            //fvPrimaryPhotonTime.push_back(ptime);
             //(*DHC_Sci)[i]->Print();
         }
 
@@ -304,6 +298,7 @@ void nDetAnalysisManager::EndOfEventAction(const G4Event *anEvent){
     if(DHC_SiPM) {
 
         G4int NbHits = DHC_SiPM->entries();
+        fNbOfDetectedPhotons=NbHits;
 
         //G4cout << "nDetAnalysisManager::EndOfEventAction()->Nb of Hits in SiPM " << NbHits << G4endl;
 
@@ -312,13 +307,15 @@ void nDetAnalysisManager::EndOfEventAction(const G4Event *anEvent){
             G4ThreeVector pos = (*DHC_SiPM)[i]->GetPos();
             G4double ptime = (*DHC_SiPM)[i]->GetTime() / ns;
             G4int detector=(*DHC_SiPM)[i]->GetSiPMNumber();
-            //(*DHC_SiPM)[i]->Print();
+            G4int trackID=(*DHC_SiPM)[i]->GetTrackID();
+           //(*DHC_SiPM)[i]->Print();
 
              fvSDPhotonPositionX.push_back(pos.x()/mm);
              fvSDPhotonPositionY.push_back(pos.y()/mm);
              fvSDPhotonPositionZ.push_back(pos.z()/mm);
              fvSDPhotonTime.push_back(ptime);
              fvSDNumber.push_back(detector);
+             fvSDPhotonTrackID.push_back(trackID);
 
        }
 
@@ -327,8 +324,9 @@ void nDetAnalysisManager::EndOfEventAction(const G4Event *anEvent){
         //G4cout << "nDetAnalysisManager::EndOfEventAction()->No Hits in SiPM !"<< G4endl;
 
     }
+    if(fNbOfPhotons>0)
     FillTree();
-    //ResetEvent();
+    ResetEvent();
 
     //OnceAWhileDoIt();
 
@@ -336,6 +334,48 @@ void nDetAnalysisManager::EndOfEventAction(const G4Event *anEvent){
 
 }
 
+
+void nDetAnalysisManager::ClassifyNewTrack(const G4Track *aTrack) {
+
+    if(aTrack->GetDefinition() == G4OpticalPhoton::OpticalPhotonDefinition())
+    { // particle is optical photon
+        fNbOfPhotons++;
+        //if(aTrack->GetParentID()>0)  // primary particle, neutron, ID =0, then either proton, or others, their IDs are larger than 0, and then photons
+            if( aTrack->GetVolume()->GetName().find("ej200"))
+            { // particle is secondary and happens in the EJ200 scintillator
+                //std::cout<<aTrack->GetVolume()->GetName()<<"....in ej200..."<<aTrack->GetGlobalTime()<<"..."<<aTrack->GetDynamicParticle()->GetDefinition()->GetParticleName()<<"...."<<aTrack->GetPosition()<<std::endl;
+                //fNbOfPhotons++;
+
+                G4double ptime = aTrack->GetGlobalTime();
+                G4ThreeVector pos = aTrack->GetPosition();
+
+                fvPrimaryPhotonTrackID.push_back(aTrack->GetTrackID());
+                fvPrimaryPhotonPositionX.push_back(pos.x()/mm);
+                fvPrimaryPhotonPositionY.push_back(pos.y()/mm);
+                fvPrimaryPhotonPositionZ.push_back(pos.z()/mm);
+                fvPrimaryPhotonTime.push_back(ptime);
+            }
+            else{ // note that only the first volume is kept...
+                //std::cout<<aTrack->GetVolume()->GetName()<<"...."<<aTrack->GetGlobalTime()<<"..."<<aTrack->GetDynamicParticle()->GetDefinition()->GetParticleName()<<"...."<<aTrack->GetPosition()<<std::endl;
+            }
+
+    }
+    return;
+}
+
+
+void nDetAnalysisManager::GeneratePrimaries(const G4Event *anEvent) {
+
+//G4cout<<"nDetAnalysisManager::GeneratePrimaries()"<<G4endl;
+
+    G4PrimaryVertex *theVertex=anEvent->GetPrimaryVertex();
+
+    neutronIncidentPositionX=theVertex->GetX0();
+    neutronIncidentPositionY=theVertex->GetY0();
+    neutronIncidentPositionZ=theVertex->GetZ0();
+
+    return;
+}
 
 void nDetAnalysisManager::OnceAWhileDoIt(const G4bool DoItNow) {
     time_t Now = time(0); // get the current time (measured in seconds)

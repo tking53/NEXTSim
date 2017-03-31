@@ -53,6 +53,7 @@ G4bool nDetSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
 	G4cout<<"**************** SD stop ************"<< G4endl;
 	*/
 
+
         if(aStep->GetStepLength()>0){
           /* 
           G4cout<<"**************** SD start ************"<< G4endl;
@@ -62,13 +63,14 @@ G4bool nDetSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
           G4cout<<"Length of this Step: "<<aStep->GetStepLength()/mm<<" mm"<<G4endl;
           G4cout<<"**************** SD stop ************"<< G4endl;
           */
-      G4double edep=aStep->GetTotalEnergyDeposit();
-
-	  nDetHit* newHit = new nDetHit();
-  	  newHit->SetTime( aStep->GetPreStepPoint()->GetGlobalTime() );
-      newHit->SetPos( aStep->GetPreStepPoint()->GetPosition() );
-      newHit->SetEdep(edep);
-  	  hitsCollection->insert( newHit );
+            if(aStep->GetTrack()->GetDefinition() != G4OpticalPhoton::OpticalPhotonDefinition()){
+          G4double edep=aStep->GetTotalEnergyDeposit();
+	      nDetHit* newHit = new nDetHit();
+  	      newHit->SetTime( aStep->GetPreStepPoint()->GetGlobalTime() );
+          newHit->SetPos( aStep->GetPreStepPoint()->GetPosition() );
+          newHit->SetEdep(edep);
+          hitsCollection->insert( newHit );
+        }
         }
         else{
           aStep->GetTrack()->SetTrackStatus(fStopAndKill);

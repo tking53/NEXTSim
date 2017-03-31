@@ -45,7 +45,7 @@ void nDetEventAction::BeginOfEventAction(const G4Event* evt)
   eventID = evt->GetEventID();
   depositedEnergy = 0; 
 
-  if(eventID%100 == 0) G4cout<<"Event ID: " << eventID << G4endl;
+  if(eventID%1000 == 0) G4cout<<"Event ID: " << eventID << G4endl;
   // clear vector for next event
   runAct->vectorClear();
 
@@ -97,7 +97,7 @@ void nDetEventAction::EndOfEventAction(const G4Event* evt)
   runAct->setEventNb(evt->GetEventID());
 
   // fill branches
-    //runAct->fillBranch();
+    runAct->fillBranch();
     if(fAnalysisManager)
         fAnalysisManager->EndOfEventAction(evt);
   return;

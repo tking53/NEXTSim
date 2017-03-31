@@ -52,6 +52,7 @@ G4bool SiPMSD::ProcessHits_constStep(const G4Step *aStep, G4TouchableHistory *RO
     hit->SetSiPMNumber(SipmNumber);
     hit->SetTime( aStep->GetPostStepPoint()->GetGlobalTime() );
     hit->SetPos( aStep->GetPostStepPoint()->GetPosition() );
+    hit->SetTrackID(aStep->GetTrack()->GetTrackID());
 
     //G4cout<<"hit->GetPos()->"<<hit->GetPos()<<G4endl;
     //hit->SetEventID(aStep->Ge)

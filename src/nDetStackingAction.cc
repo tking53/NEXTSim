@@ -11,6 +11,7 @@
 #include "G4ParticleTypes.hh"
 #include "G4Track.hh"
 #include "G4ios.hh"
+#include "nDetAnalysisManager.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -31,6 +32,7 @@ nDetStackingAction::ClassifyNewTrack(const G4Track * aTrack)
 {
   if(aTrack->GetDefinition() == G4OpticalPhoton::OpticalPhotonDefinition())
   { // particle is optical photon
+    photonNb++;
     if(aTrack->GetParentID()>0)  // primary particle, neutron, ID =0, then either proton, or others, their IDs are larger than 0, and then photons
       if( aTrack->GetVolume()->GetName().find("ej200"))
       { // particle is secondary and happens in the EJ200 scintillator
@@ -51,6 +53,13 @@ nDetStackingAction::ClassifyNewTrack(const G4Track * aTrack)
         //std::cout<<aTrack->GetVolume()->GetName()<<"...."<<aTrack->GetGlobalTime()<<"..."<<aTrack->GetDynamicParticle()->GetDefinition()->GetParticleName()<<"...."<<aTrack->GetPosition()<<std::endl;
       }
   }
+
+    nDetAnalysisManager *theManager=(nDetAnalysisManager*)nDetAnalysisManager::Instance();
+
+    if(theManager){
+        //G4cout<<"nDetStackingAction::ClassifyNewTrack()-->"<<G4endl;
+        theManager->ClassifyNewTrack(aTrack);
+    }
   return fUrgent;
 }
 
@@ -58,13 +67,15 @@ nDetStackingAction::ClassifyNewTrack(const G4Track * aTrack)
 
 void nDetStackingAction::NewStage()
 {
-  //G4cout << "Number of optical photons produces in this event : "
+  //G4cout << "nDetStackingAction::NewStage()->No. optical photons produces in this event : "
   //       << photonNb << G4endl;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void nDetStackingAction::PrepareNewEvent()
-{  }
+{
+  photonNb=0;
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

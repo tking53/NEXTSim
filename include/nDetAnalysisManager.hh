@@ -6,12 +6,14 @@
 #define NEXTMULTIPLESCATTERING_NDETANALYSISMANAGER_HH
 
 #include "G4RootAnalysisManager.hh"
+#include "nDetAnalysisMessenger.hh"
 #include "TTree.h"
 #include "TFile.h"
 #include "TROOT.h"
 #include <vector>
 #include "G4Run.hh"
 #include "G4Event.hh"
+#include "G4Track.hh"
 #include "time.h"
 
 class nDetAnalysisManager:public G4RootAnalysisManager {
@@ -23,7 +25,7 @@ class nDetAnalysisManager:public G4RootAnalysisManager {
 
     TTree* GetTree(){return fTree;}
     void SetTree(TTree* theTree){fTree=theTree;}
-    void OpenROOTFile(const G4String fileName);
+    void OpenROOTFile();
     void WriteFile();
     void CloseROOTFile();
     void FillTree();
@@ -35,7 +37,13 @@ class nDetAnalysisManager:public G4RootAnalysisManager {
     void BeginOfEventAction(const G4Event *anEvent);
     void EndOfEventAction(const G4Event *anEvent);
 
+    void ClassifyNewTrack(const G4Track * aTrack);
+
     void OnceAWhileDoIt(const G4bool DoItNow=false);
+
+    void GeneratePrimaries(const G4Event *anEvent);
+
+    void SetOutputFileName(const G4String OutputName){fFileName=OutputName;}
 
 private:
 
@@ -53,6 +61,11 @@ private:
     G4int fScintCollectionID;
     G4int fSiPMCollectionID;
 
+    G4int  fNbOfPhotons;
+    G4int  fNbOfDetectedPhotons;
+
+    nDetAnalysisMessenger *fMessenger;
+
 
     G4double     neutronIncidentPositionX;
     G4double     neutronIncidentPositionY;
@@ -65,6 +78,7 @@ private:
     std::vector<double>     fvPrimaryPhotonPositionY;
     std::vector<double>     fvPrimaryPhotonPositionZ;
     std::vector<double>     fvPrimaryPhotonTime;
+    std::vector<int>        fvPrimaryPhotonTrackID;
 
 
     std::vector<double>     fvSDPhotonPositionX;
@@ -72,7 +86,7 @@ private:
     std::vector<double>     fvSDPhotonPositionZ;
     std::vector<double>     fvSDPhotonTime;
     std::vector<int>        fvSDNumber;
-
+    std::vector<int>        fvSDPhotonTrackID;
 
     std::vector<std::string> fparticleName;
     std::vector<double>      fparticleCharge;

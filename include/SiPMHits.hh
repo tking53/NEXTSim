@@ -35,12 +35,15 @@ public:
     G4int GetSiPMNumber() {return SiPMnumber;}
     void SetEventID(G4int num) { EventID = num; }
     G4int GetEventID() { return EventID; }
+    void SetTrackID(G4int num) { TrackID = num; }
+    G4int GetTrackID() { return TrackID; }
 
 private:
     G4double time;
     G4ThreeVector pos;
     G4int SiPMnumber;
     G4int EventID;
+    G4int TrackID;
 
 };
 

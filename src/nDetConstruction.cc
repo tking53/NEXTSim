@@ -43,7 +43,7 @@ nDetConstruction::nDetConstruction()
 
   fDetectorMessenger=new nDetConstructionMessenger(this);
 
-  fGeometry="hexagon";
+  fGeometry="ellipse";
 
   expHallX = assemblyBoxX + margin;
   expHallY = assemblyBoxY + margin;
@@ -883,11 +883,13 @@ void nDetConstruction::DefineMaterials() {
     G4double  RefractiveReal_Si[nEntries_Sil] = { 4.293, 4.453, 4.676, 5.008, 5.587 };
     G4double   RefractiveImg_Si[nEntries_Sil] = { 0.045, 0.060, 0.091, 0.150, 0.303 };
     G4double EfficiencyIndex_Si[nEntries_Sil] = { 0.37, 0.42, 0.39, 0.36, 0.32 };
+    G4double Reflective_Si[nEntries_Sil] = { 0.49, 0.45, 0.42, 0.40, 0.39};
 
     fSilMPT = new G4MaterialPropertiesTable();
     fSilMPT->AddProperty("REALRINDEX", PhotonEnergy, RefractiveReal_Si, nEntries_Sil);
     fSilMPT->AddProperty("IMAGINARYRINDEX", PhotonEnergy, RefractiveImg_Si, nEntries_Sil);
     fSilMPT->AddProperty("EFFICIENCY",   PhotonEnergy, EfficiencyIndex_Si, nEntries_Sil);
+    fSilMPT->AddProperty("REFELECTIVITY",   PhotonEnergy, Reflective_Si, nEntries_Sil);
 
     fSil->SetMaterialPropertiesTable(fSilMPT);
 
