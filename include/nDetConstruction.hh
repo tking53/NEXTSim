@@ -65,6 +65,7 @@ class nDetConstruction : public G4VUserDetectorConstruction
     G4VPhysicalVolume* Construct();
     virtual void ConstructSDandField();
     void SetGeometry(G4String geom){fGeometry=geom;}
+    void SetSiPM_dimension(G4double dim){SiPM_dimension=dim;}
     G4String GetGeometry(){return fGeometry;}
     void UpdateGeometry();
 
@@ -100,6 +101,8 @@ private:
     G4double psSiPMx;
     G4double psSiPMy;
     G4double psSiPMz;
+
+    G4double SiPM_dimension;
 
     G4int fNdetectors;
 

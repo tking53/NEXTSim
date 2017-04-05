@@ -42,6 +42,7 @@
 #include "nDetStackingAction.hh"
 #include "nDetSteppingAction.hh"
 #include "nDetAnalysisManager.hh"
+#include "nDetTrackingAction.hh"
 //#include "nDetActionInitialization.hh"
 
 #include "G4OpticalPhysics.hh"
@@ -128,6 +129,8 @@ that didn't work... this is horribly deprecated*/
   nDetStackingAction* stackingAction = new nDetStackingAction(runAction);
   runManager->SetUserAction(stackingAction);
 
+  nDetTrackingAction*  trackingAction = new nDetTrackingAction();
+  runManager->SetUserAction(trackingAction);
 
 //So we do this instead K Schmitt 6/16/16
 //  runManager->SetUserInitialization(new nDetActionInitialization());

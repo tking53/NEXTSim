@@ -43,7 +43,9 @@ nDetConstruction::nDetConstruction()
 
   fDetectorMessenger=new nDetConstructionMessenger(this);
 
-  fGeometry="ellipse";
+  fGeometry="hexagon";
+
+  SiPM_dimension=1.5*mm;
 
   expHallX = assemblyBoxX + margin;
   expHallY = assemblyBoxY + margin;
@@ -334,12 +336,14 @@ void nDetConstruction::buildDisk()
 
 
 
-    greaseX = 1.5 * mm;
-    greaseZ = 1.5 * mm;
-    qwSiPMx = 1.5 * mm;
-    qwSiPMz = 1.5 * mm;
-    psSiPMx = 1.5 * mm;
-    psSiPMz = 1.5 * mm;
+
+
+    greaseX = SiPM_dimension;
+    greaseZ = SiPM_dimension;
+    qwSiPMx = SiPM_dimension;
+    qwSiPMz = SiPM_dimension;
+    psSiPMx = SiPM_dimension;
+    psSiPMz = SiPM_dimension;
 
 
     G4double teflonThickness=0.11*mm;
@@ -347,7 +351,7 @@ void nDetConstruction::buildDisk()
     G4double minDiskRadius=0*mm;
     G4double maxDiskRadius=50*mm+teflonThickness;
 
-    G4double diskLength=1.5*mm+teflonThickness;
+    G4double diskLength=SiPM_dimension*mm+teflonThickness;
 
     G4double startAngle=0*deg;
     G4double endAngle=360*deg;
@@ -367,9 +371,14 @@ void nDetConstruction::buildDisk()
     else
     assemblyDisk= (G4Polyhedra*) new G4Polyhedra("Hexagon",startAngle,endAngle,nSides,nPlanes,zplanes,minRadius,maxRadius);
 
+    /*
     G4double BoxX=1.52*mm;
     G4double BoxY=1.52*mm;
     G4double BoxZ=1.65*mm;
+    */
+    G4double BoxX=SiPM_dimension+2*teflonThickness;
+    G4double BoxY=SiPM_dimension+2*teflonThickness;
+    G4double BoxZ=SiPM_dimension+2*(teflonThickness+greaseY+qwSiPMy+psSiPMy);
 
     G4Box *Hole=new G4Box("Hole",BoxX,BoxY,BoxZ);
 
@@ -400,7 +409,7 @@ void nDetConstruction::buildDisk()
      minDiskRadius=0*mm;
      maxDiskRadius=50*mm;
     
-     diskLength=1.5*mm;
+     diskLength=SiPM_dimension;
     
      startAngle=0*deg;
      endAngle=360*deg;
@@ -416,11 +425,15 @@ void nDetConstruction::buildDisk()
         scintillatorDisk= (G4Polyhedra*) new G4Polyhedra("SciHexagon",startAngle,endAngle,nSides,nPlanes,zplanes2,minRadius2,maxRadius2);
 
 
-
+/*
     BoxX=2.70*mm;
     BoxY=2.70*mm;
     BoxZ=1.62*mm;
-    
+*/
+    BoxX=BoxZ;
+    BoxY=BoxZ;
+    BoxZ=SiPM_dimension+2*teflonThickness;
+
     G4Box *Hole2=new G4Box("Hole",BoxX,BoxY,BoxZ);
     
     G4SubtractionSolid *theScint=new G4SubtractionSolid("Detector",scintillatorDisk,Hole2);
@@ -882,14 +895,17 @@ void nDetConstruction::DefineMaterials() {
     const G4int nEntries_Sil = 5;
     G4double  RefractiveReal_Si[nEntries_Sil] = { 4.293, 4.453, 4.676, 5.008, 5.587 };
     G4double   RefractiveImg_Si[nEntries_Sil] = { 0.045, 0.060, 0.091, 0.150, 0.303 };
-    G4double EfficiencyIndex_Si[nEntries_Sil] = { 0.37, 0.42, 0.39, 0.36, 0.32 };
-    G4double Reflective_Si[nEntries_Sil] = { 0.49, 0.45, 0.42, 0.40, 0.39};
+    //G4double EfficiencyIndex_Si[nEntries_Sil] = { 0.37, 0.42, 0.39, 0.36, 0.32 };
+    //IDEAL DETECTOR
+    G4double EfficiencyIndex_Si[nEntries_Sil] = { 1., 1., 1., 1., 1. };
+    //G4double Reflective_Si[nEntries_Sil] = { 0.49, 0.45, 0.42, 0.40, 0.39};
+    G4double Reflective_Si[nEntries_Sil] = { 0., 0., 0., 0., 0.};
 
     fSilMPT = new G4MaterialPropertiesTable();
-    fSilMPT->AddProperty("REALRINDEX", PhotonEnergy, RefractiveReal_Si, nEntries_Sil);
-    fSilMPT->AddProperty("IMAGINARYRINDEX", PhotonEnergy, RefractiveImg_Si, nEntries_Sil);
+    //fSilMPT->AddProperty("REALRINDEX", PhotonEnergy, RefractiveReal_Si, nEntries_Sil);
+    //fSilMPT->AddProperty("IMAGINARYRINDEX", PhotonEnergy, RefractiveImg_Si, nEntries_Sil);
     fSilMPT->AddProperty("EFFICIENCY",   PhotonEnergy, EfficiencyIndex_Si, nEntries_Sil);
-    fSilMPT->AddProperty("REFELECTIVITY",   PhotonEnergy, Reflective_Si, nEntries_Sil);
+    fSilMPT->AddProperty("REFLECTIVITY",   PhotonEnergy, Reflective_Si, nEntries_Sil);
 
     fSil->SetMaterialPropertiesTable(fSilMPT);
 

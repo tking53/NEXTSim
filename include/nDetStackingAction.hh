@@ -13,7 +13,8 @@
 
 #include "nDetEventAction.hh"
 #include "nDetRunAction.hh"
-
+#include "G4Track.hh"
+#include "G4TrackVector.hh"
 // Class description, G4UserStackingAction, is the base class of one 
 // of the user's optional classes. it gives the hooks for 
 // G4StackingManager which controls the stacks of G4Track objects.
@@ -34,6 +35,7 @@ class nDetStackingAction : public G4UserStackingAction
   private:
     nDetRunAction* runAct;
     G4int photonNb;
+
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

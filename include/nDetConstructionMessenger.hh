@@ -14,7 +14,7 @@ class nDetConstruction;
 class G4UIcommand;
 class G4UIcmdWithABool;
 class G4UIcmdWithAString;
-class G4UIcmdWith3VectorAndUnit;
+class G4UIcmdWithADouble;
 class G4UIdirectory;
 
 class nDetConstructionMessenger:public G4UImessenger
@@ -34,7 +34,7 @@ private:
     G4UIdirectory*    fDetectorDir;
 
     G4UIcmdWithAString*  fGeometryCmd;
-    G4UIcmdWith3VectorAndUnit *fSiliconDimensionsCmd;
+    G4UIcmdWithADouble *fSiliconDimensionsCmd;
     G4UIcommand*         fUpdateCmd;
 
 };

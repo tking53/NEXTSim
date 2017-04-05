@@ -9,7 +9,7 @@
 #include "G4UIcmdWithAString.hh"
 #include "G4UIdirectory.hh"
 #include "G4UIcmdWith3VectorAndUnit.hh"
-
+#include "G4UIcmdWithADouble.hh"
 nDetConstructionMessenger::nDetConstructionMessenger(nDetConstruction* detector)
         :fDetector(detector){
 
@@ -24,8 +24,8 @@ nDetConstructionMessenger::nDetConstructionMessenger(nDetConstruction* detector)
     fGeometryCmd->SetDefaultValue("disk");
     fGeometryCmd->AvailableForStates(G4State_PreInit,G4State_Idle);
 
-    fSiliconDimensionsCmd=new G4UIcmdWith3VectorAndUnit("/nDet/detector/setSiPMdimensions",this);
-    fSiliconDimensionsCmd->SetGuidance("Defines the size of the SiPMs");
+    fSiliconDimensionsCmd=new G4UIcmdWithADouble("/nDet/detector/setSiPMdimensions",this);
+    fSiliconDimensionsCmd->SetGuidance("Defines the size of the SiPMs in mm");
 
     fUpdateCmd=new G4UIcommand("/nDet/detector/update",this);
     fUpdateCmd->SetGuidance("Updates the detector Geometry");
@@ -55,7 +55,8 @@ void nDetConstructionMessenger::SetNewValue(G4UIcommand* command,G4String newVal
     }
 
     if(command == fSiliconDimensionsCmd) {
-;
+        G4double dimensions=fSiliconDimensionsCmd->ConvertToDouble(newValue);
+        fDetector->SetSiPM_dimension(dimensions/2.*mm);
     }
 
     if(command == fUpdateCmd){

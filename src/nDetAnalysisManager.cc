@@ -16,7 +16,7 @@
 nDetAnalysisManager::nDetAnalysisManager(){
 
     G4cout << "nDetAnalysisManager::nDetAnalysisManager()->"<<this<< G4endl;
-
+    fFileName="Out.root";
     fMessenger = new nDetAnalysisMessenger(this);
     fScintCollectionID=-1;
     fSiPMCollectionID=-1;
@@ -68,6 +68,8 @@ void nDetAnalysisManager::OpenROOTFile(){
 
     fTree->Branch("depositedEnergy", &depEnergy, "depEnergy/D", bufsize);
     fTree->Branch("NumberofPhotons",&fNbOfPhotons,"Ngammas/I");
+    fTree->Branch("TrackLength",&fvTrackLength);
+    fTree->Branch("TrackTime",&fvTrackTime);
     fTree->Branch("NumberofDetectedPhotons",&fNbOfDetectedPhotons,"NgammasDet/I");
 
 
@@ -160,6 +162,8 @@ void nDetAnalysisManager::ResetEvent() {
     std::vector<double>().swap(fvSDPhotonPositionY);
     std::vector<double>().swap(fvSDPhotonPositionZ);
     std::vector<double>().swap(fvSDPhotonTime);
+    std::vector<double>().swap(fvTrackLength);
+    std::vector<double>().swap(fvTrackTime);
     std::vector<int>().swap(fvSDPhotonTrackID);
 
     std::vector<int>().swap(fvSDNumber);
@@ -185,7 +189,7 @@ void nDetAnalysisManager::BeginOfRunAction(const G4Run *aRun) {
     fRunNb=aRun->GetRunID();
 
 
-    OpenROOTFile("DPL_test_new.root");
+    OpenROOTFile();
 
     //ResetEvent();
 
@@ -376,6 +380,15 @@ void nDetAnalysisManager::GeneratePrimaries(const G4Event *anEvent) {
 
     return;
 }
+
+
+void nDetAnalysisManager::PostUserTrackingAction(const G4Track *aTrack) {
+
+    fvTrackLength.push_back(aTrack->GetTrackLength());
+    fvTrackTime.push_back(aTrack->GetGlobalTime());
+
+}
+
 
 void nDetAnalysisManager::OnceAWhileDoIt(const G4bool DoItNow) {
     time_t Now = time(0); // get the current time (measured in seconds)

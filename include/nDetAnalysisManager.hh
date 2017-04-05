@@ -43,6 +43,8 @@ class nDetAnalysisManager:public G4RootAnalysisManager {
 
     void GeneratePrimaries(const G4Event *anEvent);
 
+    void PostUserTrackingAction (const G4Track *aTrack);
+
     void SetOutputFileName(const G4String OutputName){fFileName=OutputName;}
 
 private:
@@ -90,6 +92,8 @@ private:
 
     std::vector<std::string> fparticleName;
     std::vector<double>      fparticleCharge;
+    std::vector<double>      fvTrackLength;
+    std::vector<double>      fvTrackTime;
 
 
 

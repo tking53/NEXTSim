@@ -15,6 +15,7 @@ nDetAnalysisMessenger::nDetAnalysisMessenger(nDetAnalysisManager *theManager) :f
     fAnalysisDir->SetGuidance("Analysis Control");
     fOutputFileCmd=new G4UIcmdWithAString("/nDet/analysis/outputFile",this);
     fOutputFileCmd->SetGuidance("Sets the name of the ROOT output file");
+    fOutputFileCmd->SetDefaultValue("Out.root");
     fOutputFileCmd->AvailableForStates(G4State_PreInit,G4State_Idle);
 }
 
