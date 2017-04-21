@@ -16,6 +16,8 @@
 #include "G4Track.hh"
 #include "time.h"
 
+#include <fstream>
+
 class nDetAnalysisManager:public G4RootAnalysisManager {
 
     public:
@@ -47,6 +49,12 @@ class nDetAnalysisManager:public G4RootAnalysisManager {
 
     void SetOutputFileName(const G4String OutputName){fFileName=OutputName;}
 
+    void SetGossipFileName(const G4String OutputName){fgossipFileName=OutputName;}
+
+    void OpenGossipFile();
+
+    void CloseGossipFile();
+
 private:
 
     G4String fFileName;
@@ -72,9 +80,10 @@ private:
     G4double     neutronIncidentPositionX;
     G4double     neutronIncidentPositionY;
     G4double     neutronIncidentPositionZ;
+    G4String     incidentparticle;
 
     G4double     depEnergy; // energy deposition inside of the EJ200 scintillator
-
+    G4double     firstEnergy;
 
     std::vector<double>     fvPrimaryPhotonPositionX;
     std::vector<double>     fvPrimaryPhotonPositionY;
@@ -87,6 +96,7 @@ private:
     std::vector<double>     fvSDPhotonPositionY;
     std::vector<double>     fvSDPhotonPositionZ;
     std::vector<double>     fvSDPhotonTime;
+    std::vector<double>     fvSDPhotonWavelength;
     std::vector<int>        fvSDNumber;
     std::vector<int>        fvSDPhotonTrackID;
 
@@ -95,6 +105,9 @@ private:
     std::vector<double>      fvTrackLength;
     std::vector<double>      fvTrackTime;
 
+    G4String     fgossipFileName;
+
+    ofstream     *fgossipOut;
 
 
 };

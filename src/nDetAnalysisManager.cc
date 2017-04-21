@@ -17,6 +17,7 @@ nDetAnalysisManager::nDetAnalysisManager(){
 
     G4cout << "nDetAnalysisManager::nDetAnalysisManager()->"<<this<< G4endl;
     fFileName="Out.root";
+    fgossipFileName ="GossipOut.bin";
     fMessenger = new nDetAnalysisMessenger(this);
     fScintCollectionID=-1;
     fSiPMCollectionID=-1;
@@ -67,11 +68,14 @@ void nDetAnalysisManager::OpenROOTFile(){
     fTree->Branch("neutronIncidentPositionZ",&neutronIncidentPositionZ,"neutronIncidentPositionZ/D",bufsize);
 
     fTree->Branch("depositedEnergy", &depEnergy, "depEnergy/D", bufsize);
+    fTree->Branch("firstEnergy", &firstEnergy, "fEnergy/D", bufsize);
     fTree->Branch("NumberofPhotons",&fNbOfPhotons,"Ngammas/I");
-    fTree->Branch("TrackLength",&fvTrackLength);
-    fTree->Branch("TrackTime",&fvTrackTime);
     fTree->Branch("NumberofDetectedPhotons",&fNbOfDetectedPhotons,"NgammasDet/I");
 
+/*
+    fTree->Branch("TrackLength",&fvTrackLength);
+    fTree->Branch("TrackTime",&fvTrackTime);
+*/
 
     fTree->Branch("vPrimaryPhotonPositionX", &fvPrimaryPhotonPositionX);
     fTree->Branch("vPrimaryPhotonPositionY", &fvPrimaryPhotonPositionY);
@@ -83,6 +87,7 @@ void nDetAnalysisManager::OpenROOTFile(){
     fTree->Branch("vSDPhotonPositionY", &fvSDPhotonPositionY);
     fTree->Branch("vSDPhotonPositionZ", &fvSDPhotonPositionZ);
     fTree->Branch("vSDPhotonTime", &fvSDPhotonTime);
+    fTree->Branch("vSDPhotonWavelength", &fvSDPhotonWavelength);
     fTree->Branch("vSDDetectorNumber", &fvSDNumber);
     fTree->Branch("vSDTrackID", &fvSDPhotonTrackID);
 
@@ -146,6 +151,7 @@ void nDetAnalysisManager::ResetEvent() {
     //fvPrimaryPhotonPositionZ.resize(1);
 
     depEnergy=0; // energy deposition inside of the EJ200 scintillator
+    firstEnergy=0;
     //G4cout<<"fvPrimaryPhotonPositionX "<<fvPrimaryPhotonPositionX.size()<<G4endl;
     //G4cout<<"fvPrimaryPhotonPositionY "<<fvPrimaryPhotonPositionY.size()<<G4endl;
     //G4cout<<"fvPrimaryPhotonPositionZ "<<fvPrimaryPhotonPositionZ.size()<<G4endl;
@@ -162,6 +168,7 @@ void nDetAnalysisManager::ResetEvent() {
     std::vector<double>().swap(fvSDPhotonPositionY);
     std::vector<double>().swap(fvSDPhotonPositionZ);
     std::vector<double>().swap(fvSDPhotonTime);
+    std::vector<double>().swap(fvSDPhotonWavelength);
     std::vector<double>().swap(fvTrackLength);
     std::vector<double>().swap(fvTrackTime);
     std::vector<int>().swap(fvSDPhotonTrackID);
@@ -188,6 +195,7 @@ void nDetAnalysisManager::BeginOfRunAction(const G4Run *aRun) {
 
     fRunNb=aRun->GetRunID();
 
+    OpenGossipFile();
 
     OpenROOTFile();
 
@@ -215,6 +223,8 @@ void nDetAnalysisManager::EndOfRunAction(const G4Run *aRun) {
 
     WriteFile();
     CloseROOTFile();
+
+    CloseGossipFile();
 
     //OnceAWhileDoIt(true);
     return;
@@ -286,7 +296,10 @@ void nDetAnalysisManager::EndOfEventAction(const G4Event *anEvent){
             G4ThreeVector pos = (*DHC_Sci)[i]->GetPos();
             G4double ptime = (*DHC_Sci)[i]->GetTime()/ns;
             G4double energy=(*DHC_Sci)[i]->GetEdep()/keV;
+            G4double energy0=(*DHC_Sci)[i]->GetEdep_first()/keV;
             depEnergy+=energy;
+            if(firstEnergy==0)
+                firstEnergy=-energy0;
             //fvPrimaryPhotonPositionX.push_back(pos.x()/mm);
             //fvPrimaryPhotonPositionY.push_back(pos.y()/mm);
             //fvPrimaryPhotonPositionZ.push_back(pos.z()/mm);
@@ -301,10 +314,20 @@ void nDetAnalysisManager::EndOfEventAction(const G4Event *anEvent){
 
     if(DHC_SiPM) {
 
+        unsigned int eventNumber=(unsigned int)fEventNb;
+
+        fgossipOut->write((char*)&eventNumber, sizeof(unsigned int));
+
         G4int NbHits = DHC_SiPM->entries();
         fNbOfDetectedPhotons=NbHits;
 
-        //G4cout << "nDetAnalysisManager::EndOfEventAction()->Nb of Hits in SiPM " << NbHits << G4endl;
+        unsigned int photonNumber=(unsigned int)fNbOfDetectedPhotons;
+
+        fgossipOut->write((char*)&photonNumber, sizeof(unsigned int));
+
+        G4cout << "nDetAnalysisManager::EndOfEventAction()->Nb of Hits in SiPM " << NbHits << G4endl;
+
+
 
        for (Int_t i = 0; i < NbHits; i++) {
 
@@ -312,13 +335,27 @@ void nDetAnalysisManager::EndOfEventAction(const G4Event *anEvent){
             G4double ptime = (*DHC_SiPM)[i]->GetTime() / ns;
             G4int detector=(*DHC_SiPM)[i]->GetSiPMNumber();
             G4int trackID=(*DHC_SiPM)[i]->GetTrackID();
+            G4double wavelength=(*DHC_SiPM)[i]->GetWaveLength();
            //(*DHC_SiPM)[i]->Print();
 
              fvSDPhotonPositionX.push_back(pos.x()/mm);
              fvSDPhotonPositionY.push_back(pos.y()/mm);
              fvSDPhotonPositionZ.push_back(pos.z()/mm);
              fvSDPhotonTime.push_back(ptime);
-             fvSDNumber.push_back(detector);
+             fvSDPhotonWavelength.push_back(wavelength);
+
+           float x=(float)pos.x()/mm;
+           float y=(float)pos.y()/mm;
+           float z=(float)pos.z()/mm;
+           float t=(float)ptime;
+           float wl=(float)wavelength;
+           fgossipOut->write((char*)&x, sizeof(float));
+           fgossipOut->write((char*)&y, sizeof(float));
+           fgossipOut->write((char*)&z, sizeof(float));
+           fgossipOut->write((char*)&t, sizeof(float));
+           fgossipOut->write((char*)&wl, sizeof(float));
+
+           fvSDNumber.push_back(detector);
              fvSDPhotonTrackID.push_back(trackID);
 
        }
@@ -374,9 +411,13 @@ void nDetAnalysisManager::GeneratePrimaries(const G4Event *anEvent) {
 
     G4PrimaryVertex *theVertex=anEvent->GetPrimaryVertex();
 
+    G4String pname=theVertex->GetPrimary()->GetG4code()->GetParticleName();
+
     neutronIncidentPositionX=theVertex->GetX0();
     neutronIncidentPositionY=theVertex->GetY0();
     neutronIncidentPositionZ=theVertex->GetZ0();
+
+    incidentparticle=pname;
 
     return;
 }
@@ -389,6 +430,18 @@ void nDetAnalysisManager::PostUserTrackingAction(const G4Track *aTrack) {
 
 }
 
+
+void nDetAnalysisManager::OpenGossipFile() {
+
+    fgossipOut = new ofstream(fgossipFileName.data(),std::ios::out | std::ios::app | std::ios::binary);
+
+
+}
+
+void nDetAnalysisManager::CloseGossipFile() {
+
+    fgossipOut->close();
+}
 
 void nDetAnalysisManager::OnceAWhileDoIt(const G4bool DoItNow) {
     time_t Now = time(0); // get the current time (measured in seconds)

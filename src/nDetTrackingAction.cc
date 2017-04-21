@@ -16,7 +16,7 @@ nDetTrackingAction::nDetTrackingAction(){
 }
 nDetTrackingAction::~nDetTrackingAction(){}
 void nDetTrackingAction::PreUserTrackingAction(const G4Track* aTrack){
-
+;
 }
 void nDetTrackingAction::PostUserTrackingAction(const G4Track* aTrack) {
 
@@ -27,9 +27,9 @@ void nDetTrackingAction::PostUserTrackingAction(const G4Track* aTrack) {
     //}
 
     if (aTrack->GetDefinition() == G4OpticalPhoton::OpticalPhotonDefinition()) {
-
-        if (fAnlManager)
-            fAnlManager->PostUserTrackingAction(aTrack);
+;
+        //if (fAnlManager)
+            //fAnlManager->PostUserTrackingAction(aTrack);
 
     }
 }
