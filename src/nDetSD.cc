@@ -69,6 +69,8 @@ G4bool nDetSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
   	      newHit->SetTime( aStep->GetPreStepPoint()->GetGlobalTime() );
           newHit->SetPos( aStep->GetPreStepPoint()->GetPosition() );
           newHit->SetEdep(edep);
+          newHit->SetEdep_first(aStep->GetDeltaEnergy());
+
           hitsCollection->insert( newHit );
         }
         }

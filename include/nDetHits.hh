@@ -38,11 +38,16 @@ class nDetHit : public G4VHit
       G4ThreeVector GetPos() { return pos; };
       void SetEdep(G4double e) { edep = e; };
       G4double GetEdep() { return edep; };
-
+      void SetEdep_first(G4double e) { edep_first = e; };
+      G4double GetEdep_first() { return edep_first; };
+      G4bool IsFirst() {return first;}
+      void SetFirst() { first= true;}
   private:
       G4double time;
       G4ThreeVector pos;
       G4double edep;
+      G4double edep_first;
+      G4bool first=false;
 
 };
 

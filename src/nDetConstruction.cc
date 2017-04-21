@@ -43,7 +43,7 @@ nDetConstruction::nDetConstruction()
 
   fDetectorMessenger=new nDetConstructionMessenger(this);
 
-  fGeometry="hexagon";
+  fGeometry="ellipse";
 
   SiPM_dimension=1.5*mm;
 
@@ -345,11 +345,12 @@ void nDetConstruction::buildDisk()
     psSiPMx = SiPM_dimension;
     psSiPMz = SiPM_dimension;
 
+    G4double hexagonSize=50*mm;
 
     G4double teflonThickness=0.11*mm;
 
     G4double minDiskRadius=0*mm;
-    G4double maxDiskRadius=50*mm+teflonThickness;
+    G4double maxDiskRadius=hexagonSize+teflonThickness;
 
     G4double diskLength=SiPM_dimension*mm+teflonThickness;
 
@@ -407,7 +408,7 @@ void nDetConstruction::buildDisk()
 
 
      minDiskRadius=0*mm;
-     maxDiskRadius=50*mm;
+     maxDiskRadius=hexagonSize;
     
      diskLength=SiPM_dimension;
     

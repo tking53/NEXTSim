@@ -37,11 +37,14 @@ public:
     G4int GetEventID() { return EventID; }
     void SetTrackID(G4int num) { TrackID = num; }
     G4int GetTrackID() { return TrackID; }
+    void SetWaveLength(G4double length) { Wavelength = length; }
+    G4double GetWaveLength() { return Wavelength; }
 
 private:
     G4double time;
     G4ThreeVector pos;
     G4int SiPMnumber;
+    G4double Wavelength;
     G4int EventID;
     G4int TrackID;
 
