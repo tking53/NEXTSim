@@ -1,4 +1,4 @@
-#include "PhotonList.h"
+#include "PhotonList.hh"
 
 #include <cstdlib>
 #include <cstring>

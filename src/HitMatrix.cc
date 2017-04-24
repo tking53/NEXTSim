@@ -1,4 +1,4 @@
-#include "HitMatrix.h"
+#include "HitMatrix.hh"
 
 #include <TROOT.h>
 #include <stdio.h>

@@ -1,4 +1,4 @@
-#include "sipmMC.h"
+#include "sipmMC.hh"
 
 #include "gglobals.h"
 

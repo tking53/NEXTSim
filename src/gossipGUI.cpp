@@ -1,8 +1,8 @@
 #include "gossipGUI.h"
 
-#include "sipmMC.h"
+#include "sipmMC.hh"
 #include "daqMC.h"
-#include "PhotonSource.h"
+#include "PhotonSource.hh"
 
 #include <iostream>
 #include <fstream>
