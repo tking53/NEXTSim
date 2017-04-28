@@ -46,6 +46,8 @@
 
 #include "nDetConstructionMessenger.hh"
 
+
+
 // Replica 
 // Assembly volumes
 // no assembly is used currently
@@ -103,6 +105,8 @@ private:
     G4double psSiPMz;
 
     G4double SiPM_dimension;
+    G4double fTeflonThickness;
+    G4double fMylarThickness;
 
     G4int fNdetectors;
 
@@ -130,6 +134,7 @@ private:
     G4Element* fO;
     G4Element* fF;
     G4Element* fSi;
+    G4Element* fAl;
 
     G4Material* fAir;
     G4Material* fTeflon;
@@ -137,6 +142,7 @@ private:
     G4Material* fGrease;
     G4Material* fSiO2;
     G4Material* fSil;
+    G4Material* fMylar;
 
     //Material table properties
     G4MaterialPropertiesTable* fAirMPT;
@@ -145,15 +151,18 @@ private:
     G4MaterialPropertiesTable* fGreaseMPT;
     G4MaterialPropertiesTable* fSiO2MPT;
     G4MaterialPropertiesTable* fSilMPT;
+    G4MaterialPropertiesTable* fMylarMPT;
 
     //Optical Surfaces
     G4OpticalSurface* fTeflonOpticalSurface;
     G4OpticalSurface* fSiliconPMOpticalSurface;
+    G4OpticalSurface* fMylarOpticalSurface;
 
     //Logical Skins
 
     G4LogicalSkinSurface* fWrapSkinSurface;
     G4LogicalSkinSurface* fSiPMSkinSurface;
+    G4LogicalBorderSurface* fMylarSurface;
 
 
 
@@ -162,6 +171,8 @@ private:
     void buildAssembly();
     void buildDisk();
     void buildEllipse();
+
+    G4VSolid* ConstructEllipse(G4ThreeVector dimensions);
 
     void DefineMaterials();
 

@@ -14,6 +14,9 @@
 #include "G4PhysicalVolumeStore.hh"
 #include "G4GeometryManager.hh"
 #include "G4RunManager.hh"
+#include "G4SystemOfUnits.hh"
+
+static const G4double inch = 2.54*cm;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -44,6 +47,9 @@ nDetConstruction::nDetConstruction()
   fDetectorMessenger=new nDetConstructionMessenger(this);
 
   fGeometry="ellipse";
+
+  fTeflonThickness = 0.11*mm;
+  fMylarThickness = 0.0125*mm;
 
   SiPM_dimension=1.5*mm;
 
@@ -649,14 +655,15 @@ void nDetConstruction::buildDisk()
 
 void nDetConstruction::buildEllipse() {
 
-    G4double inches=25.4*mm;
 
     G4double teflonThickness=0.11*mm;
 
+    G4double mylarThickness=0.0125*mm; //25 um mylar
+
     //First we build the box
-    G4double xdimension=1.18/2*inches+teflonThickness;
-    G4double ydimension=0.24/2*inches+teflonThickness;
-    G4double zdimension=1.94/2*inches+teflonThickness;
+    G4double xdimension=1.18/2*inch+teflonThickness;
+    G4double ydimension=0.24/2*inch+teflonThickness;
+    G4double zdimension=1.94/2*inch+teflonThickness;
 
     G4Box *theBox=new G4Box("theBox",xdimension,ydimension,zdimension);
 
@@ -666,7 +673,7 @@ void nDetConstruction::buildEllipse() {
     G4double dy2=ydimension;
     G4double dx1=xdimension;
     G4double dx2=ydimension;
-    G4double dz=0.5*inches;
+    G4double dz=0.5*inch;
 
 
     //Ellipse shaped
@@ -678,29 +685,29 @@ void nDetConstruction::buildEllipse() {
 
     G4Box *wrappinBox2=new G4Box("theBox2",ydimension,ydimension,(greaseY+qwSiPMy+psSiPMy));
 
-    G4ThreeVector translation1(0,0,(1.94/2+1./2)*inches);
+    G4ThreeVector translation1(0,0,(1.94/2+1./2)*inch);
 
     G4UnionSolid *theWrapping0=new G4UnionSolid("theWrapping0",theBox,theTrapezoid1,0,translation1);
 
-    G4ThreeVector translation11(0,0,(1.94/2+1.)*inches+1*(greaseY+qwSiPMy+psSiPMy));
+    G4ThreeVector translation11(0,0,(1.94/2+1.)*inch+1*(greaseY+qwSiPMy+psSiPMy));
 
     G4UnionSolid *theWrapping1=new G4UnionSolid("theWrapping1",theWrapping0,wrappinBox,0,translation11);
 
-    G4ThreeVector translation2(0,0,-(1.94/2+1./2)*inches);
+    G4ThreeVector translation2(0,0,-(1.94/2+1./2)*inch);
     G4RotationMatrix *rot=new G4RotationMatrix();
 
     rot->rotateX(180*deg);
 
     G4UnionSolid *theWrapping2=new G4UnionSolid("theWrapping",theWrapping1,theTrapezoid2,rot,translation2);
 
-    G4ThreeVector translation22(0,0,-1*((1.94/2+1.)*inches+1*(greaseY+qwSiPMy+psSiPMy)));
+    G4ThreeVector translation22(0,0,-1*((1.94/2+1.)*inch+1*(greaseY+qwSiPMy+psSiPMy)));
 
 
 
     //theBox
-    xdimension=1.18/2*inches+teflonThickness;
-    ydimension=0.24/2*inches+teflonThickness;
-    zdimension=(1.94/2+1)*inches+teflonThickness+2*(greaseY+qwSiPMy+psSiPMy);
+    xdimension=1.18/2*inch+teflonThickness;
+    ydimension=0.24/2*inch+teflonThickness;
+    zdimension=(1.94/2+1)*inch+teflonThickness+2*(greaseY+qwSiPMy+psSiPMy);
 
     G4VSolid *theWrapping=NULL;
 
@@ -723,9 +730,9 @@ void nDetConstruction::buildEllipse() {
     //Building the Scintillator
 
     //First we build the box
-    xdimension=1.18/2*inches;
-    ydimension=0.24/2*inches;
-    zdimension=1.94/2*inches;
+    xdimension=1.18/2*inch;
+    ydimension=0.24/2*inch;
+    zdimension=1.94/2*inch;
 
     G4Box *theBoxScint=new G4Box("theBoxScint",xdimension,ydimension,zdimension);
 
@@ -735,7 +742,7 @@ void nDetConstruction::buildEllipse() {
     dy2=ydimension;
     dx1=xdimension;
     dx2=ydimension;
-    dz=0.5*inches;
+    dz=0.5*inch;
 
     G4Trd *theTrapezoidScint1=new G4Trd("theTrapezoidScint1", dx1, dx2, dy1, dy2, dz);
 
@@ -752,9 +759,9 @@ void nDetConstruction::buildEllipse() {
 
 
     //theBox
-    xdimension=1.18/2*inches;
-    ydimension=0.24/2*inches;
-    zdimension=(1.94/2+1)*inches;
+    xdimension=1.18/2*inch;
+    ydimension=0.24/2*inch;
+    zdimension=(1.94/2+1)*inch;
 
     G4VSolid *thePlastic=NULL;
     if(fGeometry=="ellipse")
@@ -786,8 +793,7 @@ void nDetConstruction::DefineMaterials() {
     fC=new G4Element("Carbon", "C", z=6., a=12.01*g/mole);
     fO=new G4Element("Oxygen", "O", z=8., a=16.00*g/mole);
     fF=new G4Element("Fluorine", "F", z=9., a=18.9984*g/mole);
-    fSi=new G4Element("Silicon", "Si", z=14., a=28.09*g/mole);
-
+    fAl=new G4Element("Aluminium","Al",z=13.,a=26.9815*g/mole);
     //Materials & Properties
     G4NistManager* manNist = G4NistManager::Instance();
 
@@ -807,6 +813,7 @@ void nDetConstruction::DefineMaterials() {
 
     G4double density;
     int natoms;
+    int ncomponents;
     fTeflon= new G4Material("Teflon", density=2.2*g/cm3,2);
     fTeflon->AddElement(fC,natoms=2);
     fTeflon->AddElement(fF,natoms=4);
@@ -926,21 +933,37 @@ void nDetConstruction::DefineMaterials() {
     fSiliconPMOpticalSurface->SetModel(glisur);
     fSiliconPMOpticalSurface->SetMaterialPropertiesTable(fSilMPT);
 
+    G4Material *Al=manNist->FindOrBuildMaterial("G4_AL");
+    G4Material *Mylar=manNist->FindOrBuildMaterial("G4_MYLAR");
+
+    fMylar=new G4Material("AluninizedMylar",density=1.39*g/cm3,ncomponents=2);
+    fMylar->AddMaterial(Mylar,5);
+    fMylar->AddMaterial(Al,1);
+
+    const G4int nEntries_Mylar = 5;
+    G4double RefractiveReal_Mylar[nEntries_Mylar]={0.81257,0.72122,0.63324,0.55571,0.48787};
+    G4double RefractiveImg_Mylar[nEntries_Mylar]={6.0481,5.7556,5.4544,5.1464,4.8355};
+
+    fMylarMPT=new G4MaterialPropertiesTable();
+    fMylarMPT->AddProperty("REALRINDEX", PhotonEnergy,RefractiveReal_Mylar,nEntries_Mylar);
+    fMylarMPT->AddProperty("IMAGINARYINDEX", PhotonEnergy,RefractiveImg_Mylar,nEntries_Mylar);
+
+    fMylarOpticalSurface=new G4OpticalSurface("MylarSurface",glisur,polished,dielectric_metal,1.0);
+
 
     return;
 }
 
 void nDetConstruction::buildSiPMs() {
 
-    G4double inches=25.4*mm;
-    
+
     if(fGeometry == "ellipse" || fGeometry == "rectangle") {
-        greaseX = 0.12 * inches;
-        greaseZ = 0.12 * inches;
-        qwSiPMx = 0.12 * inches;
-        qwSiPMz = 0.12 * inches;
-        psSiPMx = 0.12 * inches;
-        psSiPMz = 0.12 * inches;
+        greaseX = 0.12 * inch;
+        greaseZ = 0.12 * inch;
+        qwSiPMx = 0.12 * inch;
+        qwSiPMz = 0.12 * inch;
+        psSiPMx = 0.12 * inch;
+        psSiPMz = 0.12 * inch;
     }
 
     fNdetectors=2;
@@ -962,7 +985,7 @@ void nDetConstruction::buildSiPMs() {
 
         if(m==1)
             factor=-1;
-        G4ThreeVector position(0, 0, factor*(3.94 / 2 * inches+greaseY));
+        G4ThreeVector position(0, 0, factor*(3.94 / 2 * inch+greaseY));
         G4RotationMatrix *rot = new G4RotationMatrix();
         rot->rotateX(90 * deg);
 
@@ -987,7 +1010,7 @@ void nDetConstruction::buildSiPMs() {
 
         if(m==1)
             factor=-1;
-        G4ThreeVector position(0, 0, factor*(3.94 / 2 * inches + qwSiPMy+2*greaseY));
+        G4ThreeVector position(0, 0, factor*(3.94 / 2 * inch + qwSiPMy+2*greaseY));
         G4RotationMatrix *rot = new G4RotationMatrix();
         rot->rotateX(90 * deg);
 
@@ -1013,7 +1036,7 @@ void nDetConstruction::buildSiPMs() {
 
         if(m==1)
             factor=-1;
-        G4ThreeVector position(0, 0, factor*(3.94 / 2 * inches + 2*qwSiPMy+2*greaseY+psSiPMy));
+        G4ThreeVector position(0, 0, factor*(3.94 / 2 * inch + 2*qwSiPMy+2*greaseY+psSiPMy));
         G4RotationMatrix *rot = new G4RotationMatrix();
         rot->rotateX(90 * deg);
 
@@ -1047,6 +1070,42 @@ void nDetConstruction::ConstructSDandField(){
 
         SetSensitiveDetector(psSiPM_logV, fSiPMSD);
     }
+
+}
+
+
+G4VSolid* nDetConstruction::ConstructEllipse(G4ThreeVector dimensions) {
+
+    //First we build the box
+    G4double xdimensionBox=dimensions.x()/2.;
+    G4double ydimensionBox=dimensions.y()/2.;
+    G4double zdimensionBox=dimensions.z()/2.;
+
+    G4Box *theBox = new G4Box("theBox",xdimensionBox,ydimensionBox,zdimensionBox);
+
+    //Now the trapezoid
+
+    G4double trapezoidlength=1*inch;
+
+    G4double dy1=dimensions.y()/2.;
+    G4double dy2=dimensions.y()/2.;
+    G4double dx1=dimensions.x()/2.;
+    G4double dx2=dimensions.y()/2.;
+    G4double dz=trapezoidlength/2.;
+
+    G4Trd *theTrapezoid1=new G4Trd("theTrapezoid1", dx1, dx2, dy1, dy2, dz);
+
+    G4Trd *theTrapezoid2=new G4Trd("theTrapezoid2", dx1, dx2, dy1, dy2, dz);
+
+    G4ThreeVector translation(0,0,zdimensionBox+dz);
+
+    G4UnionSolid *part1=new G4UnionSolid("Box+Trapezoid",theBox,theTrapezoid1,0,translation);
+
+    translation=-1*translation;
+
+    G4UnionSolid *theSolid=new G4UnionSolid("Trapezoid+Box+Trapezoid",part1,theTrapezoid2,0,translation);
+
+    return theSolid;
 
 }
 

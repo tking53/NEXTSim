@@ -43,7 +43,7 @@ class HitMatrix : public vector<vector<double> >
 		TH2D*		DrawMatrix();								/**<Draws all hits of type "type" (-1 = all)*/
 		void		PrintMatrix();								/**<Prints out hitmatrix*/
 		void		SetAmplitude( unsigned int iHit, double amplitude );			/**<Sets amplitude for iHit*/
-		/**Sets integtration gate in ns. gCut=false one more avalanche after end of gate appears in the hitmatrix. Mainly for test purposes of TDCSpectrum. Leave at "true" for most applications!*/
+		/**Sets integration gate in ns. gCut=false one more avalanche after end of gate appears in the hitmatrix. Mainly for test purposes of TDCSpectrum. Leave at "true" for most applications!*/
 		void		SetGate( double g, bool gCut=true ){ gate = g; gateCut = gCut; };
 		void		SetGeometry( TH2I* geometry );						/**<Sets pixel layout*/
 

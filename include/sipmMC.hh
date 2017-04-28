@@ -1,8 +1,8 @@
 #ifndef sipmMC_h
 #define sipmMC_h
 
-#include "HitMatrix.h"
-#include "PhotonList.h"
+#include "HitMatrix.hh"
+#include "PhotonList.hh"
 
 #include <TROOT.h>
 #include <TRandom.h>

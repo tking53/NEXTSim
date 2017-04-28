@@ -17,7 +17,7 @@ HitMatrix::HitMatrix()
 	h_geometry = new TH2I("h_geometry","h_geometry",10,0,10,10,0,10);
 	h_hits = new TH2D();
 	h_hits->SetNameTitle("HitMatrix","HitMatrix");
-    hit.clear();
+    vector<double>().swap(hit);
 }
 
 
@@ -75,8 +75,9 @@ void HitMatrix::SetGeometry( TH2I* geometry )
 
 int HitMatrix::AddHit( int x, int y, double time, int type )
 {
-	//if(getenv("GOSSIP_DEBUG")!=0 && strncmp(getenv("GOSSIP_DEBUG"),"1",1)==0)
-     cout << "HitMatrix::AddHit( int x, int y, double time, int type )"<<this<< endl;
+	if(getenv("GOSSIP_DEBUG")!=0 && strncmp(getenv("GOSSIP_DEBUG"),"1",1)==0)
+        cout << "HitMatrix::AddHit( int x, int y, double time, int type )"<<this<< endl;
+    //cout << "HitMatrix::AddHit("<<x<<","<< y<<","<<time<<","<<type <<")"<<this<< endl;
 
 	int amplitude=-1;
 	int processed=0;
@@ -100,8 +101,12 @@ int HitMatrix::AddHit( int x, int y, double time, int type )
 	}
 	else good=-1;
 
-	//Sort hit in time:
+
+
+    //Sort hit in time:
 	int size = this->size();
+
+    //cout<< "size of Hit Matrix "<<size<<endl;
 	bool swaped=false;
 
 	if(size!=1 && good!=-1)				//nothing to do for first hit
@@ -109,18 +114,27 @@ int HitMatrix::AddHit( int x, int y, double time, int type )
 		int i=1;
 		while(size-i>0)					//stop if hit is first in list
 		{
-			if(hit[TIME]>=this->at(size-i-1).at(TIME)) break;	//stop if sorted
+
+            //cout<< "hit[TIME]"<<hit[TIME]<<" "<<this->at(size-i-1).at(TIME)<<endl;
+
+            if(hit[TIME]>=this->at(size-i-1).at(TIME)){
+                //cout<< "here "<<swaped<<endl;
+                break;}	//stop if sorted
 			i++;
 			swaped=true;
 		}
 		if(swaped==true)
 		{
-			this->insert(this->end()-i,hit);
-			this->erase(this->end());
+            //cout<< "Here "<<swaped<<endl;
+
+            this->insert(this->end()-i,hit);
+            //this->erase(this->end());
+            this->pop_back();
 		}
 	}
 
-    cout << "Done HitMatrix::AddHit( int x, int y, double time, int type )"<<this<< endl;
+    if(getenv("GOSSIP_DEBUG")!=0 && strncmp(getenv("GOSSIP_DEBUG"),"1",1)==0)
+        cout << "Done HitMatrix::AddHit( int x, int y, double time, int type )"<<this<< endl;
 
     return good;
 }

@@ -30,4 +30,32 @@ class PhotonList : public vector<vector<double> >
 		vector<double> photon;								/**<Photon vector: 0:x, 1:y, 2:time, 3:wavelength. x,y coordinates are in mm (SiPM center is at 0,0), time in ns, wavelength in nm*/
 };
 
+
+
+/*
+class PhotonHit {
+
+    public:
+
+	PhotonHit();
+	~PhotonHit();
+
+	PhotonHit(double x,double y,double t, double wl);
+
+	PhotonHit* Get(){ return this;}
+
+    private:
+
+	double xpos;
+	double ypos;
+	double time;
+	double wavelength;
+
+};
+
+
+PhotonHit::PhotonHit(double x, double y, double t, double wl): xpos(x), ypos(y), time(t), wavelength(wl)  {
+	;
+}
+*/
 #endif

@@ -21,6 +21,8 @@ nDetAnalysisManager::nDetAnalysisManager(){
     fMessenger = new nDetAnalysisMessenger(this);
     fScintCollectionID=-1;
     fSiPMCollectionID=-1;
+
+    fNbOfDetectors =2;
     //ResetEvent();
 }
 
@@ -90,6 +92,8 @@ void nDetAnalysisManager::OpenROOTFile(){
     fTree->Branch("vSDPhotonWavelength", &fvSDPhotonWavelength);
     fTree->Branch("vSDDetectorNumber", &fvSDNumber);
     fTree->Branch("vSDTrackID", &fvSDPhotonTrackID);
+
+
 
     //Following branches are added by Kyle.
 //    fTree->Branch("particleCharge", &fparticleCharge);
@@ -174,6 +178,12 @@ void nDetAnalysisManager::ResetEvent() {
     std::vector<int>().swap(fvSDPhotonTrackID);
 
     std::vector<int>().swap(fvSDNumber);
+
+    for(G4int i=0;i<fphotons.size();i++){
+
+        fphotons.at(i)->clear();
+    }
+
 //
 //    fparticleName.clear();
 //    fparticleCharge.clear();
@@ -252,6 +262,7 @@ void nDetAnalysisManager::BeginOfEventAction(const G4Event *anEvent) {
     fEventNb=anEvent->GetEventID();
 
 
+
     //OnceAWhileDoIt();
 
     return;
@@ -325,7 +336,7 @@ void nDetAnalysisManager::EndOfEventAction(const G4Event *anEvent){
 
         fgossipOut->write((char*)&photonNumber, sizeof(unsigned int));
 
-        G4cout << "nDetAnalysisManager::EndOfEventAction()->Nb of Hits in SiPM " << NbHits << G4endl;
+        //G4cout << "nDetAnalysisManager::EndOfEventAction()->Nb of Hits in SiPM " << NbHits << G4endl;
 
 
 
@@ -441,6 +452,25 @@ void nDetAnalysisManager::OpenGossipFile() {
 void nDetAnalysisManager::CloseGossipFile() {
 
     fgossipOut->close();
+}
+
+
+void nDetAnalysisManager::InitGossip() {
+
+    fsipm = new sipmMC();
+
+    fsipm->GetParaFile("input/MPPC_6x6.txt");
+
+    TFile f("input/SpectralSensitivity.root");
+    fsipm->SetSpectralSensitivity((TGraph*)f.Get("MPPC_noRef"));
+    f.Close();
+
+    for(Int_t i=0; i<fNbOfDetectors;i++) {
+
+        PhotonList *theList=new PhotonList();
+        fphotons.push_back(theList);
+    }
+
 }
 
 void nDetAnalysisManager::OnceAWhileDoIt(const G4bool DoItNow) {
