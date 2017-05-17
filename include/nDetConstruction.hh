@@ -47,7 +47,6 @@
 #include "nDetConstructionMessenger.hh"
 
 
-
 // Replica 
 // Assembly volumes
 // no assembly is used currently
@@ -68,6 +67,10 @@ class nDetConstruction : public G4VUserDetectorConstruction
     virtual void ConstructSDandField();
     void SetGeometry(G4String geom){fGeometry=geom;}
     void SetSiPM_dimension(G4double dim){SiPM_dimension=dim;}
+    void SetDetectorLength(G4double val){fDetectorLength=val;}
+    void SetTrapezoidLength(G4double val){fTrapezoidLength=val;}
+    void SetDetectorThickness(G4double val){fDetectorThickness=val;}
+
     G4String GetGeometry(){return fGeometry;}
     void UpdateGeometry();
 
@@ -107,6 +110,9 @@ private:
     G4double SiPM_dimension;
     G4double fTeflonThickness;
     G4double fMylarThickness;
+    G4double fDetectorLength;
+    G4double fDetectorThickness;
+    G4double fTrapezoidLength;
 
     G4int fNdetectors;
 
@@ -117,6 +123,7 @@ private:
     G4LogicalVolume* assembly_logV;
 
     G4LogicalVolume* ej200_logV;    // ej200 scintillator
+    G4LogicalVolume *mylar_logV;
     G4LogicalVolume* grease_logV;
     G4LogicalVolume* qwSiPM_logV;
     G4LogicalVolume* psSiPM_logV;
@@ -171,8 +178,13 @@ private:
     void buildAssembly();
     void buildDisk();
     void buildEllipse();
+    void buildEllipse2();
+    void buildRectangle();
 
-    G4VSolid* ConstructEllipse(G4ThreeVector dimensions);
+    G4VSolid* ConstructEllipse(G4String name,G4ThreeVector dimensions,G4double thickness);
+
+    G4VSolid* ConstructHexagon(G4String name,G4ThreeVector dimensions,G4double thickness);
+
 
     void DefineMaterials();
 

@@ -205,7 +205,7 @@ void nDetAnalysisManager::BeginOfRunAction(const G4Run *aRun) {
 
     fRunNb=aRun->GetRunID();
 
-    OpenGossipFile();
+    //OpenGossipFile();
 
     OpenROOTFile();
 
@@ -234,7 +234,7 @@ void nDetAnalysisManager::EndOfRunAction(const G4Run *aRun) {
     WriteFile();
     CloseROOTFile();
 
-    CloseGossipFile();
+    //CloseGossipFile();
 
     //OnceAWhileDoIt(true);
     return;
@@ -327,14 +327,14 @@ void nDetAnalysisManager::EndOfEventAction(const G4Event *anEvent){
 
         unsigned int eventNumber=(unsigned int)fEventNb;
 
-        fgossipOut->write((char*)&eventNumber, sizeof(unsigned int));
+        //fgossipOut->write((char*)&eventNumber, sizeof(unsigned int));
 
         G4int NbHits = DHC_SiPM->entries();
         fNbOfDetectedPhotons=NbHits;
 
         unsigned int photonNumber=(unsigned int)fNbOfDetectedPhotons;
 
-        fgossipOut->write((char*)&photonNumber, sizeof(unsigned int));
+        //fgossipOut->write((char*)&photonNumber, sizeof(unsigned int));
 
         //G4cout << "nDetAnalysisManager::EndOfEventAction()->Nb of Hits in SiPM " << NbHits << G4endl;
 
@@ -360,11 +360,11 @@ void nDetAnalysisManager::EndOfEventAction(const G4Event *anEvent){
            float z=(float)pos.z()/mm;
            float t=(float)ptime;
            float wl=(float)wavelength;
-           fgossipOut->write((char*)&x, sizeof(float));
-           fgossipOut->write((char*)&y, sizeof(float));
-           fgossipOut->write((char*)&z, sizeof(float));
-           fgossipOut->write((char*)&t, sizeof(float));
-           fgossipOut->write((char*)&wl, sizeof(float));
+           //fgossipOut->write((char*)&x, sizeof(float));
+           //fgossipOut->write((char*)&y, sizeof(float));
+           //fgossipOut->write((char*)&z, sizeof(float));
+           //fgossipOut->write((char*)&t, sizeof(float));
+           //fgossipOut->write((char*)&wl, sizeof(float));
 
            fvSDNumber.push_back(detector);
              fvSDPhotonTrackID.push_back(trackID);

@@ -35,6 +35,8 @@ private:
 
     G4UIcmdWithAString*  fGeometryCmd;
     G4UIcmdWithADouble *fSiliconDimensionsCmd;
+    G4UIcmdWithADouble *fDetectorLengthCmd;
+    G4UIcmdWithADouble *fTrapezoidLengthCmd;
     G4UIcommand*         fUpdateCmd;
 
 };

@@ -27,6 +27,12 @@ nDetConstructionMessenger::nDetConstructionMessenger(nDetConstruction* detector)
     fSiliconDimensionsCmd=new G4UIcmdWithADouble("/nDet/detector/setSiPMdimensions",this);
     fSiliconDimensionsCmd->SetGuidance("Defines the size of the SiPMs in mm");
 
+    fDetectorLengthCmd=new G4UIcmdWithADouble("/nDet/detector/setDetectorLength",this);
+    fDetectorLengthCmd->SetGuidance("Defines the size of the plastic in cm");
+
+    fTrapezoidLengthCmd=new G4UIcmdWithADouble("/nDet/detector/setTrapezoidLength",this);
+    fTrapezoidLengthCmd->SetGuidance("Defines the length of the trapezoidal part of ellipse in cm");
+
     fUpdateCmd=new G4UIcommand("/nDet/detector/update",this);
     fUpdateCmd->SetGuidance("Updates the detector Geometry");
     //std::cout<<"nDetConstructionMessenger::nDetConstructionMessenger()->"<<fGeometryCmd<<std::endl;
@@ -58,6 +64,17 @@ void nDetConstructionMessenger::SetNewValue(G4UIcommand* command,G4String newVal
         G4double dimensions=fSiliconDimensionsCmd->ConvertToDouble(newValue);
         fDetector->SetSiPM_dimension(dimensions/2.*mm);
     }
+
+    if(command == fDetectorLengthCmd) {
+        G4double length=fDetectorLengthCmd->ConvertToDouble(newValue);
+        fDetector->SetDetectorLength(length*cm);
+    }
+
+    if(command == fTrapezoidLengthCmd) {
+        G4double length=fTrapezoidLengthCmd->ConvertToDouble(newValue);
+        fDetector->SetTrapezoidLength(length*cm);
+    }
+
 
     if(command == fUpdateCmd){
 
