@@ -70,6 +70,7 @@ class nDetConstruction : public G4VUserDetectorConstruction
     void SetDetectorLength(G4double val){fDetectorLength=val;}
     void SetTrapezoidLength(G4double val){fTrapezoidLength=val;}
     void SetDetectorThickness(G4double val){fDetectorThickness=val;}
+    void SetHexagonRadius(G4double val){fHexagonRadius=val;}
 
     G4String GetGeometry(){return fGeometry;}
     void UpdateGeometry();
@@ -113,6 +114,7 @@ private:
     G4double fDetectorLength;
     G4double fDetectorThickness;
     G4double fTrapezoidLength;
+    G4double fHexagonRadius;
 
     G4int fNdetectors;
 
@@ -177,13 +179,14 @@ private:
     void buildExpHall();
     void buildAssembly();
     void buildDisk();
+    void buildDisk2();
     void buildEllipse();
     void buildEllipse2();
     void buildRectangle();
 
     G4VSolid* ConstructEllipse(G4String name,G4ThreeVector dimensions,G4double thickness);
 
-    G4VSolid* ConstructHexagon(G4String name,G4ThreeVector dimensions,G4double thickness);
+    G4VSolid* ConstructHexagon(G4String name,G4double radius,G4double thickness,G4ThreeVector Boxdimensions);
 
 
     void DefineMaterials();
