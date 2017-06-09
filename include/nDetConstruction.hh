@@ -70,6 +70,8 @@ class nDetConstruction : public G4VUserDetectorConstruction
     void SetDetectorLength(G4double val){fDetectorLength=val;}
     void SetTrapezoidLength(G4double val){fTrapezoidLength=val;}
     void SetDetectorThickness(G4double val){fDetectorThickness=val;}
+    void SetMylarThickness(G4double val){fMylarThickness=val;}
+    void SetDetectorWidth(G4double val){fDetectorWidth=val;}
     void SetHexagonRadius(G4double val){fHexagonRadius=val;}
 
     G4String GetGeometry(){return fGeometry;}
@@ -113,6 +115,7 @@ private:
     G4double fMylarThickness;
     G4double fDetectorLength;
     G4double fDetectorThickness;
+    G4double fDetectorWidth;
     G4double fTrapezoidLength;
     G4double fHexagonRadius;
 
@@ -148,6 +151,7 @@ private:
     G4Material* fAir;
     G4Material* fTeflon;
     G4Material* fEJ200;
+    G4Material *fEJ299;
     G4Material* fGrease;
     G4Material* fSiO2;
     G4Material* fSil;
@@ -157,6 +161,7 @@ private:
     G4MaterialPropertiesTable* fAirMPT;
     G4MaterialPropertiesTable* fTeflonMPT;
     G4MaterialPropertiesTable* fEJ200MPT;
+    G4MaterialPropertiesTable* fEJ299MPT;
     G4MaterialPropertiesTable* fGreaseMPT;
     G4MaterialPropertiesTable* fSiO2MPT;
     G4MaterialPropertiesTable* fSilMPT;

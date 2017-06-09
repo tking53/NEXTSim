@@ -30,6 +30,13 @@ nDetConstructionMessenger::nDetConstructionMessenger(nDetConstruction* detector)
     fDetectorLengthCmd=new G4UIcmdWithADouble("/nDet/detector/setDetectorLength",this);
     fDetectorLengthCmd->SetGuidance("Defines the size of the plastic in cm");
 
+    fDetectorWidthCmd=new G4UIcmdWithADouble("/nDet/detector/setDetectorWidth",this);
+    fDetectorWidthCmd->SetGuidance("Defines the width of the plastic in cm");
+
+    fMylarThicknessCmd=new G4UIcmdWithADouble("/nDet/detector/setMylarThickness",this);
+    fMylarThicknessCmd->SetGuidance("Defines the thickness of the plastic the mylar in mm (0 for no mylar)");
+
+
     fTrapezoidLengthCmd=new G4UIcmdWithADouble("/nDet/detector/setTrapezoidLength",this);
     fTrapezoidLengthCmd->SetGuidance("Defines the length of the trapezoidal part of ellipse in cm");
 
@@ -48,6 +55,14 @@ nDetConstructionMessenger::~nDetConstructionMessenger(){
     delete fSiliconDimensionsCmd;
 
     delete fGeometryCmd;
+
+    delete fDetectorWidthCmd;
+
+    delete fDetectorLengthCmd;
+
+    delete fTrapezoidLengthCmd;
+
+    delete fMylarThicknessCmd;
 
     delete fUpdateCmd;
 
@@ -70,11 +85,21 @@ void nDetConstructionMessenger::SetNewValue(G4UIcommand* command,G4String newVal
         fDetector->SetDetectorLength(length*cm);
     }
 
+    if(command == fDetectorWidthCmd) {
+        G4double length=fDetectorWidthCmd->ConvertToDouble(newValue);
+        fDetector->SetDetectorWidth(length*cm);
+    }
+
+
     if(command == fTrapezoidLengthCmd) {
         G4double length=fTrapezoidLengthCmd->ConvertToDouble(newValue);
         fDetector->SetTrapezoidLength(length*cm);
     }
 
+    if(command == fMylarThicknessCmd) {
+        G4double val=fMylarThicknessCmd->ConvertToDouble(newValue);
+        fDetector->SetMylarThickness(val*mm);
+    }
 
     if(command == fUpdateCmd){
 

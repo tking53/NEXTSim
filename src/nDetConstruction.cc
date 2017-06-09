@@ -55,6 +55,7 @@ nDetConstruction::nDetConstruction()
   fTeflonThickness = 0.11*mm;
   fMylarThickness = 0.0125*mm;
   fDetectorLength = 3.94*inch;
+  fDetectorWidth = 1.18*inch;
   fTrapezoidLength = 1*inch;
   fHexagonRadius = 5*cm;
   fDetectorThickness = 0.24*inch;
@@ -885,6 +886,7 @@ void nDetConstruction::DefineMaterials() {
 
     fEJ200->SetMaterialPropertiesTable(fEJ200MPT);
 
+
     // define the silicone optical grease, (C2H6OSi)n
     density = 1.06*g/cm3;
 
@@ -1217,7 +1219,7 @@ void nDetConstruction::buildEllipse2() {
 
 
     //First we build the box
-    G4double xdimension=1.18*inch+teflonThickness+fMylarThickness;
+    G4double xdimension=fDetectorWidth+teflonThickness+fMylarThickness;
     G4double ydimension=0.24*inch+teflonThickness+2*fMylarThickness;
     G4double zdimension=plasticLength+teflonThickness;
 
@@ -1249,7 +1251,7 @@ void nDetConstruction::buildEllipse2() {
 
     //Building the Scintillator
 
-    xdimension=1.18*inch;
+    xdimension=fDetectorWidth;
     ydimension=0.24*inch;
     zdimension=plasticLength;
 
@@ -1266,31 +1268,35 @@ void nDetConstruction::buildEllipse2() {
 
     //Building the Mylar covers
 
-    xdimension=1.18*inch;
-    ydimension=0.24*inch;
-    zdimension=plasticLength;
+    if(fMylarThickness>0) {
 
-    G4ThreeVector dimensions3(xdimension,ydimension,zdimension);
+        xdimension = fDetectorWidth;
+        ydimension = 0.24 * inch;
+        zdimension = plasticLength;
 
-    G4VSolid *theMylar=ConstructEllipse("mylar",dimensions3,fMylarThickness);
+        G4ThreeVector dimensions3(xdimension, ydimension, zdimension);
 
-    mylar_logV=new G4LogicalVolume(theMylar,fMylar,"mylar");
+        G4VSolid *theMylar = ConstructEllipse("mylar", dimensions3, fMylarThickness);
 
-    G4VisAttributes* mylar_VisAtt= new G4VisAttributes(G4Colour(1.0,0.0,1.0)); //magenta
-    mylar_VisAtt->SetForceSolid(true);
-    mylar_logV->SetVisAttributes(mylar_VisAtt);
-    //assembly_logV->SetVisAttributes(mylar_VisAtt);
+        mylar_logV = new G4LogicalVolume(theMylar, fMylar, "mylar");
 
-    G4ThreeVector position(0,dimensions3.y()/2+fMylarThickness/2,0);
-    G4PVPlacement *mylar_phys=new G4PVPlacement(0, position, mylar_logV, "Mylar1", assembly_logV, true, 0, true);
-    G4ThreeVector position2(0,-dimensions3.y()/2-fMylarThickness/2,0);
-    G4PVPlacement *mylar_phys2=new G4PVPlacement(0,position2,mylar_logV,"Mylar2",assembly_logV,true,0,true);
+        G4VisAttributes *mylar_VisAtt = new G4VisAttributes(G4Colour(1.0, 0.0, 1.0)); //magenta
+        mylar_VisAtt->SetForceSolid(true);
+        mylar_logV->SetVisAttributes(mylar_VisAtt);
+        //assembly_logV->SetVisAttributes(mylar_VisAtt);
+
+        G4ThreeVector position(0, dimensions3.y() / 2 + fMylarThickness / 2, 0);
+        G4PVPlacement *mylar_phys = new G4PVPlacement(0, position, mylar_logV, "Mylar1", assembly_logV, true, 0, true);
+        G4ThreeVector position2(0, -dimensions3.y() / 2 - fMylarThickness / 2, 0);
+        G4PVPlacement *mylar_phys2 = new G4PVPlacement(0, position2, mylar_logV, "Mylar2", assembly_logV, true, 0,
+                                                       true);
 
 
-    fMylarSurface=new G4LogicalBorderSurface("Mylar",scint_phys,mylar_phys,fMylarOpticalSurface);
-    G4LogicalBorderSurface *log2= new G4LogicalBorderSurface("Mylar2",scint_phys,mylar_phys2,fMylarOpticalSurface);
+        fMylarSurface = new G4LogicalBorderSurface("Mylar", scint_phys, mylar_phys, fMylarOpticalSurface);
+        G4LogicalBorderSurface *log2 = new G4LogicalBorderSurface("Mylar2", scint_phys, mylar_phys2,
+                                                                  fMylarOpticalSurface);
 
-
+    }
 
     buildSiPMs();
     //psSiPM_logV->SetSensitiveDetector(fSiPMSD);
@@ -1302,9 +1308,9 @@ void nDetConstruction::buildRectangle() {
 
     G4double teflonThickness=0.22*mm;
 
-    fMylarThickness=0.025*mm; //25 um mylar
+    //fMylarThickness=0.025*mm; //25 um mylar
 
-    G4double xdimension=1.18*inch+teflonThickness+fMylarThickness;
+    G4double xdimension=fDetectorWidth+teflonThickness+fMylarThickness;
     G4double ydimension=0.24*inch+teflonThickness+2*fMylarThickness;
     G4double zdimension=fDetectorLength+teflonThickness;
 
@@ -1328,7 +1334,7 @@ void nDetConstruction::buildRectangle() {
 
     //Building the Scintillator
 
-    xdimension=1.18*inch;
+    xdimension=fDetectorWidth;
     ydimension=fDetectorThickness;
     zdimension=fDetectorLength;
 
@@ -1343,27 +1349,30 @@ void nDetConstruction::buildRectangle() {
 
     //Building the Mylar covers
 
-    xdimension=1.18*inch;
-    ydimension=fMylarThickness;
-    zdimension=fDetectorLength;
+    if(fMylarThickness>0) {
 
-   G4Box *theMylar = new G4Box("mylar",xdimension/2,ydimension/2,zdimension/2);
-    mylar_logV=new G4LogicalVolume(theMylar,fMylar,"mylar");
+        xdimension = fDetectorWidth;
+        ydimension = fMylarThickness;
+        zdimension = fDetectorLength;
 
-    G4VisAttributes* mylar_VisAtt= new G4VisAttributes(G4Colour(1.0,0.0,1.0)); //magenta
-    mylar_VisAtt->SetForceSolid(true);
-    mylar_logV->SetVisAttributes(mylar_VisAtt);
+        G4Box *theMylar = new G4Box("mylar", xdimension / 2, ydimension / 2, zdimension / 2);
+        mylar_logV = new G4LogicalVolume(theMylar, fMylar, "mylar");
 
-    G4ThreeVector position(0,0.24*inch/2+fMylarThickness/2,0);
-    G4PVPlacement *mylar_phys=new G4PVPlacement(0, position, mylar_logV, "Mylar1", assembly_logV, true, 0, true);
-    G4ThreeVector position2(0,-0.24*inch/2-fMylarThickness/2,0);
-    G4PVPlacement *mylar_phys2=new G4PVPlacement(0,position2,mylar_logV,"Mylar2",assembly_logV,true,0,true);
+        G4VisAttributes *mylar_VisAtt = new G4VisAttributes(G4Colour(1.0, 0.0, 1.0)); //magenta
+        mylar_VisAtt->SetForceSolid(true);
+        mylar_logV->SetVisAttributes(mylar_VisAtt);
+
+        G4ThreeVector position(0, 0.24 * inch / 2 + fMylarThickness / 2, 0);
+        G4PVPlacement *mylar_phys = new G4PVPlacement(0, position, mylar_logV, "Mylar1", assembly_logV, true, 0, true);
+        G4ThreeVector position2(0, -0.24 * inch / 2 - fMylarThickness / 2, 0);
+        G4PVPlacement *mylar_phys2 = new G4PVPlacement(0, position2, mylar_logV, "Mylar2", assembly_logV, true, 0,
+                                                       true);
 
 
-    fMylarSurface=new G4LogicalBorderSurface("Mylar",scint_phys,mylar_phys,fMylarOpticalSurface);
-    G4LogicalBorderSurface *log2= new G4LogicalBorderSurface("Mylar2",scint_phys,mylar_phys2,fMylarOpticalSurface);
-
-
+        fMylarSurface = new G4LogicalBorderSurface("Mylar", scint_phys, mylar_phys, fMylarOpticalSurface);
+        G4LogicalBorderSurface *log2 = new G4LogicalBorderSurface("Mylar2", scint_phys, mylar_phys2,
+                                                                  fMylarOpticalSurface);
+    }
     buildSiPMs();
 
     return;
@@ -1459,24 +1468,28 @@ void nDetConstruction::buildDisk2() {
 
     //the Mylar sheets
 
-    G4VSolid *theMylar=ConstructHexagon("mylar",DiskRadius,fMylarThickness,BoxDimensions2);
+    if(fMylarThickness>0) {
+        G4VSolid *theMylar = ConstructHexagon("mylar", DiskRadius, fMylarThickness, BoxDimensions2);
 
-    mylar_logV=new G4LogicalVolume(theMylar,fMylar,"mylar");
+        mylar_logV = new G4LogicalVolume(theMylar, fMylar, "mylar");
 
-    G4VisAttributes* mylar_VisAtt= new G4VisAttributes(G4Colour(1.0,0.0,1.0)); //magenta
-    mylar_VisAtt->SetForceSolid(true);
-    mylar_logV->SetVisAttributes(mylar_VisAtt);
-    //assembly_logV->SetVisAttributes(mylar_VisAtt);
+        G4VisAttributes *mylar_VisAtt = new G4VisAttributes(G4Colour(1.0, 0.0, 1.0)); //magenta
+        mylar_VisAtt->SetForceSolid(true);
+        mylar_logV->SetVisAttributes(mylar_VisAtt);
+        //assembly_logV->SetVisAttributes(mylar_VisAtt);
 
-    G4ThreeVector position(0,0,SiPM_dimension+fMylarThickness);
-    G4PVPlacement *mylar_phys=new G4PVPlacement(0, position, mylar_logV, "Mylar1", assembly_logV, true, 0, true);
-    G4ThreeVector position2(0,0,-SiPM_dimension-fMylarThickness);
-    G4PVPlacement *mylar_phys2=new G4PVPlacement(0,position2,mylar_logV,"Mylar2",assembly_logV,true,0,true);
+        G4ThreeVector position(0, 0, SiPM_dimension + fMylarThickness);
+        G4PVPlacement *mylar_phys = new G4PVPlacement(0, position, mylar_logV, "Mylar1", assembly_logV, true, 0, true);
+        G4ThreeVector position2(0, 0, -SiPM_dimension - fMylarThickness);
+        G4PVPlacement *mylar_phys2 = new G4PVPlacement(0, position2, mylar_logV, "Mylar2", assembly_logV, true, 0,
+                                                       true);
 
 
-    fMylarSurface=new G4LogicalBorderSurface("Mylar",assembly_physV,mylar_phys,fMylarOpticalSurface);
-    G4LogicalBorderSurface *log2= new G4LogicalBorderSurface("Mylar2",ej200_physV,mylar_phys2,fMylarOpticalSurface);
+        fMylarSurface = new G4LogicalBorderSurface("Mylar", assembly_physV, mylar_phys, fMylarOpticalSurface);
+        G4LogicalBorderSurface *log2 = new G4LogicalBorderSurface("Mylar2", ej200_physV, mylar_phys2,
+                                                                  fMylarOpticalSurface);
 
+    }
 
 
     // grease Sanit-Gobain BC-630 silicone grease
