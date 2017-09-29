@@ -4,7 +4,7 @@
 
 #include "SiPMSD.hh"
 #include "G4ParticleTypes.hh"
-
+#include <G4SIunits.hh>
 
 SiPMSD::SiPMSD(G4String name) : G4VSensitiveDetector(name) {
 
@@ -53,8 +53,10 @@ G4bool SiPMSD::ProcessHits_constStep(const G4Step *aStep, G4TouchableHistory *RO
     hit->SetTime( aStep->GetPostStepPoint()->GetGlobalTime() );
     hit->SetPos( aStep->GetPostStepPoint()->GetPosition() );
     hit->SetTrackID(aStep->GetTrack()->GetTrackID());
+    hit->SetWaveLength(CLHEP::h_Planck*CLHEP::c_light/aStep->GetTrack()->GetTotalEnergy());
 
-    //G4cout<<"hit->GetPos()->"<<hit->GetPos()<<G4endl;
+    G4cout<<"hit->GetWaveLength()->"<<hit->GetWaveLength()<<G4endl;
+    G4cout<<"hit->GetTotalEnergy()->"<<aStep->GetTrack()->GetTotalEnergy()/eV<<G4endl;
     //hit->SetEventID(aStep->Ge)
 
 

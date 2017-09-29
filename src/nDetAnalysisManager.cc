@@ -67,11 +67,14 @@ void nDetAnalysisManager::OpenROOTFile(){
     fTree->Branch("neutronIncidentPositionZ",&neutronIncidentPositionZ,"neutronIncidentPositionZ/D",bufsize);
 
     fTree->Branch("depositedEnergy", &depEnergy, "depEnergy/D", bufsize);
+    fTree->Branch("firstEnergy", &firstEnergy, "fEnergy/D", bufsize);
     fTree->Branch("NumberofPhotons",&fNbOfPhotons,"Ngammas/I");
-    fTree->Branch("TrackLength",&fvTrackLength);
-    fTree->Branch("TrackTime",&fvTrackTime);
     fTree->Branch("NumberofDetectedPhotons",&fNbOfDetectedPhotons,"NgammasDet/I");
 
+/*
+    fTree->Branch("TrackLength",&fvTrackLength);
+    fTree->Branch("TrackTime",&fvTrackTime);
+*/
 
     fTree->Branch("vPrimaryPhotonPositionX", &fvPrimaryPhotonPositionX);
     fTree->Branch("vPrimaryPhotonPositionY", &fvPrimaryPhotonPositionY);
@@ -146,6 +149,7 @@ void nDetAnalysisManager::ResetEvent() {
     //fvPrimaryPhotonPositionZ.resize(1);
 
     depEnergy=0; // energy deposition inside of the EJ200 scintillator
+    firstEnergy=0;
     //G4cout<<"fvPrimaryPhotonPositionX "<<fvPrimaryPhotonPositionX.size()<<G4endl;
     //G4cout<<"fvPrimaryPhotonPositionY "<<fvPrimaryPhotonPositionY.size()<<G4endl;
     //G4cout<<"fvPrimaryPhotonPositionZ "<<fvPrimaryPhotonPositionZ.size()<<G4endl;
@@ -286,7 +290,10 @@ void nDetAnalysisManager::EndOfEventAction(const G4Event *anEvent){
             G4ThreeVector pos = (*DHC_Sci)[i]->GetPos();
             G4double ptime = (*DHC_Sci)[i]->GetTime()/ns;
             G4double energy=(*DHC_Sci)[i]->GetEdep()/keV;
+            G4double energy0=(*DHC_Sci)[i]->GetEdep_first()/keV;
             depEnergy+=energy;
+            if(firstEnergy==0)
+                firstEnergy=-energy0;
             //fvPrimaryPhotonPositionX.push_back(pos.x()/mm);
             //fvPrimaryPhotonPositionY.push_back(pos.y()/mm);
             //fvPrimaryPhotonPositionZ.push_back(pos.z()/mm);
@@ -374,9 +381,13 @@ void nDetAnalysisManager::GeneratePrimaries(const G4Event *anEvent) {
 
     G4PrimaryVertex *theVertex=anEvent->GetPrimaryVertex();
 
+    G4String pname=theVertex->GetPrimary()->GetG4code()->GetParticleName();
+
     neutronIncidentPositionX=theVertex->GetX0();
     neutronIncidentPositionY=theVertex->GetY0();
     neutronIncidentPositionZ=theVertex->GetZ0();
+
+    incidentparticle=pname;
 
     return;
 }
