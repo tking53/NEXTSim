@@ -12,6 +12,9 @@ class G4Step;
 class G4HCofThisEvent;
 class G4TouchableHistory;
 
+class sipmMC;
+class PhotonList;
+
 class SiPMSD: public G4VSensitiveDetector
 {
     public:
@@ -30,6 +33,8 @@ class SiPMSD: public G4VSensitiveDetector
 
     private:
         SiPMHitsCollection *hitsCollection;
+    sipmMC *fsipm;
+    PhotonList *fphotons;
 
 };
 

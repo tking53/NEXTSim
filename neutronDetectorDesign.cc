@@ -43,6 +43,7 @@
 #include "nDetSteppingAction.hh"
 #include "nDetAnalysisManager.hh"
 #include "nDetTrackingAction.hh"
+#include "nDetPhysicsList.hh"
 //#include "nDetActionInitialization.hh"
 
 #include "G4OpticalPhysics.hh"
@@ -95,6 +96,10 @@ that didn't work... this is horribly deprecated*/
 
 
 //Using "high precision" neutron scattering model.  Warning: this will be slow.
+
+
+  //nDetPhysicsList* physics = (nDetPhysicsList*)new QGSP_BERT_HP();
+    //nDetPhysicsList* physics = new nDetPhysicsList();
   G4VModularPhysicsList* physics = new QGSP_BERT_HP();
   physics->ReplacePhysics(new G4OpticalPhysics());
   runManager->SetUserInitialization( physics );

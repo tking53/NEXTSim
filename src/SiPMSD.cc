@@ -4,16 +4,38 @@
 
 #include "SiPMSD.hh"
 #include "G4ParticleTypes.hh"
+<<<<<<< HEAD
 #include <G4SIunits.hh>
+=======
+#include "G4SIunits.hh"
+
+#include "sipmMC.hh"
+#include "PhotonList.hh"
+#include "TFile.h"
+>>>>>>> 2ac33be34e602f3c34e5fe5fff2ab6ca5a803279
 
 SiPMSD::SiPMSD(G4String name) : G4VSensitiveDetector(name) {
 
     G4String HCname;
     collectionName.insert(HCname="SiPMCollection");
+
+    fsipm = new sipmMC();
+
+    fsipm->GetParaFile("input/MPPC_6x6.txt");
+
+    TFile f("input/SpectralSensitivity.root");
+    fsipm->SetSpectralSensitivity((TGraph*)f.Get("MPPC_noRef"));
+    f.Close();
+
+    fphotons = new PhotonList();
 }
 
 SiPMSD::~SiPMSD() {
 ;
+
+    G4cout<<"SiPMSD::~SiPMSD()"<<G4endl;
+    //delete fsipm;
+    //delete fphotons;
 }
 
 void SiPMSD::Initialize(G4HCofThisEvent *HCE) {
@@ -25,6 +47,8 @@ void SiPMSD::Initialize(G4HCofThisEvent *HCE) {
         HCID = GetCollectionID(0);
     }
         HCE->AddHitsCollection(HCID,hitsCollection);
+
+    fphotons->clear();
 }
 
 G4bool SiPMSD::ProcessHits(G4Step *aStep, G4TouchableHistory *ROhist) {
@@ -48,15 +72,31 @@ G4bool SiPMSD::ProcessHits_constStep(const G4Step *aStep, G4TouchableHistory *RO
     //G4cout<<"SiPMSD::ProcessHits_constStep()-->"<<aStep->GetPostStepPoint()->GetTouchable()->GetVolume()->GetName()
     //      <<" "<<aStep->GetPostStepPoint()->GetTouchable()->GetReplicaNumber()<<G4endl;
 
+
+    G4ThreeVector pos = aStep->GetPostStepPoint()->GetPosition();
+    G4double  time = aStep->GetPostStepPoint()->GetGlobalTime();
+    G4double  wavelength = CLHEP::h_Planck*CLHEP::c_light/aStep->GetTrack()->GetTotalEnergy()*1e6;
+
     SiPMHit* hit = new SiPMHit(); //so create new hit
     hit->SetSiPMNumber(SipmNumber);
     hit->SetTime( aStep->GetPostStepPoint()->GetGlobalTime() );
     hit->SetPos( aStep->GetPostStepPoint()->GetPosition() );
     hit->SetTrackID(aStep->GetTrack()->GetTrackID());
+<<<<<<< HEAD
     hit->SetWaveLength(CLHEP::h_Planck*CLHEP::c_light/aStep->GetTrack()->GetTotalEnergy());
 
     G4cout<<"hit->GetWaveLength()->"<<hit->GetWaveLength()<<G4endl;
     G4cout<<"hit->GetTotalEnergy()->"<<aStep->GetTrack()->GetTotalEnergy()/eV<<G4endl;
+=======
+    hit->SetWaveLength(CLHEP::h_Planck*CLHEP::c_light/aStep->GetTrack()->GetTotalEnergy()*1e6);
+
+
+    fphotons->AddPhoton(pos.x(),pos.y(),time,wavelength);
+
+
+    //G4cout<<"hit->GetWaveLength()->"<<hit->GetWaveLength()<<G4endl;
+    //G4cout<<"hit->GetEnergy()->"<<aStep->GetTrack()->GetTotalEnergy()<<G4endl;
+>>>>>>> 2ac33be34e602f3c34e5fe5fff2ab6ca5a803279
     //hit->SetEventID(aStep->Ge)
 
 
@@ -73,14 +113,17 @@ G4bool SiPMSD::ProcessHits_constStep(const G4Step *aStep, G4TouchableHistory *RO
 
 void SiPMSD::EndOfEvent(G4HCofThisEvent *HCE){
 
+    fsipm->Generate(*fphotons);
+
     if (verboseLevel>1)
         PrintAll();
     G4int NbHits = hitsCollection->entries();
 if(verboseLevel >0) {
     if (NbHits > 0) {
-        G4cout << "Hit Number in SiPMs: " << NbHits << G4endl;
+        G4cout << "SiPMSD::EndOfEvent()->Hit Number in SiPMs: " << NbHits << G4endl;
     }
 }
+
 }
 
 void SiPMSD::clear() {

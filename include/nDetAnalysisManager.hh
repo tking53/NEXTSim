@@ -10,11 +10,19 @@
 #include "TTree.h"
 #include "TFile.h"
 #include "TROOT.h"
+#include "TGraph.h"
 #include <vector>
 #include "G4Run.hh"
 #include "G4Event.hh"
 #include "G4Track.hh"
 #include "time.h"
+
+#include "sipmMC.hh"
+#include "PhotonList.hh"
+#include <fstream>
+
+#include "SiPMHits.hh"
+
 
 class nDetAnalysisManager:public G4RootAnalysisManager {
 
@@ -47,6 +55,16 @@ class nDetAnalysisManager:public G4RootAnalysisManager {
 
     void SetOutputFileName(const G4String OutputName){fFileName=OutputName;}
 
+    void SetGossipFileName(const G4String OutputName){fgossipFileName=OutputName;}
+
+    void OpenGossipFile();
+
+    void CloseGossipFile();
+
+    void InitGossip();
+
+    void ProcessGossip( const SiPMHitsCollection *DHC_SiPM);
+
 private:
 
     G4String fFileName;
@@ -65,6 +83,8 @@ private:
 
     G4int  fNbOfPhotons;
     G4int  fNbOfDetectedPhotons;
+    G4int  fNbOfDetectors;
+
 
     nDetAnalysisMessenger *fMessenger;
 
@@ -88,6 +108,7 @@ private:
     std::vector<double>     fvSDPhotonPositionY;
     std::vector<double>     fvSDPhotonPositionZ;
     std::vector<double>     fvSDPhotonTime;
+    std::vector<double>     fvSDPhotonWavelength;
     std::vector<int>        fvSDNumber;
     std::vector<int>        fvSDPhotonTrackID;
 
@@ -96,6 +117,16 @@ private:
     std::vector<double>      fvTrackLength;
     std::vector<double>      fvTrackTime;
 
+
+
+
+
+    //Gossip Stuff
+    G4String                   fgossipFileName;
+    ofstream                   *fgossipOut;
+
+    sipmMC                     *fsipm;
+    std::vector<PhotonList*>   fphotons;
 
 
 };

@@ -46,6 +46,7 @@
 
 #include "nDetConstructionMessenger.hh"
 
+
 // Replica 
 // Assembly volumes
 // no assembly is used currently
@@ -66,6 +67,13 @@ class nDetConstruction : public G4VUserDetectorConstruction
     virtual void ConstructSDandField();
     void SetGeometry(G4String geom){fGeometry=geom;}
     void SetSiPM_dimension(G4double dim){SiPM_dimension=dim;}
+    void SetDetectorLength(G4double val){fDetectorLength=val;}
+    void SetTrapezoidLength(G4double val){fTrapezoidLength=val;}
+    void SetDetectorThickness(G4double val){fDetectorThickness=val;}
+    void SetMylarThickness(G4double val){fMylarThickness=val;}
+    void SetDetectorWidth(G4double val){fDetectorWidth=val;}
+    void SetHexagonRadius(G4double val){fHexagonRadius=val;}
+
     G4String GetGeometry(){return fGeometry;}
     void UpdateGeometry();
 
@@ -103,6 +111,13 @@ private:
     G4double psSiPMz;
 
     G4double SiPM_dimension;
+    G4double fTeflonThickness;
+    G4double fMylarThickness;
+    G4double fDetectorLength;
+    G4double fDetectorThickness;
+    G4double fDetectorWidth;
+    G4double fTrapezoidLength;
+    G4double fHexagonRadius;
 
     G4int fNdetectors;
 
@@ -113,6 +128,7 @@ private:
     G4LogicalVolume* assembly_logV;
 
     G4LogicalVolume* ej200_logV;    // ej200 scintillator
+    G4LogicalVolume *mylar_logV;
     G4LogicalVolume* grease_logV;
     G4LogicalVolume* qwSiPM_logV;
     G4LogicalVolume* psSiPM_logV;
@@ -130,30 +146,37 @@ private:
     G4Element* fO;
     G4Element* fF;
     G4Element* fSi;
+    G4Element* fAl;
 
     G4Material* fAir;
     G4Material* fTeflon;
     G4Material* fEJ200;
+    G4Material *fEJ299;
     G4Material* fGrease;
     G4Material* fSiO2;
     G4Material* fSil;
+    G4Material* fMylar;
 
     //Material table properties
     G4MaterialPropertiesTable* fAirMPT;
     G4MaterialPropertiesTable* fTeflonMPT;
     G4MaterialPropertiesTable* fEJ200MPT;
+    G4MaterialPropertiesTable* fEJ299MPT;
     G4MaterialPropertiesTable* fGreaseMPT;
     G4MaterialPropertiesTable* fSiO2MPT;
     G4MaterialPropertiesTable* fSilMPT;
+    G4MaterialPropertiesTable* fMylarMPT;
 
     //Optical Surfaces
     G4OpticalSurface* fTeflonOpticalSurface;
     G4OpticalSurface* fSiliconPMOpticalSurface;
+    G4OpticalSurface* fMylarOpticalSurface;
 
     //Logical Skins
 
     G4LogicalSkinSurface* fWrapSkinSurface;
     G4LogicalSkinSurface* fSiPMSkinSurface;
+    G4LogicalBorderSurface* fMylarSurface;
 
 
 
@@ -161,7 +184,15 @@ private:
     void buildExpHall();
     void buildAssembly();
     void buildDisk();
+    void buildDisk2();
     void buildEllipse();
+    void buildEllipse2();
+    void buildRectangle();
+
+    G4VSolid* ConstructEllipse(G4String name,G4ThreeVector dimensions,G4double thickness);
+
+    G4VSolid* ConstructHexagon(G4String name,G4double radius,G4double thickness,G4ThreeVector Boxdimensions);
+
 
     void DefineMaterials();
 
