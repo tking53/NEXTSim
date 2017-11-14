@@ -314,7 +314,7 @@ void sipmMC::SetPulseShape( double Tau1, double Tau2 )
 
 void sipmMC::SetPulseShape( TF1* pulse_shape )
 {
-	//if(getenv("GOSSIP_DEBUG")!=0 && strncmp(getenv("GOSSIP_DEBUG"),"1",1)==0)
+	if(getenv("GOSSIP_DEBUG")!=0 && strncmp(getenv("GOSSIP_DEBUG"),"1",1)==0)
         cout << "sipmMC::SetPulseShape( TF1* pulse_shape )" << endl;
 
 	f_pulse_shape = pulse_shape;
@@ -330,7 +330,7 @@ void sipmMC::SetPulseShape( TF1* pulse_shape )
 
 void sipmMC::UpdatePulseShape()
 {
-	//if(getenv("GOSSIP_DEBUG")!=0 && strncmp(getenv("GOSSIP_DEBUG"),"1",1)==0)
+	if(getenv("GOSSIP_DEBUG")!=0 && strncmp(getenv("GOSSIP_DEBUG"),"1",1)==0)
     cout << "sipmMC::UpdatePulseShape()" << endl;
 
     //for(Int_t k=0;k<f_pulse_shape_intern->GetNpar();k++)

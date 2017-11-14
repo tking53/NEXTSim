@@ -1,4 +1,4 @@
-//
+////
 // $Id: nDetConstruction.cc,v1.0 Sept., 2015 $
 // Written by Dr. Xiaodong Zhang
 //
@@ -45,13 +45,15 @@ nDetConstruction::nDetConstruction()
   // the world volume is 10 mm bigger than assembly volume in three dimensions
 
     G4cout<<"nDetConstruction::nDetConstruction()->"<<this<<G4endl;
-  G4double margin = 20*mm;
+  G4double margin = 500*mm;
 
   fDetectorMessenger=new nDetConstructionMessenger(this);
 
     //fGeometry="ellipse";
-    fGeometry="hexagon";
+    //fGeometry="hexagon";
+    fGeometry="array";
 
+  fCheckOverlaps = true;
   fTeflonThickness = 0.11*mm;
   fMylarThickness = 0.0125*mm;
   fDetectorLength = 3.94*inch;
@@ -116,7 +118,8 @@ G4VPhysicalVolume* nDetConstruction::Construct()
         buildEllipse2();
     if(fGeometry == "rectangle")
         buildRectangle();
-
+    if(fGeometry == "array")
+    buildArray();
   return expHall_physV;
 }
 
@@ -129,7 +132,7 @@ void nDetConstruction::buildExpHall()
 
   expHall_logV  = new G4LogicalVolume(expHall_solidV, fAir, "expHall_logV",0,0,0);
  // expHall_logV  = new G4LogicalVolume(expHall_solidV, Vacuum, "expHall_logV",0,0,0);
-  expHall_logV->SetVisAttributes(G4VisAttributes::Invisible);
+    expHall_logV->SetVisAttributes(G4VisAttributes::Invisible);
 
   expHall_physV = new G4PVPlacement(0,G4ThreeVector(0., 0., 0.),expHall_logV,
                                    "expHall_physV",0,false,0);
@@ -1188,6 +1191,32 @@ G4VSolid* nDetConstruction::ConstructHexagon(G4String name,G4double radius,G4dou
 }
 
 
+G4VSolid* nDetConstruction::ConstructHexagon(G4String name,G4double radius,G4double thickness){
+
+
+G4double minDiskRadius=0*mm;
+G4double maxDiskRadius=radius;
+
+
+G4double startAngle=0*deg;
+G4double endAngle=360*deg;
+
+G4int nSides=6;
+G4int nPlanes=2;
+
+const G4double zplanes[]={-thickness,thickness};
+const G4double maxRadius[]={maxDiskRadius,maxDiskRadius};
+const G4double minRadius[]={minDiskRadius,minDiskRadius};
+
+
+G4Polyhedra* theHexagon = new G4Polyhedra(name,startAngle,endAngle,nSides,nPlanes,zplanes,minRadius,maxRadius);
+
+
+return theHexagon;
+
+}
+
+
 
 void nDetConstruction::UpdateGeometry(){
 
@@ -1214,7 +1243,7 @@ void nDetConstruction::buildEllipse2() {
 
     G4double plasticLength = fDetectorLength-2*fTrapezoidLength ;
 
-    fMylarThickness=0.025*mm; //25 um mylar
+    //fMylarThickness=0.025*mm; //25 um mylar
 
 
 
@@ -1677,3 +1706,188 @@ void nDetConstruction::buildDisk2() {
 
     return;
 } // end of function. //
+
+
+
+
+
+void nDetConstruction::buildArray() {
+
+    greaseX = 0.1206 * inch;
+    greaseZ = 0.1206 * inch;
+    qwSiPMx = 0.1206 * inch;
+    qwSiPMz = 0.1206 * inch;
+    psSiPMx = 0.1206 * inch;
+    psSiPMz = 0.1206 * inch;
+
+    qwSiPMy = 0.37/2*mm;
+    psSiPMy = 0.09/2*mm;
+
+    fNdetectors=8;
+
+    fCheckOverlaps =false;
+
+    fDetectorLength = 20*cm;
+    fDetectorWidth = 10*cm;
+    G4double array_length = 50.44*mm;
+
+    G4double offset = 2*(fTeflonThickness)+4*(greaseY+qwSiPMy+psSiPMy);
+
+
+    G4double wrapping_length = fDetectorLength+offset;
+    G4double wrapping_width = fDetectorWidth+2*fTeflonThickness;
+    G4double wrapping_width2 = array_length+2*fTeflonThickness;
+    G4double wrapping_thickness = 2*psSiPMx +2*fTeflonThickness;
+
+    G4VSolid *theWrapping = ConstructNextModule("Wrapping",wrapping_length,wrapping_width,wrapping_width2,wrapping_thickness);
+
+    assembly_logV = new G4LogicalVolume (theWrapping,fTeflon,"theWrapping_log");
+
+    fWrapSkinSurface = new G4LogicalSkinSurface("WrapSkin",assembly_logV,fTeflonOpticalSurface);
+
+    assembly_physV= new G4PVPlacement(0,G4ThreeVector (0,0,wrapping_length/4),assembly_logV,"theWrapping_phys",expHall_logV,false,0,fCheckOverlaps);
+
+    G4VSolid *TheScint = ConstructNextModule("Scint",fDetectorLength,fDetectorWidth,array_length,2*psSiPMx);
+
+    ej200_logV=new G4LogicalVolume(TheScint,fEJ200,"theScint");
+
+    G4VisAttributes* Array_VisAtt= new G4VisAttributes(G4Colour(0.0,1.0,1.0));//green
+    ej200_logV->SetVisAttributes(Array_VisAtt);
+    //Array_VisAtt->SetForceSolid(true);
+
+    G4VPhysicalVolume *scint_phys= new G4PVPlacement(0,G4ThreeVector (0,0,-offset/4),ej200_logV,"theScint_phys",assembly_logV,false,0,fCheckOverlaps);
+
+    G4AssemblyVolume *theArray_log=ConstructArray("Array",8);
+
+    G4ThreeVector position(0,0,fDetectorLength/4+greaseY-offset/4);
+    G4RotationMatrix *rotation=new G4RotationMatrix();
+    rotation->rotateX(90*deg);
+
+
+
+    theArray_log->MakeImprint(assembly_logV,position,rotation,0,fCheckOverlaps);
+
+    position.setZ(-3*fDetectorLength/4-offset/4-greaseY);
+    rotation->rotateX(-180*deg);
+
+    theArray_log->MakeImprint(assembly_logV,position,rotation,0,fCheckOverlaps);
+
+    //G4VPhysicalVolume *theArray_phys=new G4PVPlacement(rotation,position,theArray_log,"Array_ph",assembly_logV,1,0,1);
+    //G4VPhysicalVolume *theArray_phys=new G4PVPlacement(rotation,position,theArray_log,"Array_ph",expHall_logV,1,0,1);
+
+
+    return;
+}
+
+
+//G4LogicalVolume *nDetConstruction::ConstructArray(G4String name, G4int NDetectors) {
+    G4AssemblyVolume *nDetConstruction::ConstructArray(G4String name, G4int NDetectors) {
+
+    greaseX = 0.1206 * inch;
+    greaseZ = 0.1206 * inch;
+    qwSiPMx = 0.1206 * inch;
+    qwSiPMz = 0.1206 * inch;
+    psSiPMx = 0.1206 * inch;
+    psSiPMz = 0.1206 * inch;
+
+    qwSiPMy = 0.37/2*mm;
+    psSiPMy = 0.09/2*mm;
+    greaseY = 0.05*mm;
+
+    fNdetectors=NDetectors;
+
+    G4double gap = 0.1*mm;
+    G4double BoxX = NDetectors*SiPM_dimension+2*(NDetectors-1)*gap;
+    G4double BoxY = (greaseY+qwSiPMy+psSiPMy);
+    G4double BoxZ = SiPM_dimension+fTeflonThickness;
+    G4Box *TheArrayBox=new G4Box("Array",BoxX,BoxY,BoxZ);
+
+    G4LogicalVolume *theArray_log = new G4LogicalVolume(TheArrayBox,fTeflon,"Array",0);
+
+
+    G4Box *GreaseBox = new G4Box("Grease",greaseX,greaseY,greaseZ);
+    G4Box *SiPMGlass = new G4Box("Glass",qwSiPMx,qwSiPMy,qwSiPMz);
+    G4Box *SiPMChip = new G4Box("Chip",psSiPMx,psSiPMy,psSiPMz);
+    grease_logV = new G4LogicalVolume(GreaseBox,fGrease,"Grease_log");
+    G4VisAttributes *grease_VisAtt = new G4VisAttributes(G4Colour(1.0, 0.0, 0.0));//red
+    grease_VisAtt->SetForceSolid(true);
+    grease_logV->SetVisAttributes(grease_VisAtt);
+
+    qwSiPM_logV = new G4LogicalVolume(SiPMGlass,fSiO2,"Window_Log");
+    G4VisAttributes* qwSiPM_VisAtt= new G4VisAttributes(G4Colour(0.0,1.0,0.0));//green
+    qwSiPM_VisAtt->SetForceSolid(true);
+    qwSiPM_logV->SetVisAttributes(qwSiPM_VisAtt);
+
+    // define the optical surface for SiPM
+    G4OpticalSurface *SiPMSurface = new G4OpticalSurface("SiPMSurface");
+    SiPMSurface->SetType(dielectric_metal);
+    SiPMSurface->SetFinish(polished);
+    SiPMSurface->SetModel(glisur);
+    SiPMSurface->SetMaterialPropertiesTable(fSilMPT);
+
+
+
+    psSiPM_logV = new G4LogicalVolume(SiPMChip,fSil,"Chip_log");
+
+    G4LogicalSkinSurface *psSiPMSurface = new G4LogicalSkinSurface("SiPMSurface", psSiPM_logV, SiPMSurface);
+
+    G4VisAttributes *psSiPM_VisAtt = new G4VisAttributes(G4Colour(0.0, 1.0, 1.0));//
+    psSiPM_VisAtt->SetForceSolid(true);
+    psSiPM_logV->SetVisAttributes(psSiPM_VisAtt);
+
+
+    G4AssemblyVolume *theArray = new G4AssemblyVolume();
+
+    for(G4int j=0;j<fNdetectors;j++) {
+        G4ThreeVector position((-4+j)*2*(greaseX + gap)+greaseX+gap , 0, 0);
+        G4RotationMatrix *rot = new G4RotationMatrix();
+        //rot->rotateZ(60 * deg);
+        theArray->AddPlacedVolume(grease_logV,position,rot);
+        position.setY(greaseY+qwSiPMy);
+        theArray->AddPlacedVolume(qwSiPM_logV,position,rot);
+        position.setY(greaseY+2*qwSiPMy+psSiPMy);
+        theArray->AddPlacedVolume(psSiPM_logV,position,rot);
+    }
+
+    G4RotationMatrix *rotation=new G4RotationMatrix();
+    G4ThreeVector pos(0,0,0);
+    //theArray->MakeImprint(theArray_log,pos,rotation,0,1);
+
+
+    //return theArray_log;
+    return theArray;
+}
+
+
+
+G4VSolid* nDetConstruction::ConstructNextModule(G4String name, G4double length, G4double width1,G4double width2, G4double thickness) {
+
+
+    //We build the first trapezoid
+    fTrapezoidLength=length/2.;
+
+    G4double trapezoidlength=length/2.;
+
+    G4double dx1=width1/2.;
+    G4double dx2=width2/2.;
+    G4double dy1=thickness/2.;
+    G4double dy2=thickness/2.;
+    G4double dz=trapezoidlength/2;
+
+    G4Trd *theTrapezoid1=new G4Trd("theTrapezoid1"+name, dx1, dx2, dy1, dy2, dz);
+
+    G4Trd *theTrapezoid2=new G4Trd("theTrapezoid2"+name, dx1, dx2, dy1, dy2, dz);
+
+    G4ThreeVector translation(0,0,-2*dz);
+
+    G4RotationMatrix *rot=new G4RotationMatrix();
+
+    rot->rotateX(180*deg);
+
+    G4UnionSolid *themodule=new G4UnionSolid("NEXT"+name,theTrapezoid1,theTrapezoid2,rot,translation);
+
+
+
+    return themodule;
+
+}
