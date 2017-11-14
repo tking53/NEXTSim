@@ -49,9 +49,6 @@ nDetConstruction::nDetConstruction()
 
   fDetectorMessenger=new nDetConstructionMessenger(this);
 
-<<<<<<< HEAD
-  fGeometry="ellipse";
-=======
     //fGeometry="ellipse";
     //fGeometry="hexagon";
     fGeometry="array";
@@ -64,7 +61,6 @@ nDetConstruction::nDetConstruction()
   fTrapezoidLength = 1*inch;
   fHexagonRadius = 5*cm;
   fDetectorThickness = 0.24*inch;
->>>>>>> 2ac33be34e602f3c34e5fe5fff2ab6ca5a803279
 
   SiPM_dimension=3*mm;
 
