@@ -4,15 +4,11 @@
 
 #include "SiPMSD.hh"
 #include "G4ParticleTypes.hh"
-<<<<<<< HEAD
-#include <G4SIunits.hh>
-=======
 #include "G4SIunits.hh"
 
 #include "sipmMC.hh"
 #include "PhotonList.hh"
 #include "TFile.h"
->>>>>>> 2ac33be34e602f3c34e5fe5fff2ab6ca5a803279
 
 SiPMSD::SiPMSD(G4String name) : G4VSensitiveDetector(name) {
 
@@ -82,12 +78,6 @@ G4bool SiPMSD::ProcessHits_constStep(const G4Step *aStep, G4TouchableHistory *RO
     hit->SetTime( aStep->GetPostStepPoint()->GetGlobalTime() );
     hit->SetPos( aStep->GetPostStepPoint()->GetPosition() );
     hit->SetTrackID(aStep->GetTrack()->GetTrackID());
-<<<<<<< HEAD
-    hit->SetWaveLength(CLHEP::h_Planck*CLHEP::c_light/aStep->GetTrack()->GetTotalEnergy());
-
-    G4cout<<"hit->GetWaveLength()->"<<hit->GetWaveLength()<<G4endl;
-    G4cout<<"hit->GetTotalEnergy()->"<<aStep->GetTrack()->GetTotalEnergy()/eV<<G4endl;
-=======
     hit->SetWaveLength(CLHEP::h_Planck*CLHEP::c_light/aStep->GetTrack()->GetTotalEnergy()*1e6);
 
 
@@ -96,7 +86,6 @@ G4bool SiPMSD::ProcessHits_constStep(const G4Step *aStep, G4TouchableHistory *RO
 
     //G4cout<<"hit->GetWaveLength()->"<<hit->GetWaveLength()<<G4endl;
     //G4cout<<"hit->GetEnergy()->"<<aStep->GetTrack()->GetTotalEnergy()<<G4endl;
->>>>>>> 2ac33be34e602f3c34e5fe5fff2ab6ca5a803279
     //hit->SetEventID(aStep->Ge)
 
 

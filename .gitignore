@@ -4,6 +4,3 @@
 .idea/
 cmake-build-debug/
 build/
-ROOT_files/
-ROOT_Output/
-*.root
