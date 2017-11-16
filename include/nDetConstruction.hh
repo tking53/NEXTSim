@@ -162,12 +162,12 @@ private:
     void buildAssembly();
     void buildDisk();
     void buildEllipse();
-
+    void buildArrayHex();
     void DefineMaterials();
 
 
     void buildSiPMs();
-
+    void buildSiPMArray();
 
 };
 
