@@ -1,0 +1,22 @@
+#
+# create empty scene
+#
+/nDet/detector/setGeometry ellipse
+#/nDet/detector/setDetectorLength 10.
+#/nDet/detector/setDetectorWidth 0.6
+/nDet/detector/setMylarThickness 0.
+/nDet/detector/update
+/nDet/analysis/outputFile Co60_ellipse_2.root
+#/nDet/analysis/outputFile cona.root
+#/hits/inactivate /theScintSD
+#/tracking/verbose 1
+# Now ready for /run/beamOn
+#/gps/particle neutron
+/gps/particle gamma
+/gps/ang/type iso
+/gps/position 0 3.5 0 mm
+/gps/energy  1.17 MeV
+/run/beamOn 5000000
+
+#/run/beamOn 1
+ 

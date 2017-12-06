@@ -1,0 +1,26 @@
+#
+# create empty scene
+#
+/nDet/detector/setGeometry rectangle
+/nDet/detector/setDetectorLength 10.
+/nDet/detector/setDetectorWidth 0.6
+/nDet/detector/setMylarThickness 0.
+/nDet/detector/update
+#/nDet/analysis/outputFile Bar_10cm_1MeV_n.root
+/nDet/analysis/outputFile cona.root
+#/hits/inactivate /theScintSD
+/hits/verbose 1
+#/tracking/verbose 1
+/gps/particle neutron
+#/gps/particle gamma
+#/gps/ang/type iso
+#/gps/position 20 0 0 cm
+/gps/position 0 20 0 cm
+#/gps/direction -1 0 0 
+/gps/direction 0 -1 0 
+/gps/energy  1 MeV
+# Now ready for /run/beamOn
+#/run/beamOn 200000
+
+/run/beamOn 10000
+ 
