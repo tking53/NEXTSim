@@ -26,7 +26,7 @@
       file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh)
 
       # (5)
-      add_executable(neutronDetectorDesign neutronDetectorDesign.cc ${sources})
+      add_executable(neutronDetectorDesign neutronDetectorDesign.cc ${sources} )
       target_link_libraries(neutronDetectorDesign ${Geant4_LIBRARIES} ${ROOT_LIBRARIES})
 
       # (6)

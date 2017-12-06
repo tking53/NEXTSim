@@ -117,6 +117,8 @@ private:
     std::vector<double>      fvTrackLength;
     std::vector<double>      fvTrackTime;
 
+    std::vector<int>         fvTrackReflections;
+
 
 
 

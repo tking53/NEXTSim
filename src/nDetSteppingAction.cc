@@ -17,7 +17,7 @@
 #include "G4ProcessManager.hh"
 #include "G4SDManager.hh"
 #include "G4UnitsTable.hh"
-
+#include "nDetUserTrackingInformation.hh"
 #include "G4ParticleDefinition.hh"
 #include "G4Alpha.hh"
 #include "G4Electron.hh"
@@ -58,6 +58,9 @@ void nDetSteppingAction::UserSteppingAction(const G4Step* aStep)
 
   G4String name = aStep->GetTrack()->GetMaterial()->GetName();
 
+    nDetUserTrackingInformation *theTrackingInfo;
+    theTrackingInfo = static_cast<nDetUserTrackingInformation*>( aStep->GetTrack()->GetUserInformation());
+
   if( (name.find("EJ") != name.npos ) && aStep->GetTotalEnergyDeposit() > 0 ){
     G4double edep = aStep->GetTotalEnergyDeposit();
 
@@ -77,55 +80,72 @@ void nDetSteppingAction::UserSteppingAction(const G4Step* aStep)
   // collect detected photons in the siPM
   G4OpBoundaryProcessStatus boundaryStatus=Undefined;
   G4OpBoundaryProcess* boundary=NULL;
-  if(!boundary){
-      G4ProcessManager* pm
-        = aStep->GetTrack()->GetDefinition()->GetProcessManager();       
+  if(!boundary) {
+      G4ProcessManager *pm
+              = aStep->GetTrack()->GetDefinition()->GetProcessManager();
       G4int nprocesses = pm->GetProcessListLength();
-      G4ProcessVector* pv = pm->GetProcessList();
+      G4ProcessVector *pv = pm->GetProcessList();
       G4int i;
-        for( i=0;i<nprocesses;i++){
-          if((*pv)[i]->GetProcessName()=="OpBoundary"){
-            boundary = (G4OpBoundaryProcess*)(*pv)[i];
-            //G4cout<<boundary->GetStatus()<<G4endl;
-            break;
+      for (i = 0; i < nprocesses; i++) {
+          if ((*pv)[i]->GetProcessName() == "OpBoundary") {
+              boundary = (G4OpBoundaryProcess *) (*pv)[i];
+              //G4cout<<boundary->GetStatus()<<G4endl;
+              break;
           }
-         }
-
-    if(i<nprocesses){
-      boundaryStatus = boundary->GetStatus();
-      if(aStep->GetPostStepPoint()->GetStepStatus()==fGeomBoundary ){
-
-        if(boundaryStatus == Detection){
-
-            //Triger sensitive detector manually since photon is
-            //absorbed but status was Detection
-            G4SDManager* SDman = G4SDManager::GetSDMpointer();
-            G4String sdName="/theSiPMSD";
-            SiPMSD* sipmSD = (SiPMSD*)SDman->FindSensitiveDetector(sdName);
-            if(sipmSD)sipmSD->ProcessHits_constStep(aStep,NULL);
-
-            G4String vName = aStep->GetPostStepPoint()->GetPhysicalVolume()->GetName();
-          G4double time = aStep->GetPostStepPoint()->GetGlobalTime();
-          //G4cout<<"Detect one photon in SiPM"<< vName<<" Global time: "<<time<<" at the position of "<<aStep->GetPostStepPoint()->GetPosition().y()<<G4endl;
-
-          if(vName.find("psSiPM")&&aStep->GetPostStepPoint()->GetPosition().z()>0) {
-              runAction->vTimeOfPhotonInSD1PushBack(time);
-              runAction->vSD1PhotonPositionXPushBack(aStep->GetPostStepPoint()->GetPosition().x());
-              runAction->vSD1PhotonPositionYPushBack(aStep->GetPostStepPoint()->GetPosition().y());
-              runAction->vSD1PhotonPositionZPushBack(aStep->GetPostStepPoint()->GetPosition().z());
-	  }
-          if(vName.find("psSiPM")&&aStep->GetPostStepPoint()->GetPosition().z()<0) {
-              runAction->vTimeOfPhotonInSD2PushBack(time);
-              runAction->vSD2PhotonPositionXPushBack(aStep->GetPostStepPoint()->GetPosition().x());
-              runAction->vSD2PhotonPositionYPushBack(aStep->GetPostStepPoint()->GetPosition().y());
-              runAction->vSD2PhotonPositionZPushBack(aStep->GetPostStepPoint()->GetPosition().z());
-          }
-       }
       }
-    }
-    else{
-      return;
-    }
+
+      if (i < nprocesses) {
+          boundaryStatus = boundary->GetStatus();
+          if (aStep->GetPostStepPoint()->GetStepStatus() == fGeomBoundary) {
+
+              switch (boundaryStatus) {
+                  case Detection: {
+                      //Triger sensitive detector manually since photon is
+                      //absorbed but status was Detection
+                      G4SDManager *SDman = G4SDManager::GetSDMpointer();
+                      G4String sdName = "/theSiPMSD";
+                      SiPMSD *sipmSD = (SiPMSD *) SDman->FindSensitiveDetector(sdName);
+                      if (sipmSD)sipmSD->ProcessHits_constStep(aStep, NULL);
+
+                      G4String vName = aStep->GetPostStepPoint()->GetPhysicalVolume()->GetName();
+                      G4double time = aStep->GetPostStepPoint()->GetGlobalTime();
+                      //G4cout<<"Detect one photon in SiPM"<< vName<<" Global time: "<<time<<" at the position of "<<aStep->GetPostStepPoint()->GetPosition().y()<<G4endl;
+                      //G4cout<<"Detection in "<<vName<<G4endl;
+                      theTrackingInfo->IncDetections();
+                      if (vName.find("psSiPM") && aStep->GetPostStepPoint()->GetPosition().z() > 0) {
+                          runAction->vTimeOfPhotonInSD1PushBack(time);
+                          runAction->vSD1PhotonPositionXPushBack(aStep->GetPostStepPoint()->GetPosition().x());
+                          runAction->vSD1PhotonPositionYPushBack(aStep->GetPostStepPoint()->GetPosition().y());
+                          runAction->vSD1PhotonPositionZPushBack(aStep->GetPostStepPoint()->GetPosition().z());
+                      }
+                      if (vName.find("psSiPM") && aStep->GetPostStepPoint()->GetPosition().z() < 0) {
+                          runAction->vTimeOfPhotonInSD2PushBack(time);
+                          runAction->vSD2PhotonPositionXPushBack(aStep->GetPostStepPoint()->GetPosition().x());
+                          runAction->vSD2PhotonPositionYPushBack(aStep->GetPostStepPoint()->GetPosition().y());
+                          runAction->vSD2PhotonPositionZPushBack(aStep->GetPostStepPoint()->GetPosition().z());
+                      }
+                      break;
+                  }
+                  case FresnelReflection:
+                  case TotalInternalReflection:
+                  case LambertianReflection:
+                  case LobeReflection:
+                  case SpikeReflection:
+                  case BackScattering: {
+                      //G4cout << "Reflection in " << aStep->GetPostStepPoint()->GetPhysicalVolume()->GetName() << G4endl;
+                      theTrackingInfo->IncReflections();
+                  }
+                      break;
+                  case Absorption:
+                      theTrackingInfo->IncAbsortions();
+                      //G4cout<<"Absortion in "<<aStep->GetPostStepPoint()->GetPhysicalVolume()->GetName()<<G4endl;
+                  default:
+                    break;
+
+              }
+          }
+      }
+
   }
 }
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

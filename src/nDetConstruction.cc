@@ -52,8 +52,9 @@ nDetConstruction::nDetConstruction()
     //fGeometry="ellipse";
     //fGeometry="hexagon";
     fGeometry="array";
+    //fGeometry="rectangle";
 
-  fCheckOverlaps = true;
+    fCheckOverlaps = true;
   fTeflonThickness = 0.11*mm;
   fMylarThickness = 0.0125*mm;
   fDetectorLength = 3.94*inch;
@@ -61,6 +62,7 @@ nDetConstruction::nDetConstruction()
   fTrapezoidLength = 1*inch;
   fHexagonRadius = 5*cm;
   fDetectorThickness = 0.24*inch;
+  //fDetectorWidth = 0.24*inch;
 
   SiPM_dimension=3*mm;
 
@@ -887,7 +889,63 @@ void nDetConstruction::DefineMaterials() {
 
     fEJ200MPT->AddConstProperty("YIELDRATIO",1);// the strength of the fast component as a function of total scintillation yield
 
+
+    G4double pEF = 1; //SiPM efficiency (TODO - discuss it)
+    G4double protonScalingFact = 1.35;
+
+
+    //light yield - data taken form V.V. Verbinski et al, Nucl. Instrum. & Meth. 65 (1968) 8-25
+    int energyPoints = 26;
+    G4double particleEnergy[] = { 0.001*MeV, 0.1*MeV, 0.13*MeV, 0.17*MeV, 0.2*MeV,
+                                  0.24*MeV, 0.3*MeV, 0.34*MeV, 0.4*MeV,
+                                  0.48*MeV, 0.6*MeV, 0.72*MeV, 0.84*MeV,
+                                  1.*MeV, 1.3*MeV, 1.7*MeV, 2.*MeV, 2.4*MeV,
+                                  3.*MeV, 3.4*MeV, 4.*MeV, 4.8*MeV, 6.*MeV,
+                                  7.2*MeV, 8.4*MeV, 10.*MeV };
+
+    G4double electronYield[] = {0*pEF, 1000*pEF, 1300*pEF, 1700*pEF,
+                                2000*pEF, 2400*pEF, 3000*pEF, 3400*pEF,
+                                4000*pEF, 4800*pEF, 6000*pEF, 7200*pEF,
+                                8400*pEF,10000*pEF, 13000*pEF, 17000*pEF,
+                                20000*pEF, 24000*pEF, 30000*pEF, 34000*pEF,
+                                40000*pEF, 48000*pEF, 60000*pEF, 72000*pEF,
+                                84000*pEF, 100000*pEF };
+
+    fEJ200MPT->AddProperty("ELECTRONSCINTILLATIONYIELD",
+                                      particleEnergy, electronYield,
+                                      energyPoints)->SetSpline(true);
+    G4double psF = protonScalingFact;
+    G4double protonYield[] = { 0.6*pEF*psF, 67.1*pEF*psF, 88.6*pEF*psF,
+                               120.7*pEF*psF,
+                               146.5*pEF*psF, 183.8*pEF*psF, 246*pEF*psF, 290*pEF*psF,
+                               365*pEF*psF, 483*pEF*psF, 678*pEF*psF, 910*pEF*psF,
+                               1175*pEF*psF, 562*pEF*psF, 2385*pEF*psF, 3660*pEF*psF,
+                               4725*pEF*psF,6250*pEF*psF, 8660*pEF*psF, 10420*pEF*psF,
+                               13270*pEF*psF,17180*pEF*psF, 23100*pEF*psF,
+                               29500*pEF*psF, 36200*pEF*psF, 45500*pEF*psF};
+
+    fEJ200MPT->AddProperty("PROTONSCINTILLATIONYIELD",
+                                      particleEnergy, protonYield,
+                                      energyPoints)->SetSpline(true);
+
+    G4double ionYield[] = { 0.2*pEF, 10.4*pEF, 12.7*pEF, 15.7*pEF,
+                            17.9*pEF, 20.8*pEF, 25.1*pEF, 27.9*pEF,
+                            31.9*pEF, 36.8*pEF, 43.6*pEF, 50.2*pEF,
+                            56.9*pEF, 65.7*pEF, 81.3*pEF, 101.6*pEF,
+                            116.5*pEF, 136.3*pEF, 166.15*pEF, 187.1*pEF,
+                            218.6*pEF, 260.54*pEF, 323.5*pEF, 387.5*pEF,
+                            451.54*pEF, 539.9*pEF };
+
+    fEJ200MPT->AddProperty("IONSCINTILLATIONYIELD",
+                                      particleEnergy, ionYield,
+                                      energyPoints)->SetSpline(true);
+
+
+
     fEJ200->SetMaterialPropertiesTable(fEJ200MPT);
+
+
+
 
 
     // define the silicone optical grease, (C2H6OSi)n
@@ -959,9 +1017,15 @@ void nDetConstruction::DefineMaterials() {
                                                  ground,
                                                  dielectric_metal,
                                                  0.1); // polish level
+    //DPL Testing the other finishes for teflon
+
+    //fTeflonOpticalSurface->SetFinish(groundteflonair);
+    fTeflonOpticalSurface->SetType(dielectric_metal);
 
     fTeflonOpticalSurface->SetMaterialPropertiesTable(fTeflonMPT);
 
+
+    //SiliconOpticalSurface
 
     fSiliconPMOpticalSurface = new G4OpticalSurface("SiPMSurface");
     fSiliconPMOpticalSurface->SetType(dielectric_metal);
@@ -1093,6 +1157,7 @@ void nDetConstruction::ConstructSDandField(){
 
 
     if(ej200_logV) {
+
         fScintSD = new nDetSD("/theScintSD");
 
         G4cout << "fScintSD--> " << fScintSD << G4endl;
@@ -1102,6 +1167,7 @@ void nDetConstruction::ConstructSDandField(){
 
 
     if(psSiPM_logV) {
+
 
         fSiPMSD = new SiPMSD("/theSiPMSD");
 
@@ -1727,7 +1793,7 @@ void nDetConstruction::buildArray() {
 
     fCheckOverlaps =false;
 
-    fDetectorLength = 20*cm;
+    //fDetectorLength = 20*cm;
     fDetectorWidth = 10*cm;
     G4double array_length = 50.44*mm;
 
@@ -1739,27 +1805,45 @@ void nDetConstruction::buildArray() {
     G4double wrapping_width2 = array_length+2*fTeflonThickness;
     G4double wrapping_thickness = 2*psSiPMx +2*fTeflonThickness;
 
-    G4VSolid *theWrapping = ConstructNextModule("Wrapping",wrapping_length,wrapping_width,wrapping_width2,wrapping_thickness);
+    //G4VSolid *theWrapping = ConstructNextModule("Wrapping",wrapping_length,wrapping_width,wrapping_width2,wrapping_thickness);
+
+    G4Box * theWrapping = new G4Box("Wrapping",wrapping_width2/2,wrapping_thickness/2,wrapping_length/2);
 
     assembly_logV = new G4LogicalVolume (theWrapping,fTeflon,"theWrapping_log");
 
     fWrapSkinSurface = new G4LogicalSkinSurface("WrapSkin",assembly_logV,fTeflonOpticalSurface);
 
-    assembly_physV= new G4PVPlacement(0,G4ThreeVector (0,0,wrapping_length/4),assembly_logV,"theWrapping_phys",expHall_logV,false,0,fCheckOverlaps);
+    G4RotationMatrix *rot=new G4RotationMatrix();
+    //rot->rotateY(90*deg);
+    G4ThreeVector wrapping_position(0,0,0);
+    //For NEXT ARRAYS
+    //rot->rotateZ(90*deg);
+    //G4ThreeVector wrapping_position(0,0,wrapping_length/4);
 
-    G4VSolid *TheScint = ConstructNextModule("Scint",fDetectorLength,fDetectorWidth,array_length,2*psSiPMx);
+    assembly_physV= new G4PVPlacement(rot,wrapping_position,assembly_logV,"theWrapping_phys",expHall_logV,false,0,fCheckOverlaps);
 
-    ej200_logV=new G4LogicalVolume(TheScint,fEJ200,"theScint");
+    //G4VSolid *TheScint = ConstructNextModule("Scint",fDetectorLength,fDetectorWidth,array_length,2*psSiPMx);
+
+    G4Box * TheScint = new G4Box("Wrapping",array_length/2,fDetectorThickness/2,fDetectorLength/2);
+
+
+    ej200_logV=new G4LogicalVolume(TheScint,fEJ200,"ej200_logV");
 
     G4VisAttributes* Array_VisAtt= new G4VisAttributes(G4Colour(0.0,1.0,1.0));//green
     ej200_logV->SetVisAttributes(Array_VisAtt);
     //Array_VisAtt->SetForceSolid(true);
 
-    G4VPhysicalVolume *scint_phys= new G4PVPlacement(0,G4ThreeVector (0,0,-offset/4),ej200_logV,"theScint_phys",assembly_logV,false,0,fCheckOverlaps);
+    //G4ThreeVector scint_position(0,0,-offset/4);
+    G4ThreeVector scint_position(0,0,0);
+
+    G4VPhysicalVolume *scint_phys= new G4PVPlacement(0,scint_position,ej200_logV,"theScint_phys",assembly_logV,false,0,fCheckOverlaps);
 
     G4AssemblyVolume *theArray_log=ConstructArray("Array",8);
 
-    G4ThreeVector position(0,0,fDetectorLength/4+greaseY-offset/4);
+
+    //G4ThreeVector position(0,0,fDetectorLength/4+greaseY-offset/4);
+    G4ThreeVector position(0,0,fDetectorLength/2+greaseY);
+
     G4RotationMatrix *rotation=new G4RotationMatrix();
     rotation->rotateX(90*deg);
 
@@ -1767,7 +1851,8 @@ void nDetConstruction::buildArray() {
 
     theArray_log->MakeImprint(assembly_logV,position,rotation,0,fCheckOverlaps);
 
-    position.setZ(-3*fDetectorLength/4-offset/4-greaseY);
+    //position.setZ(-3*fDetectorLength/4-offset/4-greaseY);
+    position.setZ(-fDetectorLength/2-greaseY);
     rotation->rotateX(-180*deg);
 
     theArray_log->MakeImprint(assembly_logV,position,rotation,0,fCheckOverlaps);

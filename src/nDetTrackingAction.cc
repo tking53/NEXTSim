@@ -6,7 +6,8 @@
 #include "G4Track.hh"
 #include "G4ParticleDefinition.hh"
 #include "G4OpticalPhoton.hh"
-
+#include "G4TrackingManager.hh"
+#include "nDetUserTrackingInformation.hh"
 
 nDetTrackingAction::nDetTrackingAction(){
 
@@ -15,21 +16,37 @@ nDetTrackingAction::nDetTrackingAction(){
 
 }
 nDetTrackingAction::~nDetTrackingAction(){}
+
 void nDetTrackingAction::PreUserTrackingAction(const G4Track* aTrack){
-;
+
+    fpTrackingManager->SetUserTrackInformation(new nDetUserTrackingInformation);
 }
 void nDetTrackingAction::PostUserTrackingAction(const G4Track* aTrack) {
 
-    //G4cout<<"nDetTrackingAction::PostUserTrackingAction()"<<G4endl;
+    //G4cout<<"nDetTrackingAction::PostUserTrackingAction() "<<aTrack->GetDefinition()->GetParticleName() <<G4endl;
     //if (aTrack->GetTrackLength() > 0) {
-    //    G4cout << "Track # " << aTrack->GetTrackID() << " length is " << aTrack->GetTrackLength() << G4endl;
+    //G4cout << "Track # " << aTrack->GetTrackID() << " length is " << aTrack->GetTrackLength() << G4endl;
 
-    //}
 
     if (aTrack->GetDefinition() == G4OpticalPhoton::OpticalPhotonDefinition()) {
 ;
-        //if (fAnlManager)
-            //fAnlManager->PostUserTrackingAction(aTrack);
+        if (fAnlManager)
+            fAnlManager->PostUserTrackingAction(aTrack);
+        nDetUserTrackingInformation  *theInfo =(nDetUserTrackingInformation*)aTrack->GetUserInformation();
+        G4int nReflections=theInfo->GetReflectionCount();
+        G4int nDetections=theInfo->GetDetectionCount();
+        G4int nAbsortions=theInfo->GetAbsortionCount();
+        //}
+        //G4cout << "Track # " << aTrack->GetTrackID() << " length is " << aTrack->GetTrackLength() << G4endl;
 
+        if(nAbsortions<0){
+            G4cout << "Track # " << aTrack->GetTrackID() << " #OfReflections is " << nReflections << G4endl;
+            G4cout << "Track # " << aTrack->GetTrackID() << " #OfAbsortions is " << nAbsortions << G4endl;
+        }
+
+        if(nDetections <0) {
+            G4cout << "Track # " << aTrack->GetTrackID() << " #OfReflections is " << nReflections << G4endl;
+            G4cout << "Track # " << aTrack->GetTrackID() << " #OfDetections is " << nDetections << G4endl;
+        }
     }
 }

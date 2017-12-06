@@ -113,7 +113,7 @@ void nDetSD::EndOfEvent(G4HCofThisEvent*)
      for (G4int i=0;i<NbHits;i++) (*hitsCollection)[i]->Print();
   }
   if(verboseLevel>0){
-     G4cout << "Hit Number in Scint: " << NbHits << G4endl;
+     G4cout << "nDetSD::EndOfEvent()->Hit Number in Scint: " << NbHits << G4endl;
      }
 
 }

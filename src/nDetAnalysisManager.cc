@@ -11,6 +11,7 @@
 #include "G4ParticleDefinition.hh"
 #include "G4ParticleTypes.hh"
 #include "G4PrimaryVertex.hh"
+#include "nDetUserTrackingInformation.hh"
 
 #include "TSystem.h"
 nDetAnalysisManager::nDetAnalysisManager(){
@@ -74,10 +75,10 @@ void nDetAnalysisManager::OpenROOTFile(){
     fTree->Branch("NumberofPhotons",&fNbOfPhotons,"Ngammas/I");
     fTree->Branch("NumberofDetectedPhotons",&fNbOfDetectedPhotons,"NgammasDet/I");
 
-/*
+
     fTree->Branch("TrackLength",&fvTrackLength);
-    fTree->Branch("TrackTime",&fvTrackTime);
-*/
+    //fTree->Branch("TrackTime",&fvTrackTime);
+
 
     fTree->Branch("vPrimaryPhotonPositionX", &fvPrimaryPhotonPositionX);
     fTree->Branch("vPrimaryPhotonPositionY", &fvPrimaryPhotonPositionY);
@@ -92,6 +93,8 @@ void nDetAnalysisManager::OpenROOTFile(){
     fTree->Branch("vSDPhotonWavelength", &fvSDPhotonWavelength);
     fTree->Branch("vSDDetectorNumber", &fvSDNumber);
     fTree->Branch("vSDTrackID", &fvSDPhotonTrackID);
+
+    fTree->Branch("NofReflections",&fvTrackReflections);
 
 
 
@@ -178,6 +181,7 @@ void nDetAnalysisManager::ResetEvent() {
     std::vector<int>().swap(fvSDPhotonTrackID);
 
     std::vector<int>().swap(fvSDNumber);
+    std::vector<int>().swap(fvTrackReflections);
 
     for(G4int i=0;i<fphotons.size();i++){
 
@@ -436,9 +440,13 @@ void nDetAnalysisManager::GeneratePrimaries(const G4Event *anEvent) {
 
 void nDetAnalysisManager::PostUserTrackingAction(const G4Track *aTrack) {
 
-    fvTrackLength.push_back(aTrack->GetTrackLength());
-    fvTrackTime.push_back(aTrack->GetGlobalTime());
+    nDetUserTrackingInformation *theInfo=(nDetUserTrackingInformation*)aTrack->GetUserInformation();
 
+    if(theInfo->GetDetectionCount()==1) {
+        fvTrackLength.push_back(aTrack->GetTrackLength());
+        fvTrackTime.push_back(aTrack->GetGlobalTime());
+        fvTrackReflections.push_back(theInfo->GetReflectionCount());
+    }
 }
 
 

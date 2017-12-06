@@ -101,7 +101,10 @@ that didn't work... this is horribly deprecated*/
   //nDetPhysicsList* physics = (nDetPhysicsList*)new QGSP_BERT_HP();
     //nDetPhysicsList* physics = new nDetPhysicsList();
   G4VModularPhysicsList* physics = new QGSP_BERT_HP();
-  physics->ReplacePhysics(new G4OpticalPhysics());
+
+  G4OpticalPhysics *theOpticalPhysics=new G4OpticalPhysics();
+  theOpticalPhysics->SetScintillationByParticleType(true);
+  physics->ReplacePhysics(theOpticalPhysics);
   runManager->SetUserInitialization( physics );
 
 #ifdef G4VIS_USE
@@ -114,7 +117,7 @@ that didn't work... this is horribly deprecated*/
 
     nDetAnalysisManager *theManager= new nDetAnalysisManager();
 
-  //Geantcomplains we need ot change this for multithreading.  Moving the following to nDetActionInitialization.cc
+  //Geant complains we need ot change this for multithreading.  Moving the following to nDetActionInitialization.cc
   nDetRunAction* runAction =
                         new nDetRunAction();
   runManager->SetUserAction( runAction );
