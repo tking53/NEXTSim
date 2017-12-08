@@ -33,6 +33,10 @@ nDetConstructionMessenger::nDetConstructionMessenger(nDetConstruction* detector)
     fDetectorWidthCmd=new G4UIcmdWithADouble("/nDet/detector/setDetectorWidth",this);
     fDetectorWidthCmd->SetGuidance("Defines the width of the plastic in cm");
 
+    fDetectorThicknessCmd=new G4UIcmdWithADouble("/nDet/detector/setDetectorThickness",this);
+    fDetectorThicknessCmd->SetGuidance("Defines the width of the plastic in mm");
+
+
     fMylarThicknessCmd=new G4UIcmdWithADouble("/nDet/detector/setMylarThickness",this);
     fMylarThicknessCmd->SetGuidance("Defines the thickness of the plastic the mylar in mm (0 for no mylar)");
 
@@ -59,6 +63,8 @@ nDetConstructionMessenger::~nDetConstructionMessenger(){
     delete fDetectorWidthCmd;
 
     delete fDetectorLengthCmd;
+
+    delete fDetectorThicknessCmd;
 
     delete fTrapezoidLengthCmd;
 
@@ -88,6 +94,11 @@ void nDetConstructionMessenger::SetNewValue(G4UIcommand* command,G4String newVal
     if(command == fDetectorWidthCmd) {
         G4double length=fDetectorWidthCmd->ConvertToDouble(newValue);
         fDetector->SetDetectorWidth(length*cm);
+    }
+
+    if(command == fDetectorThicknessCmd) {
+        G4double thickness=fDetectorThicknessCmd->ConvertToDouble(newValue);
+        fDetector->SetDetectorThickness(thickness*mm);
     }
 
 

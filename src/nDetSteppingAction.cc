@@ -18,13 +18,14 @@
 #include "G4SDManager.hh"
 #include "G4UnitsTable.hh"
 #include "nDetUserTrackingInformation.hh"
+#include "nDetUserEventInformation.hh"
 #include "G4ParticleDefinition.hh"
 #include "G4Alpha.hh"
 #include "G4Electron.hh"
 #include "G4Gamma.hh"
 #include "G4Neutron.hh"
 #include "G4Triton.hh"
-
+#include "G4EventManager.hh"
 #define DEBUG 0
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -60,6 +61,9 @@ void nDetSteppingAction::UserSteppingAction(const G4Step* aStep)
 
     nDetUserTrackingInformation *theTrackingInfo;
     theTrackingInfo = static_cast<nDetUserTrackingInformation*>( aStep->GetTrack()->GetUserInformation());
+
+    nDetUserEventInformation *theEventInfo;
+    theEventInfo = static_cast<nDetUserEventInformation*>(G4EventManager::GetEventManager()->GetUserInformation());
 
   if( (name.find("EJ") != name.npos ) && aStep->GetTotalEnergyDeposit() > 0 ){
     G4double edep = aStep->GetTotalEnergyDeposit();
@@ -112,6 +116,7 @@ void nDetSteppingAction::UserSteppingAction(const G4Step* aStep)
                       //G4cout<<"Detect one photon in SiPM"<< vName<<" Global time: "<<time<<" at the position of "<<aStep->GetPostStepPoint()->GetPosition().y()<<G4endl;
                       //G4cout<<"Detection in "<<vName<<G4endl;
                       theTrackingInfo->IncDetections();
+                      theEventInfo->IncDetections();
                       if (vName.find("psSiPM") && aStep->GetPostStepPoint()->GetPosition().z() > 0) {
                           runAction->vTimeOfPhotonInSD1PushBack(time);
                           runAction->vSD1PhotonPositionXPushBack(aStep->GetPostStepPoint()->GetPosition().x());
@@ -132,13 +137,17 @@ void nDetSteppingAction::UserSteppingAction(const G4Step* aStep)
                   case LobeReflection:
                   case SpikeReflection:
                   case BackScattering: {
-                      //G4cout << "Reflection in " << aStep->GetPostStepPoint()->GetPhysicalVolume()->GetName() << G4endl;
+                      //G4cout << "Reflection of "<<aStep->GetTrack()->GetParticleDefinition()->GetParticleName()<<
+                        //                        " in " << aStep->GetPostStepPoint()->GetPhysicalVolume()->GetName() << G4endl;
                       theTrackingInfo->IncReflections();
                   }
                       break;
-                  case Absorption:
+                  case Absorption: {
                       theTrackingInfo->IncAbsortions();
+                      theEventInfo->IncAbsortions();
                       //G4cout<<"Absortion in "<<aStep->GetPostStepPoint()->GetPhysicalVolume()->GetName()<<G4endl;
+                    break;
+                    }
                   default:
                     break;
 

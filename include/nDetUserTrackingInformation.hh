@@ -11,11 +11,11 @@
 #include "globals.hh"
 
 
-enum nDetTrackStatus { active=1, hitPMT=2, absorbed=4, boundaryAbsorbed=8,inactive=14};
+enum nDetTrackStatus { active=1, hitSiPM=2, absorbed=4, boundaryAbsorbed=8,inactive=14};
 
 /*nDetTrackStatus:
   active: still being tracked
-  hitPMT: stopped by being detected in a PMT
+  hitSiPM: stopped by being detected in a SiPM
   absorbed: stopped by being absorbed with G4OpAbsorbtion
   boundaryAbsorbed: stopped by being aborbed with G4OpAbsorbtion
   inactive: track is stopped for some reason
@@ -34,6 +34,7 @@ public:
     G4int GetReflectionCount()const {return fReflections;}
     G4int GetDetectionCount()const {return fDetections;}
     G4int GetAbsortionCount()const {return fAbsortions;}
+
 
 private:
     G4int fReflections;

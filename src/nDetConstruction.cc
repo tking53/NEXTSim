@@ -51,14 +51,16 @@ nDetConstruction::nDetConstruction()
 
     //fGeometry="ellipse";
     //fGeometry="hexagon";
-    fGeometry="array";
-    //fGeometry="rectangle";
+    //fGeometry="array";
+    fGeometry="rectangle";
 
     fCheckOverlaps = true;
   fTeflonThickness = 0.11*mm;
-  fMylarThickness = 0.0125*mm;
+  //fMylarThickness = 0.0125*mm;
+  fMylarThickness = 0.*mm;
   fDetectorLength = 3.94*inch;
   fDetectorWidth = 1.18*inch;
+  fDetectorWidth = 6*mm;
   fTrapezoidLength = 1*inch;
   fHexagonRadius = 5*cm;
   fDetectorThickness = 0.24*inch;
@@ -1406,12 +1408,14 @@ void nDetConstruction::buildRectangle() {
     //fMylarThickness=0.025*mm; //25 um mylar
 
     G4double xdimension=fDetectorWidth+teflonThickness+fMylarThickness;
-    G4double ydimension=0.24*inch+teflonThickness+2*fMylarThickness;
+    G4double ydimension=fDetectorThickness+teflonThickness+2*fMylarThickness;
     G4double zdimension=fDetectorLength+teflonThickness;
 
     G4Box *theRectangle=new G4Box("rectangle",xdimension/2,ydimension/2,zdimension/2);
 
-    G4Box *wrappinBox=new G4Box("theBox1",ydimension/2,ydimension/2,(greaseY+qwSiPMy+psSiPMy));
+    ydimension=SiPM_dimension+teflonThickness+2*fMylarThickness;
+
+    G4Box *wrappinBox=new G4Box("theBox1",ydimension,ydimension,(greaseY+qwSiPMy+psSiPMy));
 
     G4ThreeVector translation11(0,0,fDetectorLength/2+1*(greaseY+qwSiPMy+psSiPMy));
 

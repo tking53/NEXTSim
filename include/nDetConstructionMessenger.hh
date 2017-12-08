@@ -37,6 +37,7 @@ private:
     G4UIcmdWithADouble *fSiliconDimensionsCmd;
     G4UIcmdWithADouble *fDetectorLengthCmd;
     G4UIcmdWithADouble *fDetectorWidthCmd;
+    G4UIcmdWithADouble *fDetectorThicknessCmd;
     G4UIcmdWithADouble *fTrapezoidLengthCmd;
     G4UIcmdWithADouble *fMylarThicknessCmd;
     G4UIcommand*         fUpdateCmd;

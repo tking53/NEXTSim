@@ -12,7 +12,7 @@
 #include "G4ParticleTypes.hh"
 #include "G4PrimaryVertex.hh"
 #include "nDetUserTrackingInformation.hh"
-
+#include "nDetUserEventInformation.hh"
 #include "TSystem.h"
 nDetAnalysisManager::nDetAnalysisManager(){
 
@@ -279,7 +279,13 @@ void nDetAnalysisManager::EndOfEventAction(const G4Event *anEvent){
     //G4cout<<"nDetAnalysisManager::EndOfEventAction()"<<G4endl;
 
 
+    nDetUserEventInformation *theEventInfo=(nDetUserEventInformation*)anEvent->GetUserInformation();
 
+    G4int nDetections=theEventInfo->GetDetectionCount();
+    G4int nAbsorptions=theEventInfo->GetAbsortionCount();
+
+    //G4cout<<"SiPMCollectionID->"<<fSiPMCollectionID<<G4endl;
+    //theEventInfo->Print();
 
     //G4cout<<"ScintCollectionID->"<<fScintCollectionID<<G4endl;
     //G4cout<<"SiPMCollectionID->"<<fSiPMCollectionID<<G4endl;
@@ -371,7 +377,7 @@ void nDetAnalysisManager::EndOfEventAction(const G4Event *anEvent){
            //fgossipOut->write((char*)&wl, sizeof(float));
 
            fvSDNumber.push_back(detector);
-             fvSDPhotonTrackID.push_back(trackID);
+           fvSDPhotonTrackID.push_back(trackID);
 
        }
 

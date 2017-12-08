@@ -16,7 +16,8 @@
 #include "G4VVisManager.hh"
 #include "G4ios.hh"
 
-
+#include "nDetUserEventInformation.hh"
+#include "G4EventManager.hh"
 #include "G4SDManager.hh"
 #include "G4HCofThisEvent.hh"
 #include "nDetSD.hh"
@@ -42,6 +43,10 @@ void nDetEventAction::BeginOfEventAction(const G4Event* evt)
 
     //G4cout<<"nDetEventAction::BeginOfEventAction()"<<G4endl;
   // initialisation per event.
+
+  //New event, add the user information object
+  G4EventManager::GetEventManager()->SetUserInformation(new nDetUserEventInformation);
+
   eventID = evt->GetEventID();
   depositedEnergy = 0; 
 
