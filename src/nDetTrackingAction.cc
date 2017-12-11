@@ -39,12 +39,12 @@ void nDetTrackingAction::PostUserTrackingAction(const G4Track* aTrack) {
         //}
         //G4cout << "Track # " << aTrack->GetTrackID() << " length is " << aTrack->GetTrackLength() << G4endl;
 
-        if(nAbsortions<0){
+        if(nAbsortions<0 && fpTrackingManager->GetVerboseLevel()>1){
             G4cout << "Track # " << aTrack->GetTrackID() << " #OfReflections is " << nReflections << G4endl;
             G4cout << "Track # " << aTrack->GetTrackID() << " #OfAbsortions is " << nAbsortions << G4endl;
         }
 
-        if(nDetections <0) {
+        if(nDetections >0 && fpTrackingManager->GetVerboseLevel()>1) {
             G4cout << "Track # " << aTrack->GetTrackID() << " #OfReflections is " << nReflections << G4endl;
             G4cout << "Track # " << aTrack->GetTrackID() << " #OfDetections is " << nDetections << G4endl;
         }

@@ -15,7 +15,7 @@
 #include "G4GeometryManager.hh"
 #include "G4RunManager.hh"
 #include "G4SystemOfUnits.hh"
-#include "G4LogicalBorderSurface.hh"
+#include "G4LogicalBorderSurface.hh"si
 
 static const G4double inch = 2.54*cm;
 
@@ -54,7 +54,7 @@ nDetConstruction::nDetConstruction()
     //fGeometry="array";
     fGeometry="rectangle";
 
-    fCheckOverlaps = true;
+    fCheckOverlaps = false;
   fTeflonThickness = 0.11*mm;
   //fMylarThickness = 0.0125*mm;
   fMylarThickness = 0.*mm;
@@ -91,10 +91,9 @@ nDetConstruction::~nDetConstruction()
 {} // end of deconstruction function.
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-G4VPhysicalVolume* nDetConstruction::Construct()
-{
+G4VPhysicalVolume* nDetConstruction::Construct() {
 
-    G4cout<<"nDetConstruction::Construct()-->"<<G4endl;
+    G4cout << "nDetConstruction::Construct()-->" << G4endl;
 
     if (expHall_physV) {
         G4GeometryManager::GetInstance()->OpenGeometry();
@@ -105,6 +104,11 @@ G4VPhysicalVolume* nDetConstruction::Construct()
         //G4LogicalBorderSurface::CleanSurfaceTable();
     }
 
+
+    return ConstructDetector();
+}
+
+G4VPhysicalVolume* nDetConstruction::ConstructDetector(){
 
     // build experiment hall
   buildExpHall();
@@ -126,6 +130,8 @@ G4VPhysicalVolume* nDetConstruction::Construct()
     buildArray();
   return expHall_physV;
 }
+
+
 
 void nDetConstruction::buildExpHall()
 {
@@ -1063,12 +1069,12 @@ void nDetConstruction::buildSiPMs() {
 
 
     if(fGeometry == "ellipse" || fGeometry == "rectangle") {
-        greaseX = 0.12 * inch;
-        greaseZ = 0.12 * inch;
-        qwSiPMx = 0.12 * inch;
-        qwSiPMz = 0.12 * inch;
-        psSiPMx = 0.12 * inch;
-        psSiPMz = 0.12 * inch;
+        greaseX = SiPM_dimension;
+        greaseZ = SiPM_dimension;
+        qwSiPMx = SiPM_dimension;
+        qwSiPMz = SiPM_dimension;
+        psSiPMx = SiPM_dimension;
+        psSiPMz = SiPM_dimension;
     }
 
     fNdetectors=2;
@@ -1289,13 +1295,14 @@ return theHexagon;
 void nDetConstruction::UpdateGeometry(){
 
     // clean-up previous geometry
-    //G4SolidStore::GetInstance()->Clean();
-    //G4LogicalVolumeStore::GetInstance()->Clean();
-    //G4PhysicalVolumeStore::GetInstance()->Clean();
+    G4SolidStore::GetInstance()->Clean();
+    G4LogicalVolumeStore::GetInstance()->Clean();
+    G4PhysicalVolumeStore::GetInstance()->Clean();
     //define new one
-    //G4RunManager::GetRunManager()->DefineWorldVolume(Construct());
-    //G4RunManager::GetRunManager()->GeometryHasBeenModified();
+    G4RunManager::GetRunManager()->DefineWorldVolume(ConstructDetector());
+    G4RunManager::GetRunManager()->GeometryHasBeenModified();
     G4RunManager::GetRunManager()->ReinitializeGeometry();
+
 
     return;
 
@@ -1783,12 +1790,12 @@ void nDetConstruction::buildDisk2() {
 
 void nDetConstruction::buildArray() {
 
-    greaseX = 0.1206 * inch;
-    greaseZ = 0.1206 * inch;
-    qwSiPMx = 0.1206 * inch;
-    qwSiPMz = 0.1206 * inch;
-    psSiPMx = 0.1206 * inch;
-    psSiPMz = 0.1206 * inch;
+    greaseX = SiPM_dimension;
+    greaseZ = SiPM_dimension;
+    qwSiPMx = SiPM_dimension;
+    qwSiPMz = SiPM_dimension;
+    psSiPMx = SiPM_dimension;
+    psSiPMz = SiPM_dimension;
 
     qwSiPMy = 0.37/2*mm;
     psSiPMy = 0.09/2*mm;
@@ -1799,7 +1806,8 @@ void nDetConstruction::buildArray() {
 
     //fDetectorLength = 20*cm;
     fDetectorWidth = 10*cm;
-    G4double array_length = 50.44*mm;
+    G4double gap = 0.1*mm;
+    G4double array_length = fNdetectors*2*SiPM_dimension+2*(fNdetectors-1)*gap;
 
     G4double offset = 2*(fTeflonThickness)+4*(greaseY+qwSiPMy+psSiPMy);
 
@@ -1872,12 +1880,12 @@ void nDetConstruction::buildArray() {
 //G4LogicalVolume *nDetConstruction::ConstructArray(G4String name, G4int NDetectors) {
     G4AssemblyVolume *nDetConstruction::ConstructArray(G4String name, G4int NDetectors) {
 
-    greaseX = 0.1206 * inch;
-    greaseZ = 0.1206 * inch;
-    qwSiPMx = 0.1206 * inch;
-    qwSiPMz = 0.1206 * inch;
-    psSiPMx = 0.1206 * inch;
-    psSiPMz = 0.1206 * inch;
+    greaseX = SiPM_dimension;
+    greaseZ = SiPM_dimension;
+    qwSiPMx = SiPM_dimension;
+    qwSiPMz = SiPM_dimension;
+    psSiPMx = SiPM_dimension;
+    psSiPMz = SiPM_dimension;
 
     qwSiPMy = 0.37/2*mm;
     psSiPMy = 0.09/2*mm;

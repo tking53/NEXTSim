@@ -92,9 +92,14 @@ void nDetEventAction::EndOfEventAction(const G4Event* evt)
       runAct->vPhotonPositionXPushBack(hit->GetPos().x());
       runAct->vPhotonPositionYPushBack(hit->GetPos().y());
     }*/
-  //}
+  //
+    nDetUserEventInformation *theEventInformation= static_cast<nDetUserEventInformation*>(evt->GetUserInformation());
 
-
+    G4int nDetections=theEventInformation->GetDetectionCount();
+    
+    if(fpEventManager->GetVerboseLevel()>1){
+    G4cout<<"nDetEventAction::EndOfEventAction()->"<<nDetections<<"Photons detected in this event"<<G4endl;
+    }
 
   // set the depEnergy branch
   //G4cout<<depositedEnergy<<G4endl;

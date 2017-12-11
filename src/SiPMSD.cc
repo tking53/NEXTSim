@@ -108,7 +108,7 @@ void SiPMSD::EndOfEvent(G4HCofThisEvent *HCE){
         PrintAll();
     G4int NbHits = hitsCollection->entries();
 if(verboseLevel >0) {
-    if (NbHits > 0) {
+    if (NbHits >= 0) {
         G4cout << "SiPMSD::EndOfEvent()->Hit Number in SiPMs: " << NbHits << G4endl;
     }
 }

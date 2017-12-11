@@ -64,6 +64,7 @@ class nDetConstruction : public G4VUserDetectorConstruction
 
   public:
     G4VPhysicalVolume* Construct();
+    G4VPhysicalVolume* ConstructDetector();
     virtual void ConstructSDandField();
     void SetGeometry(G4String geom){fGeometry=geom;}
     void SetSiPM_dimension(G4double dim){SiPM_dimension=dim;}

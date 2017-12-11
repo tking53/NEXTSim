@@ -34,7 +34,7 @@ nDetConstructionMessenger::nDetConstructionMessenger(nDetConstruction* detector)
     fDetectorWidthCmd->SetGuidance("Defines the width of the plastic in cm");
 
     fDetectorThicknessCmd=new G4UIcmdWithADouble("/nDet/detector/setDetectorThickness",this);
-    fDetectorThicknessCmd->SetGuidance("Defines the width of the plastic in mm");
+    fDetectorThicknessCmd->SetGuidance("Defines the thickness of the plastic in mm");
 
 
     fMylarThicknessCmd=new G4UIcmdWithADouble("/nDet/detector/setMylarThickness",this);
