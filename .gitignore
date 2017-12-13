@@ -5,3 +5,5 @@
 cmake-build-debug/
 build/
 build_v10_3
+ROOT_Output
+*.root
