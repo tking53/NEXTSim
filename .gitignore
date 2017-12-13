@@ -4,6 +4,6 @@
 .idea/
 cmake-build-debug/
 build/
-build_v10_3
+build_v10*
 ROOT_Output
 *.root
