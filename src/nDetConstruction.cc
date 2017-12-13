@@ -15,7 +15,7 @@
 #include "G4GeometryManager.hh"
 #include "G4RunManager.hh"
 #include "G4SystemOfUnits.hh"
-#include "G4LogicalBorderSurface.hh"si
+#include "G4LogicalBorderSurface.hh"
 
 static const G4double inch = 2.54*cm;
 
