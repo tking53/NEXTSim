@@ -892,9 +892,10 @@ void nDetConstruction::DefineMaterials() {
     fEJ200MPT->AddConstProperty("SCINTILLATIONYIELD", 1/keV); //10,000 Photons per MeV
     fEJ200MPT->AddConstProperty("RESOLUTIONSCALE",1.0); // Intrinsic resolution
 
-    fEJ200MPT->AddConstProperty("RISETIMECONSTANT", 0.9*ns);
-    fEJ200MPT->AddConstProperty("FASTTIMECONSTANT", 2.1*ns);
+    //fEJ200MPT->AddConstProperty("RISETIMECONSTANT", 0.9*ns); Geant4 10.1 TODO
+    fEJ200MPT->AddConstProperty("FASTSCINTILLATIONRISETIME", 0.9*ns);
 
+    fEJ200MPT->AddConstProperty("FASTTIMECONSTANT", 2.1*ns);
     fEJ200MPT->AddConstProperty("YIELDRATIO",1);// the strength of the fast component as a function of total scintillation yield
 
 
@@ -1058,7 +1059,7 @@ void nDetConstruction::DefineMaterials() {
 
     fMylarMPT=new G4MaterialPropertiesTable();
     fMylarMPT->AddProperty("REALRINDEX", PhotonEnergy,RefractiveReal_Mylar,nEntries_Mylar);
-    fMylarMPT->AddProperty("IMAGINARYINDEX", PhotonEnergy,RefractiveImg_Mylar,nEntries_Mylar);
+    fMylarMPT->AddProperty("IMAGINARYRINDEX", PhotonEnergy,RefractiveImg_Mylar,nEntries_Mylar);
 
     fMylarOpticalSurface=new G4OpticalSurface("MylarSurface",glisur,polished,dielectric_metal,1.0);
 
@@ -1170,6 +1171,8 @@ void nDetConstruction::ConstructSDandField(){
 
         G4cout << "fScintSD--> " << fScintSD << G4endl;
 
+        G4SDManager::GetSDMpointer()->AddNewDetector(fScintSD);
+
         SetSensitiveDetector(ej200_logV, fScintSD);
     }
 
@@ -1180,6 +1183,8 @@ void nDetConstruction::ConstructSDandField(){
         fSiPMSD = new SiPMSD("/theSiPMSD");
 
         G4cout << "fSiPMSD--> " << fSiPMSD << G4endl;
+
+        G4SDManager::GetSDMpointer()->AddNewDetector(fSiPMSD);
 
         SetSensitiveDetector(psSiPM_logV, fSiPMSD);
     }
