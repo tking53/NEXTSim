@@ -75,7 +75,9 @@ G4bool SiPMSD::ProcessHits_constStep(const G4Step *aStep, G4TouchableHistory *RO
 
     SiPMHit* hit = new SiPMHit(); //so create new hit
     hit->SetSiPMNumber(SipmNumber);
-    hit->SetTime( aStep->GetPostStepPoint()->GetGlobalTime() );
+    //hit->SetTime( aStep->GetPostStepPoint()->GetGlobalTime() );
+    //DPL TODO change back to global time for TOF
+    hit->SetTime( aStep->GetPostStepPoint()->GetLocalTime() );
     hit->SetPos( aStep->GetPostStepPoint()->GetPosition() );
     hit->SetTrackID(aStep->GetTrack()->GetTrackID());
     hit->SetWaveLength(CLHEP::h_Planck*CLHEP::c_light/aStep->GetTrack()->GetTotalEnergy()*1e6);
