@@ -19,6 +19,7 @@
 nDetSD::nDetSD(G4String name)
 :G4VSensitiveDetector(name)
 {
+  G4cout<<"nDetSD::nDetSD(): Constructing Sensitive Detector"<< G4endl;
   G4String HCname;
   collectionName.insert(HCname="SciCollection");
 }

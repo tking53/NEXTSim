@@ -1167,6 +1167,9 @@ void nDetConstruction::ConstructSDandField(){
 
     if(ej200_logV) {
 
+        fScintSD=(nDetSD*)G4SDManager::GetSDMpointer()->FindSensitiveDetector("/theScintSD",false);
+
+        if(!fScintSD)
         fScintSD = new nDetSD("/theScintSD");
 
         G4cout << "fScintSD--> " << fScintSD << G4endl;
@@ -1179,7 +1182,10 @@ void nDetConstruction::ConstructSDandField(){
 
     if(psSiPM_logV) {
 
+        fSiPMSD=(SiPMSD*)G4SDManager::GetSDMpointer()->FindSensitiveDetector("/theSiPMSD",false);
 
+
+        if(!fSiPMSD)
         fSiPMSD = new SiPMSD("/theSiPMSD");
 
         G4cout << "fSiPMSD--> " << fSiPMSD << G4endl;

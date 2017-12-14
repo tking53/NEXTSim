@@ -12,18 +12,20 @@
 
 SiPMSD::SiPMSD(G4String name) : G4VSensitiveDetector(name) {
 
+    G4cout<<"SiPMSD::SiPMSD(): Constructing Sensitive Detector"<< G4endl;
+
     G4String HCname;
     collectionName.insert(HCname="SiPMCollection");
 
-    fsipm = new sipmMC();
+    //fsipm = new sipmMC();
 
-    fsipm->GetParaFile("input/MPPC_6x6.txt");
+    //fsipm->GetParaFile("input/MPPC_6x6.txt");
 
     TFile f("input/SpectralSensitivity.root");
-    fsipm->SetSpectralSensitivity((TGraph*)f.Get("MPPC_noRef"));
-    f.Close();
+    //fsipm->SetSpectralSensitivity((TGraph*)f.Get("MPPC_noRef"));
+    //f.Close();
 
-    fphotons = new PhotonList();
+    //fphotons = new PhotonList();
 }
 
 SiPMSD::~SiPMSD() {
@@ -44,7 +46,7 @@ void SiPMSD::Initialize(G4HCofThisEvent *HCE) {
     }
         HCE->AddHitsCollection(HCID,hitsCollection);
 
-    fphotons->clear();
+    //fphotons->clear();
 }
 
 G4bool SiPMSD::ProcessHits(G4Step *aStep, G4TouchableHistory *ROhist) {
@@ -83,7 +85,7 @@ G4bool SiPMSD::ProcessHits_constStep(const G4Step *aStep, G4TouchableHistory *RO
     hit->SetWaveLength(CLHEP::h_Planck*CLHEP::c_light/aStep->GetTrack()->GetTotalEnergy()*1e6);
 
 
-    fphotons->AddPhoton(pos.x(),pos.y(),time,wavelength);
+    //fphotons->AddPhoton(pos.x(),pos.y(),time,wavelength);
 
 
     //G4cout<<"hit->GetWaveLength()->"<<hit->GetWaveLength()<<G4endl;
@@ -104,7 +106,7 @@ G4bool SiPMSD::ProcessHits_constStep(const G4Step *aStep, G4TouchableHistory *RO
 
 void SiPMSD::EndOfEvent(G4HCofThisEvent *HCE){
 
-    fsipm->Generate(*fphotons);
+    //fsipm->Generate(*fphotons);
 
     if (verboseLevel>1)
         PrintAll();
