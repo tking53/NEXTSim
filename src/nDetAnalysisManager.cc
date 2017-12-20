@@ -96,6 +96,7 @@ void nDetAnalysisManager::OpenROOTFile(){
 
     fTree->Branch("NofReflections",&fvTrackReflections);
 
+    fTree->Branch("NofAbsorptions",&fNbOfAbsorptions,"NAbs/I");
 
 
     //Following branches are added by Kyle.
@@ -165,6 +166,9 @@ void nDetAnalysisManager::ResetEvent() {
 
     fNbOfPhotons=0;
     fNbOfDetectedPhotons=0;
+
+    fNbOfAbsorptions=0;
+
     std::vector<double>().swap(fvPrimaryPhotonPositionX);
     std::vector<double>().swap(fvPrimaryPhotonPositionY);
     std::vector<double>().swap(fvPrimaryPhotonPositionZ);
@@ -281,8 +285,8 @@ void nDetAnalysisManager::EndOfEventAction(const G4Event *anEvent){
 
     nDetUserEventInformation *theEventInfo=(nDetUserEventInformation*)anEvent->GetUserInformation();
 
-    G4int nDetections=theEventInfo->GetDetectionCount();
-    G4int nAbsorptions=theEventInfo->GetAbsortionCount();
+    fNbOfDetectedPhotons=theEventInfo->GetDetectionCount();
+    fNbOfAbsorptions=theEventInfo->GetAbsortionCount();
 
     //G4cout<<"SiPMCollectionID->"<<fSiPMCollectionID<<G4endl;
     //theEventInfo->Print();

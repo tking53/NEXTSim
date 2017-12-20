@@ -894,6 +894,7 @@ void nDetConstruction::DefineMaterials() {
 
     //fEJ200MPT->AddConstProperty("RISETIMECONSTANT", 0.9*ns); Geant4 10.1 TODO
     fEJ200MPT->AddConstProperty("FASTSCINTILLATIONRISETIME", 0.9*ns);
+    //fEJ200MPT->AddConstProperty("FASTSCINTILLATIONRISETIME", 0.5*ns); //TODO DPL changing rise time to 500 ps
 
     fEJ200MPT->AddConstProperty("FASTTIMECONSTANT", 2.1*ns);
     fEJ200MPT->AddConstProperty("YIELDRATIO",1);// the strength of the fast component as a function of total scintillation yield
@@ -1028,7 +1029,8 @@ void nDetConstruction::DefineMaterials() {
                                                  0.1); // polish level
     //DPL Testing the other finishes for teflon
 
-    //fTeflonOpticalSurface->SetFinish(groundteflonair);
+    fTeflonOpticalSurface->SetFinish(groundbackpainted);
+
     fTeflonOpticalSurface->SetType(dielectric_metal);
 
     fTeflonOpticalSurface->SetMaterialPropertiesTable(fTeflonMPT);

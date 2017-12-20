@@ -85,6 +85,7 @@ private:
     G4int  fNbOfDetectedPhotons;
     G4int  fNbOfDetectors;
 
+    G4int fNbOfAbsorptions;
 
     nDetAnalysisMessenger *fMessenger;
 
