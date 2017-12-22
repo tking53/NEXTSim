@@ -324,7 +324,7 @@ void nDetAnalysisManager::EndOfEventAction(const G4Event *anEvent){
             G4double energy0=(*DHC_Sci)[i]->GetEdep_first()/keV;
             depEnergy+=energy;
             if(firstEnergy==0)
-                firstEnergy=-energy0;
+                firstEnergy=energy0;
             //fvPrimaryPhotonPositionX.push_back(pos.x()/mm);
             //fvPrimaryPhotonPositionY.push_back(pos.y()/mm);
             //fvPrimaryPhotonPositionZ.push_back(pos.z()/mm);

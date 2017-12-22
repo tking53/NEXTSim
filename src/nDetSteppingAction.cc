@@ -59,11 +59,20 @@ void nDetSteppingAction::UserSteppingAction(const G4Step* aStep)
 
   G4String name = aStep->GetTrack()->GetMaterial()->GetName();
 
+    if (aStep->GetTrack()->GetDefinition() == G4OpticalPhoton::OpticalPhotonDefinition() && name == "G4_AIR"){
+
+        //aStep->GetTrack()->SetTrackStatus(fStopAndKill);
+
+        G4cout<<"Transmitted Optical Photon Track Killed"<<G4endl;
+
+    }
+
     nDetUserTrackingInformation *theTrackingInfo;
     theTrackingInfo = static_cast<nDetUserTrackingInformation*>( aStep->GetTrack()->GetUserInformation());
 
     nDetUserEventInformation *theEventInfo;
     theEventInfo = static_cast<nDetUserEventInformation*>(G4EventManager::GetEventManager()->GetUserInformation());
+
 
   if( (name.find("EJ") != name.npos ) && aStep->GetTotalEnergyDeposit() > 0 ){
     G4double edep = aStep->GetTotalEnergyDeposit();
@@ -138,17 +147,20 @@ void nDetSteppingAction::UserSteppingAction(const G4Step* aStep)
                   case SpikeReflection:
                   case BackScattering: {
                       //G4cout << "Reflection of "<<aStep->GetTrack()->GetParticleDefinition()->GetParticleName()<<
-                        //                        " in " << aStep->GetPostStepPoint()->GetPhysicalVolume()->GetName() << G4endl;
+                       //                         " in " << aStep->GetPostStepPoint()->GetPhysicalVolume()->GetName() << G4endl;
                       theTrackingInfo->IncReflections();
                   }
                       break;
                   case Absorption: {
                       theTrackingInfo->IncAbsortions();
                       theEventInfo->IncAbsortions();
-                      //G4cout<<"Absortion in "<<aStep->GetPostStepPoint()->GetPhysicalVolume()->GetName()<<G4endl;
+                      //G4cout<<"Absortion in "<<aStep->GetPostStepPoint()->GetPhysicalVolume()->GetName()
+                      //      <<" "<<theEventInfo->GetAbsortionCount()<<G4endl;
                     break;
                     }
                   default:
+                      //G4cout<<"Other Boundary effect in "<<aStep->GetPostStepPoint()->GetPhysicalVolume()->GetName()
+                      //     <<" "<<boundaryStatus<<G4endl;
                     break;
 
               }
