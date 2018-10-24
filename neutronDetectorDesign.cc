@@ -58,6 +58,7 @@ int main(int argc, char** argv)
   optionHandler handler;
   handler.add(optionExt("input", required_argument, NULL, 'i', "<filename>", "Specify an input geant macro."));
   handler.add(optionExt("output", required_argument, NULL, 'o', "<filename>", "Specify the name of the output file."));
+  handler.add(optionExt("gui", no_argument, NULL, 'g', "", "Run interactive GUI session."));
   handler.add(optionExt("tree-name", required_argument, NULL, 't', "<treename>", "Set the output TTree name (default=\"theTree\")."));
   handler.add(optionExt("252Cf", no_argument, NULL, 0x0, "", "Use 252Cf energy spectrum (Mannhart)."));
 
@@ -65,24 +66,30 @@ int main(int argc, char** argv)
   if(!handler.setup(argc, argv))
     return 1;
 
-  bool batchMode = false;
   std::string inputFilename;
-  if(handler.getOption(0)->active){ // Set input filename
+  if(handler.getOption(0)->active) // Set input filename
     inputFilename = handler.getOption(0)->argument;
-    batchMode = true;
-  }
 
   std::string outputFilename;
   if(handler.getOption(1)->active) // Set output filename
     outputFilename = handler.getOption(1)->argument;
 
+  bool batchMode = true;
+  if(handler.getOption(2)->active) // Set interactive mode
+  	batchMode = false;
+
   std::string outputTreeName;
-  if(handler.getOption(2)->active) // Set output TTree name
-    outputTreeName = handler.getOption(2)->argument;
+  if(handler.getOption(3)->active) // Set output TTree name
+    outputTreeName = handler.getOption(3)->argument;
 
   bool useCaliforniumSpectrum = false;
-  if(handler.getOption(3)->active) // Use 252Cf energy spectrum
+  if(handler.getOption(4)->active) // Use 252Cf energy spectrum
     useCaliforniumSpectrum = true;
+
+  if(batchMode && inputFilename.empty()){
+  	std::cout << " ERROR: Input macro filename not specified!\n";
+  	return 1;
+  }
 
   //make random number seeds different in different runs in Geant4 simulation
   //////////////////////////////////////
@@ -191,25 +198,23 @@ that didn't work... this is horribly deprecated*/
   // get the pointer to the UI manager and set verbosities
   G4UImanager *UImanager = G4UImanager::GetUIpointer();
 
-  if (!batchMode)   // Define UI session for interactive mode
-    {
+  if (!batchMode){   // Define UI session for interactive mode
 #ifdef G4UI_USE
       G4UIExecutive * ui;
-      ui = new G4UIExecutive(argc,argv,"");
+      ui = new G4UIExecutive(argc, argv, "");
 #ifdef G4VIS_USE
-      UImanager->ApplyCommand("/control/execute ./mac/vis.mac");
+      UImanager->ApplyCommand("/command/execute ./mac/vis.mac");
 #endif
       // start interactive session
       ui->SessionStart();
       delete ui;
 #endif
-    }
-  else         // Batch mode
-    {
-      G4String command = "/control/execute ";
-      G4String fileName = inputFilename;
-      UImanager->ApplyCommand(command+fileName);
-    }
+  }
+  else{ // Batch mode
+    G4String command = "/control/execute ";
+    command += inputFilename;
+    UImanager->ApplyCommand(command);
+  }
  
   // job termination
 #ifdef G4VIS_USE
