@@ -45,6 +45,7 @@
 #include "nDetTrackingAction.hh"
 #include "nDetPhysicsList.hh"
 #include "CfSource.hh"
+#include "optionHandler.hh"
 //#include "nDetActionInitialization.hh"
 
 #include "G4OpticalPhysics.hh"
@@ -54,6 +55,35 @@
 
 int main(int argc, char** argv)
 {
+  optionHandler handler;
+  handler.add(optionExt("input", required_argument, NULL, 'i', "<filename>", "Specify an input geant macro."));
+  handler.add(optionExt("output", required_argument, NULL, 'o', "<filename>", "Specify the name of the output file."));
+  handler.add(optionExt("tree-name", required_argument, NULL, 't', "<treename>", "Set the output TTree name (default=\"theTree\")."));
+  handler.add(optionExt("252Cf", no_argument, NULL, 0x0, "", "Use 252Cf energy spectrum (Mannhart)."));
+
+	// Handle user input.
+	if(!handler.setup(argc, argv))
+		return 1;
+
+	bool batchMode = false;
+	std::string inputFilename;
+	if(handler.getOption(0)->active){ // Set input filename
+		inputFilename = handler.getOption(0)->argument;
+		batchMode = true;
+	}
+
+	std::string outputFilename;
+	if(handler.getOption(1)->active) // Set output filename
+		outputFilename = handler.getOption(1)->argument;
+
+	std::string outputTreeName;
+	if(handler.getOption(2)->active) // Set output TTree name
+		outputTreeName = handler.getOption(2)->argument;
+
+	bool useCaliforniumSpectrum = false;
+	if(handler.getOption(3)->active) // Use 252Cf energy spectrum
+		useCaliforniumSpectrum = true;
+
   //make random number seeds different in different runs in Geant4 simulation
   //////////////////////////////////////
   //choose the Random engine
@@ -116,27 +146,26 @@ that didn't work... this is horribly deprecated*/
 
   //set optional user action classes
 
-    nDetAnalysisManager *theManager= new nDetAnalysisManager();
+  nDetAnalysisManager *theManager= new nDetAnalysisManager();
 
-  //Geant complains we need ot change this for multithreading.  Moving the following to nDetActionInitialization.cc
-  nDetRunAction* runAction =
-                        new nDetRunAction();
+  //Geant complains we need to change this for multithreading.  Moving the following to nDetActionInitialization.cc
+  nDetRunAction* runAction = new nDetRunAction();
+  if(!outputFilename.empty()) runAction->setFilename(outputFilename);
+  if(!outputTreeName.empty()) runAction->setTreeName(outputTreeName);
   runManager->SetUserAction( runAction );
 
-  /*G4VUserPrimaryGeneratorAction* primaryGeneratorAction = 
-			new nDetPrimaryGeneratorAction(runAction);
-  runManager->SetUserAction( primaryGeneratorAction );*/
+  G4VUserPrimaryGeneratorAction* primaryGeneratorAction;
   
-  // 252Cf source (CRT)
-  G4VUserPrimaryGeneratorAction *source = new CfSource();
-  runManager->SetUserAction(source);
-
-  nDetEventAction* eventAction = 
-			new nDetEventAction(runAction);
+  if(!useCaliforniumSpectrum) // Standard particle generator
+    primaryGeneratorAction = new nDetPrimaryGeneratorAction(runAction);
+  else // 252Cf source spectrum (CRT)
+    primaryGeneratorAction = new CfSource();
+  runManager->SetUserAction( primaryGeneratorAction );
+  
+  nDetEventAction* eventAction = new nDetEventAction(runAction);
   runManager->SetUserAction( eventAction );
 
-  nDetSteppingAction* steppingAction = 
-	new nDetSteppingAction(detector, runAction, eventAction);
+  nDetSteppingAction* steppingAction = new nDetSteppingAction(detector, runAction, eventAction);
   runManager->SetUserAction(steppingAction);
   
   nDetStackingAction* stackingAction = new nDetStackingAction(runAction);
@@ -155,7 +184,7 @@ that didn't work... this is horribly deprecated*/
   // get the pointer to the UI manager and set verbosities
   G4UImanager *UImanager = G4UImanager::GetUIpointer();
 
-  if (argc==1)   // Define UI session for interactive mode
+  if (!batchMode)   // Define UI session for interactive mode
     {
 #ifdef G4UI_USE
       G4UIExecutive * ui;
@@ -171,7 +200,7 @@ that didn't work... this is horribly deprecated*/
   else         // Batch mode
     {
       G4String command = "/control/execute ";
-      G4String fileName = argv[1];
+      G4String fileName = inputFilename;
       UImanager->ApplyCommand(command+fileName);
     }
  

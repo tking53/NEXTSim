@@ -83,13 +83,18 @@ class nDetRunAction : public G4UserRunAction
                         particleCharge.clear();
 			};
 
+	void setFilename(const std::string &fname){ filename = fname; }
+
+	void setTreeName(const std::string &tname){ treename = tname; }
+
   private:  // function member
     bool openRootFile(const G4Run* aRun); 
   
   private:  // data member
     G4Timer* timer;  // able to measure elasped user/system process time.
 
-    char fileName[300];
+    std::string filename;
+    std::string treename;
     TFile        *fFile;    // define root file
     TTree        *fTree;    // tree and its branches
     TBranch      *fBranch;

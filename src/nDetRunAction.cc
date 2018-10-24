@@ -82,7 +82,7 @@ void nDetRunAction::EndOfRunAction(const G4Run* aRun)
     if (IsMaster()){
         fFile->Write();
         fFile->Close();
-        G4cout << "*** " << fileName << " is created." << G4endl;
+        G4cout << "*** " << filename << " is created." << G4endl;
     }
   }
   else
@@ -102,35 +102,38 @@ bool nDetRunAction::openRootFile(const G4Run* aRun)
   //and then create a ROOT tree and branches
 
   // get the system time, and use it to create the filename of root file.
-  time_t rawtime;
-  struct tm * timeinfo;
-  char buffer[180];
+  if(filename.empty()){
+    time_t rawtime;
+    struct tm * timeinfo;
+    char buffer[180];
 
-  time ( &rawtime );
-  timeinfo = localtime ( &rawtime );
+    time ( &rawtime );
+    timeinfo = localtime ( &rawtime );
 
-  strftime (buffer,180,"_%H:%M:%S_%a_%b_%d_%Y",timeinfo);
+    strftime (buffer,180,"_%H:%M:%S_%a_%b_%d_%Y",timeinfo);
 
-  // create a root file for the current run
-  sprintf(fileName, "./output/run_%03d%s.root",aRun->GetRunID(), buffer);
-
-  //std::cout<<fileName<<std::endl;
+    // create a root file for the current run
+    char defaultFilename[300];
+    sprintf(defaultFilename, "run_%03d%s.root",aRun->GetRunID(), buffer);
+    filename = std::string(defaultFilename);
+  }
 
   //create a ROOT file
-  fFile = new TFile(fileName,"RECREATE","ROOT file for high resolution neutron detector simulation");
+  fFile = new TFile(filename.c_str(),"RECREATE","ROOT file for high resolution neutron detector simulation");
 
-      if (fFile->IsZombie()) {
-          G4cout << "Error opening file" << G4endl;
-          //exit(-1);
-      }
-      else{
-          G4cout << "File Opened!!" << G4endl;
-      }
+  if (fFile->IsZombie()) {
+      G4cout << "Error opening file" << G4endl;
+      //exit(-1);
+  }
+  else{
+      G4cout << "File Opened!!" << G4endl;
+  }
 
-      //create root tree
+  //create root tree
   //fFile->cd();
 
-  fTree = new TTree("neutronEvent","Photons produced by thermal neutrons");
+  if(treename.empty()) treename = "neutronEvent";
+  fTree = new TTree(treename.c_str(),"Photons produced by thermal neutrons");
 
   if(fTree) G4cout << "nDetRunAction::openRootFile()->fTree "<<fTree<< G4endl;
 
@@ -138,17 +141,14 @@ bool nDetRunAction::openRootFile(const G4Run* aRun)
 
   //fFile->ls();
 
-      G4cout << "HERE!!" << G4endl;
-
-
       //if(defineRootBranch == false){
     int bufsize = 64000;
     fBranch = fTree->Branch("runNb", &runNb, "runNb/L", bufsize);
     fBranch = fTree->Branch("eventNb", &eventNb, "enevtNb/L", bufsize);
 
-     fTree->Branch("neutronIncidentPositionX",&neutronIncidentPositionX,"neutronIncidentPositionX/D",bufsize);
-     fTree->Branch("neutronIncidentPositionY",&neutronIncidentPositionY,"neutronIncidentPositionY/D",bufsize);
-     fTree->Branch("neutronIncidentPositionZ",&neutronIncidentPositionZ,"neutronIncidentPositionZ/D",bufsize);
+    fTree->Branch("neutronIncidentPositionX",&neutronIncidentPositionX,"neutronIncidentPositionX/D",bufsize);
+    fTree->Branch("neutronIncidentPositionY",&neutronIncidentPositionY,"neutronIncidentPositionY/D",bufsize);
+    fTree->Branch("neutronIncidentPositionZ",&neutronIncidentPositionZ,"neutronIncidentPositionZ/D",bufsize);
 
     fTree->Branch("depositedEnergy", &depEnergy, "depEnergy/D", bufsize);
 
@@ -171,8 +171,7 @@ bool nDetRunAction::openRootFile(const G4Run* aRun)
 //Following branches are added by Kyle.
     fBranch = fTree->Branch("particleCharge", &particleCharge);
     fBranch = fTree->Branch("particleName", &particleName);
-
-
+    
       defineRootBranch = true;
   //}
   }
