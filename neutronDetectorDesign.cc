@@ -1,9 +1,9 @@
 //
 // ********************************************************************
-// * The beutron detector program is used to simulate an	       *
+// * The beutron detector program is used to simulate an              *
 // * optimize the performance of the scintillation detector in the    * 
 // * framework of Geant4.10.00.p01 and ROOT v5.34.14.                 *
-// *  by Dr. Xiaodong Zhang on Sept., 2015.                            *
+// *  by Dr. Xiaodong Zhang on Sept., 2015.                           *
 // *                                                                  *
 // ********************************************************************
 //
@@ -61,28 +61,28 @@ int main(int argc, char** argv)
   handler.add(optionExt("tree-name", required_argument, NULL, 't', "<treename>", "Set the output TTree name (default=\"theTree\")."));
   handler.add(optionExt("252Cf", no_argument, NULL, 0x0, "", "Use 252Cf energy spectrum (Mannhart)."));
 
-	// Handle user input.
-	if(!handler.setup(argc, argv))
-		return 1;
+  // Handle user input.
+  if(!handler.setup(argc, argv))
+    return 1;
 
-	bool batchMode = false;
-	std::string inputFilename;
-	if(handler.getOption(0)->active){ // Set input filename
-		inputFilename = handler.getOption(0)->argument;
-		batchMode = true;
-	}
+  bool batchMode = false;
+  std::string inputFilename;
+  if(handler.getOption(0)->active){ // Set input filename
+    inputFilename = handler.getOption(0)->argument;
+    batchMode = true;
+  }
 
-	std::string outputFilename;
-	if(handler.getOption(1)->active) // Set output filename
-		outputFilename = handler.getOption(1)->argument;
+  std::string outputFilename;
+  if(handler.getOption(1)->active) // Set output filename
+    outputFilename = handler.getOption(1)->argument;
 
-	std::string outputTreeName;
-	if(handler.getOption(2)->active) // Set output TTree name
-		outputTreeName = handler.getOption(2)->argument;
+  std::string outputTreeName;
+  if(handler.getOption(2)->active) // Set output TTree name
+    outputTreeName = handler.getOption(2)->argument;
 
-	bool useCaliforniumSpectrum = false;
-	if(handler.getOption(3)->active) // Use 252Cf energy spectrum
-		useCaliforniumSpectrum = true;
+  bool useCaliforniumSpectrum = false;
+  if(handler.getOption(3)->active) // Use 252Cf energy spectrum
+    useCaliforniumSpectrum = true;
 
   //make random number seeds different in different runs in Geant4 simulation
   //////////////////////////////////////
@@ -147,10 +147,17 @@ that didn't work... this is horribly deprecated*/
   //set optional user action classes
 
   nDetAnalysisManager *theManager= new nDetAnalysisManager();
+  if(!outputFilename.empty()) theManager->setFilename(outputFilename);
+  if(!outputTreeName.empty()) theManager->setTreeName(outputTreeName);
 
   //Geant complains we need to change this for multithreading.  Moving the following to nDetActionInitialization.cc
   nDetRunAction* runAction = new nDetRunAction();
-  if(!outputFilename.empty()) runAction->setFilename(outputFilename);
+  if(!outputFilename.empty()){
+    size_t index = outputFilename.find('.');
+    std::string prefix = outputFilename;
+    if(index != std::string::npos) prefix = outputFilename.substr(0, index);
+    runAction->setFilename((prefix+"_m.root").c_str());
+  }
   if(!outputTreeName.empty()) runAction->setTreeName(outputTreeName);
   runManager->SetUserAction( runAction );
 

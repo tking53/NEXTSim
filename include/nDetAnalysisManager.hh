@@ -64,9 +64,15 @@ class nDetAnalysisManager:public G4RootAnalysisManager {
 
     void ProcessGossip( const SiPMHitsCollection *DHC_SiPM);
 
+	void setFilename(const std::string &fname){ filename = fname; }
+
+	void setTreeName(const std::string &tname){ treename = tname; }
+
 private:
 
     G4String fFileName;
+    std::string filename;
+    std::string treename;
 
     TFile *fFile;
 

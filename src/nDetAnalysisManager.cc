@@ -17,7 +17,6 @@
 nDetAnalysisManager::nDetAnalysisManager(){
 
     G4cout << "nDetAnalysisManager::nDetAnalysisManager()->"<<this<< G4endl;
-    fFileName="Out.root";
     fgossipFileName ="GossipOut.bin";
     fMessenger = new nDetAnalysisMessenger(this);
     fScintCollectionID=-1;
@@ -42,12 +41,12 @@ nDetAnalysisManager::~nDetAnalysisManager(){
 
 void nDetAnalysisManager::OpenROOTFile(){
 
-    G4cout << "nDetAnalysisManager::OpenROOTFile()->fFile " << fFile<< "." << G4endl;
-    //fFileName=fileName;
-    fFile = new TFile(fFileName,"RECREATE");
+    G4cout << "nDetAnalysisManager::OpenROOTFile()->fFile " << fFile << "." << G4endl;
+    if(filename.empty()) filename = "Out.root";
+    fFile = new TFile(filename.c_str(),"RECREATE");
     //fFile = new TFile("cona.root","RECREATE");
 
-    G4cout << "nDetAnalysisManager::OpenROOTFile()->" << fFileName << " has been opened." << G4endl;
+    G4cout << "nDetAnalysisManager::OpenROOTFile()->" << filename << " has been opened." << G4endl;
 
     //if(gSystem)
     //    gSystem->ProcessEvents();
@@ -55,7 +54,8 @@ void nDetAnalysisManager::OpenROOTFile(){
     //fFile->cd();
     //fFile->cd();
 
-    fTree=new TTree("theTree","NEXTSim Output Tree");
+	if(treename.empty()) treename = "theTree";
+    fTree=new TTree(treename.c_str(),"NEXTSim Output Tree");
 
     G4cout << "nDetAnalysisManager::OpenROOTFile()->fTree " << fTree << G4endl;
 
@@ -117,7 +117,7 @@ void nDetAnalysisManager::WriteFile() {
     if(fTree) {
         fTree->Write();
 
-        G4cout << "nDetAnalysisManager::WriteFile()->" << fFileName << " has been written." << G4endl;
+        G4cout << "nDetAnalysisManager::WriteFile()->" << filename << " has been written." << G4endl;
     }
 
 }
