@@ -462,7 +462,7 @@ void nDetAnalysisManager::PostUserTrackingAction(const G4Track *aTrack) {
 
 void nDetAnalysisManager::OpenGossipFile() {
 
-    fgossipOut = new ofstream(fgossipFileName.data(),std::ios::out | std::ios::app | std::ios::binary);
+    fgossipOut = new std::ofstream(fgossipFileName.data(),std::ios::out | std::ios::app | std::ios::binary);
 
 
 }

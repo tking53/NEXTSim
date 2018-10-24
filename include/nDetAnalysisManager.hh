@@ -23,7 +23,6 @@
 
 #include "SiPMHits.hh"
 
-
 class nDetAnalysisManager:public G4RootAnalysisManager {
 
     public:
@@ -126,7 +125,7 @@ private:
 
     //Gossip Stuff
     G4String                   fgossipFileName;
-    ofstream                   *fgossipOut;
+    std::ofstream                   *fgossipOut;
 
     sipmMC                     *fsipm;
     std::vector<PhotonList*>   fphotons;
