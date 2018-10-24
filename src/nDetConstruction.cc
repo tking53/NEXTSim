@@ -1436,17 +1436,15 @@ void nDetConstruction::buildEllipse2() {
 
 void nDetConstruction::buildRectangle() {
 
-    G4double teflonThickness=0.22*mm;
-
     //fMylarThickness=0.025*mm; //25 um mylar
 
-    G4double xdimension=fDetectorWidth+teflonThickness+fMylarThickness;
-    G4double ydimension=fDetectorThickness+teflonThickness+2*fMylarThickness;
-    G4double zdimension=fDetectorLength+teflonThickness;
+    G4double xdimension=fDetectorWidth + 2*fMylarThickness;
+    G4double ydimension=fDetectorThickness + 2*fMylarThickness;
+    G4double zdimension=fDetectorLength;
 
     G4Box *theRectangle=new G4Box("rectangle",xdimension/2,ydimension/2,zdimension/2);
 
-    ydimension=SiPM_dimension+teflonThickness+2*fMylarThickness;
+    ydimension=SiPM_dimension+2*fMylarThickness;
 
     G4Box *wrappinBox=new G4Box("theBox1",ydimension,ydimension,(greaseY+qwSiPMy+psSiPMy));
 
@@ -1486,30 +1484,39 @@ void nDetConstruction::buildRectangle() {
     G4VPhysicalVolume *scint_phys=new G4PVPlacement(0,G4ThreeVector(0,0,0),ej200_logV,"Scint",assembly_logV,0,0,fCheckOverlaps);
 
     //Building the Mylar covers
-
     if(fMylarThickness>0) {
-
-        xdimension = fDetectorWidth;
-        ydimension = fMylarThickness;
-        zdimension = fDetectorLength;
-
-        G4Box *theMylar = new G4Box("mylar", xdimension / 2, ydimension / 2, zdimension / 2);
+        G4Box *theMylar = new G4Box("mylar", fDetectorWidth/2, fMylarThickness/2, fDetectorLength/2);
         mylar_logV = new G4LogicalVolume(theMylar, fMylar, "mylar");
+
+        G4Box *theMylar2 = new G4Box("mylar2", fMylarThickness/2, fDetectorThickness/2, fDetectorLength/2);
+        G4LogicalVolume *mylar_logV2 = new G4LogicalVolume(theMylar2, fMylar, "mylar");
 
         G4VisAttributes *mylar_VisAtt = new G4VisAttributes(G4Colour(1.0, 0.0, 1.0)); //magenta
         mylar_VisAtt->SetForceSolid(true);
+        
         mylar_logV->SetVisAttributes(mylar_VisAtt);
+        mylar_logV2->SetVisAttributes(mylar_VisAtt);
 
-        G4ThreeVector position(0, 0.24 * inch / 2 + fMylarThickness / 2, 0);
-        G4PVPlacement *mylar_phys = new G4PVPlacement(0, position, mylar_logV, "Mylar1", assembly_logV, true, 0, true);
-        G4ThreeVector position2(0, -0.24 * inch / 2 - fMylarThickness / 2, 0);
-        G4PVPlacement *mylar_phys2 = new G4PVPlacement(0, position2, mylar_logV, "Mylar2", assembly_logV, true, 0,
-                                                       true);
+		// Top layer (+Y)
+        G4ThreeVector position(0, fDetectorThickness/2 + fMylarThickness/2, 0);
+        G4PVPlacement *mylar_phys1a = new G4PVPlacement(0, position, mylar_logV, "Mylar1a", assembly_logV, true, 0, true);
 
+        // Bottom layer (-Y)
+        position *= -1;
+        G4PVPlacement *mylar_phys1b = new G4PVPlacement(0, position, mylar_logV, "Mylar1b", assembly_logV, true, 0, true);
 
-        fMylarSurface = new G4LogicalBorderSurface("Mylar", scint_phys, mylar_phys, fMylarOpticalSurface);
-        G4LogicalBorderSurface *log2 = new G4LogicalBorderSurface("Mylar2", scint_phys, mylar_phys2,
-                                                                  fMylarOpticalSurface);
+		// -X layer
+		position = G4ThreeVector(-(fDetectorWidth/2 + fMylarThickness/2), 0, 0);
+        G4PVPlacement *mylar_phys2a = new G4PVPlacement(0, position, mylar_logV2, "Mylar2a", assembly_logV, true, 0, true);
+        
+		// +X layer
+		position *= -1;
+        G4PVPlacement *mylar_phys2b = new G4PVPlacement(0, position, mylar_logV2, "Mylar1b", assembly_logV, true, 0, true);
+
+        fMylarSurface = new G4LogicalBorderSurface("Mylar1a", scint_phys, mylar_phys1a, fMylarOpticalSurface);
+        new G4LogicalBorderSurface("Mylar1b", scint_phys, mylar_phys1b, fMylarOpticalSurface);
+        new G4LogicalBorderSurface("Mylar2a", scint_phys, mylar_phys2a, fMylarOpticalSurface);
+        new G4LogicalBorderSurface("Mylar2b", scint_phys, mylar_phys2b, fMylarOpticalSurface);
     }
     buildSiPMs();
 
