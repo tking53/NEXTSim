@@ -44,6 +44,7 @@
 #include "nDetAnalysisManager.hh"
 #include "nDetTrackingAction.hh"
 #include "nDetPhysicsList.hh"
+#include "CfSource.hh"
 //#include "nDetActionInitialization.hh"
 
 #include "G4OpticalPhysics.hh"
@@ -122,9 +123,13 @@ that didn't work... this is horribly deprecated*/
                         new nDetRunAction();
   runManager->SetUserAction( runAction );
 
-  G4VUserPrimaryGeneratorAction* primaryGeneratorAction = 
+  /*G4VUserPrimaryGeneratorAction* primaryGeneratorAction = 
 			new nDetPrimaryGeneratorAction(runAction);
-  runManager->SetUserAction( primaryGeneratorAction );
+  runManager->SetUserAction( primaryGeneratorAction );*/
+  
+  // 252Cf source (CRT)
+  G4VUserPrimaryGeneratorAction *source = new CfSource();
+  runManager->SetUserAction(source);
 
   nDetEventAction* eventAction = 
 			new nDetEventAction(runAction);
