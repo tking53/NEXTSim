@@ -202,11 +202,20 @@ that didn't work... this is horribly deprecated*/
 #ifdef G4UI_USE
       G4UIExecutive * ui;
       ui = new G4UIExecutive(argc, argv, "");
-#ifdef G4VIS_USE
-      UImanager->ApplyCommand("/command/execute ./mac/vis.mac");
-#endif
+      UImanager->ApplyCommand("/vis/open OGL");
+      UImanager->ApplyCommand("/vis/drawVolume");
+      UImanager->ApplyCommand("/vis/scene/add/trajectories");
+      UImanager->ApplyCommand("/vis/viewer/set/viewpointThetaPhi 90 0");
+      UImanager->ApplyCommand("/vis/viewer/set/viewpointVector -1 1 1");
+      UImanager->ApplyCommand("/vis/viewer/refresh");
+
+	  /*G4String command = "/control/execute ";
+      command += inputFilename;
+      std::cout << "cmd=" << command << std::endl;
+      UImanager->ApplyCommand(command);*/
+      
       // start interactive session
-      ui->SessionStart();
+      ui->SessionStart();      
       delete ui;
 #endif
   }
