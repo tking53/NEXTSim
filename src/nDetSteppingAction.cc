@@ -126,16 +126,16 @@ void nDetSteppingAction::UserSteppingAction(const G4Step* aStep)
                       theTrackingInfo->IncDetections();
                       theEventInfo->IncDetections();
                       if (vName.find("psSiPM") && aStep->GetPostStepPoint()->GetPosition().z() > 0) {
-                          runAction->vTimeOfPhotonInSD1PushBack(time);
-                          runAction->vSD1PhotonPositionXPushBack(aStep->GetPostStepPoint()->GetPosition().x());
-                          runAction->vSD1PhotonPositionYPushBack(aStep->GetPostStepPoint()->GetPosition().y());
-                          runAction->vSD1PhotonPositionZPushBack(aStep->GetPostStepPoint()->GetPosition().z());
+                          runAction->vTimeOfPhotonInSD1.push_back(time);
+                          runAction->vSD1PhotonPositionX.push_back(aStep->GetPostStepPoint()->GetPosition().x());
+                          runAction->vSD1PhotonPositionY.push_back(aStep->GetPostStepPoint()->GetPosition().y());
+                          runAction->vSD1PhotonPositionZ.push_back(aStep->GetPostStepPoint()->GetPosition().z());
                       }
                       if (vName.find("psSiPM") && aStep->GetPostStepPoint()->GetPosition().z() < 0) {
-                          runAction->vTimeOfPhotonInSD2PushBack(time);
-                          runAction->vSD2PhotonPositionXPushBack(aStep->GetPostStepPoint()->GetPosition().x());
-                          runAction->vSD2PhotonPositionYPushBack(aStep->GetPostStepPoint()->GetPosition().y());
-                          runAction->vSD2PhotonPositionZPushBack(aStep->GetPostStepPoint()->GetPosition().z());
+                          runAction->vTimeOfPhotonInSD2.push_back(time);
+                          runAction->vSD2PhotonPositionX.push_back(aStep->GetPostStepPoint()->GetPosition().x());
+                          runAction->vSD2PhotonPositionY.push_back(aStep->GetPostStepPoint()->GetPosition().y());
+                          runAction->vSD2PhotonPositionZ.push_back(aStep->GetPostStepPoint()->GetPosition().z());
                       }
                       break;
                   }

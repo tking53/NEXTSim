@@ -16,7 +16,6 @@
 #include "G4PhysicalConstants.hh"
 
 class G4ParticleGun;
-class G4GeneralParticleSource;
 class G4Event;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -24,15 +23,25 @@ class G4Event;
 class nDetPrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
 {
   public:
+    nDetPrimaryGeneratorAction() : particleGun(NULL), runAct(NULL) { }
+  
     nDetPrimaryGeneratorAction(nDetRunAction*);
+    
    ~nDetPrimaryGeneratorAction();
 
-  public:
-    void GeneratePrimaries(G4Event*);
+    virtual void GeneratePrimaries(G4Event*);
 
-  private:
-    //G4ParticleGun* particleGun;
-    G4GeneralParticleSource *particleGun;
+	G4ParticleGun *GetParticleGun(){ return particleGun; }
+	
+	nDetRunAction *GetRunAction(){ return runAct; }
+	
+	void SetParticleGun(G4ParticleGun *gun){ particleGun = gun; }
+	
+	void SetRunAction(nDetRunAction *action){ runAct = action; }
+
+  protected:
+    G4ParticleGun *particleGun;
+    
     nDetRunAction* runAct;
 };
 

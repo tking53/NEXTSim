@@ -35,12 +35,13 @@
 #ifndef CfSource_h
 #define CfSource_h 1
 
-#include "G4VUserPrimaryGeneratorAction.hh"
 #include "G4VUserActionInitialization.hh"
 #include "G4SteppingVerbose.hh"
 #include "G4UImessenger.hh"
 #include "globals.hh"
 #include <vector>
+
+#include "nDetPrimaryGeneratorAction.hh"
 
 class G4ParticleGun;
 class G4Event;
@@ -69,10 +70,10 @@ class Californium{
 
 class CfSourceMessenger;
 
-class CfSource : public G4VUserPrimaryGeneratorAction
+class CfSource : public nDetPrimaryGeneratorAction
 {
   public:
-    CfSource();   
+    CfSource(nDetRunAction *run=NULL);   
      
    ~CfSource();
 
@@ -91,9 +92,7 @@ class CfSource : public G4VUserPrimaryGeneratorAction
 	void SetType(const G4String &str);
 
   private:    
-    G4ParticleGun*         fParticleGun;
-    
-	CfSourceMessenger*     fGunMessenger;
+	CfSourceMessenger* fGunMessenger;
  
 	Californium source; // 252Cf source
 

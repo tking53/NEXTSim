@@ -54,7 +54,7 @@ void nDetRunAction::BeginOfRunAction(const G4Run* aRun)
     G4cout << "### File " << fFile->GetName() << " opened." << G4endl;
 
     // get RunId
-  setRunNb(aRun->GetRunID());
+  runNb = aRun->GetRunID();
 
 
 
@@ -142,15 +142,15 @@ bool nDetRunAction::openRootFile(const G4Run* aRun)
   //fFile->ls();
 
       //if(defineRootBranch == false){
-    int bufsize = 64000;
-    fBranch = fTree->Branch("runNb", &runNb, "runNb/L", bufsize);
-    fBranch = fTree->Branch("eventNb", &eventNb, "enevtNb/L", bufsize);
+    fBranch = fTree->Branch("runNb", &runNb);
+    fBranch = fTree->Branch("eventNb", &eventNb);
 
-    fTree->Branch("neutronIncidentPositionX",&neutronIncidentPositionX,"neutronIncidentPositionX/D",bufsize);
-    fTree->Branch("neutronIncidentPositionY",&neutronIncidentPositionY,"neutronIncidentPositionY/D",bufsize);
-    fTree->Branch("neutronIncidentPositionZ",&neutronIncidentPositionZ,"neutronIncidentPositionZ/D",bufsize);
+    fTree->Branch("neutronIncidentPositionX",&neutronIncidentPositionX);
+    fTree->Branch("neutronIncidentPositionY",&neutronIncidentPositionY);
+    fTree->Branch("neutronIncidentPositionZ",&neutronIncidentPositionZ);
 
-    fTree->Branch("depositedEnergy", &depEnergy, "depEnergy/D", bufsize);
+    fTree->Branch("depositedEnergy", &depEnergy);
+	fTree->Branch("initialEnergy", &initEnergy); // CRT
 
     fTree->Branch("vTimeOfPhotonInSD1", &vTimeOfPhotonInSD1);
     fTree->Branch("vTimeOfPhotonInSD2", &vTimeOfPhotonInSD2);
@@ -169,8 +169,8 @@ bool nDetRunAction::openRootFile(const G4Run* aRun)
     fTree->Branch("vSD2PhotonPositionZ", &vSD2PhotonPositionZ);
 
 //Following branches are added by Kyle.
-    fBranch = fTree->Branch("particleCharge", &particleCharge);
-    fBranch = fTree->Branch("particleName", &particleName);
+    //fBranch = fTree->Branch("particleCharge", &particleCharge);
+    //fBranch = fTree->Branch("particleName", &particleName);
     
       defineRootBranch = true;
   //}

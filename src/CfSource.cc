@@ -40,6 +40,7 @@
 #include "G4ParticleDefinition.hh"
 #include "G4PhysicalConstants.hh"
 #include "G4SystemOfUnits.hh"
+#include "G4Neutron.hh"
 #include "Randomize.hh"
 
 #include "G4UIdirectory.hh"
@@ -79,12 +80,14 @@ double Californium::sample(){
         return neutrons[100];
 }
 
-CfSource::CfSource() : G4VUserPrimaryGeneratorAction(), fParticleGun(0), fGunMessenger(0), source(), pos(0, 0, 0), dir(0, 0, 0), type("iso")
-{    
-  fParticleGun = new G4ParticleGun(1);
-  fParticleGun->SetParticleDefinition(G4ParticleTable::GetParticleTable()->FindParticle("neutron"));
-  fParticleGun->SetParticlePosition(this->pos);
-  fParticleGun->SetParticleMomentumDirection(this->dir);
+CfSource::CfSource(nDetRunAction *run/*=NULL*/) : nDetPrimaryGeneratorAction(), fGunMessenger(0), source(), pos(0, 0, 0), dir(0, 0, 0), type("iso")
+{
+  runAct = run;
+
+  particleGun = new G4ParticleGun(1);
+  particleGun->SetParticleDefinition(G4Neutron::NeutronDefinition());
+  particleGun->SetParticlePosition(this->pos);
+  particleGun->SetParticleMomentumDirection(this->dir);
   
   //create a messenger for this class
   fGunMessenger = new CfSourceMessenger(this); 
@@ -95,18 +98,20 @@ CfSource::~CfSource()
 
 void CfSource::GeneratePrimaries(G4Event* anEvent)
 {
-	fParticleGun->SetParticleEnergy(source.sample());
-	fParticleGun->GeneratePrimaryVertex(anEvent);
+	double energy = source.sample();
+	particleGun->SetParticleEnergy(energy);
+	runAct->initEnergy = energy;
+	particleGun->GeneratePrimaryVertex(anEvent);
 }
 
 void CfSource::SetPosition(const G4ThreeVector &p){ 
 	pos = p; 
-	fParticleGun->SetParticlePosition(this->pos);
+	particleGun->SetParticlePosition(this->pos);
 }
 
 void CfSource::SetDirection(const G4ThreeVector &d){ 
 	dir = d; 
-	fParticleGun->SetParticleMomentumDirection(this->dir);
+	particleGun->SetParticleMomentumDirection(this->dir);
 }
 
 void CfSource::SetType(const G4String &str){ 

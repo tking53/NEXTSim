@@ -18,7 +18,7 @@
 #include "G4Triton.hh"
 #include "G4Deuteron.hh"
 #include "Randomize.hh"
-#include "G4GeneralParticleSource.hh"
+#include "G4ParticleGun.hh"
 #include "nDetAnalysisManager.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -27,8 +27,7 @@ nDetPrimaryGeneratorAction::nDetPrimaryGeneratorAction(nDetRunAction* run)
 : runAct(run)
 {
   G4int n_particle = 1;
-  //particleGun = new G4ParticleGun(n_particle);
-  particleGun = new G4GeneralParticleSource();
+  particleGun = new G4ParticleGun(n_particle);
   //default kinematic
   //
   G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
@@ -85,9 +84,9 @@ void nDetPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 
   theManager->GeneratePrimaries(anEvent);
 
-  runAct->setNeutronIncidentPositionX(VertexPosition.x());
-  runAct->setNeutronIncidentPositionY(VertexPosition.y());
-  runAct->setNeutronIncidentPositionZ(VertexPosition.z());
+  runAct->neutronIncidentPositionX = VertexPosition.x();
+  runAct->neutronIncidentPositionY = VertexPosition.y();
+  runAct->neutronIncidentPositionZ = VertexPosition.z();
 
 }
 

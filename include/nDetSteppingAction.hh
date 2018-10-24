@@ -11,6 +11,7 @@
 #define nDetSteppingAction_h 1
 
 #include "G4UserSteppingAction.hh"
+#include "G4VUserPrimaryGeneratorAction.hh"
 
 //class nDetConstruction;
 //class nDetEventAction;
@@ -29,12 +30,15 @@ public:
 			nDetEventAction*);
   virtual ~nDetSteppingAction();
 
+  void SetGenerator(G4VUserPrimaryGeneratorAction *ptr){ generator = ptr; }
+
   void UserSteppingAction(const G4Step*);
 
 private:
   nDetConstruction* detector;
   nDetRunAction* runAction;
   nDetEventAction*  evtAction;
+  G4VUserPrimaryGeneratorAction *generator;
   
   G4long eventID;
 

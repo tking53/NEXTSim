@@ -35,16 +35,16 @@ nDetStackingAction::ClassifyNewTrack(const G4Track * aTrack) {
         0)  // primary particle, neutron, ID =0, then either proton, or others, their IDs are larger than 0, and then photons
       if (aTrack->GetVolume()->GetName().find("ej200")) { // particle is secondary and happens in the EJ200 scintillator
         //std::cout<<aTrack->GetVolume()->GetName()<<"....in ej200..."<<aTrack->GetGlobalTime()<<"..."<<aTrack->GetDynamicParticle()->GetDefinition()->GetParticleName()<<"...."<<aTrack->GetPosition()<<std::endl;
-        runAct->vTimeOfPhotonInEJ200PushBack(aTrack->GetGlobalTime());
-        runAct->vPrimaryPhotonPositionXPushBack(aTrack->GetPosition().x());
-        runAct->vPrimaryPhotonPositionYPushBack(aTrack->GetPosition().y());
-        runAct->vPrimaryPhotonPositionZPushBack(aTrack->GetPosition().z());
+        runAct->vTimeOfPhotonInEJ200.push_back(aTrack->GetGlobalTime());
+        runAct->vPrimaryPhotonPositionX.push_back(aTrack->GetPosition().x());
+        runAct->vPrimaryPhotonPositionY.push_back(aTrack->GetPosition().y());
+        runAct->vPrimaryPhotonPositionZ.push_back(aTrack->GetPosition().z());
 
 //Kyle adding these lines:
-        //runAct->particleNamePushBack(aTrack->GetDefinition()->GetParticleName());
-        runAct->particleNamePushBack(aTrack->GetParticleDefinition()->GetParticleName());
-        // runAct->particleChargePushBack(aTrack->GetDefinition()->GetPDGCharge());
-        runAct->particleChargePushBack(aTrack->GetParticleDefinition()->GetPDGCharge());
+        //runAct->particleName.push_back(aTrack->GetDefinition()->GetParticleName());
+        runAct->particleName.push_back(aTrack->GetParticleDefinition()->GetParticleName());
+        // runAct->particleCharge.push_back(aTrack->GetDefinition()->GetPDGCharge());
+        runAct->particleCharge.push_back(aTrack->GetParticleDefinition()->GetPDGCharge());
 //end
 
 
