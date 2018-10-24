@@ -25,9 +25,19 @@
       file(GLOB sources ${PROJECT_SOURCE_DIR}/src/*.cc)
       file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh)
 
+      #if user does not specify prefix we assign it to the exec directory
+      if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+            message(STATUS "Install Prefix not specified.")
+            file(MAKE_DIRECTORY install)
+            get_filename_component(INSTALL_DIR ${CMAKE_SOURCE_DIR}/install REALPATH)
+            set(CMAKE_INSTALL_PREFIX ${INSTALL_DIR} CACHE PATH "Install Prefix" FORCE)
+      endif()
+      message(STATUS "Installing to ${CMAKE_INSTALL_PREFIX}")
+
       # (5)
       add_executable(neutronDetectorDesign neutronDetectorDesign.cc ${sources} )
       target_link_libraries(neutronDetectorDesign ${Geant4_LIBRARIES} ${ROOT_LIBRARIES})
+      install(TARGETS neutronDetectorDesign DESTINATION bin)
 
       # (6)
 
@@ -39,7 +49,7 @@
       #---------------------------------------------------------------------------
       # Create the directory for the Output files
       #
-      file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/output")
+      #file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/output")
 
       # (9)
       #---------------------------------------------------------------------------
@@ -47,15 +57,15 @@
       # build NEXTSim. This is so that we can run the executable directly because it
       # relies on these scripts being in the current working directory.
       #
-	set(NEXTSIM_SCRIPTS
-      	mac/run.mac
-      	mac/vis.mac
-        )
+#	set(NEXTSIM_SCRIPTS
+#      	mac/run.mac
+#      	mac/vis.mac
+#        )
 
-      foreach(_script ${NEXTSIM_SCRIPTS})
-       configure_file(
-          ${PROJECT_SOURCE_DIR}/${_script}
-          ${PROJECT_BINARY_DIR}/${_script}
-          COPYONLY
-          )
-      endforeach()
+#      foreach(_script ${NEXTSIM_SCRIPTS})
+#       configure_file(
+#          ${PROJECT_SOURCE_DIR}/${_script}
+#          ${PROJECT_BINARY_DIR}/${_script}
+#          COPYONLY
+#          )
+#      endforeach()
