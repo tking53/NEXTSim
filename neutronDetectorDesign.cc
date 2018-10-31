@@ -61,6 +61,7 @@ int main(int argc, char** argv)
   handler.add(optionExt("gui", no_argument, NULL, 'g', "", "Run interactive GUI session."));
   handler.add(optionExt("tree-name", required_argument, NULL, 't', "<treename>", "Set the output TTree name (default=\"theTree\")."));
   handler.add(optionExt("252Cf", no_argument, NULL, 0x0, "", "Use 252Cf energy spectrum (Mannhart)."));
+  handler.add(optionExt("verbose", no_argument, NULL, 'V', "", "Toggle verbose mode."));
 
   // Handle user input.
   if(!handler.setup(argc, argv))
@@ -85,6 +86,10 @@ int main(int argc, char** argv)
   bool useCaliforniumSpectrum = false;
   if(handler.getOption(4)->active) // Use 252Cf energy spectrum
     useCaliforniumSpectrum = true;
+
+  bool verboseMode = false;
+  if(handler.getOption(5)->active) // Toggle verbose flag
+    verboseMode = true;
 
   if(batchMode && inputFilename.empty()){
   	std::cout << " ERROR: Input macro filename not specified!\n";
@@ -166,6 +171,7 @@ that didn't work... this is horribly deprecated*/
     runAction->setFilename((prefix+"_m.root").c_str());
   }
   if(!outputTreeName.empty()) runAction->setTreeName(outputTreeName);
+  if(verboseMode) runAction->toggleVerboseMode();
   runManager->SetUserAction( runAction );
 
   G4VUserPrimaryGeneratorAction* primaryGeneratorAction;
