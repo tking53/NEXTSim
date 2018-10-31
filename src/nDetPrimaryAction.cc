@@ -76,18 +76,16 @@ void nDetPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 
   //particleGun->SetParticlePosition(G4ThreeVector(x, y, z));
 
+  runAct->initEnergy = particleGun->GetParticleEnergy();
+
   particleGun->GeneratePrimaryVertex(anEvent);
 
   G4ThreeVector VertexPosition= particleGun->GetParticlePosition();
 
   nDetAnalysisManager *theManager=(nDetAnalysisManager*)nDetAnalysisManager::Instance();
 
-  theManager->GeneratePrimaries(anEvent);
-
-  runAct->neutronIncidentPositionX = VertexPosition.x();
-  runAct->neutronIncidentPositionY = VertexPosition.y();
-  runAct->neutronIncidentPositionZ = VertexPosition.z();
-
+  if(theManager)
+	theManager->GeneratePrimaries(anEvent);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

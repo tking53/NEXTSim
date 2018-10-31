@@ -215,7 +215,7 @@ void nDetAnalysisManager::BeginOfRunAction(const G4Run *aRun) {
 
     //OpenGossipFile();
 
-    OpenROOTFile();
+    //OpenROOTFile();
 
     //ResetEvent();
 
@@ -239,8 +239,8 @@ void nDetAnalysisManager::EndOfRunAction(const G4Run *aRun) {
     //if(gSystem)
     //    gSystem->ProcessEvents();
 
-    WriteFile();
-    CloseROOTFile();
+    //WriteFile();
+    //CloseROOTFile();
 
     //CloseGossipFile();
 

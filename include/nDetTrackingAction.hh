@@ -8,19 +8,23 @@
 #include "G4UserTrackingAction.hh"
 #include "nDetAnalysisManager.hh"
 
+class nDetRunAction;
+
 class nDetTrackingAction: public G4UserTrackingAction {
 
 public:
-
-    nDetTrackingAction();
+    nDetTrackingAction(nDetRunAction *run);
     ~nDetTrackingAction();
     void PreUserTrackingAction(const G4Track* aTrack);
     void PostUserTrackingAction(const G4Track* aTrack);
 
-private:
+    void Reset(){ prevTrackID = 0; }
 
+private:
+    nDetRunAction* runAction;
     nDetAnalysisManager *fAnlManager;
 
+    G4int prevTrackID;
 };
 
 

@@ -33,6 +33,8 @@ public:
   void SetGenerator(G4VUserPrimaryGeneratorAction *ptr){ generator = ptr; }
 
   void UserSteppingAction(const G4Step*);
+  
+  void Reset(){ neutronTrack = false; }  
 
 private:
   nDetConstruction* detector;
@@ -41,7 +43,9 @@ private:
   G4VUserPrimaryGeneratorAction *generator;
   
   G4long eventID;
-
+  G4long stepID;
+  
+  bool neutronTrack;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

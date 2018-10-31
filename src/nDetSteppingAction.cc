@@ -37,9 +37,9 @@ nDetSteppingAction::nDetSteppingAction(
 //:runAction(runAct), evtAction(evtAct)
 :detector(det), runAction(runAct), evtAction(evtAct)
 {
-
+  neutronTrack = false;
   eventID = -1;
-
+  stepID = 0;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -57,37 +57,49 @@ void nDetSteppingAction::UserSteppingAction(const G4Step* aStep)
   // used for debug...
   //G4cout<<aStep->GetTrack()->GetVolume()->GetName()<<G4endl;
 
-  G4String name = aStep->GetTrack()->GetMaterial()->GetName();
-
-    if (aStep->GetTrack()->GetDefinition() == G4OpticalPhoton::OpticalPhotonDefinition() && name == "G4_AIR"){
-        aStep->GetTrack()->SetTrackStatus(fStopAndKill);
-
-        //G4cout<<"Transmitted Optical Photon Track Killed"<<G4endl;
-
+  if(neutronTrack){
+    if(aStep->GetTrack()->GetTrackID() != 1) 
+      neutronTrack = false;
+    else if(aStep->GetPreStepPoint()->GetMaterial()->GetName() == "G4_AIR"){ // Escape
+      runAction->finalizeNeutron(aStep);
+      neutronTrack = false;
     }
+    else // Normal scatter
+      runAction->scatterNeutron(aStep);
+  }
+  else if(aStep->GetTrack()->GetTrackID() == 1){ // Enter the material.
+    if(!aStep->GetPostStepPoint()->GetMaterial()) // Unknown event
+      std::cout << " STRT id=" << aStep->GetTrack()->GetTrackID() << " from " << aStep->GetPreStepPoint()->GetMaterial()->GetName() << " into NONE!!!\n";
+    runAction->initializeNeutron(aStep);
+    neutronTrack = true;
+  }
+  
+  G4String name = aStep->GetTrack()->GetMaterial()->GetName();
+  
+  if (aStep->GetTrack()->GetDefinition() == G4OpticalPhoton::OpticalPhotonDefinition() && name == "G4_AIR"){
+    aStep->GetTrack()->SetTrackStatus(fStopAndKill);
+  }
 
-    nDetUserTrackingInformation *theTrackingInfo;
-    theTrackingInfo = static_cast<nDetUserTrackingInformation*>( aStep->GetTrack()->GetUserInformation());
+  nDetUserTrackingInformation *theTrackingInfo;
+  theTrackingInfo = static_cast<nDetUserTrackingInformation*>( aStep->GetTrack()->GetUserInformation());
 
-    nDetUserEventInformation *theEventInfo;
-    theEventInfo = static_cast<nDetUserEventInformation*>(G4EventManager::GetEventManager()->GetUserInformation());
+  nDetUserEventInformation *theEventInfo;
+  theEventInfo = static_cast<nDetUserEventInformation*>(G4EventManager::GetEventManager()->GetUserInformation());
 
 
-  if( (name.find("EJ") != name.npos ) && aStep->GetTotalEnergyDeposit() > 0 ){
+  /*if( (name.find("EJ") != name.npos ) && aStep->GetTotalEnergyDeposit() > 0 ){
     G4double edep = aStep->GetTotalEnergyDeposit();
 
-//Xiaodong says we can put some code here.  GetParticleName 
-//step->track->particlename
+    //Xiaodong says we can put some code here.  GetParticleName 
+    //step->track->particlename
 
-  //  G4String pname = aStep->GetTrack()->GetParticleDefinition()->GetParticleName();
-  //  G4cout << pname << G4endl;
+    //  G4String pname = aStep->GetTrack()->GetParticleDefinition()->GetParticleName();
+    //  G4cout << pname << G4endl;
 
-    /* 
-    G4cout<<G4BestUnit(edep,"Energy")<<"**";
-    G4cout<<aStep->GetTrack()->GetMaterial()->GetName()<<G4endl;
-    */
+    //G4cout<<G4BestUnit(edep,"Energy")<<"**";
+    //G4cout<<aStep->GetTrack()->GetMaterial()->GetName()<<G4endl;
     evtAction->AddDepE(edep);
-  }
+  }*/
 
   // collect detected photons in the siPM
   G4OpBoundaryProcessStatus boundaryStatus=Undefined;

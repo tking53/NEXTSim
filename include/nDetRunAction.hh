@@ -24,19 +24,68 @@
 class G4Timer;
 class G4Run;
 
+class nDetStackingAction;
+class nDetTrackingAction;
+class nDetSteppingAction;
+
+class primaryTrackInfo{
+  public:
+    G4ThreeVector pos;
+    G4ThreeVector dir;
+    G4double kE, dkE;
+    G4double gtime, plength;
+    G4double angle;
+    
+    const G4ParticleDefinition *part;
+    
+    primaryTrackInfo(const G4Step *step);
+    
+    primaryTrackInfo(const G4Track *track);
+
+    bool compare(const G4Track *rhs);
+
+    double getAngle(const G4Track *rhs);
+
+    double getAngle(const G4ThreeVector &rhs);
+
+    void print();
+};
+
 class nDetRunAction : public G4UserRunAction
 {
   public:
-    short       runNb;
-    short       eventNb;
+    short runNb;
+    short eventNb;
+    short nScatters;
 
-    double     neutronIncidentPositionX;
-    double     neutronIncidentPositionY;
-    double     neutronIncidentPositionZ;
+    double neutronIncidentPositionX;
+    double neutronIncidentPositionY;
+    double neutronIncidentPositionZ;
 
-    double     depEnergy; // energy deposition inside of the EJ200 scintillator
-    double     initEnergy; // Initial energy of the neutron (CRT)
+	double neutronExitPositionX;
+	double neutronExitPositionY;
+	double neutronExitPositionZ;
 
+	double nTimeToFirstScatter;
+	double nLengthToFirstScatter;
+
+	double incidentTime;
+	double timeInMaterial;
+    double depEnergy; // energy deposition inside of the EJ200 scintillator
+    double initEnergy; // Initial energy of the neutron (CRT)
+    
+    bool nAbsorbed;
+
+    std::vector<double>     nScatterX;
+    std::vector<double>     nScatterY;
+    std::vector<double>     nScatterZ;
+    std::vector<double>     nScatterAngle;
+    std::vector<double>     nPathLength;
+    std::vector<double>     impartedE;
+    std::vector<double>     scatterTime;
+    std::vector<short>      Nphotons;
+    std::vector<short>      recoilMass;
+            
     std::vector<double>     vTimeOfPhotonInSD1;
     std::vector<double>     vTimeOfPhotonInSD2;
     std::vector<double>     vTimeOfPhotonInEJ200;
@@ -56,6 +105,9 @@ class nDetRunAction : public G4UserRunAction
 
     std::vector<std::string> particleName;
     std::vector<double>      particleCharge;
+
+    double prevNeutronEnergy;
+    double currNeutronEnergy;
   
     nDetRunAction();
     
@@ -68,26 +120,27 @@ class nDetRunAction : public G4UserRunAction
     bool fillBranch(); // deposited energy in YAP
 
     // clear all the vector for the next event
-    void vectorClear(){
-			vTimeOfPhotonInSD1.clear();
-                        vTimeOfPhotonInSD2.clear();
-                        vTimeOfPhotonInEJ200.clear();
-			vPrimaryPhotonPositionX.clear();
-			vPrimaryPhotonPositionY.clear();
-                        vPrimaryPhotonPositionZ.clear(); 
-                        vSD1PhotonPositionX.clear();
-                        vSD1PhotonPositionY.clear();
-                        vSD1PhotonPositionZ.clear();
-                        vSD2PhotonPositionX.clear();
-                        vSD2PhotonPositionY.clear();
-                        vSD2PhotonPositionZ.clear();
-                        particleName.clear();
-                        particleCharge.clear();
-			};
+    void vectorClear();
 
 	void setFilename(const std::string &fname){ filename = fname; }
 
 	void setTreeName(const std::string &tname){ treename = tname; }
+
+	void setActions(nDetStackingAction *stacking_, nDetTrackingAction *tracking_, nDetSteppingAction *stepping_){
+	  stacking = stacking_;
+	  tracking = tracking_;
+	  stepping = stepping_;
+	}
+
+    bool toggleVerboseMode(){ return (verbose = !verbose); }
+
+    void scatterEvent(const G4Track *track);
+
+    void initializeNeutron(const G4Step *step);
+
+    void scatterNeutron(const G4Step *step);
+
+    void finalizeNeutron(const G4Step *step);
 
   private:  // function member
     bool openRootFile(const G4Run* aRun); 
@@ -100,10 +153,18 @@ class nDetRunAction : public G4UserRunAction
     TFile        *fFile;    // define root file
     TTree        *fTree;    // tree and its branches
     TBranch      *fBranch;
+    
     bool defineRootBranch; 
+    bool verbose;
 
     nDetAnalysisManager *fAnalysisManager;
-
+    nDetStackingAction *stacking;
+    nDetTrackingAction *tracking;
+    nDetSteppingAction *stepping;
+    
+    std::vector<primaryTrackInfo> primaryTracks;
+    
+    G4ThreeVector prevDirection;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

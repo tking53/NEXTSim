@@ -105,8 +105,8 @@ void nDetEventAction::EndOfEventAction(const G4Event* evt)
 
   // set the depEnergy branch
   //G4cout<<depositedEnergy<<G4endl;
-  runAct->depEnergy = depositedEnergy;
-  runAct->eventNb = evt->GetEventID();
+  //runAct->depEnergy = depositedEnergy;
+  //runAct->eventNb = evt->GetEventID();
 
   // fill branches
     runAct->fillBranch();

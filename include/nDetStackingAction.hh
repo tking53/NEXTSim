@@ -34,7 +34,7 @@ class nDetStackingAction : public G4UserStackingAction
 
   private:
     nDetRunAction* runAct;
-    G4int photonNb;
+    G4int numPhotonsProduced;
 
 };
 

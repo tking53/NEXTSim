@@ -185,8 +185,10 @@ that didn't work... this is horribly deprecated*/
   nDetStackingAction* stackingAction = new nDetStackingAction(runAction);
   runManager->SetUserAction(stackingAction);
 
-  nDetTrackingAction*  trackingAction = new nDetTrackingAction();
+  nDetTrackingAction*  trackingAction = new nDetTrackingAction(runAction);
   runManager->SetUserAction(trackingAction);
+
+  runAction->setActions(stackingAction, trackingAction, steppingAction);
 
 //So we do this instead K Schmitt 6/16/16
 //  runManager->SetUserInitialization(new nDetActionInitialization());
