@@ -233,6 +233,13 @@ bool nDetRunAction::openRootFile(const G4Run* aRun)
 	fTree->Branch("nInitEnergy", &initEnergy); // CRT
 	fTree->Branch("nAbsorbed", &nAbsorbed);
 
+    fTree->Branch("nPhotonsTot", &nPhotonsTot);
+    fTree->Branch("nPhotonsDet[2]", nPhotonsDet);
+    fTree->Branch("photonComX[2]", photonDetCenterOfMassX);
+    fTree->Branch("photonComY[2]", photonDetCenterOfMassY);
+    //fTree->Branch("photonComZ[2]", photonDetCenterOfMassZ);
+    fTree->Branch("photonDetEff", &photonDetEfficiency);
+
     /*fTree->Branch("vTimeOfPhotonInSD1", &vTimeOfPhotonInSD1);
     fTree->Branch("vTimeOfPhotonInSD2", &vTimeOfPhotonInSD2);
     fTree->Branch("vTimeOfPhotonInEJ200", &vTimeOfPhotonInEJ200);
@@ -263,9 +270,24 @@ bool nDetRunAction::openRootFile(const G4Run* aRun)
 
 bool nDetRunAction::fillBranch()
 {
-    //fFile->cd();
+  // The first recoil particle ID is equal to 2
+  for(short i = nScatters+1; i >= 2; i--)
+    Nphotons.push_back(counter->getPhotonCount(i));
+
+  nPhotonsTot = counter->getTotalPhotonCount();
+  if(counter->getTotalPhotonCount() > 0)
+    photonDetEfficiency = (nPhotonsDet[0]+nPhotonsDet[1])/(double)nPhotonsTot;
+  else
+    photonDetEfficiency = -1;
+
+  G4ThreeVector centerL = stepping->GetCenterOfMassPositiveSide()->getCenter();
+  G4ThreeVector centerR = stepping->GetCenterOfMassNegativeSide()->getCenter();
+  photonDetCenterOfMassX[0] = centerL.getX(); photonDetCenterOfMassX[1] = centerR.getX(); 
+  photonDetCenterOfMassY[0] = centerL.getY(); photonDetCenterOfMassY[1] = centerR.getY(); 
+  photonDetCenterOfMassZ[0] = centerL.getZ(); photonDetCenterOfMassZ[1] = centerR.getZ(); 
+
   if(fTree)
-  fTree->Fill();// fill the tree
+    fTree->Fill();// fill the tree
   //nEvent++;
 
   return false; // in case of success
@@ -273,6 +295,9 @@ bool nDetRunAction::fillBranch()
 
 void nDetRunAction::vectorClear(){
   nScatters = 0;
+  nPhotonsTot = 0;
+  nPhotonsDet[0] = 0;
+  nPhotonsDet[1] = 0;
   nTimeToFirstScatter = 0;
   nLengthToFirstScatter = 0;
   incidentTime = 0;
@@ -288,7 +313,8 @@ void nDetRunAction::vectorClear(){
   scatterTime.clear();
   Nphotons.clear();
   recoilMass.clear();
-  vTimeOfPhotonInSD1.clear();
+
+  /*vTimeOfPhotonInSD1.clear();
   vTimeOfPhotonInSD2.clear();
   vTimeOfPhotonInEJ200.clear();
   vPrimaryPhotonPositionX.clear();
@@ -301,11 +327,20 @@ void nDetRunAction::vectorClear(){
   vSD2PhotonPositionY.clear();
   vSD2PhotonPositionZ.clear();
   particleName.clear();
-  particleCharge.clear();
+  particleCharge.clear();*/
   
   //stacking->Reset();
   tracking->Reset();
   stepping->Reset();
+}
+
+void nDetRunAction::setActions(nDetStackingAction *stacking_, nDetTrackingAction *tracking_, nDetSteppingAction *stepping_){
+  stacking = stacking_;
+  tracking = tracking_;
+  stepping = stepping_;
+  
+  // Get the photon counter
+  counter = stepping->GetCounter();
 }
 
 void nDetRunAction::scatterEvent(const G4Track *track){
@@ -336,8 +371,9 @@ void nDetRunAction::scatterEvent(const G4Track *track){
     G4ThreeVector firstScatter = primaryTracks.at(0).pos + primaryTracks.at(1).pos;
 	nTimeToFirstScatter = primaryTracks.at(1).gtime;
 	nLengthToFirstScatter = firstScatter.mag();
+	counter->push_back(track->GetTrackID());
   }
-  
+
   G4ThreeVector vertex = priTrack->pos;
   G4ThreeVector direction = priTrack->dir;
   G4ThreeVector newDirection = track->GetMomentumDirection();
@@ -362,7 +398,6 @@ void nDetRunAction::scatterEvent(const G4Track *track){
   if(recoilMass.back() == 0){
     std::cout << " Warning: Zero mass recoil particle?, name=" << track->GetParticleDefinition()->GetParticleName() << std::endl;
   }
-  //Nphotons.push_back(0);
   
   primaryTracks.pop_back();
 }

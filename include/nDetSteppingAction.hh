@@ -10,6 +10,8 @@
 #ifndef nDetSteppingAction_h
 #define nDetSteppingAction_h 1
 
+#include <vector>
+
 #include "G4UserSteppingAction.hh"
 #include "G4VUserPrimaryGeneratorAction.hh"
 
@@ -18,32 +20,46 @@
 #include "nDetConstruction.hh"
 #include "nDetRunAction.hh"
 #include "nDetEventAction.hh"
+#include "photonCounter.hh"
+#include "centerOfMass.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
 
 class nDetSteppingAction : public G4UserSteppingAction
 {
 public:
-  nDetSteppingAction(nDetConstruction*,
-			nDetRunAction*, 
-			nDetEventAction*);
+  nDetSteppingAction(nDetConstruction*, nDetRunAction*, nDetEventAction*);
+  
   virtual ~nDetSteppingAction();
 
   void SetGenerator(G4VUserPrimaryGeneratorAction *ptr){ generator = ptr; }
 
   void UserSteppingAction(const G4Step*);
+
+  photonCounter *GetCounter(){ return &counter; }
   
-  void Reset(){ neutronTrack = false; }  
+  centerOfMass *GetCenterOfMassPositiveSide(){ return &center[0]; }
+  
+  centerOfMass *GetCenterOfMassNegativeSide(){ return &center[1]; }
+  
+  void Reset();
 
 private:
   nDetConstruction* detector;
+  
   nDetRunAction* runAction;
+  
   nDetEventAction*  evtAction;
+  
   G4VUserPrimaryGeneratorAction *generator;
   
   G4long eventID;
+  
   G4long stepID;
+  
+  photonCounter counter;
+  
+  centerOfMass center[2];
   
   bool neutronTrack;
 };

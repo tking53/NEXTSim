@@ -31,10 +31,10 @@ G4ClassificationOfNewTrack nDetStackingAction::ClassifyNewTrack(const G4Track * 
     if (aTrack->GetParentID() > 0){  // primary particle, neutron, ID =0, then either proton, or others, their IDs are larger than 0, and then photons
       if (aTrack->GetVolume()->GetName().find("ej200")) { // particle is secondary and happens in the EJ200 scintillator
         //std::cout<<aTrack->GetVolume()->GetName()<<"....in ej200..."<<aTrack->GetGlobalTime()<<"..."<<aTrack->GetDynamicParticle()->GetDefinition()->GetParticleName()<<"...."<<aTrack->GetPosition()<<std::endl;
-        runAct->vTimeOfPhotonInEJ200.push_back(aTrack->GetGlobalTime());
+        /*runAct->vTimeOfPhotonInEJ200.push_back(aTrack->GetGlobalTime());
         runAct->vPrimaryPhotonPositionX.push_back(aTrack->GetPosition().x());
         runAct->vPrimaryPhotonPositionY.push_back(aTrack->GetPosition().y());
-        runAct->vPrimaryPhotonPositionZ.push_back(aTrack->GetPosition().z());
+        runAct->vPrimaryPhotonPositionZ.push_back(aTrack->GetPosition().z());*/
 
 //Kyle adding these lines:
         //runAct->particleName.push_back(aTrack->GetDefinition()->GetParticleName());

@@ -40,8 +40,6 @@ nDetEventAction::~nDetEventAction() {
  
 void nDetEventAction::BeginOfEventAction(const G4Event* evt)
 {
-
-    //G4cout<<"nDetEventAction::BeginOfEventAction()"<<G4endl;
   // initialisation per event.
 
   //New event, add the user information object
@@ -50,16 +48,12 @@ void nDetEventAction::BeginOfEventAction(const G4Event* evt)
   eventID = evt->GetEventID();
   depositedEnergy = 0; 
 
-  if(eventID%1000 == 0) G4cout<<"Event ID: " << eventID << G4endl;
-  // clear vector for next event
-  runAct->vectorClear();
+  if(eventID%100 == 0) G4cout<<"Event ID: " << eventID << G4endl;
 
   fAnalysisManager=(nDetAnalysisManager*)nDetAnalysisManager::Instance();
 
   if(fAnalysisManager)
   fAnalysisManager->BeginOfEventAction(evt);
-
-
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -112,7 +106,9 @@ void nDetEventAction::EndOfEventAction(const G4Event* evt)
     runAct->fillBranch();
     if(fAnalysisManager)
         fAnalysisManager->EndOfEventAction(evt);
-  return;
+        
+    // clear vector for next event
+    runAct->vectorClear();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

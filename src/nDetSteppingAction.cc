@@ -74,10 +74,12 @@ void nDetSteppingAction::UserSteppingAction(const G4Step* aStep)
     neutronTrack = true;
   }
   
-  G4String name = aStep->GetTrack()->GetMaterial()->GetName();
-  
-  if (aStep->GetTrack()->GetDefinition() == G4OpticalPhoton::OpticalPhotonDefinition() && name == "G4_AIR"){
-    aStep->GetTrack()->SetTrackStatus(fStopAndKill);
+  if(aStep->GetTrack()->GetDefinition() == G4OpticalPhoton::OpticalPhotonDefinition()){
+    if(aStep->GetTrack()->GetMaterial()->GetName() != "G4_AIR"){
+      counter.addPhoton(aStep->GetTrack()->GetParentID());
+    }
+    else
+      aStep->GetTrack()->SetTrackStatus(fStopAndKill);
   }
 
   nDetUserTrackingInformation *theTrackingInfo;
@@ -127,27 +129,27 @@ void nDetSteppingAction::UserSteppingAction(const G4Step* aStep)
                       //Triger sensitive detector manually since photon is
                       //absorbed but status was Detection
                       G4SDManager *SDman = G4SDManager::GetSDMpointer();
-                      G4String sdName = "/theSiPMSD";
-                      SiPMSD *sipmSD = (SiPMSD *) SDman->FindSensitiveDetector(sdName);
+                      SiPMSD *sipmSD = (SiPMSD *) SDman->FindSensitiveDetector("/theSiPMSD");
                       if (sipmSD)sipmSD->ProcessHits_constStep(aStep, NULL);
 
                       G4String vName = aStep->GetPostStepPoint()->GetPhysicalVolume()->GetName();
-                      G4double time = aStep->GetPostStepPoint()->GetGlobalTime();
-                      //G4cout<<"Detect one photon in SiPM"<< vName<<" Global time: "<<time<<" at the position of "<<aStep->GetPostStepPoint()->GetPosition().y()<<G4endl;
-                      //G4cout<<"Detection in "<<vName<<G4endl;
                       theTrackingInfo->IncDetections();
                       theEventInfo->IncDetections();
                       if (vName.find("psSiPM") && aStep->GetPostStepPoint()->GetPosition().z() > 0) {
-                          runAction->vTimeOfPhotonInSD1.push_back(time);
+                          center[0].addPoint(aStep->GetPostStepPoint()->GetPosition());
+                          runAction->nPhotonsDet[0]++;
+                          /*runAction->vTimeOfPhotonInSD1.push_back(aStep->GetPostStepPoint()->GetGlobalTime());
                           runAction->vSD1PhotonPositionX.push_back(aStep->GetPostStepPoint()->GetPosition().x());
                           runAction->vSD1PhotonPositionY.push_back(aStep->GetPostStepPoint()->GetPosition().y());
-                          runAction->vSD1PhotonPositionZ.push_back(aStep->GetPostStepPoint()->GetPosition().z());
+                          runAction->vSD1PhotonPositionZ.push_back(aStep->GetPostStepPoint()->GetPosition().z());*/
                       }
                       if (vName.find("psSiPM") && aStep->GetPostStepPoint()->GetPosition().z() < 0) {
-                          runAction->vTimeOfPhotonInSD2.push_back(time);
+                          center[1].addPoint(aStep->GetPostStepPoint()->GetPosition());
+                          runAction->nPhotonsDet[1]++;
+                          /*runAction->vTimeOfPhotonInSD2.push_back(aStep->GetPostStepPoint()->GetGlobalTime());
                           runAction->vSD2PhotonPositionX.push_back(aStep->GetPostStepPoint()->GetPosition().x());
                           runAction->vSD2PhotonPositionY.push_back(aStep->GetPostStepPoint()->GetPosition().y());
-                          runAction->vSD2PhotonPositionZ.push_back(aStep->GetPostStepPoint()->GetPosition().z());
+                          runAction->vSD2PhotonPositionZ.push_back(aStep->GetPostStepPoint()->GetPosition().z());*/
                       }
                       break;
                   }
@@ -180,7 +182,12 @@ void nDetSteppingAction::UserSteppingAction(const G4Step* aStep)
 
   }
 }
+
+void nDetSteppingAction::Reset(){
+  counter.clear();
+  center[0].clear();
+  center[1].clear();
+  neutronTrack = false;
+}
+
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-
-

@@ -28,6 +28,8 @@ class nDetStackingAction;
 class nDetTrackingAction;
 class nDetSteppingAction;
 
+class photonCounter;
+
 class primaryTrackInfo{
   public:
     G4ThreeVector pos;
@@ -76,39 +78,45 @@ class nDetRunAction : public G4UserRunAction
     
     bool nAbsorbed;
 
-    std::vector<double>     nScatterX;
-    std::vector<double>     nScatterY;
-    std::vector<double>     nScatterZ;
-    std::vector<double>     nScatterAngle;
-    std::vector<double>     nPathLength;
-    std::vector<double>     impartedE;
-    std::vector<double>     scatterTime;
-    std::vector<short>      Nphotons;
-    std::vector<short>      recoilMass;
-            
-    std::vector<double>     vTimeOfPhotonInSD1;
-    std::vector<double>     vTimeOfPhotonInSD2;
-    std::vector<double>     vTimeOfPhotonInEJ200;
+    std::vector<double> nScatterX;
+    std::vector<double> nScatterY;
+    std::vector<double> nScatterZ;
+    std::vector<double> nScatterAngle;
+    std::vector<double> nPathLength;
+    std::vector<double> impartedE;
+    std::vector<double> scatterTime;
+    std::vector<short> Nphotons;
+    std::vector<short> recoilMass;
+    
+    int nPhotonsTot;
+    int nPhotonsDet[2];
+    
+    double photonDetCenterOfMassX[2];
+    double photonDetCenterOfMassY[2];
+    double photonDetCenterOfMassZ[2];
+
+    double photonDetEfficiency;
+    
+    /*std::vector<double> vTimeOfPhotonInSD1;
+    std::vector<double> vTimeOfPhotonInSD2;
+    std::vector<double> vTimeOfPhotonInEJ200;
 
     // record the position of the initial photons inside the EJ200 scintillator
-    std::vector<double>     vPrimaryPhotonPositionX;
-    std::vector<double>     vPrimaryPhotonPositionY;
-    std::vector<double>     vPrimaryPhotonPositionZ;  
+    std::vector<double> vPrimaryPhotonPositionX;
+    std::vector<double> vPrimaryPhotonPositionY;
+    std::vector<double> vPrimaryPhotonPositionZ;  
 
-    std::vector<double>     vSD1PhotonPositionX;
-    std::vector<double>     vSD1PhotonPositionY;
-    std::vector<double>     vSD1PhotonPositionZ;
+    std::vector<double> vSD1PhotonPositionX;
+    std::vector<double> vSD1PhotonPositionY;
+    std::vector<double> vSD1PhotonPositionZ;
 
-    std::vector<double>     vSD2PhotonPositionX;
-    std::vector<double>     vSD2PhotonPositionY;
-    std::vector<double>     vSD2PhotonPositionZ;
+    std::vector<double> vSD2PhotonPositionX;
+    std::vector<double> vSD2PhotonPositionY;
+    std::vector<double> vSD2PhotonPositionZ;
 
     std::vector<std::string> particleName;
-    std::vector<double>      particleCharge;
+    std::vector<double> particleCharge;*/
 
-    double prevNeutronEnergy;
-    double currNeutronEnergy;
-  
     nDetRunAction();
     
     virtual ~nDetRunAction();
@@ -126,11 +134,7 @@ class nDetRunAction : public G4UserRunAction
 
 	void setTreeName(const std::string &tname){ treename = tname; }
 
-	void setActions(nDetStackingAction *stacking_, nDetTrackingAction *tracking_, nDetSteppingAction *stepping_){
-	  stacking = stacking_;
-	  tracking = tracking_;
-	  stepping = stepping_;
-	}
+	void setActions(nDetStackingAction *stacking_, nDetTrackingAction *tracking_, nDetSteppingAction *stepping_);
 
     bool toggleVerboseMode(){ return (verbose = !verbose); }
 
@@ -163,6 +167,8 @@ class nDetRunAction : public G4UserRunAction
     nDetSteppingAction *stepping;
     
     std::vector<primaryTrackInfo> primaryTracks;
+    
+    photonCounter *counter;
     
     G4ThreeVector prevDirection;
 };
