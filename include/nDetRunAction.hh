@@ -88,14 +88,18 @@ class nDetRunAction : public G4UserRunAction
     std::vector<short> Nphotons;
     std::vector<short> recoilMass;
     
-    int nPhotonsTot;
-    int nPhotonsDet[2];
+    unsigned short photonArrivalTimes[100];
+    
+    unsigned int nPhotonsTot;
+    unsigned int nPhotonsDet[2];
     
     double photonDetCenterOfMassX[2];
     double photonDetCenterOfMassY[2];
     double photonDetCenterOfMassZ[2];
 
     double photonDetEfficiency;
+    double photonMinArrivalTime;
+    double photonAvgArrivalTime;
     
     /*std::vector<double> vTimeOfPhotonInSD1;
     std::vector<double> vTimeOfPhotonInSD2;

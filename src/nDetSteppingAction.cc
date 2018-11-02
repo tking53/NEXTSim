@@ -136,20 +136,12 @@ void nDetSteppingAction::UserSteppingAction(const G4Step* aStep)
                       theTrackingInfo->IncDetections();
                       theEventInfo->IncDetections();
                       if (vName.find("psSiPM") && aStep->GetPostStepPoint()->GetPosition().z() > 0) {
-                          center[0].addPoint(aStep->GetPostStepPoint()->GetPosition());
+                          center[0].addPoint(aStep->GetPostStepPoint()->GetPosition(), aStep->GetPostStepPoint()->GetGlobalTime());
                           runAction->nPhotonsDet[0]++;
-                          /*runAction->vTimeOfPhotonInSD1.push_back(aStep->GetPostStepPoint()->GetGlobalTime());
-                          runAction->vSD1PhotonPositionX.push_back(aStep->GetPostStepPoint()->GetPosition().x());
-                          runAction->vSD1PhotonPositionY.push_back(aStep->GetPostStepPoint()->GetPosition().y());
-                          runAction->vSD1PhotonPositionZ.push_back(aStep->GetPostStepPoint()->GetPosition().z());*/
                       }
                       if (vName.find("psSiPM") && aStep->GetPostStepPoint()->GetPosition().z() < 0) {
-                          center[1].addPoint(aStep->GetPostStepPoint()->GetPosition());
+                          center[1].addPoint(aStep->GetPostStepPoint()->GetPosition(), aStep->GetPostStepPoint()->GetGlobalTime());
                           runAction->nPhotonsDet[1]++;
-                          /*runAction->vTimeOfPhotonInSD2.push_back(aStep->GetPostStepPoint()->GetGlobalTime());
-                          runAction->vSD2PhotonPositionX.push_back(aStep->GetPostStepPoint()->GetPosition().x());
-                          runAction->vSD2PhotonPositionY.push_back(aStep->GetPostStepPoint()->GetPosition().y());
-                          runAction->vSD2PhotonPositionZ.push_back(aStep->GetPostStepPoint()->GetPosition().z());*/
                       }
                       break;
                   }

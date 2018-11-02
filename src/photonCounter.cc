@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cmath>
 
 #include "photonCounter.hh"
 
@@ -15,11 +16,11 @@ void photonCounter::addPhoton(const int &id){
 	Nphotons.at(id)++;
 }
 	
-int photonCounter::getPhotonCount(const int &id) const {
-	if(id >= size) return -1;
+unsigned int photonCounter::getPhotonCount(const int &id) const {
+	if(id >= size) return 0;
 	return Nphotons.at(id);
 }
-	
+
 void photonCounter::print() const {
 	if(size == 0) return;
 	std::cout << " maxID=" << size-1 << ", total=" << Ntotal << std::endl;

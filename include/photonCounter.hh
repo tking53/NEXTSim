@@ -11,20 +11,20 @@ class photonCounter{
 
 	void addPhoton(const int &id);
 	
-	int getPhotonCount(const int &id) const ;
+	unsigned int getPhotonCount(const int &id) const ;
 
-	int getTotalPhotonCount() const { return Ntotal; }
+	unsigned int getTotalPhotonCount() const { return Ntotal; }
 	
 	void print() const ;
 	
 	void clear();
 
   private:
-	std::vector<short> Nphotons;
+	std::vector<int> Nphotons;
 	
-	int Ntotal;
+	unsigned int Ntotal;
 	
-	int size;
+	unsigned int size;
 };
 
 #endif

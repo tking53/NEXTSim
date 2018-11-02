@@ -233,12 +233,15 @@ bool nDetRunAction::openRootFile(const G4Run* aRun)
 	fTree->Branch("nInitEnergy", &initEnergy); // CRT
 	fTree->Branch("nAbsorbed", &nAbsorbed);
 
+    fTree->Branch("photonTimes[100]", photonArrivalTimes);
     fTree->Branch("nPhotonsTot", &nPhotonsTot);
     fTree->Branch("nPhotonsDet[2]", nPhotonsDet);
     fTree->Branch("photonComX[2]", photonDetCenterOfMassX);
     fTree->Branch("photonComY[2]", photonDetCenterOfMassY);
     //fTree->Branch("photonComZ[2]", photonDetCenterOfMassZ);
     fTree->Branch("photonDetEff", &photonDetEfficiency);
+    fTree->Branch("photonMinTime", &photonMinArrivalTime);
+    fTree->Branch("photonAvgTime", &photonAvgArrivalTime);
 
     /*fTree->Branch("vTimeOfPhotonInSD1", &vTimeOfPhotonInSD1);
     fTree->Branch("vTimeOfPhotonInSD2", &vTimeOfPhotonInSD2);
@@ -280,11 +283,20 @@ bool nDetRunAction::fillBranch()
   else
     photonDetEfficiency = -1;
 
-  G4ThreeVector centerL = stepping->GetCenterOfMassPositiveSide()->getCenter();
-  G4ThreeVector centerR = stepping->GetCenterOfMassNegativeSide()->getCenter();
+  centerOfMass *cmL = stepping->GetCenterOfMassPositiveSide();
+  centerOfMass *cmR = stepping->GetCenterOfMassNegativeSide();
+
+  // Get the photon center-of-mass positions
+  G4ThreeVector centerL = cmL->getCenter();
+  G4ThreeVector centerR = cmR->getCenter();
   photonDetCenterOfMassX[0] = centerL.getX(); photonDetCenterOfMassX[1] = centerR.getX(); 
   photonDetCenterOfMassY[0] = centerL.getY(); photonDetCenterOfMassY[1] = centerR.getY(); 
   photonDetCenterOfMassZ[0] = centerL.getZ(); photonDetCenterOfMassZ[1] = centerR.getZ(); 
+
+  // Get photon arrival times at the PMTs
+  cmL->getArrivalTimes(photonArrivalTimes, 100);
+  photonMinArrivalTime = cmL->getMinArrivalTime();
+  photonAvgArrivalTime = cmL->getAvgArrivalTime();
 
   if(fTree)
     fTree->Fill();// fill the tree
