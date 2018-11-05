@@ -196,11 +196,6 @@ bool nDetRunAction::openRootFile(const G4Run* aRun)
 
   if(fTree) G4cout << "nDetRunAction::openRootFile()->fTree "<<fTree<< G4endl;
 
-  //fTree->SetAutoSave(1000000000); // autosave when 1 Gbyte written
-
-  //fFile->ls();
-
-      //if(defineRootBranch == false){
     //fTree->Branch("runNb", &runNb);
     //fTree->Branch("eventNb", &eventNb); // This is just equal to the TTree entry number?
     fTree->Branch("nScatters", &nScatters); // CRT
@@ -243,28 +238,7 @@ bool nDetRunAction::openRootFile(const G4Run* aRun)
     fTree->Branch("photonAvgTime[2]", photonAvgArrivalTime);    
     fTree->Branch("photonDetEff", &photonDetEfficiency);
 
-    /*fTree->Branch("vTimeOfPhotonInSD1", &vTimeOfPhotonInSD1);
-    fTree->Branch("vTimeOfPhotonInSD2", &vTimeOfPhotonInSD2);
-    fTree->Branch("vTimeOfPhotonInEJ200", &vTimeOfPhotonInEJ200);
-
-    fTree->Branch("vPrimaryPhotonPositionX", &vPrimaryPhotonPositionX);
-    fTree->Branch("vPrimaryPhotonPositionY", &vPrimaryPhotonPositionY);
-    fTree->Branch("vPrimaryPhotonPositionZ", &vPrimaryPhotonPositionZ);
-
-    fTree->Branch("vSD1PhotonPositionX", &vSD1PhotonPositionX);
-    fTree->Branch("vSD1PhotonPositionY", &vSD1PhotonPositionY);
-    fTree->Branch("vSD1PhotonPositionZ", &vSD1PhotonPositionZ);
-
-    fTree->Branch("vSD2PhotonPositionX", &vSD2PhotonPositionX);
-    fTree->Branch("vSD2PhotonPositionY", &vSD2PhotonPositionY);
-    fTree->Branch("vSD2PhotonPositionZ", &vSD2PhotonPositionZ);*/
-
-//Following branches are added by Kyle.
-    //fBranch = fTree->Branch("particleCharge", &particleCharge);
-    //fBranch = fTree->Branch("particleName", &particleName);
-    
-      defineRootBranch = true;
-  //}
+    defineRootBranch = true;
   }
   return false; // in case of success.
 }//end of open root file...
@@ -295,9 +269,10 @@ bool nDetRunAction::fillBranch()
 
   // Get photon arrival times at the PMTs
   cmL->getArrivalTimes(photonArrivalTimes, 50);
-  cmR->getArrivalTimes(&photonArrivalTimes[50], 50);
   photonMinArrivalTime[0] = cmL->getMinArrivalTime();
   photonAvgArrivalTime[0] = cmL->getAvgArrivalTime();
+  
+  cmR->getArrivalTimes(&photonArrivalTimes[50], 50);
   photonMinArrivalTime[1] = cmR->getMinArrivalTime();
   photonAvgArrivalTime[1] = cmR->getAvgArrivalTime();
 
@@ -329,21 +304,6 @@ void nDetRunAction::vectorClear(){
   Nphotons.clear();
   recoilMass.clear();
 
-  /*vTimeOfPhotonInSD1.clear();
-  vTimeOfPhotonInSD2.clear();
-  vTimeOfPhotonInEJ200.clear();
-  vPrimaryPhotonPositionX.clear();
-  vPrimaryPhotonPositionY.clear();
-  vPrimaryPhotonPositionZ.clear(); 
-  vSD1PhotonPositionX.clear();
-  vSD1PhotonPositionY.clear();
-  vSD1PhotonPositionZ.clear();
-  vSD2PhotonPositionX.clear();
-  vSD2PhotonPositionY.clear();
-  vSD2PhotonPositionZ.clear();
-  particleName.clear();
-  particleCharge.clear();*/
-  
   //stacking->Reset();
   tracking->Reset();
   stepping->Reset();

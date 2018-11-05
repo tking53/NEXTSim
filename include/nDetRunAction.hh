@@ -101,26 +101,6 @@ class nDetRunAction : public G4UserRunAction
 
     double photonDetEfficiency;
     
-    /*std::vector<double> vTimeOfPhotonInSD1;
-    std::vector<double> vTimeOfPhotonInSD2;
-    std::vector<double> vTimeOfPhotonInEJ200;
-
-    // record the position of the initial photons inside the EJ200 scintillator
-    std::vector<double> vPrimaryPhotonPositionX;
-    std::vector<double> vPrimaryPhotonPositionY;
-    std::vector<double> vPrimaryPhotonPositionZ;  
-
-    std::vector<double> vSD1PhotonPositionX;
-    std::vector<double> vSD1PhotonPositionY;
-    std::vector<double> vSD1PhotonPositionZ;
-
-    std::vector<double> vSD2PhotonPositionX;
-    std::vector<double> vSD2PhotonPositionY;
-    std::vector<double> vSD2PhotonPositionZ;
-
-    std::vector<std::string> particleName;
-    std::vector<double> particleCharge;*/
-
     nDetRunAction();
     
     virtual ~nDetRunAction();

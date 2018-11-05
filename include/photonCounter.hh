@@ -20,11 +20,11 @@ class photonCounter{
 	void clear();
 
   private:
-	std::vector<int> Nphotons;
+	std::vector<unsigned int> Nphotons;
 	
 	unsigned int Ntotal;
 	
-	unsigned int size;
+	int size;
 };
 
 #endif

@@ -1434,7 +1434,7 @@ void nDetConstruction::buildEllipse2() {
 
 }
 
-void nDetConstruction::buildRectangle() {
+/*void nDetConstruction::buildRectangle() {
 
     //fMylarThickness=0.025*mm; //25 um mylar
 
@@ -1521,10 +1521,122 @@ void nDetConstruction::buildRectangle() {
     buildSiPMs();
 
     return;
+}*/
+
+void nDetConstruction::buildRectangle(){
+	//fMylarThickness=0.025*mm; //25 um mylar
+
+	// Hard-coded for now. CRT
+	const int Ncol = 8;
+	const int Nrow = 4;
+
+	const G4double cellWidth = (fDetectorThickness-2*Ncol*fMylarThickness)/Ncol;
+	const G4double cellHeight = (fDetectorThickness-2*Nrow*fMylarThickness)/Nrow;
+
+    G4Box *theRectangle = new G4Box("rectangle", fDetectorWidth/2, fDetectorThickness/2, fDetectorLength/2);
+
+	G4Box *pmtBox = new G4Box("pmtBox", fDetectorWidth/2, fDetectorThickness/2, (greaseY+qwSiPMy+psSiPMy));
+
+    G4ThreeVector translation11(0, 0, fDetectorLength/2+1*(greaseY+qwSiPMy+psSiPMy));
+
+    G4UnionSolid *pmtBox0 = new G4UnionSolid("pmtBox0", theRectangle, pmtBox, 0, translation11);
+
+    translation11 *= -1; // Translate to the other side.
+
+    G4UnionSolid *pmtBox1 = new G4UnionSolid("pmtBox1", pmtBox0, pmtBox, 0, translation11);
+
+    assembly_logV = new G4LogicalVolume(pmtBox1, fMylar, "assembly_logV");
+
+    fWrapSkinSurface = new G4LogicalSkinSurface("wrapping", assembly_logV, fMylarOpticalSurface); //Outside
+
+    G4VPhysicalVolume *totalDetector_physVol = new G4PVPlacement(0, G4ThreeVector(0,0,0), assembly_logV, "Wrapping", expHall_logV, 0, 0, true);//fCheckOverlaps);
+
+    //Building the Scintillator
+    G4Box *theScint = new G4Box("scintillator", cellWidth/2, cellHeight/2, fDetectorLength/2);
+
+    ej200_logV = new G4LogicalVolume(theScint, fEJ200, "scint_log");
+
+    //fWrapSkinSurface=new G4LogicalSkinSurface("Wrapping",ej200_logV,fTeflonOpticalSurface); // Inside TODO DPL
+
+    G4VisAttributes* ej200_VisAtt = new G4VisAttributes(G4Colour(0.0, 0.0, 1.0)); //blue
+    G4VisAttributes *mylar_VisAtt = new G4VisAttributes();//G4Colour(1.0, 0.0, 1.0)); //magenta
+    mylar_VisAtt->SetColor(1, 0, 1, 0.5); // Alpha=50%
+    mylar_VisAtt->SetForceSolid(true);
+    
+    ej200_logV->SetVisAttributes(ej200_VisAtt);
+
+    //G4VPhysicalVolume *scint_phys = new G4PVPlacement(0, G4ThreeVector(0,0,0), ej200_logV, "Scint", assembly_logV, 0, 0, fCheckOverlaps);
+
+    G4Box *mylarBoxTop, *mylarBoxSide;
+    G4LogicalVolume *mylarLogTop, *mylarLogSide;
+
+    G4Box *mylarCellBoxTop, *mylarCellBoxSide;
+    G4LogicalVolume *mylarCellLogTop, *mylarCellLogSide;
+
+    //Building the Mylar covers
+    if(fMylarThickness > 0){
+		mylarBoxTop = new G4Box("mylar", fDetectorWidth/2, fMylarThickness/2, fDetectorLength/2);
+		mylarLogTop = new G4LogicalVolume(mylarBoxTop, fMylar, "mylar_log");
+
+		mylarBoxSide = new G4Box("mylar", fMylarThickness/2, fDetectorThickness/2, fDetectorLength/2);
+		mylarLogSide = new G4LogicalVolume(mylarBoxSide, fMylar, "mylar_log");
+		
+		mylarLogTop->SetVisAttributes(mylar_VisAtt);
+		mylarLogSide->SetVisAttributes(mylar_VisAtt);		
+
+		mylarCellBoxTop = new G4Box("mylar", cellWidth/2, fMylarThickness/2, fDetectorLength/2);
+		mylarCellLogTop = new G4LogicalVolume(mylarCellBoxTop, fMylar, "mylar_log");
+
+		mylarCellBoxSide = new G4Box("mylar", fMylarThickness/2, cellHeight/2, fDetectorLength/2);
+		mylarCellLogSide = new G4LogicalVolume(mylarCellBoxSide, fMylar, "mylar_log");
+
+		mylarCellLogTop->SetVisAttributes(mylar_VisAtt);
+		mylarCellLogSide->SetVisAttributes(mylar_VisAtt);
+    
+    	// Top layer (+Y)
+	    G4ThreeVector position(0, fDetectorThickness/2 - fMylarThickness/2, 0);
+	    G4PVPlacement *mylar_physPY = new G4PVPlacement(0, position, mylarLogTop, "Mylar", assembly_logV, true, 0, fCheckOverlaps);
+
+	    // Bottom layer (-Y)
+	    position *= -1;
+	    G4PVPlacement *mylar_physNY = new G4PVPlacement(0, position, mylarLogTop, "Mylar", assembly_logV, true, 1, fCheckOverlaps);
+
+		// -X layer
+		position = G4ThreeVector(-fDetectorWidth/2 + fMylarThickness/2, 0, 0);
+	    G4PVPlacement *mylar_physNX = new G4PVPlacement(0, position, mylarLogSide, "Mylar", assembly_logV, true, 2, fCheckOverlaps);
+	    
+		// +X layer
+		position *= -1;
+	    G4PVPlacement *mylar_physPX = new G4PVPlacement(0, position, mylarLogSide, "Mylar", assembly_logV, true, 3, fCheckOverlaps);
+
+        /*new G4LogicalBorderSurface("MylarPY", scint_phys, mylar_physPY, fMylarOpticalSurface);
+        new G4LogicalBorderSurface("MylarNY", scint_phys, mylar_physNY, fMylarOpticalSurface);
+        new G4LogicalBorderSurface("MylarNX", scint_phys, mylar_physNX, fMylarOpticalSurface);
+        new G4LogicalBorderSurface("MylarPX", scint_phys, mylar_physPX, fMylarOpticalSurface);*/
+	}
+	
+	int mylarCopyNumber = 4;
+	int scintCopyNumber = 0;
+	for(int col = 0; col < Ncol; col++){
+		for(int row = 0; row < Nrow; row++){
+			G4ThreeVector center(-fDetectorWidth/2 + (2*col+1)*fMylarThickness + (col+0.5)*cellWidth, -fDetectorThickness/2 + (2*row+1)*fMylarThickness + (row+0.5)*cellHeight, 0);
+		
+			// The physical scintillator bar
+			new G4PVPlacement(0, center, ej200_logV, "Scint", assembly_logV, 0, scintCopyNumber++, fCheckOverlaps);
+		
+			if(fMylarThickness > 0){ // Wrap the bar in mylar
+				new G4PVPlacement(0, G4ThreeVector(center.getX(), center.getY() + cellHeight/2 + fMylarThickness/2, 0), mylarCellLogTop, "Mylar", assembly_logV, true, mylarCopyNumber++, fCheckOverlaps); // Top layer (+Y)
+				new G4PVPlacement(0, G4ThreeVector(center.getX(), center.getY() - cellHeight/2 - fMylarThickness/2, 0), mylarCellLogTop, "Mylar", assembly_logV, true, mylarCopyNumber++, fCheckOverlaps); // Bottom layer (-Y)
+				new G4PVPlacement(0, G4ThreeVector(center.getX() - cellWidth/2 - fMylarThickness/2, center.getY(), 0), mylarCellLogSide, "Mylar", assembly_logV, true, mylarCopyNumber++, fCheckOverlaps); // -X layer
+				new G4PVPlacement(0, G4ThreeVector(center.getX() + cellWidth/2 + fMylarThickness/2, center.getY(), 0), mylarCellLogSide, "Mylar", assembly_logV, true, mylarCopyNumber++, fCheckOverlaps); // +X layer
+			}
+		}
+	}
+
+    buildSiPMs();
+
+    return;
 }
-
-
-
 
 void nDetConstruction::buildDisk2() {
     //************* Wrapping materials (such as Teflon) and EJ200  *************
