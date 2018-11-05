@@ -238,10 +238,10 @@ bool nDetRunAction::openRootFile(const G4Run* aRun)
     fTree->Branch("nPhotonsDet[2]", nPhotonsDet);
     fTree->Branch("photonComX[2]", photonDetCenterOfMassX);
     fTree->Branch("photonComY[2]", photonDetCenterOfMassY);
-    //fTree->Branch("photonComZ[2]", photonDetCenterOfMassZ);
+    //fTree->Branch("photonComZ[2]", photonDetCenterOfMassZ);   
+    fTree->Branch("photonMinTime[2]", photonMinArrivalTime);
+    fTree->Branch("photonAvgTime[2]", photonAvgArrivalTime);    
     fTree->Branch("photonDetEff", &photonDetEfficiency);
-    fTree->Branch("photonMinTime", &photonMinArrivalTime);
-    fTree->Branch("photonAvgTime", &photonAvgArrivalTime);
 
     /*fTree->Branch("vTimeOfPhotonInSD1", &vTimeOfPhotonInSD1);
     fTree->Branch("vTimeOfPhotonInSD2", &vTimeOfPhotonInSD2);
@@ -295,8 +295,10 @@ bool nDetRunAction::fillBranch()
 
   // Get photon arrival times at the PMTs
   cmL->getArrivalTimes(photonArrivalTimes, 100);
-  photonMinArrivalTime = cmL->getMinArrivalTime();
-  photonAvgArrivalTime = cmL->getAvgArrivalTime();
+  photonMinArrivalTime[0] = cmL->getMinArrivalTime();
+  photonAvgArrivalTime[0] = cmL->getAvgArrivalTime();
+  photonMinArrivalTime[1] = cmR->getMinArrivalTime();
+  photonAvgArrivalTime[1] = cmR->getAvgArrivalTime();
 
   if(fTree)
     fTree->Fill();// fill the tree

@@ -96,10 +96,10 @@ class nDetRunAction : public G4UserRunAction
     double photonDetCenterOfMassX[2];
     double photonDetCenterOfMassY[2];
     double photonDetCenterOfMassZ[2];
+    double photonMinArrivalTime[2];
+    double photonAvgArrivalTime[2];
 
     double photonDetEfficiency;
-    double photonMinArrivalTime;
-    double photonAvgArrivalTime;
     
     /*std::vector<double> vTimeOfPhotonInSD1;
     std::vector<double> vTimeOfPhotonInSD2;
