@@ -294,7 +294,8 @@ bool nDetRunAction::fillBranch()
   photonDetCenterOfMassZ[0] = centerL.getZ(); photonDetCenterOfMassZ[1] = centerR.getZ(); 
 
   // Get photon arrival times at the PMTs
-  cmL->getArrivalTimes(photonArrivalTimes, 100);
+  cmL->getArrivalTimes(photonArrivalTimes, 50);
+  cmR->getArrivalTimes(&photonArrivalTimes[50], 50);
   photonMinArrivalTime[0] = cmL->getMinArrivalTime();
   photonAvgArrivalTime[0] = cmL->getAvgArrivalTime();
   photonMinArrivalTime[1] = cmR->getMinArrivalTime();
