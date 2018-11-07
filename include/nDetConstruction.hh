@@ -60,27 +60,41 @@ class nDetConstruction : public G4VUserDetectorConstruction
 {
   public:
     nDetConstruction();
+    
    ~nDetConstruction();
 
   public:
     G4VPhysicalVolume* Construct();
+    
     G4VPhysicalVolume* ConstructDetector();
+    
     virtual void ConstructSDandField();
+    
     void SetGeometry(G4String geom){fGeometry=geom;}
+    
     void SetSiPM_dimension(G4double dim){SiPM_dimension=dim;}
+    
     void SetDetectorLength(G4double val){fDetectorLength=val;}
+    
     void SetTrapezoidLength(G4double val){fTrapezoidLength=val;}
+    
     void SetDetectorThickness(G4double val){fDetectorThickness=val;}
+    
     void SetMylarThickness(G4double val){fMylarThickness=val;}
+    
     void SetDetectorWidth(G4double val){fDetectorWidth=val;}
+    
     void SetHexagonRadius(G4double val){fHexagonRadius=val;}
 
+	void SetNumColumns(const G4int &val){ fNumColumns = val; }
+	
+	void SetNumRows(const G4int &val){ fNumRows = val; }
+
     G4String GetGeometry(){return fGeometry;}
+    
     void UpdateGeometry();
 
-
 private:
-
     nDetConstructionMessenger *fDetectorMessenger;
     // data of detector structure; half of size
     G4double expHallX;		// width
@@ -121,6 +135,8 @@ private:
     G4double fHexagonRadius;
 
     G4int fNdetectors;
+	G4int fNumColumns;
+	G4int fNumRows;
 
     G4bool fCheckOverlaps;
     G4String fGeometry;
@@ -180,8 +196,6 @@ private:
     G4LogicalSkinSurface* fSiPMSkinSurface;
     G4LogicalBorderSurface* fMylarSurface;
 
-
-
     // member functions
     void buildExpHall();
     void buildAssembly();
@@ -195,7 +209,9 @@ private:
     G4VSolid* ConstructEllipse(G4String name,G4ThreeVector dimensions,G4double thickness);
 
     G4VSolid* ConstructHexagon(G4String name,G4double radius,G4double thickness,G4ThreeVector Boxdimensions);
+    
     G4VSolid* ConstructHexagon(G4String name,G4double radius,G4double thickness);
+    
     G4VSolid* ConstructNextModule(G4String name,G4double length,G4double width1,G4double width2,G4double thickness);
 
     //G4LogicalVolume* ConstructArray(G4String name, G4int NDetectors);

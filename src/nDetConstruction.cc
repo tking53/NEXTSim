@@ -22,32 +22,52 @@ static const G4double inch = 2.54*cm;
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 
-nDetConstruction::nDetConstruction()
-: expHall_logV(NULL), expHall_physV(NULL)
+nDetConstruction::nDetConstruction(){
+    expHall_logV = NULL;
+    expHall_physV = NULL;
+    
+    assembly_logV = NULL;
+    assembly_physV = NULL;
+    
+    assemblyBoxX = 15.11*mm; // reducing size to eliminate non-physical PTFE.  Noticed excessive scattering of flourine and carbon.
+    assemblyBoxX = 16.66667*mm; //10x30 bars KS 5/23/16
+    assemblyBoxX = 50*mm; // 30X30 scintillator bars, each has a dimension of 3X100X3 mm3
+    assemblyBoxY = 51.2*mm; // length of scintillator: 100 mm + 0.1 mm thick grease + 1 mm thick SiPM window + 0.1 mm thick sensitive part of SiPM on both ends of scintillator
+    assemblyBoxZ = 45.31*mm; // closing gaps.  Teflon tape measures ~.02 mm thick.
+    assemblyBoxZ = 50*mm; // the gaps of scintillators are filled with reflectors, such as Teflon
+    
+    ej200_logV = NULL;
+    ej200X = 1.5*mm;
+    ej200Y = 50*mm;
+    ej200Z = 1.5*mm;
+    
+    // 100 micron thick grease on both ends of EJ200 bar
+    grease_logV = NULL;
+    greaseX = 1.5*mm;
+    greaseY = 0.05*mm;
+    greaseZ = 1.5*mm; 
+    
+    // 1 mm thick SiPM window
+    qwSiPM_logV = NULL;
+    qwSiPMx = 1.5*mm;
+    qwSiPMy = 0.5*mm;
+    qwSiPMz = 1.5*mm; 
+    
+    // note that two sensing parts on both ends of scintillator are the same
+    psSiPM_logV = NULL;
+    psSiPMx = 1.5*mm;
+    psSiPMy = 0.05*mm;
+    psSiPMz = 1.5*mm; 
 
-, assembly_logV(NULL), assembly_physV(NULL)
-, assemblyBoxX(15.11*mm) // reducing size to eliminate non-physical PTFE.  Noticed excessive scattering of flourine and carbon.
-//, assemblyBoxX(16.66667*mm) //10x30 bars KS 5/23/16
-//, assemblyBoxX(50*mm)	// 30X30 scintillator bars, each has a dimension of 3X100X3 mm3
-, assemblyBoxY(51.2*mm) // length of scintillator: 100 mm + 0.1 mm thick grease + 1 mm thick SiPM window + 0.1 mm thick sensitive part of SiPM on both ends of scintillator
-, assemblyBoxZ(45.31*mm) // closing gaps.  Teflon tape measures ~.02 mm thick.
-//, assemblyBoxZ(50*mm)	// the gaps of scintillators are filled with reflectors, such as Teflon
+	fNumColumns = 1;
+	fNumRows = 1;
 
-,ej200_logV(NULL), ej200X(1.5*mm), ej200Y(50*mm), ej200Z(1.5*mm)
-
-,grease_logV(NULL), greaseX(1.5*mm), greaseY(0.05*mm), greaseZ(1.5*mm) // 100 micron thick grease on both ends of EJ200 bar
-
-,qwSiPM_logV(NULL), qwSiPMx(1.5*mm), qwSiPMy(0.5*mm), qwSiPMz(1.5*mm)  // 1 mm thick SiPM window
-
-,psSiPM_logV(NULL), psSiPMx(1.5*mm), psSiPMy(0.05*mm), psSiPMz(1.5*mm) // note that two sensing parts on both ends of scintillator are the same
-{
-
-  // the world volume is 10 mm bigger than assembly volume in three dimensions
+    // the world volume is 10 mm bigger than assembly volume in three dimensions
 
     G4cout<<"nDetConstruction::nDetConstruction()->"<<this<<G4endl;
-  G4double margin = 500*mm;
+    G4double margin = 500*mm;
 
-  fDetectorMessenger=new nDetConstructionMessenger(this);
+    fDetectorMessenger=new nDetConstructionMessenger(this);
 
     //fGeometry="ellipse";
     //fGeometry="hexagon";
@@ -55,33 +75,29 @@ nDetConstruction::nDetConstruction()
     fGeometry="rectangle";
 
     fCheckOverlaps = false;
-  fTeflonThickness = 0.11*mm;
-  //fMylarThickness = 0.0125*mm;
-  fMylarThickness = 0.*mm;
-  fDetectorLength = 3.94*inch;
-  fDetectorWidth = 1.18*inch;
-  fDetectorWidth = 6*mm;
-  fTrapezoidLength = 1*inch;
-  fHexagonRadius = 5*cm;
-  fDetectorThickness = 0.24*inch;
-  //fDetectorWidth = 0.24*inch;
+    fTeflonThickness = 0.11*mm;
+    //fMylarThickness = 0.0125*mm;
+    fMylarThickness = 0.*mm;
+    fDetectorLength = 3.94*inch;
+    fDetectorWidth = 1.18*inch;
+    fDetectorWidth = 6*mm;
+    fTrapezoidLength = 1*inch;
+    fHexagonRadius = 5*cm;
+    fDetectorThickness = 0.24*inch;
+    //fDetectorWidth = 0.24*inch;
 
-  SiPM_dimension=3*mm;
+    SiPM_dimension=3*mm;
 
-  expHallX = assemblyBoxX + margin;
-  expHallY = assemblyBoxY + margin;
-  expHallZ = assemblyBoxZ + margin;
+    expHallX = assemblyBoxX + margin;
+    expHallY = assemblyBoxY + margin;
+    expHallZ = assemblyBoxZ + margin;
 
     //Build the materials
     DefineMaterials();
 
-        //Make Sensitive Detectors
+    //Make Sensitive Detectors
 
-  //G4SDManager* SDMan = G4SDManager::GetSDMpointer();
-
-
-
-
+    //G4SDManager* SDMan = G4SDManager::GetSDMpointer();
   return;
 } // end of construction function.
 
@@ -1524,14 +1540,8 @@ void nDetConstruction::buildEllipse2() {
 }*/
 
 void nDetConstruction::buildRectangle(){
-	//fMylarThickness=0.025*mm; //25 um mylar
-
-	// Hard-coded for now. CRT
-	const int Ncol = 8;
-	const int Nrow = 4;
-
-	const G4double cellWidth = (fDetectorThickness-2*Ncol*fMylarThickness)/Ncol;
-	const G4double cellHeight = (fDetectorThickness-2*Nrow*fMylarThickness)/Nrow;
+	const G4double cellWidth = (fDetectorThickness-2*fNumColumns*fMylarThickness)/fNumColumns;
+	const G4double cellHeight = (fDetectorThickness-2*fNumRows*fMylarThickness)/fNumRows;
 
     G4Box *theRectangle = new G4Box("rectangle", fDetectorWidth/2, fDetectorThickness/2, fDetectorLength/2);
 
@@ -1617,8 +1627,8 @@ void nDetConstruction::buildRectangle(){
 	
 	int mylarCopyNumber = 4;
 	int scintCopyNumber = 0;
-	for(int col = 0; col < Ncol; col++){
-		for(int row = 0; row < Nrow; row++){
+	for(int col = 0; col < fNumColumns; col++){
+		for(int row = 0; row < fNumRows; row++){
 			G4ThreeVector center(-fDetectorWidth/2 + (2*col+1)*fMylarThickness + (col+0.5)*cellWidth, -fDetectorThickness/2 + (2*row+1)*fMylarThickness + (row+0.5)*cellHeight, 0);
 		
 			// The physical scintillator bar
@@ -1934,10 +1944,6 @@ void nDetConstruction::buildDisk2() {
 
     return;
 } // end of function. //
-
-
-
-
 
 void nDetConstruction::buildArray() {
 

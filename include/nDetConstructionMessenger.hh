@@ -15,6 +15,7 @@ class G4UIcommand;
 class G4UIcmdWithABool;
 class G4UIcmdWithAString;
 class G4UIcmdWithADouble;
+class G4UIcmdWithAnInteger;
 class G4UIdirectory;
 
 class nDetConstructionMessenger:public G4UImessenger
@@ -33,14 +34,16 @@ private:
     nDetConstruction* fDetector;
     G4UIdirectory*    fDetectorDir;
 
-    G4UIcmdWithAString*  fGeometryCmd;
+    G4UIcmdWithAString* fGeometryCmd;
     G4UIcmdWithADouble *fSiliconDimensionsCmd;
     G4UIcmdWithADouble *fDetectorLengthCmd;
     G4UIcmdWithADouble *fDetectorWidthCmd;
     G4UIcmdWithADouble *fDetectorThicknessCmd;
     G4UIcmdWithADouble *fTrapezoidLengthCmd;
     G4UIcmdWithADouble *fMylarThicknessCmd;
-    G4UIcommand*         fUpdateCmd;
+    G4UIcmdWithAnInteger *fNumberColumnsCmd;
+    G4UIcmdWithAnInteger *fNumberRowsCmd;
+    G4UIcommand*        fUpdateCmd;
 
 };
 

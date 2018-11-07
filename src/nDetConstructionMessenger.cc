@@ -10,8 +10,9 @@
 #include "G4UIdirectory.hh"
 #include "G4UIcmdWith3VectorAndUnit.hh"
 #include "G4UIcmdWithADouble.hh"
-nDetConstructionMessenger::nDetConstructionMessenger(nDetConstruction* detector)
-        :fDetector(detector){
+#include "G4UIcmdWithAnInteger.hh"
+
+nDetConstructionMessenger::nDetConstructionMessenger(nDetConstruction* detector) : fDetector(detector) {
 
     fDetectorDir=new G4UIdirectory("/nDet/detector/");
     fDetectorDir->SetGuidance("Detector geometry control");
@@ -36,43 +37,31 @@ nDetConstructionMessenger::nDetConstructionMessenger(nDetConstruction* detector)
     fDetectorThicknessCmd=new G4UIcmdWithADouble("/nDet/detector/setDetectorThickness",this);
     fDetectorThicknessCmd->SetGuidance("Defines the thickness of the plastic in mm");
 
-
     fMylarThicknessCmd=new G4UIcmdWithADouble("/nDet/detector/setMylarThickness",this);
     fMylarThicknessCmd->SetGuidance("Defines the thickness of the plastic the mylar in mm (0 for no mylar)");
-
 
     fTrapezoidLengthCmd=new G4UIcmdWithADouble("/nDet/detector/setTrapezoidLength",this);
     fTrapezoidLengthCmd->SetGuidance("Defines the length of the trapezoidal part of ellipse in cm");
 
     fUpdateCmd=new G4UIcommand("/nDet/detector/update",this);
     fUpdateCmd->SetGuidance("Updates the detector Geometry");
-    //std::cout<<"nDetConstructionMessenger::nDetConstructionMessenger()->"<<fGeometryCmd<<std::endl;
 
+    fNumberColumnsCmd = new G4UIcmdWithAnInteger("/nDet/detector/setNumColumns", this);
+    fNumberRowsCmd = new G4UIcmdWithAnInteger("/nDet/detector/setNumRows", this);
 }
 
 nDetConstructionMessenger::~nDetConstructionMessenger(){
-
-    //G4cout<<"nDetConstructionMessenger::~nDetConstructionMessenger()->"<<fGeometryCmd<<G4endl;
-
     delete fDetectorDir;
-
     delete fSiliconDimensionsCmd;
-
     delete fGeometryCmd;
-
     delete fDetectorWidthCmd;
-
     delete fDetectorLengthCmd;
-
     delete fDetectorThicknessCmd;
-
     delete fTrapezoidLengthCmd;
-
     delete fMylarThicknessCmd;
-
     delete fUpdateCmd;
-
-    //G4cout<<"nDetConstructionMessenger::~nDetConstructionMessenger()->"<<fGeometryCmd<<G4endl;
+    delete fNumberColumnsCmd;
+    delete fNumberRowsCmd;
 }
 
 void nDetConstructionMessenger::SetNewValue(G4UIcommand* command,G4String newValue){
@@ -101,7 +90,6 @@ void nDetConstructionMessenger::SetNewValue(G4UIcommand* command,G4String newVal
         fDetector->SetDetectorThickness(thickness*mm);
     }
 
-
     if(command == fTrapezoidLengthCmd) {
         G4double length=fTrapezoidLengthCmd->ConvertToDouble(newValue);
         fDetector->SetTrapezoidLength(length*cm);
@@ -113,7 +101,16 @@ void nDetConstructionMessenger::SetNewValue(G4UIcommand* command,G4String newVal
     }
 
     if(command == fUpdateCmd){
-
        fDetector->UpdateGeometry();
+    }
+    
+    if(command == fNumberColumnsCmd){
+        G4int val = fNumberColumnsCmd->ConvertToInt(newValue);
+        fDetector->SetNumColumns(val);
+    }
+    
+    if(command == fNumberRowsCmd){
+        G4int val = fNumberRowsCmd->ConvertToInt(newValue);
+        fDetector->SetNumRows(val);
     }
 }
