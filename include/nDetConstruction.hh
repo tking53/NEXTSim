@@ -70,27 +70,43 @@ class nDetConstruction : public G4VUserDetectorConstruction
     
     virtual void ConstructSDandField();
     
-    void SetGeometry(G4String geom){fGeometry=geom;}
+    void SetGeometry(G4String geom){ fGeometry = geom; }
     
-    void SetSiPM_dimension(G4double dim){SiPM_dimension=dim;}
+    void SetSiPM_dimension(G4double dim){ SiPM_dimension = dim; }
     
-    void SetDetectorLength(G4double val){fDetectorLength=val;}
+    void SetDetectorLength(G4double val){ fDetectorLength = val; }
     
-    void SetTrapezoidLength(G4double val){fTrapezoidLength=val;}
+    void SetDetectorWidth(G4double val){ fDetectorWidth = val; }   
     
-    void SetDetectorThickness(G4double val){fDetectorThickness=val;}
+    void SetDetectorThickness(G4double val){ fDetectorThickness = val; }   
     
-    void SetMylarThickness(G4double val){fMylarThickness=val;}
-    
-    void SetDetectorWidth(G4double val){fDetectorWidth=val;}
-    
-    void SetHexagonRadius(G4double val){fHexagonRadius=val;}
+    void SetTrapezoidLength(G4double val){ fTrapezoidLength = val; }
 
+    void SetHexagonRadius(G4double val){ fHexagonRadius = val; }
+        
+    void SetMylarThickness(G4double val){ fMylarThickness = val; }
+    
 	void SetNumColumns(const G4int &val){ fNumColumns = val; }
 	
 	void SetNumRows(const G4int &val){ fNumRows = val; }
 
-    G4String GetGeometry(){return fGeometry;}
+	G4double GetDetectorLength() const { return fDetectorLength; }
+	
+	G4double GetDetectorWidth() const { return fDetectorWidth; }
+	
+	G4double GetDetectorThickness() const { return fDetectorThickness; }
+	
+	G4ThreeVector GetDetectorSize() const { return G4ThreeVector(fDetectorWidth, fDetectorThickness, fDetectorLength); }
+
+	G4double GetDetectorPosX() const { return 0; }
+	
+	G4double GetDetectorPosY() const { return 0; }
+
+	G4double GetDetectorPosZ() const { return 0; }
+	
+	G4ThreeVector GetDetectorPos() const { return G4ThreeVector(0, 0, 0); }
+
+    G4String GetGeometry(){ return fGeometry; }
     
     void UpdateGeometry();
 

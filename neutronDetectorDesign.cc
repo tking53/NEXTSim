@@ -179,7 +179,7 @@ that didn't work... this is horribly deprecated*/
   if(!useCaliforniumSpectrum) // Standard particle generator
     primaryGeneratorAction = new nDetPrimaryGeneratorAction(runAction);
   else // 252Cf source spectrum (CRT)
-    primaryGeneratorAction = new CfSource(runAction);
+    primaryGeneratorAction = new CfSource(runAction, detector);
   runManager->SetUserAction( primaryGeneratorAction );
   
   nDetEventAction* eventAction = new nDetEventAction(runAction);

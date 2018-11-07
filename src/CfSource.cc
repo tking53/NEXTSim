@@ -1,38 +1,5 @@
-//
-// ********************************************************************
-// * License and Disclaimer                                           *
-// *                                                                  *
-// * The  Geant4 software  is  copyright of the Copyright Holders  of *
-// * the Geant4 Collaboration.  It is provided  under  the terms  and *
-// * conditions of the Geant4 Software License,  included in the file *
-// * LICENSE and available at  http://cern.ch/geant4/license .  These *
-// * include a list of copyright holders.                             *
-// *                                                                  *
-// * Neither the authors of this software system, nor their employing *
-// * institutes,nor the agencies providing financial support for this *
-// * work  make  any representation or  warranty, express or implied, *
-// * regarding  this  software system or assume any liability for its *
-// * use.  Please see the license in the file  LICENSE  and URL above *
-// * for the full disclaimer and the limitation of liability.         *
-// *                                                                  *
-// * This  code  implementation is the result of  the  scientific and *
-// * technical work of the GEANT4 collaboration.                      *
-// * By using,  copying,  modifying or  distributing the software (or *
-// * any work based  on the software)  you  agree  to acknowledge its *
-// * use  in  resulting  scientific  publications,  and indicate your *
-// * acceptance of all terms of the Geant4 Software license.          *
-// ********************************************************************
-//
-/// \file eventgenerator/particleGun/src/CfSource.cc
-/// \brief Implementation of the CfSource class
-//
-//
-// $Id: CfSource.cc 99721 2016-10-03 08:11:44Z gcosmo $
-// 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
 #include "CfSource.hh"
+#include "nDetConstruction.hh"
 
 #include "G4Event.hh"
 #include "G4ParticleGun.hh"
@@ -80,7 +47,8 @@ double Californium::sample(){
         return neutrons[100];
 }
 
-CfSource::CfSource(nDetRunAction *run/*=NULL*/) : nDetPrimaryGeneratorAction(), fGunMessenger(0), source(), pos(0, 0, 0), dir(0, 0, 0), type("iso")
+CfSource::CfSource(nDetRunAction *run, const nDetConstruction *det/*=NULL*/) : nDetPrimaryGeneratorAction(), fGunMessenger(0), source(), pos(0, 0, 0), 
+                                                                               dir(0, 0, 0), detPos(0, 0, 0), detSize(0, 0, 0), type("iso")
 {
   runAct = run;
 
@@ -88,6 +56,9 @@ CfSource::CfSource(nDetRunAction *run/*=NULL*/) : nDetPrimaryGeneratorAction(), 
   particleGun->SetParticleDefinition(G4Neutron::NeutronDefinition());
   particleGun->SetParticlePosition(this->pos);
   particleGun->SetParticleMomentumDirection(this->dir);
+
+  if(det)
+  	this->SetDetector(det);
   
   //create a messenger for this class
   fGunMessenger = new CfSourceMessenger(this); 
@@ -101,11 +72,22 @@ void CfSource::GeneratePrimaries(G4Event* anEvent)
 	double energy = source.sample();
 	particleGun->SetParticleEnergy(energy);
 	runAct->initEnergy = energy;
+	if(type == "iso"){ // Generate particles psuedo-isotropically
+		// We don't really use a true isotropic source because that would be really slow.
+		// Generate a random point inside the volume of the detector in the frame of the detector.
+		G4double x = (detSize.getX()/2)*(2*G4UniformRand()-1);
+		G4double y = (detSize.getY()/2)*(2*G4UniformRand()-1);
+		G4double z = (detSize.getZ()/2)*(2*G4UniformRand()-1);
+		G4ThreeVector dirPrime = vSourceDet + G4ThreeVector(x, y, z); // Now in the lab frame
+		dirPrime *= (1/dirPrime.mag());
+		particleGun->SetParticleMomentumDirection(dirPrime); // along the y-axis direction
+	}
 	particleGun->GeneratePrimaryVertex(anEvent);
 }
 
 void CfSource::SetPosition(const G4ThreeVector &p){ 
 	pos = p; 
+	vSourceDet = detPos - pos;
 	particleGun->SetParticlePosition(this->pos);
 }
 
@@ -116,6 +98,12 @@ void CfSource::SetDirection(const G4ThreeVector &d){
 
 void CfSource::SetType(const G4String &str){ 
 	type = str; 
+}
+
+void CfSource::SetDetector(const nDetConstruction *det){
+	detPos = det->GetDetectorPos();
+	detSize = det->GetDetectorSize();
+	vSourceDet = detPos - pos;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

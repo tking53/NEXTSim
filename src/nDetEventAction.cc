@@ -48,7 +48,7 @@ void nDetEventAction::BeginOfEventAction(const G4Event* evt)
   eventID = evt->GetEventID();
   depositedEnergy = 0; 
 
-  if(eventID%100 == 0) G4cout<<"Event ID: " << eventID << G4endl;
+  if(eventID%1000 == 0) G4cout<<"Event ID: " << eventID << G4endl;
 
   fAnalysisManager=(nDetAnalysisManager*)nDetAnalysisManager::Instance();
 
