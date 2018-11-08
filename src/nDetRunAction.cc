@@ -370,9 +370,9 @@ void nDetRunAction::scatterEvent(const G4Track *track){
   nPathLength.push_back(priTrack->plength);
   scatterTime.push_back(priTrack->gtime - incidentTime);
   recoilMass.push_back(track->GetParticleDefinition()->GetAtomicMass()); 
-  if(recoilMass.back() == 0){
+  /*if(recoilMass.back() == 0){
     std::cout << " Warning: Zero mass recoil particle?, name=" << track->GetParticleDefinition()->GetParticleName() << std::endl;
-  }
+  }*/
   
   primaryTracks.pop_back();
 }

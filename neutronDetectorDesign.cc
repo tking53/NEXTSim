@@ -61,6 +61,7 @@ int main(int argc, char** argv)
   handler.add(optionExt("gui", no_argument, NULL, 'g', "", "Run interactive GUI session."));
   handler.add(optionExt("tree-name", required_argument, NULL, 't', "<treename>", "Set the output TTree name (default=\"theTree\")."));
   handler.add(optionExt("252Cf", no_argument, NULL, 0x0, "", "Use 252Cf energy spectrum (Mannhart)."));
+  handler.add(optionExt("spectral", required_argument, NULL, 0x0, "<filename>", "Enable PMT spectral response."));
   handler.add(optionExt("verbose", no_argument, NULL, 'V', "", "Toggle verbose mode."));
 
   // Handle user input.
@@ -87,8 +88,12 @@ int main(int argc, char** argv)
   if(handler.getOption(4)->active) // Use 252Cf energy spectrum
     useCaliforniumSpectrum = true;
 
+  std::string specResponseFilename;
+  if(handler.getOption(5)->active) // Use PMT spectral response
+    specResponseFilename = handler.getOption(5)->argument;
+
   bool verboseMode = false;
-  if(handler.getOption(5)->active) // Toggle verbose flag
+  if(handler.getOption(6)->active) // Toggle verbose flag
     verboseMode = true;
 
   if(batchMode && inputFilename.empty()){
@@ -179,7 +184,7 @@ that didn't work... this is horribly deprecated*/
   if(!useCaliforniumSpectrum) // Standard particle generator
     primaryGeneratorAction = new nDetPrimaryGeneratorAction(runAction);
   else // 252Cf source spectrum (CRT)
-    primaryGeneratorAction = new CfSource(runAction, detector);
+    primaryGeneratorAction = new ParticleSource(runAction, detector);
   runManager->SetUserAction( primaryGeneratorAction );
   
   nDetEventAction* eventAction = new nDetEventAction(runAction);
@@ -187,6 +192,10 @@ that didn't work... this is horribly deprecated*/
 
   nDetSteppingAction* steppingAction = new nDetSteppingAction(detector, runAction, eventAction);
   runManager->SetUserAction(steppingAction);
+
+  if(!specResponseFilename.empty()){ // Load PMT spectral response.
+    steppingAction->setPmtSpectralResponse(specResponseFilename.c_str());
+  }
   
   nDetStackingAction* stackingAction = new nDetStackingAction(runAction);
   runManager->SetUserAction(stackingAction);

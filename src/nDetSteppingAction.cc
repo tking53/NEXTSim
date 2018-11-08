@@ -136,11 +136,11 @@ void nDetSteppingAction::UserSteppingAction(const G4Step* aStep)
                       theTrackingInfo->IncDetections();
                       theEventInfo->IncDetections();
                       if (vName.find("psSiPM") && aStep->GetPostStepPoint()->GetPosition().z() > 0) {
-                          center[0].addPoint(aStep->GetPostStepPoint()->GetPosition(), aStep->GetPostStepPoint()->GetGlobalTime());
+                          center[0].addPoint(aStep);
                           runAction->nPhotonsDet[0]++;
                       }
                       if (vName.find("psSiPM") && aStep->GetPostStepPoint()->GetPosition().z() < 0) {
-                          center[1].addPoint(aStep->GetPostStepPoint()->GetPosition(), aStep->GetPostStepPoint()->GetGlobalTime());
+                          center[1].addPoint(aStep);
                           runAction->nPhotonsDet[1]++;
                       }
                       break;
@@ -171,8 +171,11 @@ void nDetSteppingAction::UserSteppingAction(const G4Step* aStep)
               }
           }
       }
-
   }
+}
+
+bool nDetSteppingAction::setPmtSpectralResponse(const char *fname){
+  return (center[0].loadSpectralResponse(fname) && center[1].loadSpectralResponse(fname));
 }
 
 void nDetSteppingAction::Reset(){

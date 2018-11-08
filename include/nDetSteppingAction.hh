@@ -41,6 +41,8 @@ public:
   centerOfMass *GetCenterOfMassPositiveSide(){ return &center[0]; }
   
   centerOfMass *GetCenterOfMassNegativeSide(){ return &center[1]; }
+
+  bool setPmtSpectralResponse(const char *fname);
   
   void Reset();
 
