@@ -12,45 +12,110 @@
 class G4ParticleGun;
 class G4Event;
 
-class CfSource;
+class ParticleSource;
 class G4UIdirectory;
 class G4UIcmdWithoutParameter;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class Californium{
+class EnergyLevel{
   public:
-        double totalIntegral;
-        double energy[101];
-        double neutrons[101];
-        double integral[101];
-
-        double func(const double &E);
-
-        Californium();
-
-        double sample();
+	EnergyLevel() : energy(0), intensity(0), runningSum(0) { }
+  
+	EnergyLevel(const double &E_, const double &I_, const double &sum_) : energy(E_), intensity(I_), runningSum(sum_) { }
+	
+	double getEnergy() const { return energy; }
+	
+	bool check(const double &sum) const { return (sum >= runningSum && sum < runningSum+intensity); }
+	
+  private:
+	double energy;
+	double intensity;
+	double runningSum;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class CfSourceMessenger;
+class Source{
+  public:
+	Source() : iso(true), E(-1), totalIntegral(0), size(0), energy(NULL), intensity(NULL), integral(NULL) { }
+	
+	Source(const double &E_) : iso(false), E(E_), totalIntegral(0), size(0), energy(NULL), intensity(NULL), integral(NULL) { }
+	
+	Source(const size_t &size_, const double &stepSize) : iso(true), E(-1), totalIntegral(0) { this->initializeDistribution(size_, stepSize); }
+	
+	~Source();
+	
+	bool getIsIsotropic() const { return iso; }
+	
+	double getEnergy() const { return E; }
+	
+	double getTotalIntegral() const { return totalIntegral; }
+
+	double *getEnergyArray(){ return energy; }
+	
+	double *getIntensityArray(){ return intensity; }
+	
+	double *getIntegralArray(){ return integral; }
+
+	bool setIsIsotropic(const bool &state_){ return (iso=state_); }
+
+	double setEnergy(const double &E_){ return (E=E_); }
+	
+	void addLevel(const double &E_, const double &I_);
+	
+	double sample() const ;
+	
+	virtual double func(const double &E_) const { return E_; }
+	
+  protected:
+	bool iso;
+	double E;
+
+	double totalIntegral;
+	
+	size_t size;
+	double *energy;
+	double *intensity;
+	double *integral;
+
+	std::vector<EnergyLevel> gammas;
+  
+	void initializeDistribution(const size_t &size_, const double &stepSize);
+  
+	double sampleLevels() const ;
+	
+	double sampleDistribution() const ;
+};
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
+class Californium252 : public Source {
+  public:
+	Californium252() : Source(100, 0.1) { }
+	
+	double func(const double &E_) const ;
+};
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
+class ParticleSourceMessenger;
 class nDetConstruction;
 
-class CfSource : public nDetPrimaryGeneratorAction
+class ParticleSource : public nDetPrimaryGeneratorAction
 {
   public:
-    CfSource(nDetRunAction *run, const nDetConstruction *det=NULL);   
+    ParticleSource(nDetRunAction *run, const nDetConstruction *det=NULL);   
      
-   ~CfSource();
+   ~ParticleSource();
 
 	void GeneratePrimaries(G4Event*);
 
-	Californium *GetSource(){ return &source; }
+	Source *GetParticleSource(){ return &psource; }
 
-    G4double RejectAccept(){ return 0; }
+    G4double RejectAccept() const { return 0; }
 
-    G4double InverseCumul(){ return 0; }
+    G4double InverseCumul() const { return 0; }
 
 	void SetPosition(const G4ThreeVector &p);
 	
@@ -60,38 +125,62 @@ class CfSource : public nDetPrimaryGeneratorAction
 
 	void SetDetector(const nDetConstruction *det);
 
+	void Set137Cs();
+	
+	void Set60Co();
+	
+	void Set133Ba();
+	
+	void Set241Am();
+	
+	void Set90Sr();
+	
+	void Set252Cf();
+	
+	void SetNeutronBeam(const double &energy_, const double &beamspot_=0);
+	
+	void SetGammaRayBeam(const double &energy_, const double &beamspot_=0);
+	
+	void SetElectronBeam(const double &energy_, const double &beamspot_=0);
+
   private:    
-	CfSourceMessenger* fGunMessenger;
+	ParticleSourceMessenger *fGunMessenger;
  
-	Californium source; // 252Cf source
+	Source psource; // Generic particle source
 
 	G4ThreeVector pos;
 	G4ThreeVector dir;
+	G4ThreeVector detPos;	
 	G4ThreeVector detSize;
-	G4ThreeVector detPos;
 	G4ThreeVector vSourceDet;
 	G4String type;
+
+	double beamspot;
+
+	G4ThreeVector unitX;
+	G4ThreeVector unitY;
+	G4ThreeVector unitZ;
 
     void InitFunction(){ }    
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class CfSourceMessenger: public G4UImessenger
+class ParticleSourceMessenger: public G4UImessenger
 {
   public:
-    CfSourceMessenger(CfSource*);
+    ParticleSourceMessenger(ParticleSource*);
     
-   ~CfSourceMessenger();
+   ~ParticleSourceMessenger();
     
     virtual void SetNewValue(G4UIcommand*, G4String);
     
   private:
-    CfSource* fAction;
+    ParticleSource* fAction;
     
-    G4UIdirectory*            fDir;
+    G4UIdirectory* fDir;
     
-    G4UIcommand*              fActionCmd[4];
+    G4UIcommand* fActionCmd[4];
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
