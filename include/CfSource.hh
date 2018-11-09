@@ -42,9 +42,7 @@ class Source{
 	
 	Source(const double &E_) : iso(false), E(E_), totalIntegral(0), size(0), energy(NULL), intensity(NULL), integral(NULL) { }
 	
-	Source(const size_t &size_, const double &stepSize) : iso(true), E(-1), totalIntegral(0) { this->initializeDistribution(size_, stepSize); }
-	
-	~Source();
+	virtual ~Source();
 	
 	bool getIsIsotropic() const { return iso; }
 	
@@ -92,7 +90,9 @@ class Source{
 
 class Californium252 : public Source {
   public:
-	Californium252() : Source(100, 0.1) { }
+	Californium252() : Source() { this->initializeDistribution(100, 0.1); }
+	
+	~Californium252(){ }
 	
 	double func(const double &E_) const ;
 };
@@ -111,7 +111,7 @@ class ParticleSource : public nDetPrimaryGeneratorAction
 
 	void GeneratePrimaries(G4Event*);
 
-	Source *GetParticleSource(){ return &psource; }
+	Source *GetParticleSource(){ return psource; }
 
     G4double RejectAccept() const { return 0; }
 
@@ -146,7 +146,7 @@ class ParticleSource : public nDetPrimaryGeneratorAction
   private:    
 	ParticleSourceMessenger *fGunMessenger;
  
-	Source psource; // Generic particle source
+	Source *psource; // Generic particle source
 
 	G4ThreeVector pos;
 	G4ThreeVector dir;
@@ -161,7 +161,9 @@ class ParticleSource : public nDetPrimaryGeneratorAction
 	G4ThreeVector unitY;
 	G4ThreeVector unitZ;
 
-    void InitFunction(){ }    
+    void InitFunction(){ }
+    
+    Source *GetNewSource(const double &E_=-1);
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
