@@ -135,14 +135,8 @@ void nDetSteppingAction::UserSteppingAction(const G4Step* aStep)
                       G4String vName = aStep->GetPostStepPoint()->GetPhysicalVolume()->GetName();
                       theTrackingInfo->IncDetections();
                       theEventInfo->IncDetections();
-                      if (vName.find("psSiPM") && aStep->GetPostStepPoint()->GetPosition().z() > 0) {
-                          center[0].addPoint(aStep);
-                          runAction->nPhotonsDet[0]++;
-                      }
-                      if (vName.find("psSiPM") && aStep->GetPostStepPoint()->GetPosition().z() < 0) {
-                          center[1].addPoint(aStep);
-                          runAction->nPhotonsDet[1]++;
-                      }
+                      if(vName.find("psSiPM"))
+                          detector->AddDetectedPhoton(aStep);
                       break;
                   }
                   case FresnelReflection:
@@ -174,14 +168,11 @@ void nDetSteppingAction::UserSteppingAction(const G4Step* aStep)
   }
 }
 
-bool nDetSteppingAction::setPmtSpectralResponse(const char *fname){
-  return (center[0].loadSpectralResponse(fname) && center[1].loadSpectralResponse(fname));
-}
-
 void nDetSteppingAction::Reset(){
   counter.clear();
-  center[0].clear();
-  center[1].clear();
+  runAction->nPhotonsDet[0] = detector->GetCenterOfMassPositiveSide()->getNumDetected();
+  runAction->nPhotonsDet[1] = detector->GetCenterOfMassNegativeSide()->getNumDetected();
+  detector->Clear();
   neutronTrack = false;
 }
 

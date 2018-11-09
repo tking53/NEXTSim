@@ -27,6 +27,7 @@ class G4Run;
 class nDetStackingAction;
 class nDetTrackingAction;
 class nDetSteppingAction;
+class nDetConstruction;
 
 class photonCounter;
 
@@ -101,7 +102,7 @@ class nDetRunAction : public G4UserRunAction
 
     double photonDetEfficiency;
     
-    nDetRunAction();
+    nDetRunAction(nDetConstruction *det);
     
     virtual ~nDetRunAction();
 
@@ -149,6 +150,7 @@ class nDetRunAction : public G4UserRunAction
     nDetStackingAction *stacking;
     nDetTrackingAction *tracking;
     nDetSteppingAction *stepping;
+    nDetConstruction *detector;    
     
     std::vector<primaryTrackInfo> primaryTracks;
     

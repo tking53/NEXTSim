@@ -62,6 +62,9 @@ nDetConstruction::nDetConstruction(){
 	fNumColumns = 1;
 	fNumRows = 1;
 
+	fNumColumnsPmt = -1;
+	fNumRowsPmt = -1;
+
     // the world volume is 10 mm bigger than assembly volume in three dimensions
 
     G4cout<<"nDetConstruction::nDetConstruction()->"<<this<<G4endl;
@@ -147,7 +150,15 @@ G4VPhysicalVolume* nDetConstruction::ConstructDetector(){
   return expHall_physV;
 }
 
+void nDetConstruction::setSegmentedPmt(const short &col_, const short &row_, const double &width_, const double &height_){
+  center[0].setSegmentedPmt(col_, row_, width_, height_);
+  center[1].setSegmentedPmt(col_, row_, width_, height_);
+  std::cout << " nDetSteppingAction: Setting segmented PMTs with WxH=(" << width_ << " x " << height_ << ") and " << col_ << " columns and " << row_ << " rows.\n";
+}
 
+bool nDetConstruction::setPmtSpectralResponse(const char *fname){
+  return (center[0].loadSpectralResponse(fname) && center[1].loadSpectralResponse(fname));
+}
 
 void nDetConstruction::buildExpHall()
 {
@@ -1330,25 +1341,42 @@ return theHexagon;
 
 }
 
+bool nDetConstruction::AddDetectedPhoton(const G4Step *step, const double &mass/*=1*/){
+    if(step->GetPostStepPoint()->GetPosition().z() > 0){
+        if(center[0].addPoint(step, mass))
+            return true;
+    }
+    if(step->GetPostStepPoint()->GetPosition().z() < 0){
+        if(center[1].addPoint(step, mass))
+            return true;
+    }
+    return false;
+}
 
+void nDetConstruction::GetDetectedPhotons(size_t &numLeft, size_t &numRight){
+	numLeft = center[0].getNumDetected();
+	numRight = center[1].getNumDetected();
+}
+
+void nDetConstruction::Clear(){
+    center[0].clear();
+    center[1].clear();
+}
 
 void nDetConstruction::UpdateGeometry(){
-
     // clean-up previous geometry
     G4SolidStore::GetInstance()->Clean();
     G4LogicalVolumeStore::GetInstance()->Clean();
     G4PhysicalVolumeStore::GetInstance()->Clean();
+    
     //define new one
     G4RunManager::GetRunManager()->DefineWorldVolume(ConstructDetector());
     G4RunManager::GetRunManager()->GeometryHasBeenModified();
     G4RunManager::GetRunManager()->ReinitializeGeometry();
 
-
-    return;
-
+    if(PmtIsSegmented())
+      setSegmentedPmt(fNumColumnsPmt, fNumRowsPmt, fDetectorWidth, fDetectorThickness);
 }
-
-
 
 void nDetConstruction::buildEllipse2() {
 
@@ -1449,95 +1477,6 @@ void nDetConstruction::buildEllipse2() {
     return;
 
 }
-
-/*void nDetConstruction::buildRectangle() {
-
-    //fMylarThickness=0.025*mm; //25 um mylar
-
-    G4double xdimension=fDetectorWidth + 2*fMylarThickness;
-    G4double ydimension=fDetectorThickness + 2*fMylarThickness;
-    G4double zdimension=fDetectorLength;
-
-    G4Box *theRectangle=new G4Box("rectangle",xdimension/2,ydimension/2,zdimension/2);
-
-    ydimension=SiPM_dimension+2*fMylarThickness;
-
-    G4Box *wrappinBox=new G4Box("theBox1",ydimension,ydimension,(greaseY+qwSiPMy+psSiPMy));
-
-    G4ThreeVector translation11(0,0,fDetectorLength/2+1*(greaseY+qwSiPMy+psSiPMy));
-
-    G4UnionSolid *theWrapping0 = new G4UnionSolid("wrapping0",theRectangle,wrappinBox,0,translation11);
-
-    translation11=-1*translation11;
-
-    G4UnionSolid *theWrapping = new G4UnionSolid("wrapping",theWrapping0,wrappinBox,0,translation11);
-
-    assembly_logV = new G4LogicalVolume(theWrapping,fTeflon,"wrap_log");
-
-    //In Rectangle
-    fWrapSkinSurface = new G4LogicalSkinSurface("wrapping",assembly_logV,fTeflonOpticalSurface); //Outside
-    //fWrapSkinSurface = new G4LogicalSkinSurface("wrapping",assembly_logV,0); //Outside
-
-
-    G4VPhysicalVolume *Wrapping_physVol=new G4PVPlacement(0,G4ThreeVector(0,0,0),assembly_logV,"Wrapping",expHall_logV,0,0,fCheckOverlaps);
-
-    //Building the Scintillator
-
-    xdimension=fDetectorWidth;
-    ydimension=fDetectorThickness;
-    zdimension=fDetectorLength;
-
-    G4Box *theScint=new G4Box("scintillator",xdimension/2,ydimension/2,zdimension/2);
-
-    ej200_logV = new G4LogicalVolume(theScint,fEJ200,"scint_log");
-
-    //fWrapSkinSurface=new G4LogicalSkinSurface("Wrapping",ej200_logV,fTeflonOpticalSurface); // Inside TODO DPL
-
-
-    G4VisAttributes* ej200_VisAtt= new G4VisAttributes(G4Colour(0.0,0.0,1.0));//blue
-    ej200_logV->SetVisAttributes(ej200_VisAtt);
-
-    G4VPhysicalVolume *scint_phys=new G4PVPlacement(0,G4ThreeVector(0,0,0),ej200_logV,"Scint",assembly_logV,0,0,fCheckOverlaps);
-
-    //Building the Mylar covers
-    if(fMylarThickness>0) {
-        G4Box *theMylar = new G4Box("mylar", fDetectorWidth/2, fMylarThickness/2, fDetectorLength/2);
-        mylar_logV = new G4LogicalVolume(theMylar, fMylar, "mylar");
-
-        G4Box *theMylar2 = new G4Box("mylar2", fMylarThickness/2, fDetectorThickness/2, fDetectorLength/2);
-        G4LogicalVolume *mylar_logV2 = new G4LogicalVolume(theMylar2, fMylar, "mylar");
-
-        G4VisAttributes *mylar_VisAtt = new G4VisAttributes(G4Colour(1.0, 0.0, 1.0)); //magenta
-        mylar_VisAtt->SetForceSolid(true);
-        
-        mylar_logV->SetVisAttributes(mylar_VisAtt);
-        mylar_logV2->SetVisAttributes(mylar_VisAtt);
-
-		// Top layer (+Y)
-        G4ThreeVector position(0, fDetectorThickness/2 + fMylarThickness/2, 0);
-        G4PVPlacement *mylar_phys1a = new G4PVPlacement(0, position, mylar_logV, "Mylar1a", assembly_logV, true, 0, true);
-
-        // Bottom layer (-Y)
-        position *= -1;
-        G4PVPlacement *mylar_phys1b = new G4PVPlacement(0, position, mylar_logV, "Mylar1b", assembly_logV, true, 0, true);
-
-		// -X layer
-		position = G4ThreeVector(-(fDetectorWidth/2 + fMylarThickness/2), 0, 0);
-        G4PVPlacement *mylar_phys2a = new G4PVPlacement(0, position, mylar_logV2, "Mylar2a", assembly_logV, true, 0, true);
-        
-		// +X layer
-		position *= -1;
-        G4PVPlacement *mylar_phys2b = new G4PVPlacement(0, position, mylar_logV2, "Mylar1b", assembly_logV, true, 0, true);
-
-        fMylarSurface = new G4LogicalBorderSurface("Mylar1a", scint_phys, mylar_phys1a, fMylarOpticalSurface);
-        new G4LogicalBorderSurface("Mylar1b", scint_phys, mylar_phys1b, fMylarOpticalSurface);
-        new G4LogicalBorderSurface("Mylar2a", scint_phys, mylar_phys2a, fMylarOpticalSurface);
-        new G4LogicalBorderSurface("Mylar2b", scint_phys, mylar_phys2b, fMylarOpticalSurface);
-    }
-    buildSiPMs();
-
-    return;
-}*/
 
 void nDetConstruction::buildRectangle(){
 	const G4double cellWidth = (fDetectorThickness-2*fNumColumns*fMylarThickness)/fNumColumns;

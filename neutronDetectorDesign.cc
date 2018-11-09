@@ -168,7 +168,7 @@ that didn't work... this is horribly deprecated*/
   if(!outputTreeName.empty()) theManager->setTreeName(outputTreeName);
 
   //Geant complains we need to change this for multithreading.  Moving the following to nDetActionInitialization.cc
-  nDetRunAction* runAction = new nDetRunAction();
+  nDetRunAction* runAction = new nDetRunAction(detector);
   if(!outputFilename.empty()){
     size_t index = outputFilename.find('.');
     std::string prefix = outputFilename;
@@ -194,7 +194,7 @@ that didn't work... this is horribly deprecated*/
   runManager->SetUserAction(steppingAction);
 
   if(!specResponseFilename.empty()){ // Load PMT spectral response.
-    steppingAction->setPmtSpectralResponse(specResponseFilename.c_str());
+    detector->setPmtSpectralResponse(specResponseFilename.c_str());
   }
   
   nDetStackingAction* stackingAction = new nDetStackingAction(runAction);

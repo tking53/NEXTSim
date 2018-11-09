@@ -45,7 +45,7 @@
 #include "G4SubtractionSolid.hh"
 
 #include "nDetConstructionMessenger.hh"
-
+#include "centerOfMass.hh"
 
 // Replica 
 // Assembly volumes
@@ -90,6 +90,14 @@ class nDetConstruction : public G4VUserDetectorConstruction
 	
 	void SetNumRows(const G4int &val){ fNumRows = val; }
 
+	void SetNumPmtColumns(const G4int &val){ fNumColumnsPmt = val; }
+	
+	void SetNumPmtRows(const G4int &val){ fNumRowsPmt = val; }
+
+    void setSegmentedPmt(const short &col_, const short &row_, const double &width_, const double &height_);
+
+    bool setPmtSpectralResponse(const char *fname);
+
 	G4double GetDetectorLength() const { return fDetectorLength; }
 	
 	G4double GetDetectorWidth() const { return fDetectorWidth; }
@@ -107,6 +115,22 @@ class nDetConstruction : public G4VUserDetectorConstruction
 	G4ThreeVector GetDetectorPos() const { return G4ThreeVector(0, 0, 0); }
 
     G4String GetGeometry(){ return fGeometry; }
+
+	G4int GetNumPmtColumns() const { return fNumColumnsPmt; }
+	
+	G4int GetNumPmtRows() const { return fNumRowsPmt; }
+
+    centerOfMass *GetCenterOfMassPositiveSide(){ return &center[0]; }
+  
+    centerOfMass *GetCenterOfMassNegativeSide(){ return &center[1]; }
+
+    bool PmtIsSegmented() const { return (fNumColumnsPmt > 0 && fNumRowsPmt > 0); }
+    
+    bool AddDetectedPhoton(const G4Step *step, const double &mass=1);
+
+	void GetDetectedPhotons(size_t &numLeft, size_t &numRight);
+
+	void Clear();
     
     void UpdateGeometry();
 
@@ -153,6 +177,10 @@ private:
     G4int fNdetectors;
 	G4int fNumColumns;
 	G4int fNumRows;
+	G4int fNumColumnsPmt;
+	G4int fNumRowsPmt;
+
+    centerOfMass center[2];
 
     G4bool fCheckOverlaps;
     G4String fGeometry;
@@ -207,7 +235,6 @@ private:
     G4OpticalSurface* fMylarOpticalSurface;
 
     //Logical Skins
-
     G4LogicalSkinSurface* fWrapSkinSurface;
     G4LogicalSkinSurface* fSiPMSkinSurface;
     G4LogicalBorderSurface* fMylarSurface;

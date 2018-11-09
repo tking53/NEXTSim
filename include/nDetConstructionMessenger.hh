@@ -43,6 +43,8 @@ private:
     G4UIcmdWithADouble *fMylarThicknessCmd;
     G4UIcmdWithAnInteger *fNumberColumnsCmd;
     G4UIcmdWithAnInteger *fNumberRowsCmd;
+    G4UIcmdWithAnInteger *fNumberColumnsPmtCmd;
+    G4UIcmdWithAnInteger *fNumberRowsPmtCmd;
     G4UIcommand*        fUpdateCmd;
 
 };

@@ -48,6 +48,9 @@ nDetConstructionMessenger::nDetConstructionMessenger(nDetConstruction* detector)
 
     fNumberColumnsCmd = new G4UIcmdWithAnInteger("/nDet/detector/setNumColumns", this);
     fNumberRowsCmd = new G4UIcmdWithAnInteger("/nDet/detector/setNumRows", this);
+    
+    fNumberColumnsPmtCmd = new G4UIcmdWithAnInteger("/nDet/detector/setPmtColumns", this);
+    fNumberRowsPmtCmd = new G4UIcmdWithAnInteger("/nDet/detector/setPmtRows", this);
 }
 
 nDetConstructionMessenger::~nDetConstructionMessenger(){
@@ -62,6 +65,8 @@ nDetConstructionMessenger::~nDetConstructionMessenger(){
     delete fUpdateCmd;
     delete fNumberColumnsCmd;
     delete fNumberRowsCmd;
+    delete fNumberColumnsPmtCmd;
+    delete fNumberRowsPmtCmd;
 }
 
 void nDetConstructionMessenger::SetNewValue(G4UIcommand* command,G4String newValue){
@@ -112,5 +117,15 @@ void nDetConstructionMessenger::SetNewValue(G4UIcommand* command,G4String newVal
     if(command == fNumberRowsCmd){
         G4int val = fNumberRowsCmd->ConvertToInt(newValue);
         fDetector->SetNumRows(val);
+    }
+
+    if(command == fNumberColumnsPmtCmd){
+        G4int val = fNumberColumnsCmd->ConvertToInt(newValue);
+        fDetector->SetNumPmtColumns(val);
+    }
+    
+    if(command == fNumberRowsPmtCmd){
+        G4int val = fNumberRowsCmd->ConvertToInt(newValue);
+        fDetector->SetNumPmtRows(val);
     }
 }

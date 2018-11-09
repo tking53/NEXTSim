@@ -14,6 +14,7 @@
 #include "nDetStackingAction.hh"
 #include "nDetTrackingAction.hh"
 #include "nDetSteppingAction.hh"
+#include "nDetConstruction.hh"
 
 // geant4 class
 #include "G4Run.hh"
@@ -74,19 +75,11 @@ void primaryTrackInfo::print(){
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-nDetRunAction::nDetRunAction()
-{
-
-    G4cout << "nDetRunAction::nDetRunAction()->"<< G4endl;
-
-    G4cout << "nDetRunAction::nDetRunAction()->fAnalysisManager: "<<fAnalysisManager<< G4endl;
-
+nDetRunAction::nDetRunAction(nDetConstruction *det){
     timer = new G4Timer;
     fAnalysisManager= (nDetAnalysisManager*)nDetAnalysisManager::Instance();
-
-    G4cout << "nDetRunAction::nDetRunAction()->fAnalysisManager: "<<fAnalysisManager<< G4endl;
-    
     verbose = false;
+    detector = det;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -257,8 +250,8 @@ bool nDetRunAction::fillBranch()
   else
     photonDetEfficiency = -1;
 
-  centerOfMass *cmL = stepping->GetCenterOfMassPositiveSide();
-  centerOfMass *cmR = stepping->GetCenterOfMassNegativeSide();
+  centerOfMass *cmL = detector->GetCenterOfMassPositiveSide();
+  centerOfMass *cmR = detector->GetCenterOfMassNegativeSide();
 
   // Get the photon center-of-mass positions
   G4ThreeVector centerL = cmL->getCenter();

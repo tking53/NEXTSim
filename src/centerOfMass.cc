@@ -39,6 +39,39 @@ void centerOfMass::getArrivalTimes(unsigned short *arr, const size_t &len, const
 	}
 }
 
+short centerOfMass::setNumColumns(const short &col_){ 
+	Ncol = col_;
+	pixelWidth = activeWidth / Ncol;
+	return Ncol; 
+}
+
+short centerOfMass::setNumRows(const short &row_){
+	Nrow = row_;
+	pixelHeight = activeHeight / Nrow;
+	return Nrow; 
+}
+
+double centerOfMass::setActiveAreaWidth(const double &width_){
+	activeWidth = width_;
+	pixelWidth = activeWidth / Ncol;
+	return activeWidth;
+}
+
+double centerOfMass::setActiveAreaHeight(const double &height_){
+	activeHeight = height_;
+	pixelHeight = activeHeight / Nrow;
+	return activeHeight;
+}
+
+void centerOfMass::setSegmentedPmt(const short &col_, const short &row_, const double &width_, const double &height_){
+	Ncol = col_;
+	Nrow = row_;
+	activeWidth = width_;
+	activeHeight = height_;
+	pixelWidth = activeWidth / Ncol;
+	pixelHeight = activeHeight / Nrow;
+}
+
 bool centerOfMass::loadSpectralResponse(const char *fname, const char *name/*="spec"*/){
 	TFile *f = new TFile(fname, "READ");
 	if(!f->IsOpen()) return false;
@@ -75,8 +108,17 @@ bool centerOfMass::addPoint(const G4Step *step, const double &mass/*=1*/){
 	}
 
 	totalMass += mass;
-	center += mass*step->GetPostStepPoint()->GetPosition();
 	Npts++;
+	
+	if(Ncol < 0 && Nrow < 0){ // Default behavior
+		center += mass*step->GetPostStepPoint()->GetPosition();	
+	}
+	else{ // Segmented PMT behavior
+		G4ThreeVector pos = step->GetPostStepPoint()->GetPosition();
+		pos.setX((pos.getX()+activeWidth/2)/pixelWidth);
+		pos.setY((pos.getY()+activeHeight/2)/pixelHeight);
+		center += mass*pos;
+	}
 	
 	double time = step->GetPostStepPoint()->GetGlobalTime();
 	

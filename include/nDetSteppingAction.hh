@@ -21,7 +21,6 @@
 #include "nDetRunAction.hh"
 #include "nDetEventAction.hh"
 #include "photonCounter.hh"
-#include "centerOfMass.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -37,12 +36,6 @@ public:
   void UserSteppingAction(const G4Step*);
 
   photonCounter *GetCounter(){ return &counter; }
-  
-  centerOfMass *GetCenterOfMassPositiveSide(){ return &center[0]; }
-  
-  centerOfMass *GetCenterOfMassNegativeSide(){ return &center[1]; }
-
-  bool setPmtSpectralResponse(const char *fname);
   
   void Reset();
 
@@ -60,8 +53,6 @@ private:
   G4long stepID;
   
   photonCounter counter;
-  
-  centerOfMass center[2];
   
   bool neutronTrack;
 };
