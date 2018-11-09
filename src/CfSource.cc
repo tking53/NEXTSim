@@ -34,10 +34,10 @@ void Source::addLevel(const double &E_, const double &I_){
 }
 
 double Source::sample() const {
-	if(gammas.empty())
-		return this->sampleDistribution();
-	else if(size > 0)
+	if(!gammas.empty())
 		return this->sampleLevels();
+	else if(size > 0)
+		return this->sampleDistribution();
 	return E;
 }
 
@@ -197,21 +197,46 @@ void ParticleSource::SetDirection(const G4ThreeVector &d){
 }
 
 void ParticleSource::SetType(const G4String &str){ 
-	type = str; 
-	if(type == "137Cs")
+	if(str == "137Cs")
 		this->Set137Cs();
-	else if(type == "60Co")
+	else if(str == "60Co")
 		this->Set60Co();
-	else if(type == "133Ba")
+	else if(str == "133Ba")
 		this->Set133Ba();
-	else if(type == "241Am")
+	else if(str == "241Am")
 		this->Set241Am();
-	else if(type == "90Sr")
+	else if(str == "90Sr")
 		this->Set90Sr();
-	else if(type == "252Cf")
+	else if(str == "252Cf")
 		this->Set252Cf();
-	else
+	else{
 		std::cout << " ParticleSource: Unknown source type \"" << type << "\"\n";
+		return;
+	}
+	type = str;
+	std::cout << " ParticleSource: Setting " << type << " source.\n";
+}
+
+void ParticleSource::SetBeamType(const G4String &str){ 
+	size_t index = str.find_first_of(' ');
+	std::string beamType = str;
+	double beamEnergy = 1; // MeV
+	if(index != std::string::npos){
+		beamType = str.substr(0, index);
+		beamEnergy = strtod(str.substr(index+1).c_str(), NULL);
+	}
+	if(beamType == "neutron")
+		this->SetNeutronBeam(beamEnergy);
+	else if(beamType == "gamma")
+		this->SetGammaRayBeam(beamEnergy);
+	else if(beamType == "electron")
+		this->SetElectronBeam(beamEnergy);
+	else{
+		std::cout << " ParticleSource: Unknown beam type \"" << str << "\"\n";
+		return;
+	}
+	type = "beam";
+	std::cout << " ParticleSource: Setting " << beamType << " beam with energy of " << beamEnergy << " MeV.\n";
 }
 
 void ParticleSource::SetDetector(const nDetConstruction *det){
@@ -327,6 +352,7 @@ ParticleSourceMessenger::ParticleSourceMessenger(ParticleSource* Gun) : G4UImess
 	fActionCmd[1] = new G4UIcmdWith3VectorAndUnit("/source/position",this); // position of source
 	fActionCmd[2] = new G4UIcmdWith3Vector("/source/direction",this); // direction of source
 	fActionCmd[3] = new G4UIcmdWithAString("/source/type",this); // type of source (iso or directional)
+	fActionCmd[4] = new G4UIcmdWithAString("/source/beam",this); // type of source (iso or directional)
 }
 
 ParticleSourceMessenger::~ParticleSourceMessenger()
@@ -344,4 +370,6 @@ void ParticleSourceMessenger::SetNewValue(G4UIcommand* command, G4String newValu
 		fAction->SetDirection(G4UIcommand::ConvertTo3Vector(newValue));
 	else if(command == fActionCmd[3])
 		fAction->SetType(newValue);
+	else if(command == fActionCmd[4])
+		fAction->SetBeamType(newValue);
 }

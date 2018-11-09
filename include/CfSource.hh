@@ -123,6 +123,8 @@ class ParticleSource : public nDetPrimaryGeneratorAction
 
 	void SetType(const G4String &str);
 
+	void SetBeamType(const G4String &str);
+
 	void SetDetector(const nDetConstruction *det);
 
 	void Set137Cs();
@@ -182,7 +184,7 @@ class ParticleSourceMessenger: public G4UImessenger
     
     G4UIdirectory* fDir;
     
-    G4UIcommand* fActionCmd[4];
+    G4UIcommand* fActionCmd[5];
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
