@@ -69,6 +69,10 @@ double primaryTrackInfo::getAngle(const G4ThreeVector &dir2){
   return angle;
 }
 
+double primaryTrackInfo::getPathLength(const G4ThreeVector &rhs){
+  return (plength = (pos-rhs).mag());
+}
+
 void primaryTrackInfo::print(){
   std::cout << "name=" << part->GetParticleName() << ", kE=" << kE << ", dkE=" << dkE << ", pos=(" << pos.getX() << ", " << pos.getY() << ", " << pos.getZ() << "), dir=(" << dir.getX() << ", " << dir.getY() << ", " << dir.getZ() << ")\n";
 }
@@ -209,6 +213,8 @@ bool nDetRunAction::openRootFile(const G4Run* aRun)
     
     fTree->Branch("nScatterTime", &scatterTime);
     fTree->Branch("impartedE", &impartedE);
+    fTree->Branch("segmentCol", &segmentCol);
+    fTree->Branch("segmentRow", &segmentRow);
     fTree->Branch("photonsProd", &Nphotons);
 	fTree->Branch("recoilMass", &recoilMass);
 
@@ -294,6 +300,8 @@ void nDetRunAction::vectorClear(){
   nPathLength.clear();
   impartedE.clear();
   scatterTime.clear();
+  segmentCol.clear();
+  segmentRow.clear();
   Nphotons.clear();
   recoilMass.clear();
 
@@ -363,9 +371,11 @@ void nDetRunAction::scatterEvent(const G4Track *track){
   nPathLength.push_back(priTrack->plength);
   scatterTime.push_back(priTrack->gtime - incidentTime);
   recoilMass.push_back(track->GetParticleDefinition()->GetAtomicMass()); 
-  /*if(recoilMass.back() == 0){
-    std::cout << " Warning: Zero mass recoil particle?, name=" << track->GetParticleDefinition()->GetParticleName() << std::endl;
-  }*/
+ 
+  G4int segCol, segRow;
+  detector->GetSegmentFromCopyNum(track->GetTouchable()->GetCopyNumber(), segCol, segRow);
+  segmentCol.push_back(segCol);
+  segmentRow.push_back(segRow);
   
   primaryTracks.pop_back();
 }
@@ -382,6 +392,7 @@ void nDetRunAction::initializeNeutron(const G4Step *step){
   primaryTracks.clear();
   primaryTracks.push_back(step);
   prevDirection = primaryTracks.back().dir;
+  prevPosition = primaryTracks.back().pos;
   if(verbose){ 
     std::cout << "IN: "; primaryTracks.back().print();
   }
@@ -393,7 +404,9 @@ void nDetRunAction::scatterNeutron(const G4Step *step){
   if(dE > 0){
     primaryTracks.push_back(step);
     primaryTracks.back().getAngle(prevDirection);
+    primaryTracks.back().getPathLength(prevPosition);
     prevDirection = primaryTracks.back().dir;
+    prevPosition = primaryTracks.back().pos;
     if(verbose){
       std::cout << "SC: "; primaryTracks.back().print();
     }

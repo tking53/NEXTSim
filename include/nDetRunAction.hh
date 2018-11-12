@@ -51,6 +51,8 @@ class primaryTrackInfo{
 
     double getAngle(const G4ThreeVector &rhs);
 
+	double getPathLength(const G4ThreeVector &rhs);
+
     void print();
 };
 
@@ -86,6 +88,8 @@ class nDetRunAction : public G4UserRunAction
     std::vector<double> nPathLength;
     std::vector<double> impartedE;
     std::vector<double> scatterTime;
+    std::vector<short> segmentCol;
+    std::vector<short> segmentRow;
     std::vector<short> Nphotons;
     std::vector<short> recoilMass;
     
@@ -157,6 +161,7 @@ class nDetRunAction : public G4UserRunAction
     photonCounter *counter;
     
     G4ThreeVector prevDirection;
+    G4ThreeVector prevPosition;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

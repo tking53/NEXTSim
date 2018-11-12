@@ -1341,6 +1341,17 @@ return theHexagon;
 
 }
 
+void nDetConstruction::GetSegmentFromCopyNum(const G4int &copyNum, G4int &col, G4int &row) const {
+	if(copyNum > 0){ // Scintillator
+		col = ((copyNum-1) / fNumRows) + 1;
+		row = ((copyNum-1) % fNumRows) + 1;
+	}
+	else{ // Outer wrappings (mylar, teflon, etc) (id==0)
+		col = 0;
+		row = 0;
+	}
+}
+
 bool nDetConstruction::AddDetectedPhoton(const G4Step *step, const double &mass/*=1*/){
     if(step->GetPostStepPoint()->GetPosition().z() > 0){
         if(center[0].addPoint(step, mass))
@@ -1548,15 +1559,15 @@ void nDetConstruction::buildRectangle(){
 
 	    // Bottom layer (-Y)
 	    position *= -1;
-	    G4PVPlacement *mylar_physNY = new G4PVPlacement(0, position, mylarLogTop, "Mylar", assembly_logV, true, 1, fCheckOverlaps);
+	    G4PVPlacement *mylar_physNY = new G4PVPlacement(0, position, mylarLogTop, "Mylar", assembly_logV, true, 0, fCheckOverlaps);
 
 		// -X layer
 		position = G4ThreeVector(-fDetectorWidth/2 + fMylarThickness/2, 0, 0);
-	    G4PVPlacement *mylar_physNX = new G4PVPlacement(0, position, mylarLogSide, "Mylar", assembly_logV, true, 2, fCheckOverlaps);
+	    G4PVPlacement *mylar_physNX = new G4PVPlacement(0, position, mylarLogSide, "Mylar", assembly_logV, true, 0, fCheckOverlaps);
 	    
 		// +X layer
 		position *= -1;
-	    G4PVPlacement *mylar_physPX = new G4PVPlacement(0, position, mylarLogSide, "Mylar", assembly_logV, true, 3, fCheckOverlaps);
+	    G4PVPlacement *mylar_physPX = new G4PVPlacement(0, position, mylarLogSide, "Mylar", assembly_logV, true, 0, fCheckOverlaps);
 
         /*new G4LogicalBorderSurface("MylarPY", scint_phys, mylar_physPY, fMylarOpticalSurface);
         new G4LogicalBorderSurface("MylarNY", scint_phys, mylar_physNY, fMylarOpticalSurface);
@@ -1564,20 +1575,20 @@ void nDetConstruction::buildRectangle(){
         new G4LogicalBorderSurface("MylarPX", scint_phys, mylar_physPX, fMylarOpticalSurface);*/
 	}
 	
-	int mylarCopyNumber = 4;
-	int scintCopyNumber = 0;
+	int mylarCopyNumber;
+	int scintCopyNumber;
 	for(int col = 0; col < fNumColumns; col++){
 		for(int row = 0; row < fNumRows; row++){
 			G4ThreeVector center(-fDetectorWidth/2 + (2*col+1)*fMylarThickness + (col+0.5)*cellWidth, -fDetectorThickness/2 + (2*row+1)*fMylarThickness + (row+0.5)*cellHeight, 0);
 		
 			// The physical scintillator bar
-			new G4PVPlacement(0, center, ej200_logV, "Scint", assembly_logV, 0, scintCopyNumber++, fCheckOverlaps);
+			new G4PVPlacement(0, center, ej200_logV, "Scint", assembly_logV, 0, col*fNumRows+row+1, fCheckOverlaps); // Copy numbers (segment IDs), indexed from 1
 		
 			if(fMylarThickness > 0){ // Wrap the bar in mylar
-				new G4PVPlacement(0, G4ThreeVector(center.getX(), center.getY() + cellHeight/2 + fMylarThickness/2, 0), mylarCellLogTop, "Mylar", assembly_logV, true, mylarCopyNumber++, fCheckOverlaps); // Top layer (+Y)
-				new G4PVPlacement(0, G4ThreeVector(center.getX(), center.getY() - cellHeight/2 - fMylarThickness/2, 0), mylarCellLogTop, "Mylar", assembly_logV, true, mylarCopyNumber++, fCheckOverlaps); // Bottom layer (-Y)
-				new G4PVPlacement(0, G4ThreeVector(center.getX() - cellWidth/2 - fMylarThickness/2, center.getY(), 0), mylarCellLogSide, "Mylar", assembly_logV, true, mylarCopyNumber++, fCheckOverlaps); // -X layer
-				new G4PVPlacement(0, G4ThreeVector(center.getX() + cellWidth/2 + fMylarThickness/2, center.getY(), 0), mylarCellLogSide, "Mylar", assembly_logV, true, mylarCopyNumber++, fCheckOverlaps); // +X layer
+				new G4PVPlacement(0, G4ThreeVector(center.getX(), center.getY() + cellHeight/2 + fMylarThickness/2, 0), mylarCellLogTop, "Mylar", assembly_logV, true, 0, fCheckOverlaps); // Top layer (+Y)
+				new G4PVPlacement(0, G4ThreeVector(center.getX(), center.getY() - cellHeight/2 - fMylarThickness/2, 0), mylarCellLogTop, "Mylar", assembly_logV, true, 0, fCheckOverlaps); // Bottom layer (-Y)
+				new G4PVPlacement(0, G4ThreeVector(center.getX() - cellWidth/2 - fMylarThickness/2, center.getY(), 0), mylarCellLogSide, "Mylar", assembly_logV, true, 0, fCheckOverlaps); // -X layer
+				new G4PVPlacement(0, G4ThreeVector(center.getX() + cellWidth/2 + fMylarThickness/2, center.getY(), 0), mylarCellLogSide, "Mylar", assembly_logV, true, 0, fCheckOverlaps); // +X layer
 			}
 		}
 	}

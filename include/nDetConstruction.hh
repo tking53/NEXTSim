@@ -120,6 +120,8 @@ class nDetConstruction : public G4VUserDetectorConstruction
 	
 	G4int GetNumPmtRows() const { return fNumRowsPmt; }
 
+	void GetSegmentFromCopyNum(const G4int &copyNum, G4int &col, G4int &row) const ;
+
     centerOfMass *GetCenterOfMassPositiveSide(){ return &center[0]; }
   
     centerOfMass *GetCenterOfMassNegativeSide(){ return &center[1]; }
