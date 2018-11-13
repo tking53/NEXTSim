@@ -115,8 +115,8 @@ bool centerOfMass::addPoint(const G4Step *step, const double &mass/*=1*/){
 	}
 	else{ // Segmented PMT behavior
 		G4ThreeVector pos = step->GetPostStepPoint()->GetPosition();
-		pos.setX((pos.getX()+activeWidth/2)/pixelWidth);
-		pos.setY((pos.getY()+activeHeight/2)/pixelHeight);
+		pos.setX(((pos.getX()+activeWidth/2)/pixelWidth)*(activeWidth/Ncol)-activeWidth/2);
+		pos.setY(((pos.getY()+activeHeight/2)/pixelHeight)*(activeHeight/Nrow)-activeHeight/2);
 		center += mass*pos;
 	}
 	
