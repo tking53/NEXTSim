@@ -174,8 +174,24 @@ bool nDetRunAction::openRootFile(const G4Run* aRun)
     filename = std::string(defaultFilename);
   }
 
+  std::string prefix(filename);
+  std::string suffix("");
+  size_t index = filename.find_last_of('.');
+  if(index != std::string::npos){
+  	prefix = filename.substr(0, index);
+  	suffix = filename.substr(index);
+  }
+
+  std::cout << " prefix=" << prefix << ", suffix=" << suffix << std::endl;
+
+  std::stringstream stream; stream << aRun->GetRunID()+1;
+  std::string runID = stream.str();
+  
+  std::string newFilename = prefix + "-" + std::string(3-runID.length(), '0') + runID + suffix;
+  std::cout << " newFilename=" << newFilename << std::endl;
+
   //create a ROOT file
-  fFile = new TFile(filename.c_str(),"RECREATE","ROOT file for high resolution neutron detector simulation");
+  fFile = new TFile(newFilename.c_str(),"RECREATE","ROOT file for high resolution neutron detector simulation");
 
   if (fFile->IsZombie()) {
       G4cout << "Error opening file" << G4endl;
@@ -251,7 +267,7 @@ bool nDetRunAction::fillBranch()
     Nphotons.push_back(counter->getPhotonCount(i));
 
   nPhotonsTot = counter->getTotalPhotonCount();
-  if(counter->getTotalPhotonCount() > 0)
+  if(nPhotonsTot > 0)
     photonDetEfficiency = (nPhotonsDet[0]+nPhotonsDet[1])/(double)nPhotonsTot;
   else
     photonDetEfficiency = -1;
