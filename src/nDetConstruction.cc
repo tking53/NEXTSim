@@ -852,15 +852,12 @@ void nDetConstruction::DefineMaterials() {
     //Materials & Properties
     G4NistManager* manNist = G4NistManager::Instance();
 
-
     fAir=manNist->FindOrBuildMaterial("G4_AIR");
 
     const G4int nEntries_Air = 2;
-    G4double photonEnergy_Air[nEntries_Air] =   // from 800 nm to 300 nm
-            { 1.55*eV,  4.13*eV };
-    G4double refractiveIndex_Air[nEntries_Air] =
-            { 1.00, 1.00 };
-    G4double Absorption_Air[nEntries_Air] =  { 1700 * m ,1700 * m  };
+    G4double photonEnergy_Air[nEntries_Air] = { 1.55*eV,  4.13*eV }; // from 800 nm to 300 nm
+    G4double refractiveIndex_Air[nEntries_Air] = { 1.00, 1.00 };
+    G4double Absorption_Air[nEntries_Air] = { 1700 * m ,1700 * m  };
     // note that the aborption data are not correct. If they are employed, the purpose is to kill photons quickly
     // to speed up the program...
     //G4double absorptionLength_Air[nEntries] = {90.2*mm, 90.2*mm};
@@ -873,6 +870,9 @@ void nDetConstruction::DefineMaterials() {
     int natoms;
     int ncomponents;
 
+	/////////////////////////////////////////////////////////////////
+	// Teflon (C2F4)n
+	/////////////////////////////////////////////////////////////////
 
     fTeflon= new G4Material("Teflon", density=2.2*g/cm3,2);
     fTeflon->AddElement(fC,natoms=2);
@@ -897,9 +897,11 @@ void nDetConstruction::DefineMaterials() {
 
     fTeflon->SetMaterialPropertiesTable(fTeflonMPT);
 
-    // EJ-200  => [C9H10]n
-    density = 1.023*g/cm3;
+	/////////////////////////////////////////////////////////////////
+	// EJ200 (C9H10)n
+	/////////////////////////////////////////////////////////////////
 
+    density = 1.023*g/cm3;
 
     fEJ200 = new G4Material("EJ200", density, 2);
     fEJ200->AddElement(fH, 10);
@@ -912,9 +914,7 @@ void nDetConstruction::DefineMaterials() {
 //   so the corresponding wavelength in nm show next
 //   500, 475, 450, 425, 400
 
-    G4double PhotonEnergy[nEntries_EJ200] =
-            { 2.484*eV, 2.615*eV, 2.760*eV, 2.922*eV, 3.105*eV };
-
+    G4double PhotonEnergy[nEntries_EJ200] = { 2.484*eV, 2.615*eV, 2.760*eV, 2.922*eV, 3.105*eV };
     G4double RefractiveIndex_EJ200[nEntries_EJ200] = { 1.58, 1.58, 1.58, 1.58, 1.58 };
     G4double Absorption_EJ200[nEntries_EJ200] =  { 400*cm, 400*cm, 400*cm, 400*cm, 400*cm };
     G4double ScintilFast_EJ200[nEntries_EJ200] = { 0.05, 0.25, 0.55, 1.00, 0.0};
@@ -935,19 +935,16 @@ void nDetConstruction::DefineMaterials() {
     //fEJ200MPT->AddConstProperty("FASTTIMECONSTANT", 0.5*ns); //TODO DPL Get Back to 2.1 ns
     fEJ200MPT->AddConstProperty("YIELDRATIO",1);// the strength of the fast component as a function of total scintillation yield
 
-
     G4double pEF = 1; //SiPM efficiency (TODO - discuss it)
     G4double protonScalingFact = 1.35;
-
 
     //light yield - data taken form V.V. Verbinski et al, Nucl. Instrum. & Meth. 65 (1968) 8-25
     int energyPoints = 26;
     G4double particleEnergy[] = { 0.001*MeV, 0.1*MeV, 0.13*MeV, 0.17*MeV, 0.2*MeV,
-                                  0.24*MeV, 0.3*MeV, 0.34*MeV, 0.4*MeV,
-                                  0.48*MeV, 0.6*MeV, 0.72*MeV, 0.84*MeV,
-                                  1.*MeV, 1.3*MeV, 1.7*MeV, 2.*MeV, 2.4*MeV,
-                                  3.*MeV, 3.4*MeV, 4.*MeV, 4.8*MeV, 6.*MeV,
-                                  7.2*MeV, 8.4*MeV, 10.*MeV };
+                                  0.24*MeV, 0.3*MeV, 0.34*MeV, 0.4*MeV, 0.48*MeV, 
+                                  0.6*MeV, 0.72*MeV, 0.84*MeV, 1.*MeV, 1.3*MeV, 
+                                  1.7*MeV, 2.*MeV, 2.4*MeV, 3.*MeV, 3.4*MeV, 4.*MeV, 
+                                  4.8*MeV, 6.*MeV,  7.2*MeV, 8.4*MeV, 10.*MeV };
 
     G4double electronYield[] = {0*pEF, 1000*pEF, 1300*pEF, 1700*pEF,
                                 2000*pEF, 2400*pEF, 3000*pEF, 3400*pEF,
@@ -957,22 +954,17 @@ void nDetConstruction::DefineMaterials() {
                                 40000*pEF, 48000*pEF, 60000*pEF, 72000*pEF,
                                 84000*pEF, 100000*pEF };
 
-    fEJ200MPT->AddProperty("ELECTRONSCINTILLATIONYIELD",
-                                      particleEnergy, electronYield,
-                                      energyPoints)->SetSpline(true);
+    fEJ200MPT->AddProperty("ELECTRONSCINTILLATIONYIELD", particleEnergy, electronYield, energyPoints)->SetSpline(true);
     G4double psF = protonScalingFact;
-    G4double protonYield[] = { 0.6*pEF*psF, 67.1*pEF*psF, 88.6*pEF*psF,
-                               120.7*pEF*psF,
+    G4double protonYield[] = { 0.6*pEF*psF, 67.1*pEF*psF, 88.6*pEF*psF, 120.7*pEF*psF,
                                146.5*pEF*psF, 183.8*pEF*psF, 246*pEF*psF, 290*pEF*psF,
                                365*pEF*psF, 483*pEF*psF, 678*pEF*psF, 910*pEF*psF,
                                1175*pEF*psF, 562*pEF*psF, 2385*pEF*psF, 3660*pEF*psF,
                                4725*pEF*psF,6250*pEF*psF, 8660*pEF*psF, 10420*pEF*psF,
-                               13270*pEF*psF,17180*pEF*psF, 23100*pEF*psF,
-                               29500*pEF*psF, 36200*pEF*psF, 45500*pEF*psF};
+                               13270*pEF*psF,17180*pEF*psF, 23100*pEF*psF, 29500*pEF*psF, 
+                               36200*pEF*psF, 45500*pEF*psF};
 
-    fEJ200MPT->AddProperty("PROTONSCINTILLATIONYIELD",
-                                      particleEnergy, protonYield,
-                                      energyPoints)->SetSpline(true);
+    fEJ200MPT->AddProperty("PROTONSCINTILLATIONYIELD", particleEnergy, protonYield, energyPoints)->SetSpline(true);
 
     G4double ionYield[] = { 0.2*pEF, 10.4*pEF, 12.7*pEF, 15.7*pEF,
                             17.9*pEF, 20.8*pEF, 25.1*pEF, 27.9*pEF,
@@ -982,30 +974,21 @@ void nDetConstruction::DefineMaterials() {
                             218.6*pEF, 260.54*pEF, 323.5*pEF, 387.5*pEF,
                             451.54*pEF, 539.9*pEF };
 
-    fEJ200MPT->AddProperty("IONSCINTILLATIONYIELD",
-                                      particleEnergy, ionYield,
-                                      energyPoints)->SetSpline(true);
-
-
+    fEJ200MPT->AddProperty("IONSCINTILLATIONYIELD", particleEnergy, ionYield, energyPoints)->SetSpline(true);
 
     fEJ200->SetMaterialPropertiesTable(fEJ200MPT);
 
-
-
-
-
-    // define the silicone optical grease, (C2H6OSi)n
+	/////////////////////////////////////////////////////////////////
+	// Silicone Optical Grease (C2H6OSi)n
+	/////////////////////////////////////////////////////////////////
+	
     density = 1.06*g/cm3;
-
-
     fGrease = new G4Material("Grease",density,ncomponents=4);
 
     fGrease->AddElement(fC, natoms=2);
     fGrease->AddElement(fH, natoms=6);
     fGrease->AddElement(fO, natoms=1);
     fGrease->AddElement(fSi, natoms=1);
-
-
 
     const G4int nEntries_Grease = 5;
     G4double Photon_Energy[nEntries_Grease] = { 2.757*eV, 3.102*eV, 3.312*eV, 3.545*eV, 4.136*eV };
@@ -1018,9 +1001,7 @@ void nDetConstruction::DefineMaterials() {
 
     fGrease->SetMaterialPropertiesTable(fGreaseMPT);
 
-
     fSiO2 = manNist->FindOrBuildMaterial("G4_SILICON_DIOXIDE");
-
 
     const G4int nEntries_SiO2 = 5;
 
@@ -1028,21 +1009,17 @@ void nDetConstruction::DefineMaterials() {
     G4double RefractiveIndex_SiO2[nEntries_SiO2] = { 1.54, 1.54, 1.54, 1.54, 1.54 };
     G4double Absorption_SiO2[nEntries_SiO2] =  {125.*cm, 123.5*cm, 122.*cm, 121.*cm, 120.*cm};
 
-
-
     fSiO2MPT = new G4MaterialPropertiesTable();
     fSiO2MPT->AddProperty("RINDEX", PhotonEnergy, RefractiveIndex_SiO2, nEntries_SiO2);
     fSiO2MPT->AddProperty("ABSLENGTH", PhotonEnergy, Absorption_SiO2,nEntries_SiO2);
     fSiO2->SetMaterialPropertiesTable(fSiO2MPT);
 
-
-
     fSil=manNist->FindOrBuildMaterial("G4_Si");
 
     // optical properties,
     const G4int nEntries_Sil = 5;
-    G4double  RefractiveReal_Si[nEntries_Sil] = { 4.293, 4.453, 4.676, 5.008, 5.587 };
-    G4double   RefractiveImg_Si[nEntries_Sil] = { 0.045, 0.060, 0.091, 0.150, 0.303 };
+    G4double RefractiveReal_Si[nEntries_Sil] = { 4.293, 4.453, 4.676, 5.008, 5.587 };
+    G4double RefractiveImg_Si[nEntries_Sil] = { 0.045, 0.060, 0.091, 0.150, 0.303 };
     //G4double EfficiencyIndex_Si[nEntries_Sil] = { 0.37, 0.42, 0.39, 0.36, 0.32 };
     //IDEAL DETECTOR
     G4double EfficiencyIndex_Si[nEntries_Sil] = { 1., 1., 1., 1., 1. };
@@ -1057,31 +1034,57 @@ void nDetConstruction::DefineMaterials() {
 
     fSil->SetMaterialPropertiesTable(fSilMPT);
 
-    // optical surfaces
-    fTeflonOpticalSurface = new G4OpticalSurface("TeflonSurface",
-                                                 glisur,
-                                                 ground,
-                                                 dielectric_metal,
-                                                 0.1); // polish level
+	/////////////////////////////////////////////////////////////////
+	// ACRYLIC (C5O2H8)n -- CRT
+	/////////////////////////////////////////////////////////////////
+
+	density = 1.19*g/cm3;
+    fAcrylic = new G4Material("Acrylic", density, ncomponents=3);
+    
+    fAcrylic->AddElement(fC, natoms=5);
+    fAcrylic->AddElement(fH, natoms=8);
+    fAcrylic->AddElement(fO, natoms=2);
+
+	// Photon energy (eV)
+	G4double ENERGY_ACRYLIC[11] = {6.1992*eV, 4.95936*eV, 4.1328*eV, 3.5424*eV, 3.0996*eV, 2.7552*eV, 2.47968*eV, 2.25426*eV, 2.0664*eV, 1.90745*eV, 1.7712*eV};
+	
+	// Refractive index
+	G4double RINDEX_ACRYLIC[11] = {1.57237, 1.54724, 1.5286, 1.51533, 1.50629, 1.50033, 1.49633, 1.49313, 1.4896, 1.48461, 1.47702};
+	
+	G4MaterialPropertiesTable *MPT_Acrylic = new G4MaterialPropertiesTable();
+	MPT_Acrylic->AddProperty("RINDEX", ENERGY_ACRYLIC, RINDEX_ACRYLIC, 11);
+
+	// Photon energy (eV)
+	G4double energy2[25] = {12.3984*eV, 5.0292*eV, 4.75755*eV, 4.69897*eV, 4.66072*eV, 4.61377*eV, 4.56776*eV, 4.5316*eV, 4.48721*eV, 
+	                        4.43507*eV, 4.13105*eV, 3.87258*eV, 3.64454*eV, 3.43671*eV, 3.25129*eV, 3.10158*eV, 2.94219*eV, 2.81212*eV, 
+	                        2.69307*eV, 2.58078*eV, 2.47479*eV, 2.38212*eV, 2.29384*eV, 2.21614*eV, 1.7712*eV};
+	                       
+	// Acrylic absorption length (mm)
+	G4double abslength[25] = {0, 0, 1.02102, 1.28345, 1.8604, 2.44271, 3.20801, 4.15751, 5.55214, 6.99127, 13.0334, 19.3961, 27.6547, 
+	                          32.87, 34.1447, 35.5173, 34.1447, 32.87, 32.87, 34.1447, 34.1447, 35.5173, 35.5173, 34.1447, 33.7719};
+	
+	MPT_Acrylic->AddProperty("ABSLENGTH", energy2, abslength, 25);
+
+	fAcrylic->SetMaterialPropertiesTable(MPT_Acrylic);
+
+	/////////////////////////////////////////////////////////////////
+	// Optical Surfaces
+	/////////////////////////////////////////////////////////////////
+	
+    fTeflonOpticalSurface = new G4OpticalSurface("TeflonSurface", glisur, ground, dielectric_metal, 0.1); // polish level
     //DPL Testing the other finishes for teflon
 
     fTeflonOpticalSurface->SetFinish(ground);
-
     //fTeflonOpticalSurface->SetType(dielectric_metal);
     fTeflonOpticalSurface->SetType(dielectric_dielectric);
-
     fTeflonOpticalSurface->SetMaterialPropertiesTable(fTeflonMPT);
 
-
     //SiliconOpticalSurface
-
     fSiliconPMOpticalSurface = new G4OpticalSurface("SiPMSurface");
     fSiliconPMOpticalSurface->SetType(dielectric_metal);
     fSiliconPMOpticalSurface->SetFinish(polished);
     fSiliconPMOpticalSurface->SetModel(glisur);
     fSiliconPMOpticalSurface->SetMaterialPropertiesTable(fSilMPT);
-
-
 
     G4Material *Al=manNist->FindOrBuildMaterial("G4_Al");
 
@@ -1575,8 +1578,6 @@ void nDetConstruction::buildRectangle(){
         new G4LogicalBorderSurface("MylarPX", scint_phys, mylar_physPX, fMylarOpticalSurface);*/
 	}
 	
-	int mylarCopyNumber;
-	int scintCopyNumber;
 	for(int col = 0; col < fNumColumns; col++){
 		for(int row = 0; row < fNumRows; row++){
 			G4ThreeVector center(-fDetectorWidth/2 + (2*col+1)*fMylarThickness + (col+0.5)*cellWidth, -fDetectorThickness/2 + (2*row+1)*fMylarThickness + (row+0.5)*cellHeight, 0);

@@ -215,11 +215,12 @@ private:
     G4Material* fAir;
     G4Material* fTeflon;
     G4Material* fEJ200;
-    G4Material *fEJ299;
+    G4Material* fEJ299;
     G4Material* fGrease;
     G4Material* fSiO2;
     G4Material* fSil;
     G4Material* fMylar;
+    G4Material* fAcrylic;
 
     //Material table properties
     G4MaterialPropertiesTable* fAirMPT;
