@@ -124,6 +124,8 @@ class ParticleSource : public nDetPrimaryGeneratorAction
 	void SetType(const G4String &str);
 
 	void SetBeamType(const G4String &str);
+	
+	void SetBeamspotRadius(const G4double &radius){ beamspot = radius*mm; }
 
 	void SetDetector(const nDetConstruction *det);
 
@@ -139,11 +141,11 @@ class ParticleSource : public nDetPrimaryGeneratorAction
 	
 	void Set252Cf();
 	
-	void SetNeutronBeam(const double &energy_, const double &beamspot_=0);
+	void SetNeutronBeam(const double &energy_);
 	
-	void SetGammaRayBeam(const double &energy_, const double &beamspot_=0);
+	void SetGammaRayBeam(const double &energy_);
 	
-	void SetElectronBeam(const double &energy_, const double &beamspot_=0);
+	void SetElectronBeam(const double &energy_);
 
   private:    
 	ParticleSourceMessenger *fGunMessenger;
@@ -162,6 +164,8 @@ class ParticleSource : public nDetPrimaryGeneratorAction
 	G4ThreeVector unitX;
 	G4ThreeVector unitY;
 	G4ThreeVector unitZ;
+
+	G4RotationMatrix rot;
 
     void InitFunction(){ }
     
@@ -184,7 +188,7 @@ class ParticleSourceMessenger: public G4UImessenger
     
     G4UIdirectory* fDir;
     
-    G4UIcommand* fActionCmd[5];
+    G4UIcommand* fActionCmd[6];
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

@@ -16,6 +16,7 @@
 #include "G4UIcmdWithoutParameter.hh"
 #include "G4UIcmdWith3VectorAndUnit.hh"
 #include "G4UIcmdWith3Vector.hh"
+#include "G4UIcmdWithADouble.hh"
 #include "G4UIcmdWithAString.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -163,7 +164,10 @@ void ParticleSource::GeneratePrimaries(G4Event* anEvent)
 		else{ ranR = ranU; }
 		ranR *= beamspot;
 		
-		//particleGun->SetParticlePosition(G4ThreeVector(ranR*std::cos(ranT), ranR*std::sin(ranT), -offset_));
+		G4ThreeVector rpoint(0, ranR*std::sin(ranT), ranR*std::cos(ranT));
+		
+		rpoint *= rot;
+		particleGun->SetParticlePosition(pos+rpoint);
 	}
 	particleGun->GeneratePrimaryVertex(anEvent);
 }
@@ -179,7 +183,6 @@ void ParticleSource::SetDirection(const G4ThreeVector &d){
 	unitY = G4ThreeVector(0, 1, 0);
 	unitZ = G4ThreeVector(0, 0, 1);
 	
-	G4RotationMatrix rot;
 	rot.rotateX(d.getX()*deg);
 	rot.rotateY(d.getY()*deg);
 	rot.rotateZ(d.getZ()*deg);
@@ -318,20 +321,17 @@ void ParticleSource::Set252Cf(){
 	particleGun->SetParticleDefinition(G4Neutron::NeutronDefinition());
 }
 
-void ParticleSource::SetNeutronBeam(const double &energy_, const double &beamspot_/*=0*/){
-	beamspot = beamspot_;
+void ParticleSource::SetNeutronBeam(const double &energy_){
 	GetNewSource(energy_);
 	particleGun->SetParticleDefinition(G4Neutron::NeutronDefinition());
 }
 
-void ParticleSource::SetGammaRayBeam(const double &energy_, const double &beamspot_/*=0*/){
-	beamspot = beamspot_;
+void ParticleSource::SetGammaRayBeam(const double &energy_){
 	GetNewSource(energy_);
 	particleGun->SetParticleDefinition(G4Gamma::GammaDefinition());
 }
 
-void ParticleSource::SetElectronBeam(const double &energy_, const double &beamspot_/*=0*/){
-	beamspot = beamspot_;
+void ParticleSource::SetElectronBeam(const double &energy_){
 	GetNewSource(energy_);
 	particleGun->SetParticleDefinition(G4Electron::ElectronDefinition());
 }
@@ -351,8 +351,9 @@ ParticleSourceMessenger::ParticleSourceMessenger(ParticleSource* Gun) : G4UImess
 	fActionCmd[0] = new G4UIcmdWithoutParameter("/source/sample",this); // test function
 	fActionCmd[1] = new G4UIcmdWith3VectorAndUnit("/source/position",this); // position of source
 	fActionCmd[2] = new G4UIcmdWith3Vector("/source/direction",this); // direction of source
-	fActionCmd[3] = new G4UIcmdWithAString("/source/type",this); // type of source (iso or directional)
-	fActionCmd[4] = new G4UIcmdWithAString("/source/beam",this); // type of source (iso or directional)
+	fActionCmd[3] = new G4UIcmdWithAString("/source/type",this); // type of source (252Cf, 137Cs, etc)
+	fActionCmd[4] = new G4UIcmdWithAString("/source/beam",this); // type of beam (neutron, gamma, electron)
+	fActionCmd[5] = new G4UIcmdWithADouble("/source/spot",this); // beamspot radius (mm)
 }
 
 ParticleSourceMessenger::~ParticleSourceMessenger()
@@ -372,4 +373,6 @@ void ParticleSourceMessenger::SetNewValue(G4UIcommand* command, G4String newValu
 		fAction->SetType(newValue);
 	else if(command == fActionCmd[4])
 		fAction->SetBeamType(newValue);
+	else if(command == fActionCmd[5])
+		fAction->SetBeamspotRadius(G4UIcommand::ConvertToDouble(newValue));
 }
