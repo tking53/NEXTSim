@@ -349,11 +349,24 @@ ParticleSourceMessenger::ParticleSourceMessenger(ParticleSource* Gun) : G4UImess
 {
 	fDir = new G4UIdirectory("/source/");
 	fActionCmd[0] = new G4UIcmdWithoutParameter("/source/sample",this); // test function
+	fActionCmd[0]->SetGuidance("Test distribution by outputing a random energy");
+	
 	fActionCmd[1] = new G4UIcmdWith3VectorAndUnit("/source/position",this); // position of source
+	fActionCmd[1]->SetGuidance("Set the position of the source in the lab frame");
+	
 	fActionCmd[2] = new G4UIcmdWith3Vector("/source/direction",this); // direction of source
+	fActionCmd[2]->SetGuidance("Set the direction of the source by specifying angles about the x, y, and z axes (in deg)");
+	
 	fActionCmd[3] = new G4UIcmdWithAString("/source/type",this); // type of source (252Cf, 137Cs, etc)
+	fActionCmd[3]->SetGuidance("Set a pre-defined isotropic particle source");
+	((G4UIcmdWithAString*)fActionCmd[3])->SetCandidates("252Cf 137Cs 60Co 133Ba 241Am 90Sr");
+
 	fActionCmd[4] = new G4UIcmdWithAString("/source/beam",this); // type of beam (neutron, gamma, electron)
+	fActionCmd[4]->SetGuidance("Set a pre-defined particle pencil beam");
+	((G4UIcmdWithAString*)fActionCmd[4])->SetCandidates("neutron gamma electron");
+	
 	fActionCmd[5] = new G4UIcmdWithADouble("/source/spot",this); // beamspot radius (mm)
+	fActionCmd[5]->SetGuidance("Set the radius of the beam (in mm)");
 }
 
 ParticleSourceMessenger::~ParticleSourceMessenger()
