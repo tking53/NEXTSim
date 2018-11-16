@@ -363,7 +363,6 @@ ParticleSourceMessenger::ParticleSourceMessenger(ParticleSource* Gun) : G4UImess
 
 	fActionCmd[4] = new G4UIcmdWithAString("/nDet/source/beam",this); // type of beam (neutron, gamma, electron)
 	fActionCmd[4]->SetGuidance("Set a pre-defined particle pencil beam");
-	((G4UIcmdWithAString*)fActionCmd[4])->SetCandidates("neutron gamma electron");
 	
 	fActionCmd[5] = new G4UIcmdWithADouble("/nDet/source/spot",this); // beamspot radius (mm)
 	fActionCmd[5]->SetGuidance("Set the radius of the beam (in mm)");
