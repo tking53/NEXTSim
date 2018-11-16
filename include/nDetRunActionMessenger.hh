@@ -27,7 +27,7 @@ private:
     
     G4UIdirectory *fOutputDir;
     
-    G4UIcmdWithAString *fOutputFileCmd[4];
+    G4UIcmdWithAString *fOutputFileCmd[5];
     
     G4UIcmdWithAnInteger *fOutputFileIndex;
 };

@@ -83,9 +83,11 @@ void primaryTrackInfo::print(){
 nDetRunAction::nDetRunAction(nDetConstruction *det){
     timer = new G4Timer;
     fAnalysisManager= (nDetAnalysisManager*)nDetAnalysisManager::Instance();
+    persistentMode = false;
     outputEnabled = true;
     verbose = false;
     
+    fFile = NULL;
     stacking = NULL;
     tracking = NULL;
     stepping = NULL;
@@ -104,10 +106,13 @@ nDetRunAction::nDetRunAction(nDetConstruction *det){
 
 nDetRunAction::~nDetRunAction()
 {
-    delete timer;
-    fAnalysisManager = 0;
+  delete timer;
+  fAnalysisManager = 0;
     
-    delete fActionMessenger;
+  delete fActionMessenger;
+    
+  // Close the root file, if it's still open.
+  closeRootFile();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -118,13 +123,15 @@ void nDetRunAction::BeginOfRunAction(const G4Run* aRun)
   G4cout << "### Run " << aRun->GetRunID() << " start." << G4endl; 
   timer->Start();
 
-  // open a root file.
-  openRootFile(aRun);
+  // Open a root file.
+  if(!persistentMode || aRun->GetRunID() == 0){ // Close the file and open a new one.
+    if(openRootFile(aRun))
+      G4cout << "### File " << fFile->GetName() << " opened." << G4endl;
+    else
+      G4cout << "### FAILED TO OPEN OUTPUT FILE!\n";
+  }
 
-  if(fFile)
-    G4cout << "### File " << fFile->GetName() << " opened." << G4endl;
-
-    // get RunId
+  // get RunId
   runNb = aRun->GetRunID();
 
   if(fAnalysisManager)
@@ -140,83 +147,74 @@ void nDetRunAction::EndOfRunAction(const G4Run* aRun)
 
   if(fAnalysisManager)
     fAnalysisManager->EndOfRunAction(aRun);
-
-  // Close the root file.
-  if(fFile && IsMaster()){
-    fFile->Close();
-  }
 }
-
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 bool nDetRunAction::openRootFile(const G4Run* aRun)
 {
   if (IsMaster()){
-  
-  if(fFile && fFile->IsOpen()){ // Check if output is open (it shouldn't be).
-  	fFile->Close();
-  }
-  
-  if(filename.empty()){ // Get the system time, and use it to create the filename of root file.
-    time_t rawtime;
-    struct tm * timeinfo;
-    char buffer[180];
-
-    time ( &rawtime );
-    timeinfo = localtime ( &rawtime );
-
-    strftime (buffer,180,"_%H:%M:%S_%a_%b_%d_%Y",timeinfo);
-
-    // Create a root file for the current run
-    char defaultFilename[300];
-    sprintf(defaultFilename, "run_%03d%s.root",aRun->GetRunID(), buffer);
-    filename = std::string(defaultFilename);
+    // Close the output file if it is open.
+    closeRootFile();
     
-    // Create a ROOT file
-    fFile = new TFile(filename.c_str(), "RECREATE", runTitle.c_str());
-    if(!fFile->IsOpen()) {
-      G4cout << " nDetRunAction: ERROR! Failed to open file \"" << filename << "\"!\n";
-      return false;
-    }
-  }
-  else{ // Load new output file.
-    while(true){
-      std::stringstream stream; stream << runIndex++;
-      std::string runID = stream.str();
-    
-      std::string newFilename = filenamePrefix + "-" + std::string(3-runID.length(), '0') + runID + filenameSuffix;
-      if(!overwriteExistingFile){ // Do not overwrite output
-        std::ifstream fCheck(newFilename.c_str());
-        if(fCheck.good()){ // File exists. Start over.
-          if(verbose)
-            std::cout << " nDetRunAction: File \"" << newFilename << "\" already exists.\n";
-          fCheck.close();
-          continue;
-        }
-        fCheck.close();
-        fFile = new TFile(newFilename.c_str(), "CREATE", runTitle.c_str());
-      }
-      else{ // Overwrite output
-        fFile = new TFile(newFilename.c_str(), "RECREATE", runTitle.c_str());
-      }
+    if(filename.empty()){ // Get the system time, and use it to create the filename of root file.
+      time_t rawtime;
+      struct tm * timeinfo;
+      char buffer[180];
+  
+      time ( &rawtime );
+      timeinfo = localtime ( &rawtime );
+  
+      strftime (buffer,180,"_%H:%M:%S_%a_%b_%d_%Y",timeinfo);
+  
+      // Create a root file for the current run
+      char defaultFilename[300];
+      sprintf(defaultFilename, "run_%03d%s.root",aRun->GetRunID(), buffer);
+      filename = std::string(defaultFilename);
+      
+      // Create a ROOT file
+      fFile = new TFile(filename.c_str(), "RECREATE", runTitle.c_str());
       if(!fFile->IsOpen()) {
-        G4cout << " nDetRunAction: ERROR! Failed to open file \"" << newFilename << "\"!\n";
+        G4cout << " nDetRunAction: ERROR! Failed to open file \"" << filename << "\"!\n";
         return false;
       }
-      break;
     }
-  }
+    else{ // Load new output file.
+      while(true){
+        std::stringstream stream; stream << runIndex++;
+        std::string runID = stream.str();
+      
+        std::string newFilename = filenamePrefix + "-" + std::string(3-runID.length(), '0') + runID + filenameSuffix;
+        if(!overwriteExistingFile){ // Do not overwrite output
+          std::ifstream fCheck(newFilename.c_str());
+          if(fCheck.good()){ // File exists. Start over.
+            if(verbose)
+              std::cout << " nDetRunAction: File \"" << newFilename << "\" already exists.\n";
+            fCheck.close();
+            continue;
+          }
+          fCheck.close();
+          fFile = new TFile(newFilename.c_str(), "CREATE", runTitle.c_str());
+        }
+        else{ // Overwrite output
+          fFile = new TFile(newFilename.c_str(), "RECREATE", runTitle.c_str());
+        }
+        if(!fFile->IsOpen()) {
+          G4cout << " nDetRunAction: ERROR! Failed to open file \"" << newFilename << "\"!\n";
+          return false;
+        }
+        break;
+      }
+    }
+  
+    // Create root tree.
+    if(treename.empty()) treename = "data"; //"neutronEvent";
+    fTree = new TTree(treename.c_str(),"Photons produced by thermal neutrons");
 
-  // Create root tree.
-  if(treename.empty()) treename = "neutronEvent";
-  fTree = new TTree(treename.c_str(),"Photons produced by thermal neutrons");
-
-  if(fTree) G4cout << "nDetRunAction::openRootFile()->fTree "<<fTree<< G4endl;
-
-    //fTree->Branch("runNb", &runNb);
+    if(persistentMode) // Run number
+      fTree->Branch("runNb", &runNb);
     //fTree->Branch("eventNb", &eventNb); // This is just equal to the TTree entry number?
-    fTree->Branch("nScatters", &nScatters); // CRT
+    fTree->Branch("nScatters", &nScatters);
 
     fTree->Branch("nEnterPosX",&neutronIncidentPositionX);
     fTree->Branch("nEnterPosY",&neutronIncidentPositionY);
@@ -245,7 +243,7 @@ bool nDetRunAction::openRootFile(const G4Run* aRun)
     fTree->Branch("nEnterTime", &incidentTime);
     fTree->Branch("nTimeInMat", &timeInMaterial);
     fTree->Branch("nDepEnergy", &depEnergy);
-	fTree->Branch("nInitEnergy", &initEnergy); // CRT
+	fTree->Branch("nInitEnergy", &initEnergy);
 	fTree->Branch("nAbsorbed", &nAbsorbed);
 
     fTree->Branch("photonTimes[100]", photonArrivalTimes);
@@ -262,6 +260,17 @@ bool nDetRunAction::openRootFile(const G4Run* aRun)
   }
   return true;
 }//end of open root file...
+
+bool nDetRunAction::closeRootFile(){
+  // Close the root file.
+  if(fFile && IsMaster()){
+    fFile->cd();
+    fTree->Write();
+    fFile->Close();
+    delete fFile;
+    fFile = NULL;
+  }
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 

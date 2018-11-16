@@ -27,6 +27,10 @@ nDetRunActionMessenger::nDetRunActionMessenger(nDetRunAction *action) : fAction(
 	fOutputFileCmd[3] = new G4UIcmdWithAString("/nDet/output/enabled", this);
 	fOutputFileCmd[3]->SetGuidance("Enable or disable output file generation");
 	fOutputFileCmd[3]->SetCandidates("true false");
+
+	fOutputFileCmd[4] = new G4UIcmdWithAString("/nDet/output/persistent", this);
+	fOutputFileCmd[4]->SetGuidance("Enable or disable persistent mode (i.e. to keep the output file open)");
+	fOutputFileCmd[4]->SetCandidates("true false");
 	
 	fOutputFileIndex = new G4UIcmdWithAnInteger("/nDet/output/index", this);
 	fOutputFileIndex->SetGuidance("Sets the run number suffix of the output root file.");
@@ -34,10 +38,9 @@ nDetRunActionMessenger::nDetRunActionMessenger(nDetRunAction *action) : fAction(
 
 nDetRunActionMessenger::~nDetRunActionMessenger() {
 	delete fOutputDir;
-	delete fOutputFileCmd[0];
-	delete fOutputFileCmd[1];
-	delete fOutputFileCmd[2];
-	delete fOutputFileCmd[3];
+	for(int i = 0; i < 5; i++){
+		delete fOutputFileCmd[i];
+	}
 	delete fOutputFileIndex;
 }
 
@@ -51,9 +54,12 @@ void nDetRunActionMessenger::SetNewValue(G4UIcommand *command, G4String newValue
 	if(command == fOutputFileCmd[2]){
 		fAction->setOverwriteOutputFile((newValue == "true") ? true : false);
 	}
-	if(command == fOutputFileCmd[2]){
+	if(command == fOutputFileCmd[3]){
 		fAction->setOutputEnabled((newValue == "true") ? true : false);
-	}	
+	}
+	if(command == fOutputFileCmd[4]){
+		fAction->setPersistentMode((newValue == "true") ? true : false);
+	}
 	if(command == fOutputFileIndex){
 		G4int val = fOutputFileIndex->ConvertToInt(newValue);
 		fAction->setOutputFileIndex(val);

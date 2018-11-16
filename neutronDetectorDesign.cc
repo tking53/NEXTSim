@@ -59,7 +59,7 @@ int main(int argc, char** argv)
   handler.add(optionExt("input", required_argument, NULL, 'i', "<filename>", "Specify an input geant macro."));
   handler.add(optionExt("output", required_argument, NULL, 'o', "<filename>", "Specify the name of the output file."));
   handler.add(optionExt("gui", no_argument, NULL, 'g', "", "Run interactive GUI session."));
-  handler.add(optionExt("tree-name", required_argument, NULL, 't', "<treename>", "Set the output TTree name (default=\"theTree\")."));
+  handler.add(optionExt("tree-name", required_argument, NULL, 't', "<treename>", "Set the output TTree name (default=\"data\")."));
   handler.add(optionExt("verbose", no_argument, NULL, 'V', "", "Toggle verbose mode."));
 
   // Handle user input.

@@ -124,6 +124,8 @@ class nDetRunAction : public G4UserRunAction
 
 	void setOutputTreeName(const std::string &tname){ treename = tname; }
 	
+	void setPersistentMode(const bool &enabled){ persistentMode = enabled; }
+	
 	void setOutputEnabled(const bool &enabled){ outputEnabled = enabled; }
 	
 	void setOutputFileTitle(const std::string &title){ runTitle = title; }	
@@ -145,7 +147,9 @@ class nDetRunAction : public G4UserRunAction
     void finalizeNeutron(const G4Step *step);
 
   private:  // function member
-    bool openRootFile(const G4Run* aRun); 
+    bool openRootFile(const G4Run* aRun);
+    
+    bool closeRootFile();
   
   private:  // data member
     G4Timer* timer;  // able to measure elasped user/system process time.
@@ -160,7 +164,8 @@ class nDetRunAction : public G4UserRunAction
     TTree *fTree; // tree and its branches
     TBranch *fBranch;
     
-    bool defineRootBranch; 
+    bool defineRootBranch;
+    bool persistentMode;
     bool outputEnabled;
     bool verbose;
 
