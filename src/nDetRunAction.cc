@@ -11,6 +11,7 @@
 
 // Selfdefine classes
 #include "nDetRunAction.hh"
+#include "nDetRunActionMessenger.hh"
 #include "nDetStackingAction.hh"
 #include "nDetTrackingAction.hh"
 #include "nDetSteppingAction.hh"
@@ -82,8 +83,21 @@ void primaryTrackInfo::print(){
 nDetRunAction::nDetRunAction(nDetConstruction *det){
     timer = new G4Timer;
     fAnalysisManager= (nDetAnalysisManager*)nDetAnalysisManager::Instance();
+    outputEnabled = true;
     verbose = false;
+    
+    stacking = NULL;
+    tracking = NULL;
+    stepping = NULL;
     detector = det;
+    
+    //create a messenger for this class
+    fActionMessenger = new nDetRunActionMessenger(this); 
+	
+    runTitle = "NExT Geant4 output";
+    runIndex = 1;
+    
+    overwriteExistingFile = false;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -92,6 +106,8 @@ nDetRunAction::~nDetRunAction()
 {
     delete timer;
     fAnalysisManager = 0;
+    
+    delete fActionMessenger;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

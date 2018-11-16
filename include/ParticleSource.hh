@@ -1,5 +1,5 @@
-#ifndef CF_SOURCE_HH
-#define CF_SOURCE_HH
+#ifndef PARTICLE_SOURCE_HH
+#define PARTICLE_SOURCE_HH
 
 #include "G4VUserActionInitialization.hh"
 #include "G4SteppingVerbose.hh"

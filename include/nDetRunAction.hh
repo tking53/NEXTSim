@@ -24,6 +24,7 @@
 class G4Timer;
 class G4Run;
 
+class nDetRunActionMessenger;
 class nDetStackingAction;
 class nDetTrackingAction;
 class nDetSteppingAction;
@@ -119,9 +120,17 @@ class nDetRunAction : public G4UserRunAction
     // clear all the vector for the next event
     void vectorClear();
 
-	void setFilename(const std::string &fname){ filename = fname; }
+	void setOutputFilename(const std::string &fname){ filename = fname; }
 
-	void setTreeName(const std::string &tname){ treename = tname; }
+	void setOutputTreeName(const std::string &tname){ treename = tname; }
+	
+	void setOutputEnabled(const bool &enabled){ outputEnabled = enabled; }
+	
+	void setOutputFileTitle(const std::string &title){ runTitle = title; }	
+
+	void setOutputFileIndex(const G4int &index){ runIndex = index; }
+	
+	void setOverwriteOutputFile(const bool &overwrite){ overwriteExistingFile = overwrite; }
 
 	void setActions(nDetStackingAction *stacking_, nDetTrackingAction *tracking_, nDetSteppingAction *stepping_);
 
@@ -148,9 +157,12 @@ class nDetRunAction : public G4UserRunAction
     TBranch      *fBranch;
     
     bool defineRootBranch; 
+    bool outputEnabled;
     bool verbose;
 
     nDetAnalysisManager *fAnalysisManager;
+    nDetRunActionMessenger *fActionMessenger;
+    
     nDetStackingAction *stacking;
     nDetTrackingAction *tracking;
     nDetSteppingAction *stepping;
@@ -162,6 +174,11 @@ class nDetRunAction : public G4UserRunAction
     
     G4ThreeVector prevDirection;
     G4ThreeVector prevPosition;
+    
+    std::string runTitle;
+    G4int runIndex;
+    
+    bool overwriteExistingFile;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

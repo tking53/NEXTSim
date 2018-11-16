@@ -44,7 +44,7 @@
 #include "nDetAnalysisManager.hh"
 #include "nDetTrackingAction.hh"
 #include "nDetPhysicsList.hh"
-#include "CfSource.hh"
+#include "ParticleSource.hh"
 #include "optionHandler.hh"
 //#include "nDetActionInitialization.hh"
 
@@ -169,9 +169,9 @@ that didn't work... this is horribly deprecated*/
     size_t index = outputFilename.find('.');
     std::string prefix = outputFilename;
     if(index != std::string::npos) prefix = outputFilename.substr(0, index);
-    runAction->setFilename((prefix+"_m.root").c_str());
+    runAction->setOutputFilename((prefix+"_m.root").c_str());
   }
-  if(!outputTreeName.empty()) runAction->setTreeName(outputTreeName);
+  if(!outputTreeName.empty()) runAction->setOutputTreeName(outputTreeName);
   if(verboseMode) runAction->toggleVerboseMode();
   runManager->SetUserAction( runAction );
 
