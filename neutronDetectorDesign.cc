@@ -60,7 +60,6 @@ int main(int argc, char** argv)
   handler.add(optionExt("output", required_argument, NULL, 'o', "<filename>", "Specify the name of the output file."));
   handler.add(optionExt("gui", no_argument, NULL, 'g', "", "Run interactive GUI session."));
   handler.add(optionExt("tree-name", required_argument, NULL, 't', "<treename>", "Set the output TTree name (default=\"theTree\")."));
-  handler.add(optionExt("252Cf", no_argument, NULL, 0x0, "", "Use 252Cf energy spectrum (Mannhart)."));
   handler.add(optionExt("spectral", required_argument, NULL, 0x0, "<filename>", "Enable PMT spectral response."));
   handler.add(optionExt("verbose", no_argument, NULL, 'V', "", "Toggle verbose mode."));
   handler.add(optionExt("run-index", required_argument, NULL, 0x0, "<ID>", "Specify starting filename suffix number (default=1)."));
@@ -85,21 +84,17 @@ int main(int argc, char** argv)
   if(handler.getOption(3)->active) // Set output TTree name
     outputTreeName = handler.getOption(3)->argument;
 
-  bool useCaliforniumSpectrum = false;
-  if(handler.getOption(4)->active) // Use 252Cf energy spectrum
-    useCaliforniumSpectrum = true;
-
   std::string specResponseFilename;
-  if(handler.getOption(5)->active) // Use PMT spectral response
-    specResponseFilename = handler.getOption(5)->argument;
+  if(handler.getOption(4)->active) // Use PMT spectral response
+    specResponseFilename = handler.getOption(4)->argument;
 
   bool verboseMode = false;
-  if(handler.getOption(6)->active) // Toggle verbose flag
+  if(handler.getOption(5)->active) // Toggle verbose flag
     verboseMode = true;
 
   G4int startRunID = -1;
-  if(handler.getOption(7)->active) // Specify starting filename prefix number
-    startRunID = strtol(handler.getOption(7)->argument.c_str(), NULL, 10);
+  if(handler.getOption(6)->active) // Specify starting filename prefix number
+    startRunID = strtol(handler.getOption(6)->argument.c_str(), NULL, 10);
 
   if(batchMode && inputFilename.empty()){
   	std::cout << " ERROR: Input macro filename not specified!\n";
@@ -185,12 +180,7 @@ that didn't work... this is horribly deprecated*/
   if(verboseMode) runAction->toggleVerboseMode();
   runManager->SetUserAction( runAction );
 
-  G4VUserPrimaryGeneratorAction* primaryGeneratorAction;
-  
-  if(!useCaliforniumSpectrum) // Standard particle generator
-    primaryGeneratorAction = new nDetPrimaryGeneratorAction(runAction);
-  else // 252Cf source spectrum (CRT)
-    primaryGeneratorAction = new ParticleSource(runAction, detector);
+  G4VUserPrimaryGeneratorAction* primaryGeneratorAction = new ParticleSource(runAction, detector);
   runManager->SetUserAction( primaryGeneratorAction );
   
   nDetEventAction* eventAction = new nDetEventAction(runAction);
