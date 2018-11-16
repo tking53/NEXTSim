@@ -195,6 +195,9 @@ that didn't work... this is horribly deprecated*/
 
   if (!batchMode){   // Define UI session for interactive mode
 #ifdef G4UI_USE
+      // Set root output to a single output file.
+      runAction->setPersistentMode(true);
+
       G4UIExecutive * ui;
       ui = new G4UIExecutive(argc, argv, "");
       UImanager->ApplyCommand("/vis/open OGL");

@@ -348,6 +348,8 @@ Source *ParticleSource::GetNewSource(const double &E_/*=-1*/){
 ParticleSourceMessenger::ParticleSourceMessenger(ParticleSource* Gun) : G4UImessenger(), fAction(Gun), fDir(0)
 {
 	fDir = new G4UIdirectory("/nDet/source/");
+	fDir->SetGuidance("Particle Source Control");
+	
 	fActionCmd[0] = new G4UIcmdWithoutParameter("/nDet/source/sample",this); // test function
 	fActionCmd[0]->SetGuidance("Test distribution by outputing a random energy");
 	
