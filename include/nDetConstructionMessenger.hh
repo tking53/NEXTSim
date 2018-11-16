@@ -31,21 +31,22 @@ virtual void SetNewValue(G4UIcommand*,G4String);
 
 private:
 
-    nDetConstruction* fDetector;
-    G4UIdirectory*    fDetectorDir;
+    nDetConstruction *fDetector;
+    G4UIdirectory    *fDetectorDir;
 
-    G4UIcmdWithAString* fGeometryCmd;
-    G4UIcmdWithADouble *fSiliconDimensionsCmd;
-    G4UIcmdWithADouble *fDetectorLengthCmd;
-    G4UIcmdWithADouble *fDetectorWidthCmd;
-    G4UIcmdWithADouble *fDetectorThicknessCmd;
-    G4UIcmdWithADouble *fTrapezoidLengthCmd;
-    G4UIcmdWithADouble *fMylarThicknessCmd;
+    G4UIcmdWithAString   *fGeometryCmd;
+    G4UIcmdWithAString   *fSpectralFilename;
+    G4UIcmdWithADouble   *fSiliconDimensionsCmd;
+    G4UIcmdWithADouble   *fDetectorLengthCmd;
+    G4UIcmdWithADouble   *fDetectorWidthCmd;
+    G4UIcmdWithADouble   *fDetectorThicknessCmd;
+    G4UIcmdWithADouble   *fTrapezoidLengthCmd;
+    G4UIcmdWithADouble   *fMylarThicknessCmd;
     G4UIcmdWithAnInteger *fNumberColumnsCmd;
     G4UIcmdWithAnInteger *fNumberRowsCmd;
     G4UIcmdWithAnInteger *fNumberColumnsPmtCmd;
     G4UIcmdWithAnInteger *fNumberRowsPmtCmd;
-    G4UIcommand*        fUpdateCmd;
+    G4UIcommand          *fUpdateCmd;
 
 };
 

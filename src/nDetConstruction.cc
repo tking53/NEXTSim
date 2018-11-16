@@ -153,11 +153,16 @@ G4VPhysicalVolume* nDetConstruction::ConstructDetector(){
 void nDetConstruction::setSegmentedPmt(const short &col_, const short &row_, const double &width_, const double &height_){
   center[0].setSegmentedPmt(col_, row_, width_, height_);
   center[1].setSegmentedPmt(col_, row_, width_, height_);
-  std::cout << " nDetSteppingAction: Setting segmented PMTs with WxH=(" << width_ << " x " << height_ << ") and " << col_ << " columns and " << row_ << " rows.\n";
+  std::cout << " nDetConstruction: Setting segmented PMTs with WxH=(" << width_ << " x " << height_ << ") and " << col_ << " columns and " << row_ << " rows.\n";
 }
 
 bool nDetConstruction::setPmtSpectralResponse(const char *fname){
-  return (center[0].loadSpectralResponse(fname) && center[1].loadSpectralResponse(fname));
+  bool retval = (center[0].loadSpectralResponse(fname) && center[1].loadSpectralResponse(fname));
+  if(retval)
+    std::cout << " nDetConstruction: Successfully loaded PMT spectral response function\n";
+  else
+    std::cout << " nDetConstruction: ERROR! Failed to load PMT spectral response from \"" << fname << "\"!\n";
+  return retval;
 }
 
 void nDetConstruction::buildExpHall()

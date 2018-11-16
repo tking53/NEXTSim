@@ -60,7 +60,6 @@ int main(int argc, char** argv)
   handler.add(optionExt("output", required_argument, NULL, 'o', "<filename>", "Specify the name of the output file."));
   handler.add(optionExt("gui", no_argument, NULL, 'g', "", "Run interactive GUI session."));
   handler.add(optionExt("tree-name", required_argument, NULL, 't', "<treename>", "Set the output TTree name (default=\"theTree\")."));
-  handler.add(optionExt("spectral", required_argument, NULL, 0x0, "<filename>", "Enable PMT spectral response."));
   handler.add(optionExt("verbose", no_argument, NULL, 'V', "", "Toggle verbose mode."));
   handler.add(optionExt("run-index", required_argument, NULL, 0x0, "<ID>", "Specify starting filename suffix number (default=1)."));
 
@@ -84,17 +83,13 @@ int main(int argc, char** argv)
   if(handler.getOption(3)->active) // Set output TTree name
     outputTreeName = handler.getOption(3)->argument;
 
-  std::string specResponseFilename;
-  if(handler.getOption(4)->active) // Use PMT spectral response
-    specResponseFilename = handler.getOption(4)->argument;
-
   bool verboseMode = false;
-  if(handler.getOption(5)->active) // Toggle verbose flag
+  if(handler.getOption(4)->active) // Toggle verbose flag
     verboseMode = true;
 
   G4int startRunID = -1;
-  if(handler.getOption(6)->active) // Specify starting filename prefix number
-    startRunID = strtol(handler.getOption(6)->argument.c_str(), NULL, 10);
+  if(handler.getOption(5)->active) // Specify starting filename prefix number
+    startRunID = strtol(handler.getOption(5)->argument.c_str(), NULL, 10);
 
   if(batchMode && inputFilename.empty()){
   	std::cout << " ERROR: Input macro filename not specified!\n";
@@ -189,10 +184,6 @@ that didn't work... this is horribly deprecated*/
   nDetSteppingAction* steppingAction = new nDetSteppingAction(detector, runAction, eventAction);
   runManager->SetUserAction(steppingAction);
 
-  if(!specResponseFilename.empty()){ // Load PMT spectral response.
-    detector->setPmtSpectralResponse(specResponseFilename.c_str());
-  }
-  
   nDetStackingAction* stackingAction = new nDetStackingAction(runAction);
   runManager->SetUserAction(stackingAction);
 

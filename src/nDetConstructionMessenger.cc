@@ -25,6 +25,10 @@ nDetConstructionMessenger::nDetConstructionMessenger(nDetConstruction* detector)
     fGeometryCmd->SetDefaultValue("disk");
     fGeometryCmd->AvailableForStates(G4State_PreInit,G4State_Idle);
 
+    fSpectralFilename = new G4UIcmdWithAString("/nDet/detector/setSpectralResponse",this);
+    fSpectralFilename->SetGuidance("Load PMT spectral response from a root file");
+    fSpectralFilename->SetGuidance("Input file MUST contain a TGraph named \"spec\"");
+
     fSiliconDimensionsCmd=new G4UIcmdWithADouble("/nDet/detector/setSiPMdimensions",this);
     fSiliconDimensionsCmd->SetGuidance("Defines the size of the SiPMs in mm");
 
@@ -47,16 +51,21 @@ nDetConstructionMessenger::nDetConstructionMessenger(nDetConstruction* detector)
     fUpdateCmd->SetGuidance("Updates the detector Geometry");
 
     fNumberColumnsCmd = new G4UIcmdWithAnInteger("/nDet/detector/setNumColumns", this);
+    fNumberColumnsCmd->SetGuidance("Set the number of columns in a segmented scintillator.");
     fNumberRowsCmd = new G4UIcmdWithAnInteger("/nDet/detector/setNumRows", this);
+    fNumberRowsCmd->SetGuidance("Set the number of rows in a segmented scintillator.");
     
     fNumberColumnsPmtCmd = new G4UIcmdWithAnInteger("/nDet/detector/setPmtColumns", this);
+    fNumberColumnsPmtCmd->SetGuidance("Set the number of anode columns in a segmented PSPMT.");
     fNumberRowsPmtCmd = new G4UIcmdWithAnInteger("/nDet/detector/setPmtRows", this);
+    fNumberRowsPmtCmd->SetGuidance("Set the number of anode rows in a segmented PSPMT.");
 }
 
 nDetConstructionMessenger::~nDetConstructionMessenger(){
     delete fDetectorDir;
     delete fSiliconDimensionsCmd;
     delete fGeometryCmd;
+    delete fSpectralFilename;
     delete fDetectorWidthCmd;
     delete fDetectorLengthCmd;
     delete fDetectorThicknessCmd;
@@ -74,6 +83,10 @@ void nDetConstructionMessenger::SetNewValue(G4UIcommand* command,G4String newVal
     if(command == fGeometryCmd){
         fDetector->SetGeometry(newValue);
     }
+
+	if(command == fSpectralFilename){
+		fDetector->setPmtSpectralResponse(newValue.c_str());
+	}
 
     if(command == fSiliconDimensionsCmd) {
         G4double dimensions=fSiliconDimensionsCmd->ConvertToDouble(newValue);
