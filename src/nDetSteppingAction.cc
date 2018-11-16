@@ -68,8 +68,8 @@ void nDetSteppingAction::UserSteppingAction(const G4Step* aStep)
       runAction->scatterNeutron(aStep);
   }
   else if(aStep->GetTrack()->GetTrackID() == 1){ // Enter the material.
-    if(!aStep->GetPostStepPoint()->GetMaterial()) // Unknown event
-      std::cout << " STRT id=" << aStep->GetTrack()->GetTrackID() << " from " << aStep->GetPreStepPoint()->GetMaterial()->GetName() << " into NONE!!!\n";
+    //if(!aStep->GetPostStepPoint()->GetMaterial()) // Unknown event (scatter in air)
+      //std::cout << " STRT id=" << aStep->GetTrack()->GetTrackID() << " from " << aStep->GetPreStepPoint()->GetMaterial()->GetName() << " into NONE!!!\n";
     runAction->initializeNeutron(aStep);
     neutronTrack = true;
   }
@@ -88,6 +88,17 @@ void nDetSteppingAction::UserSteppingAction(const G4Step* aStep)
   nDetUserEventInformation *theEventInfo;
   theEventInfo = static_cast<nDetUserEventInformation*>(G4EventManager::GetEventManager()->GetUserInformation());
 
+  G4OpBoundaryProcessStatus boundaryStatus=Undefined;
+  G4OpBoundaryProcess* boundary=NULL;
+
+  // Simplifying this process to try and alleviate problems (CRT)
+  if (aStep->GetPostStepPoint()->GetStepStatus() == fGeomBoundary) {
+      G4String vName = aStep->GetPostStepPoint()->GetPhysicalVolume()->GetName();
+      //if(vName != "Mylar")
+         // std::cout << "NAME=" << vName << std::endl;
+      if(vName.find("psSiPM"))
+          detector->AddDetectedPhoton(aStep);
+  }
 
   /*if( (name.find("EJ") != name.npos ) && aStep->GetTotalEnergyDeposit() > 0 ){
     G4double edep = aStep->GetTotalEnergyDeposit();
@@ -104,7 +115,7 @@ void nDetSteppingAction::UserSteppingAction(const G4Step* aStep)
   }*/
 
   // collect detected photons in the siPM
-  G4OpBoundaryProcessStatus boundaryStatus=Undefined;
+  /*G4OpBoundaryProcessStatus boundaryStatus=Undefined;
   G4OpBoundaryProcess* boundary=NULL;
   if(!boundary) {
       G4ProcessManager *pm
@@ -131,7 +142,6 @@ void nDetSteppingAction::UserSteppingAction(const G4Step* aStep)
                       G4SDManager *SDman = G4SDManager::GetSDMpointer();
                       SiPMSD *sipmSD = (SiPMSD *) SDman->FindSensitiveDetector("/theSiPMSD");
                       if (sipmSD)sipmSD->ProcessHits_constStep(aStep, NULL);
-
                       G4String vName = aStep->GetPostStepPoint()->GetPhysicalVolume()->GetName();
                       theTrackingInfo->IncDetections();
                       theEventInfo->IncDetections();
@@ -165,7 +175,7 @@ void nDetSteppingAction::UserSteppingAction(const G4Step* aStep)
               }
           }
       }
-  }
+  }*/
 }
 
 void nDetSteppingAction::Reset(){
