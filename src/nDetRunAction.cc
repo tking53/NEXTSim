@@ -123,12 +123,13 @@ void nDetRunAction::BeginOfRunAction(const G4Run* aRun)
   G4cout << "### Run " << aRun->GetRunID() << " start." << G4endl; 
   timer->Start();
 
-  // Open a root file.
-  if(!persistentMode || aRun->GetRunID() == 0){ // Close the file and open a new one.
-    if(openRootFile(aRun))
-      G4cout << "### File " << fFile->GetName() << " opened." << G4endl;
-    else
-      G4cout << "### FAILED TO OPEN OUTPUT FILE!\n";
+  if(outputEnabled){ // Open a root file.
+    if(!persistentMode || aRun->GetRunID() == 0){ // Close the file and open a new one.
+      if(openRootFile(aRun))
+        G4cout << "### File " << fFile->GetName() << " opened." << G4endl;
+      else
+        G4cout << "### FAILED TO OPEN OUTPUT FILE!\n";
+    }
   }
 
   // get RunId
@@ -276,6 +277,8 @@ bool nDetRunAction::closeRootFile(){
 
 bool nDetRunAction::fillBranch()
 {
+  if(!outputEnabled) return false;
+
   // The first recoil particle ID is equal to 2
   for(short i = nScatters+1; i >= 2; i--)
     Nphotons.push_back(counter->getPhotonCount(i));
@@ -309,7 +312,7 @@ bool nDetRunAction::fillBranch()
     fTree->Fill();// fill the tree
   //nEvent++;
 
-  return false; // in case of success
+  return true;
 }//end of fill events method
 
 void nDetRunAction::vectorClear(){
