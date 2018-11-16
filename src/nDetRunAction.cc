@@ -114,7 +114,6 @@ nDetRunAction::~nDetRunAction()
 
 void nDetRunAction::BeginOfRunAction(const G4Run* aRun)
 {
-
   G4cout << "nDetRunAction::BeginOfRunAction()->"<< G4endl;
   G4cout << "### Run " << aRun->GetRunID() << " start." << G4endl; 
   timer->Start();
@@ -122,16 +121,14 @@ void nDetRunAction::BeginOfRunAction(const G4Run* aRun)
   // open a root file.
   openRootFile(aRun);
 
-    if(fFile)
+  if(fFile)
     G4cout << "### File " << fFile->GetName() << " opened." << G4endl;
 
     // get RunId
   runNb = aRun->GetRunID();
 
-
-
- if (fAnalysisManager)
-     fAnalysisManager->BeginOfRunAction(aRun);
+  if(fAnalysisManager)
+    fAnalysisManager->BeginOfRunAction(aRun);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -139,27 +136,15 @@ void nDetRunAction::BeginOfRunAction(const G4Run* aRun)
 void nDetRunAction::EndOfRunAction(const G4Run* aRun)
 {   
   timer->Stop();
-  G4cout << "number of event = " << aRun->GetNumberOfEvent() 
-         << " " << *timer << G4endl;
+  G4cout << "number of event = " << aRun->GetNumberOfEvent() << " " << *timer << G4endl;
 
+  if(fAnalysisManager)
+    fAnalysisManager->EndOfRunAction(aRun);
 
-    if (fAnalysisManager)
-        fAnalysisManager->EndOfRunAction(aRun);
-
-
-    // close the root file.
-    //fFile->cd();
-  if(fFile){
-
-    if (IsMaster()){
-        fFile->Write();
-        fFile->Close();
-        G4cout << "*** " << filename << " is created." << G4endl;
-    }
+  // Close the root file.
+  if(fFile && IsMaster()){
+    fFile->Close();
   }
-  else
-    G4cout << "*** No output file created." << G4endl;
-
 }
 
 
@@ -168,13 +153,12 @@ void nDetRunAction::EndOfRunAction(const G4Run* aRun)
 bool nDetRunAction::openRootFile(const G4Run* aRun)
 {
   if (IsMaster()){
-
-  //The file is saved in the ./output/ folder and
-  //this file is now becoming the current directory.
-  //and then create a ROOT tree and branches
-
-  // get the system time, and use it to create the filename of root file.
-  if(filename.empty()){
+  
+  if(fFile && fFile->IsOpen()){ // Check if output is open (it shouldn't be).
+  	fFile->Close();
+  }
+  
+  if(filename.empty()){ // Get the system time, and use it to create the filename of root file.
     time_t rawtime;
     struct tm * timeinfo;
     char buffer[180];
@@ -184,42 +168,47 @@ bool nDetRunAction::openRootFile(const G4Run* aRun)
 
     strftime (buffer,180,"_%H:%M:%S_%a_%b_%d_%Y",timeinfo);
 
-    // create a root file for the current run
+    // Create a root file for the current run
     char defaultFilename[300];
     sprintf(defaultFilename, "run_%03d%s.root",aRun->GetRunID(), buffer);
     filename = std::string(defaultFilename);
+    
+    // Create a ROOT file
+    fFile = new TFile(filename.c_str(), "RECREATE", runTitle.c_str());
+    if(!fFile->IsOpen()) {
+      G4cout << " nDetRunAction: ERROR! Failed to open file \"" << filename << "\"!\n";
+      return false;
+    }
+  }
+  else{ // Load new output file.
+    while(true){
+      std::stringstream stream; stream << runIndex++;
+      std::string runID = stream.str();
+    
+      std::string newFilename = filenamePrefix + "-" + std::string(3-runID.length(), '0') + runID + filenameSuffix;
+      if(!overwriteExistingFile){ // Do not overwrite output
+        std::ifstream fCheck(newFilename.c_str());
+        if(fCheck.good()){ // File exists. Start over.
+          if(verbose)
+            std::cout << " nDetRunAction: File \"" << newFilename << "\" already exists.\n";
+          fCheck.close();
+          continue;
+        }
+        fCheck.close();
+        fFile = new TFile(newFilename.c_str(), "CREATE", runTitle.c_str());
+      }
+      else{ // Overwrite output
+        fFile = new TFile(newFilename.c_str(), "RECREATE", runTitle.c_str());
+      }
+      if(!fFile->IsOpen()) {
+        G4cout << " nDetRunAction: ERROR! Failed to open file \"" << newFilename << "\"!\n";
+        return false;
+      }
+      break;
+    }
   }
 
-  std::string prefix(filename);
-  std::string suffix("");
-  size_t index = filename.find_last_of('.');
-  if(index != std::string::npos){
-  	prefix = filename.substr(0, index);
-  	suffix = filename.substr(index);
-  }
-
-  std::cout << " prefix=" << prefix << ", suffix=" << suffix << std::endl;
-
-  std::stringstream stream; stream << aRun->GetRunID()+1;
-  std::string runID = stream.str();
-  
-  std::string newFilename = prefix + "-" + std::string(3-runID.length(), '0') + runID + suffix;
-  std::cout << " newFilename=" << newFilename << std::endl;
-
-  //create a ROOT file
-  fFile = new TFile(newFilename.c_str(),"RECREATE","ROOT file for high resolution neutron detector simulation");
-
-  if (fFile->IsZombie()) {
-      G4cout << "Error opening file" << G4endl;
-      //exit(-1);
-  }
-  else{
-      G4cout << "File Opened!!" << G4endl;
-  }
-
-  //create root tree
-  //fFile->cd();
-
+  // Create root tree.
   if(treename.empty()) treename = "neutronEvent";
   fTree = new TTree(treename.c_str(),"Photons produced by thermal neutrons");
 
@@ -271,7 +260,7 @@ bool nDetRunAction::openRootFile(const G4Run* aRun)
 
     defineRootBranch = true;
   }
-  return false; // in case of success.
+  return true;
 }//end of open root file...
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -342,6 +331,22 @@ void nDetRunAction::vectorClear(){
   stepping->Reset();
 }
 
+void nDetRunAction::setOutputFilename(const std::string &fname){
+  filename = fname;
+  filenamePrefix = filename;
+  filenameSuffix = "";
+  size_t index = filename.find_last_of('.');
+  if(index != std::string::npos){
+  	filenamePrefix = filename.substr(0, index);
+  	filenameSuffix = filename.substr(index);
+  }
+  runIndex = 1;
+  if(verbose){
+	std::cout << " Output filename prefix=" << filenamePrefix << ", suffix=" << filenameSuffix << std::endl;
+	std::cout << " Reset output filename run counter to 1\n";
+  }
+}
+
 void nDetRunAction::setActions(nDetStackingAction *stacking_, nDetTrackingAction *tracking_, nDetSteppingAction *stepping_){
   stacking = stacking_;
   tracking = tracking_;
@@ -371,7 +376,7 @@ void nDetRunAction::scatterEvent(const G4Track *track){
   if(nScatters++ == 0){ // First scatter event (CAREFUL! These are in reverse order).
     if(primaryTracks.size() < 2){
       if(verbose){
-        std::cout << " Warning: Expectd at least two events in primaryTracks, but primaryTracks.size()=" << primaryTracks.size() << std::endl;
+        std::cout << " Warning: Expected at least two events in primaryTracks, but primaryTracks.size()=" << primaryTracks.size() << std::endl;
         priTrack->print();
       }
       return;

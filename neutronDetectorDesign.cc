@@ -61,7 +61,6 @@ int main(int argc, char** argv)
   handler.add(optionExt("gui", no_argument, NULL, 'g', "", "Run interactive GUI session."));
   handler.add(optionExt("tree-name", required_argument, NULL, 't', "<treename>", "Set the output TTree name (default=\"theTree\")."));
   handler.add(optionExt("verbose", no_argument, NULL, 'V', "", "Toggle verbose mode."));
-  handler.add(optionExt("run-index", required_argument, NULL, 0x0, "<ID>", "Specify starting filename suffix number (default=1)."));
 
   // Handle user input.
   if(!handler.setup(argc, argv))
@@ -87,10 +86,6 @@ int main(int argc, char** argv)
   if(handler.getOption(4)->active) // Toggle verbose flag
     verboseMode = true;
 
-  G4int startRunID = -1;
-  if(handler.getOption(5)->active) // Specify starting filename prefix number
-    startRunID = strtol(handler.getOption(5)->argument.c_str(), NULL, 10);
-
   if(batchMode && inputFilename.empty()){
   	std::cout << " ERROR: Input macro filename not specified!\n";
   	return 1;
@@ -112,10 +107,6 @@ int main(int argc, char** argv)
   runManager->SetNumberOfThreads(G4Threading::G4GetNumberOfCores());
 #else
   G4RunManager* runManager = new G4RunManager;
-  if(startRunID > 0){
-    std::cout << " Setting start run file index to " << startRunID << std::endl;
-    runManager->SetRunIDCounter(startRunID-1);
-  }
 #endif
 
   // set mandatory initialization classes

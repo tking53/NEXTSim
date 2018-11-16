@@ -120,7 +120,7 @@ class nDetRunAction : public G4UserRunAction
     // clear all the vector for the next event
     void vectorClear();
 
-	void setOutputFilename(const std::string &fname){ filename = fname; }
+	void setOutputFilename(const std::string &fname);
 
 	void setOutputTreeName(const std::string &tname){ treename = tname; }
 	
@@ -152,9 +152,13 @@ class nDetRunAction : public G4UserRunAction
 
     std::string filename;
     std::string treename;
-    TFile        *fFile;    // define root file
-    TTree        *fTree;    // tree and its branches
-    TBranch      *fBranch;
+    
+    std::string filenamePrefix;
+    std::string filenameSuffix;
+    
+    TFile *fFile; // define root file
+    TTree *fTree; // tree and its branches
+    TBranch *fBranch;
     
     bool defineRootBranch; 
     bool outputEnabled;
