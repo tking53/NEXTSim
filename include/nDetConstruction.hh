@@ -266,7 +266,7 @@ private:
     void DefineMaterials();
 
 
-    void buildSiPMs();
+    void buildSiPMs(const G4double &zOffset=0);
 
 
 };

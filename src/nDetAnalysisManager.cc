@@ -263,10 +263,10 @@ void nDetAnalysisManager::BeginOfEventAction(const G4Event *anEvent) {
 
     G4SDManager *man=G4SDManager::GetSDMpointer();
 
-    if(fScintCollectionID<0)
+    /*if(fScintCollectionID<0)
         fScintCollectionID=man->GetCollectionID("SciCollection");
     if(fSiPMCollectionID<0)
-        fSiPMCollectionID=man->GetCollectionID("SiPMCollection");
+        fSiPMCollectionID=man->GetCollectionID("SiPMCollection");*/
     fEventNb=anEvent->GetEventID();
 
 
