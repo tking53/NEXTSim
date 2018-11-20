@@ -1396,7 +1396,7 @@ void nDetConstruction::UpdateGeometry(){
     G4RunManager::GetRunManager()->ReinitializeGeometry();
 
     if(PmtIsSegmented())
-      setSegmentedPmt(fNumColumnsPmt, fNumRowsPmt, fDetectorWidth, fDetectorThickness);
+      setSegmentedPmt(fNumColumnsPmt, fNumRowsPmt, SiPM_dimension*2, SiPM_dimension*2);
 }
 
 void nDetConstruction::buildEllipse2() {
@@ -1512,7 +1512,7 @@ void nDetConstruction::buildRectangle(){
 
     G4Box *theRectangle = new G4Box("rectangle", fDetectorWidth/2, fDetectorThickness/2, fDetectorLength/2);
 
-	G4Box *assembly = new G4Box("assembly", fDetectorWidth/2+fMylarThickness*2, fDetectorThickness/2+fMylarThickness*2, assemblyLength/2);
+	G4Box *assembly = new G4Box("assembly", fDetectorWidth/2, fDetectorThickness/2, assemblyLength/2);
     assembly_logV = new G4LogicalVolume(assembly, fMylar, "assembly_logV");
     G4VisAttributes* assembly_VisAtt = new G4VisAttributes();
     assembly_VisAtt->SetVisibility(false);
@@ -1539,6 +1539,7 @@ void nDetConstruction::buildRectangle(){
 
     G4Box *mylarCellBoxTop, *mylarCellBoxSide;
     G4LogicalVolume *mylarCellLogTop, *mylarCellLogSide;
+    G4PVPlacement *cellMylarWrap[4];
 
     //Building the Mylar covers
     if(fMylarThickness > 0){
@@ -1561,25 +1562,24 @@ void nDetConstruction::buildRectangle(){
 		mylarCellLogSide->SetVisAttributes(mylar_VisAtt);
     
     	// Top layer (+Y)
-	    G4ThreeVector position(0, fDetectorThickness/2 - fMylarThickness/2, 0);
-	    G4PVPlacement *mylar_physPY = new G4PVPlacement(0, position, mylarLogTop, "Mylar", assembly_logV, true, 0, fCheckOverlaps);
+	    /*G4ThreeVector position(0, fDetectorThickness/2 - fMylarThickness/2, 0);
+	    mylar_phys = new G4PVPlacement(0, position, mylarLogTop, "Mylar", assembly_logV, true, 0, fCheckOverlaps);
+	    new G4LogicalBorderSurface("Mylar", totalDetector_physVol, mylar_phys, fMylarOpticalSurface);
 
 	    // Bottom layer (-Y)
 	    position *= -1;
-	    G4PVPlacement *mylar_physNY = new G4PVPlacement(0, position, mylarLogTop, "Mylar", assembly_logV, true, 0, fCheckOverlaps);
+	    mylar_phys = new G4PVPlacement(0, position, mylarLogTop, "Mylar", assembly_logV, true, 0, fCheckOverlaps);
+	    new G4LogicalBorderSurface("Mylar", totalDetector_physVol, mylar_phys, fMylarOpticalSurface);
 
 		// -X layer
 		position = G4ThreeVector(-fDetectorWidth/2 + fMylarThickness/2, 0, 0);
-	    G4PVPlacement *mylar_physNX = new G4PVPlacement(0, position, mylarLogSide, "Mylar", assembly_logV, true, 0, fCheckOverlaps);
+	    mylar_phys = new G4PVPlacement(0, position, mylarLogSide, "Mylar", assembly_logV, true, 0, fCheckOverlaps);
+	    new G4LogicalBorderSurface("Mylar", totalDetector_physVol, mylar_phys, fMylarOpticalSurface);
 	    
 		// +X layer
 		position *= -1;
-	    G4PVPlacement *mylar_physPX = new G4PVPlacement(0, position, mylarLogSide, "Mylar", assembly_logV, true, 0, fCheckOverlaps);
-
-        /*new G4LogicalBorderSurface("MylarPY", scint_phys, mylar_physPY, fMylarOpticalSurface);
-        new G4LogicalBorderSurface("MylarNY", scint_phys, mylar_physNY, fMylarOpticalSurface);
-        new G4LogicalBorderSurface("MylarNX", scint_phys, mylar_physNX, fMylarOpticalSurface);
-        new G4LogicalBorderSurface("MylarPX", scint_phys, mylar_physPX, fMylarOpticalSurface);*/
+	    mylar_phys = new G4PVPlacement(0, position, mylarLogSide, "Mylar", assembly_logV, true, 0, fCheckOverlaps);
+	    new G4LogicalBorderSurface("Mylar", totalDetector_physVol, mylar_phys, fMylarOpticalSurface);*/
 	}
 	
 	for(int col = 0; col < fNumColumns; col++){
@@ -1587,13 +1587,15 @@ void nDetConstruction::buildRectangle(){
 			G4ThreeVector center(-fDetectorWidth/2 + (2*col+1)*fMylarThickness + (col+0.5)*cellWidth, -fDetectorThickness/2 + (2*row+1)*fMylarThickness + (row+0.5)*cellHeight, 0);
 		
 			// The physical scintillator bar
-			new G4PVPlacement(0, center, ej200_logV, "Scint", assembly_logV, 0, col*fNumRows+row+1, fCheckOverlaps); // Copy numbers (segment IDs), indexed from 1
+			G4PVPlacement *cellPhysical = new G4PVPlacement(0, center, ej200_logV, "Scint", assembly_logV, 0, col*fNumRows+row+1, fCheckOverlaps); // Copy numbers (segment IDs), indexed from 1
 		
 			if(fMylarThickness > 0){ // Wrap the bar in mylar
-				new G4PVPlacement(0, G4ThreeVector(center.getX(), center.getY() + cellHeight/2 + fMylarThickness/2, 0), mylarCellLogTop, "Mylar", assembly_logV, true, 0, fCheckOverlaps); // Top layer (+Y)
-				new G4PVPlacement(0, G4ThreeVector(center.getX(), center.getY() - cellHeight/2 - fMylarThickness/2, 0), mylarCellLogTop, "Mylar", assembly_logV, true, 0, fCheckOverlaps); // Bottom layer (-Y)
-				new G4PVPlacement(0, G4ThreeVector(center.getX() - cellWidth/2 - fMylarThickness/2, center.getY(), 0), mylarCellLogSide, "Mylar", assembly_logV, true, 0, fCheckOverlaps); // -X layer
-				new G4PVPlacement(0, G4ThreeVector(center.getX() + cellWidth/2 + fMylarThickness/2, center.getY(), 0), mylarCellLogSide, "Mylar", assembly_logV, true, 0, fCheckOverlaps); // +X layer
+				cellMylarWrap[0] = new G4PVPlacement(0, G4ThreeVector(center.getX(), center.getY() + cellHeight/2 + fMylarThickness/2, 0), mylarCellLogTop, "Mylar", assembly_logV, true, 0, fCheckOverlaps); // Top layer (+Y)
+				cellMylarWrap[1] = new G4PVPlacement(0, G4ThreeVector(center.getX(), center.getY() - cellHeight/2 - fMylarThickness/2, 0), mylarCellLogTop, "Mylar", assembly_logV, true, 0, fCheckOverlaps); // Bottom layer (-Y)
+				cellMylarWrap[2] = new G4PVPlacement(0, G4ThreeVector(center.getX() - cellWidth/2 - fMylarThickness/2, center.getY(), 0), mylarCellLogSide, "Mylar", assembly_logV, true, 0, fCheckOverlaps); // -X layer
+				cellMylarWrap[3] = new G4PVPlacement(0, G4ThreeVector(center.getX() + cellWidth/2 + fMylarThickness/2, center.getY(), 0), mylarCellLogSide, "Mylar", assembly_logV, true, 0, fCheckOverlaps); // +X layer
+				for(size_t i = 0; i < 4; i++)
+					new G4LogicalBorderSurface("Mylar", cellPhysical, cellMylarWrap[i], fMylarOpticalSurface);
 			}
 		}
 	}
@@ -1620,12 +1622,12 @@ void nDetConstruction::buildRectangle(){
         G4double trapezoidZ = fDetectorLength/2 + fTrapezoidLength/2 + greaseThickness;
         
         // "Left" side (+z)
-    	new G4PVPlacement(0, G4ThreeVector(0, 0, trapezoidZ), lightGuideLog, "Acrylic", assembly_logV, true, 0, fCheckOverlaps);
+    	G4PVPlacement *trapPhysicalL = new G4PVPlacement(0, G4ThreeVector(0, 0, trapezoidZ), lightGuideLog, "Acrylic", assembly_logV, true, 0, fCheckOverlaps);
     	
     	// "Right" side (-z)
     	G4RotationMatrix *rot = new G4RotationMatrix;
         rot->rotateY(180*deg);
-    	new G4PVPlacement(rot, G4ThreeVector(0, 0, -trapezoidZ), lightGuideLog, "Acrylic", assembly_logV, true, 0, fCheckOverlaps);
+    	G4PVPlacement *trapPhysicalR = new G4PVPlacement(rot, G4ThreeVector(0, 0, -trapezoidZ), lightGuideLog, "Acrylic", assembly_logV, true, 0, fCheckOverlaps);
     	
     	// Offset the PSPMT to account for the light-guide and another layer of grease.
     	greaseZ += greaseThickness + fTrapezoidLength;
@@ -1660,53 +1662,56 @@ void nDetConstruction::buildRectangle(){
     	    sideTrapMylarCover_logV->SetVisAttributes(mylar_VisAtt);
     	    
     	    // Handle polygon rotation
-    	    G4RotationMatrix *trapCoverRot[4] = {new G4RotationMatrix(), new G4RotationMatrix(), new G4RotationMatrix(), new G4RotationMatrix()};
-            G4RotationMatrix *trapCoverRot2[4] = {new G4RotationMatrix(), new G4RotationMatrix(), new G4RotationMatrix(), new G4RotationMatrix()};	       	    
+    	    G4RotationMatrix *trapCoverRotL[4] = {new G4RotationMatrix(), new G4RotationMatrix(), new G4RotationMatrix(), new G4RotationMatrix()};
+            G4RotationMatrix *trapCoverRotR[4] = {new G4RotationMatrix(), new G4RotationMatrix(), new G4RotationMatrix(), new G4RotationMatrix()};	       	    
     	    
     	    G4double trapAngle = std::atan2(fTrapezoidLength, 0.5*fDetectorThickness-SiPM_dimension);
     	    G4double hprime = 0.5*fMylarThickness/std::sin(trapAngle);
 
-            trapCoverRot[0]->rotateX(trapAngle);
+            trapCoverRotL[0]->rotateX(trapAngle);
             
-            trapCoverRot2[0]->rotateY(pi);
-            trapCoverRot2[0]->rotateX(trapAngle);
+            trapCoverRotR[0]->rotateY(pi);
+            trapCoverRotR[0]->rotateX(trapAngle);
             
-            trapCoverRot[1]->rotateX(pi-trapAngle);
+            trapCoverRotL[1]->rotateX(pi-trapAngle);
             
-            trapCoverRot2[1]->rotateY(pi);
-            trapCoverRot2[1]->rotateX(pi-trapAngle);
+            trapCoverRotR[1]->rotateY(pi);
+            trapCoverRotR[1]->rotateX(pi-trapAngle);
             
             trapAngle = std::atan2(fTrapezoidLength, 0.5*fDetectorWidth-SiPM_dimension);
-    	    hprime = 0.5*fMylarThickness/std::sin(trapAngle);
             
-            trapCoverRot[2]->rotateY(trapAngle);
-            trapCoverRot[2]->rotateZ(270*deg);
+            trapCoverRotL[2]->rotateY(trapAngle);
+            trapCoverRotL[2]->rotateZ(270*deg);
             
-            trapCoverRot2[2]->rotateX(pi);
-            trapCoverRot2[2]->rotateY(trapAngle);
-            trapCoverRot2[2]->rotateZ(270*deg);
+            trapCoverRotR[2]->rotateX(pi);
+            trapCoverRotR[2]->rotateY(trapAngle);
+            trapCoverRotR[2]->rotateZ(270*deg);
             
-            trapCoverRot[3]->rotateY(pi-trapAngle);
-            trapCoverRot[3]->rotateZ(270*deg);
+            trapCoverRotL[3]->rotateY(pi-trapAngle);
+            trapCoverRotL[3]->rotateZ(270*deg);
 
-            trapCoverRot2[3]->rotateX(pi);
-            trapCoverRot2[3]->rotateY(pi-trapAngle);
-            trapCoverRot2[3]->rotateZ(270*deg);
+            trapCoverRotR[3]->rotateX(pi);
+            trapCoverRotR[3]->rotateY(pi-trapAngle);
+            trapCoverRotR[3]->rotateZ(270*deg);
     	    
     	    // Place the mylar covers
     	    G4double verticalOffset = 0.5*fDetectorThickness + SiPM_dimension;
     	    G4double horizontalOffset = 0.5*fDetectorWidth + SiPM_dimension;
     	    
-    	    new G4PVPlacement(trapCoverRot[0], G4ThreeVector(0, verticalOffset/2+hprime, trapezoidZ), trapMylarCover_logV, "Mylar1", assembly_logV, true, 0, fCheckOverlaps);
-    	    new G4PVPlacement(trapCoverRot[1], G4ThreeVector(0, -verticalOffset/2-hprime, trapezoidZ), trapMylarCover_logV, "Mylar2", assembly_logV, true, 0, fCheckOverlaps);
-    	    new G4PVPlacement(trapCoverRot[2], G4ThreeVector(-horizontalOffset/2-hprime, 0, trapezoidZ), sideTrapMylarCover_logV, "Mylar3", assembly_logV, true, 0, fCheckOverlaps);
-    	    new G4PVPlacement(trapCoverRot[3], G4ThreeVector(horizontalOffset/2+hprime, 0, trapezoidZ), sideTrapMylarCover_logV, "Mylar4", assembly_logV, true, 0, fCheckOverlaps);
+    	    cellMylarWrap[0] = new G4PVPlacement(trapCoverRotL[0], G4ThreeVector(0, verticalOffset/2+hprime, trapezoidZ), trapMylarCover_logV, "Mylar1", assembly_logV, true, 0, fCheckOverlaps);
+    	    cellMylarWrap[1] = new G4PVPlacement(trapCoverRotL[1], G4ThreeVector(0, -verticalOffset/2-hprime, trapezoidZ), trapMylarCover_logV, "Mylar2", assembly_logV, true, 0, fCheckOverlaps);
+    	    cellMylarWrap[2] = new G4PVPlacement(trapCoverRotL[2], G4ThreeVector(-horizontalOffset/2-hprime, 0, trapezoidZ), sideTrapMylarCover_logV, "Mylar3", assembly_logV, true, 0, fCheckOverlaps);
+    	    cellMylarWrap[3] = new G4PVPlacement(trapCoverRotL[3], G4ThreeVector(horizontalOffset/2+hprime, 0, trapezoidZ), sideTrapMylarCover_logV, "Mylar4", assembly_logV, true, 0, fCheckOverlaps);
+    	    for(size_t i = 0; i < 4; i++)
+    	   	    new G4LogicalBorderSurface("Mylar", trapPhysicalL, cellMylarWrap[i], fMylarOpticalSurface);
 
             // Now for the other side
-    	    new G4PVPlacement(trapCoverRot2[0], G4ThreeVector(0, verticalOffset/2+hprime, -trapezoidZ), trapMylarCover_logV, "Mylar5", assembly_logV, true, 0, fCheckOverlaps);
-    	    new G4PVPlacement(trapCoverRot2[1], G4ThreeVector(0, -verticalOffset/2-hprime, -trapezoidZ), trapMylarCover_logV, "Mylar6", assembly_logV, true, 0, fCheckOverlaps);
-    	    new G4PVPlacement(trapCoverRot2[2], G4ThreeVector(-horizontalOffset/2-hprime, 0, -trapezoidZ), sideTrapMylarCover_logV, "Mylar7", assembly_logV, true, 0, fCheckOverlaps);
-    	    new G4PVPlacement(trapCoverRot2[3], G4ThreeVector(horizontalOffset/2+hprime, 0, -trapezoidZ), sideTrapMylarCover_logV, "Mylar8", assembly_logV, true, 0, fCheckOverlaps);
+    	    cellMylarWrap[0] = new G4PVPlacement(trapCoverRotR[0], G4ThreeVector(0, verticalOffset/2+hprime, -trapezoidZ), trapMylarCover_logV, "Mylar5", assembly_logV, true, 0, fCheckOverlaps);
+    	    cellMylarWrap[1] = new G4PVPlacement(trapCoverRotR[1], G4ThreeVector(0, -verticalOffset/2-hprime, -trapezoidZ), trapMylarCover_logV, "Mylar6", assembly_logV, true, 0, fCheckOverlaps);
+    	    cellMylarWrap[2] = new G4PVPlacement(trapCoverRotR[2], G4ThreeVector(-horizontalOffset/2-hprime, 0, -trapezoidZ), sideTrapMylarCover_logV, "Mylar7", assembly_logV, true, 0, fCheckOverlaps);
+    	    cellMylarWrap[3] = new G4PVPlacement(trapCoverRotR[3], G4ThreeVector(horizontalOffset/2+hprime, 0, -trapezoidZ), sideTrapMylarCover_logV, "Mylar8", assembly_logV, true, 0, fCheckOverlaps);
+    	    for(size_t i = 0; i < 4; i++)
+    	        new G4LogicalBorderSurface("Mylar", trapPhysicalR, cellMylarWrap[i], fMylarOpticalSurface);
     	    
     	    fCheckOverlaps = false;
     	}
