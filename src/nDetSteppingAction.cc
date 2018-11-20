@@ -73,8 +73,17 @@ void nDetSteppingAction::UserSteppingAction(const G4Step* aStep)
     runAction->initializeNeutron(aStep);
     neutronTrack = true;
   }
-  
+
+  // Simplifying this process to try and alleviate problems (CRT)
   if(aStep->GetTrack()->GetDefinition() == G4OpticalPhoton::OpticalPhotonDefinition()){
+    if (aStep->GetPostStepPoint()->GetStepStatus() == fGeomBoundary) {
+      G4String vName = aStep->GetPostStepPoint()->GetPhysicalVolume()->GetName();
+      if(vName.find("psSiPM") != std::string::npos)
+        detector->AddDetectedPhoton(aStep);
+    }
+  }
+  
+  /*if(aStep->GetTrack()->GetDefinition() == G4OpticalPhoton::OpticalPhotonDefinition()){
     if(aStep->GetTrack()->GetMaterial()->GetName() != "G4_AIR"){
       counter.addPhoton(aStep->GetTrack()->GetParentID());
     }
@@ -91,16 +100,7 @@ void nDetSteppingAction::UserSteppingAction(const G4Step* aStep)
   G4OpBoundaryProcessStatus boundaryStatus=Undefined;
   G4OpBoundaryProcess* boundary=NULL;
 
-  // Simplifying this process to try and alleviate problems (CRT)
-  if (aStep->GetPostStepPoint()->GetStepStatus() == fGeomBoundary) {
-      G4String vName = aStep->GetPostStepPoint()->GetPhysicalVolume()->GetName();
-      //if(vName != "Mylar")
-         // std::cout << "NAME=" << vName << std::endl;
-      if(vName.find("psSiPM"))
-          detector->AddDetectedPhoton(aStep);
-  }
-
-  /*if( (name.find("EJ") != name.npos ) && aStep->GetTotalEnergyDeposit() > 0 ){
+  if( (name.find("EJ") != name.npos ) && aStep->GetTotalEnergyDeposit() > 0 ){
     G4double edep = aStep->GetTotalEnergyDeposit();
 
     //Xiaodong says we can put some code here.  GetParticleName 
@@ -112,10 +112,10 @@ void nDetSteppingAction::UserSteppingAction(const G4Step* aStep)
     //G4cout<<G4BestUnit(edep,"Energy")<<"**";
     //G4cout<<aStep->GetTrack()->GetMaterial()->GetName()<<G4endl;
     evtAction->AddDepE(edep);
-  }*/
+  }
 
   // collect detected photons in the siPM
-  /*G4OpBoundaryProcessStatus boundaryStatus=Undefined;
+  G4OpBoundaryProcessStatus boundaryStatus=Undefined;
   G4OpBoundaryProcess* boundary=NULL;
   if(!boundary) {
       G4ProcessManager *pm
@@ -145,7 +145,7 @@ void nDetSteppingAction::UserSteppingAction(const G4Step* aStep)
                       G4String vName = aStep->GetPostStepPoint()->GetPhysicalVolume()->GetName();
                       theTrackingInfo->IncDetections();
                       theEventInfo->IncDetections();
-                      if(vName.find("psSiPM"))
+                      if(vName.find("psSiPM") != std::string::npos)
                           detector->AddDetectedPhoton(aStep);
                       break;
                   }
@@ -179,7 +179,6 @@ void nDetSteppingAction::UserSteppingAction(const G4Step* aStep)
 }
 
 void nDetSteppingAction::Reset(){
-  counter.clear();
   runAction->nPhotonsDet[0] = detector->GetCenterOfMassPositiveSide()->getNumDetected();
   runAction->nPhotonsDet[1] = detector->GetCenterOfMassNegativeSide()->getNumDetected();
   detector->Clear();

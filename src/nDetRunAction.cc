@@ -283,7 +283,7 @@ bool nDetRunAction::fillBranch()
   for(short i = nScatters+1; i >= 2; i--)
     Nphotons.push_back(counter->getPhotonCount(i));
 
-  nPhotonsTot = counter->getTotalPhotonCount();
+  nPhotonsTot = stacking->GetNumPhotonsProduced();
   if(nPhotonsTot > 0)
     photonDetEfficiency = (nPhotonsDet[0]+nPhotonsDet[1])/(double)nPhotonsTot;
   else
@@ -338,7 +338,7 @@ void nDetRunAction::vectorClear(){
   Nphotons.clear();
   recoilMass.clear();
 
-  //stacking->Reset();
+  stacking->Reset();
   tracking->Reset();
   stepping->Reset();
 }
@@ -365,7 +365,7 @@ void nDetRunAction::setActions(nDetStackingAction *stacking_, nDetTrackingAction
   stepping = stepping_;
   
   // Get the photon counter
-  counter = stepping->GetCounter();
+  counter = stacking->GetCounter();
 }
 
 void nDetRunAction::scatterEvent(const G4Track *track){

@@ -15,6 +15,8 @@
 #include "nDetRunAction.hh"
 #include "G4Track.hh"
 #include "G4TrackVector.hh"
+#include "photonCounter.hh"
+
 // Class description, G4UserStackingAction, is the base class of one 
 // of the user's optional classes. it gives the hooks for 
 // G4StackingManager which controls the stacks of G4Track objects.
@@ -25,17 +27,27 @@ class nDetStackingAction : public G4UserStackingAction
 {
   public:
     nDetStackingAction(nDetRunAction*);
+
    ~nDetStackingAction();
 
-  public:
     G4ClassificationOfNewTrack ClassifyNewTrack(const G4Track* aTrack);
+    
+    G4int GetNumPhotonsProduced() const { return numPhotonsProduced; }
+
+	photonCounter *GetCounter(){ return &counter; }
+
     void NewStage();
+
     void PrepareNewEvent();
+
+	void Reset();
 
   private:
     nDetRunAction* runAct;
+    
     G4int numPhotonsProduced;
 
+    photonCounter counter;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

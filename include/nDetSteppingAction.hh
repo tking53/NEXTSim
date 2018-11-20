@@ -20,7 +20,6 @@
 #include "nDetConstruction.hh"
 #include "nDetRunAction.hh"
 #include "nDetEventAction.hh"
-#include "photonCounter.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -35,8 +34,6 @@ public:
 
   void UserSteppingAction(const G4Step*);
 
-  photonCounter *GetCounter(){ return &counter; }
-  
   void Reset();
 
 private:
@@ -51,8 +48,6 @@ private:
   G4long eventID;
   
   G4long stepID;
-  
-  photonCounter counter;
   
   bool neutronTrack;
 };
