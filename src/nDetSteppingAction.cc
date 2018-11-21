@@ -184,9 +184,6 @@ void nDetSteppingAction::UserSteppingAction(const G4Step* aStep)
 }
 
 void nDetSteppingAction::Reset(){
-  runAction->nPhotonsDet[0] = detector->GetCenterOfMassPositiveSide()->getNumDetected();
-  runAction->nPhotonsDet[1] = detector->GetCenterOfMassNegativeSide()->getNumDetected();
-  detector->Clear();
   neutronTrack = false;
 }
 

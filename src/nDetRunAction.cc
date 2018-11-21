@@ -283,14 +283,19 @@ bool nDetRunAction::fillBranch()
   for(short i = nScatters+1; i >= 2; i--)
     Nphotons.push_back(counter->getPhotonCount(i));
 
+  centerOfMass *cmL = detector->GetCenterOfMassPositiveSide();
+  centerOfMass *cmR = detector->GetCenterOfMassNegativeSide();
+
+  // Get the number of detected photons
+  nPhotonsDet[0] = cmL->getNumDetected();
+  nPhotonsDet[1] = cmR->getNumDetected();
+
+  // Compute the photon detection efficiency
   nPhotonsTot = stacking->GetNumPhotonsProduced();
   if(nPhotonsTot > 0)
     photonDetEfficiency = (nPhotonsDet[0]+nPhotonsDet[1])/(double)nPhotonsTot;
   else
     photonDetEfficiency = -1;
-
-  centerOfMass *cmL = detector->GetCenterOfMassPositiveSide();
-  centerOfMass *cmR = detector->GetCenterOfMassNegativeSide();
 
   // Get the photon center-of-mass positions
   G4ThreeVector centerL = cmL->getCenter();
@@ -307,6 +312,8 @@ bool nDetRunAction::fillBranch()
   cmR->getArrivalTimes(&photonArrivalTimes[50], 50);
   photonMinArrivalTime[1] = cmR->getMinArrivalTime();
   photonAvgArrivalTime[1] = cmR->getAvgArrivalTime();
+
+  detector->Clear();
 
   if(fTree)
     fTree->Fill();// fill the tree
