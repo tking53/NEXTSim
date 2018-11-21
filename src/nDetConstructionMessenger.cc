@@ -11,6 +11,7 @@
 #include "G4UIcmdWith3VectorAndUnit.hh"
 #include "G4UIcmdWithADouble.hh"
 #include "G4UIcmdWithAnInteger.hh"
+#include "G4SystemOfUnits.hh"
 
 nDetConstructionMessenger::nDetConstructionMessenger(nDetConstruction* detector) : fDetector(detector) {
 

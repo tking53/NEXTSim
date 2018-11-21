@@ -10,16 +10,12 @@
 #ifndef nDetSteppingAction_h
 #define nDetSteppingAction_h 1
 
-#include <vector>
-
 #include "G4UserSteppingAction.hh"
-#include "G4VUserPrimaryGeneratorAction.hh"
 
-//class nDetConstruction;
-//class nDetEventAction;
-#include "nDetConstruction.hh"
-#include "nDetRunAction.hh"
-#include "nDetEventAction.hh"
+class G4VUserPrimaryGeneratorAction;
+class nDetConstruction;
+class nDetEventAction;
+class nDetRunAction;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 

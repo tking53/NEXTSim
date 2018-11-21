@@ -6,10 +6,8 @@
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-#include "nDetSteppingAction.hh"
+#include <vector>
 
-//#include "nDetConstruction.hh"
-//#include "nDetEventAction.hh"
 #include "nDetSD.hh"
 #include "G4Step.hh"
 #include "G4OpBoundaryProcess.hh"
@@ -17,8 +15,7 @@
 #include "G4ProcessManager.hh"
 #include "G4SDManager.hh"
 #include "G4UnitsTable.hh"
-#include "nDetUserTrackingInformation.hh"
-#include "nDetUserEventInformation.hh"
+#include "G4VUserPrimaryGeneratorAction.hh"
 #include "G4ParticleDefinition.hh"
 #include "G4Alpha.hh"
 #include "G4Electron.hh"
@@ -26,6 +23,14 @@
 #include "G4Neutron.hh"
 #include "G4Triton.hh"
 #include "G4EventManager.hh"
+
+#include "nDetSteppingAction.hh"
+#include "nDetUserTrackingInformation.hh"
+#include "nDetUserEventInformation.hh"
+#include "nDetConstruction.hh"
+#include "nDetRunAction.hh"
+#include "nDetEventAction.hh"
+
 #define DEBUG 0
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

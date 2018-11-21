@@ -8,51 +8,25 @@
 #ifndef nDetConstruction_h
 #define nDetConstruction_h 1
 
-#include "globals.hh"
 #include "G4VUserDetectorConstruction.hh"
-
-#include "G4SystemOfUnits.hh"
-#include "G4PhysicalConstants.hh"
-
-#include "nDetSD.hh"
-
-#include "G4NistManager.hh"
-#include "G4Material.hh"
-#include "G4MaterialTable.hh"
-#include "G4Element.hh"
-#include "G4Isotope.hh"
-#include "G4ElementTable.hh"
-#include "G4LogicalBorderSurface.hh"
-#include "G4LogicalSkinSurface.hh"
-#include "G4OpticalSurface.hh"
-#include "G4Box.hh"
-#include "G4Tubs.hh"
-#include "G4Polyhedra.hh"
-#include "G4Trap.hh"
-#include "G4Trd.hh"
-#include "G4LogicalVolume.hh"
-#include "G4VisAttributes.hh"
-#include "G4RotationMatrix.hh"
-#include "G4ThreeVector.hh"
-#include "G4Transform3D.hh"
-#include "G4PVPlacement.hh"
-#include "G4OpBoundaryProcess.hh"
-#include "G4RotationMatrix.hh"
-#include "G4Transform3D.hh"
-#include "G4PVParameterised.hh"
-#include "G4VNestedParameterisation.hh"
-
-#include "G4SubtractionSolid.hh"
-
-#include "nDetConstructionMessenger.hh"
+#include "globals.hh"
 #include "centerOfMass.hh"
 
-// Replica 
-// Assembly volumes
-// no assembly is used currently
-#include "G4AssemblyVolume.hh"
-#include "SiPMSD.hh"
-#include "nDetSD.hh"
+// Class declarations
+class nDetConstructionMessenger;
+class G4LogicalVolume;
+class G4VPhysicalVolume;
+class SiPMSD;
+class nDetSD;
+class G4Element;
+class G4Material;
+class G4MaterialPropertiesTable;
+class G4OpticalSurface;
+class G4LogicalSkinSurface;
+class G4LogicalBorderSurface;
+class G4VPhysicalVolume;
+class G4AssemblyVolume;
+class G4VSolid;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -266,10 +240,7 @@ private:
 
     void DefineMaterials();
 
-
     void buildSiPMs(const G4double &zOffset=0);
-
-
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
