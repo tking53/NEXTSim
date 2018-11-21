@@ -24,7 +24,7 @@ static const G4double inch = 2.54*cm;
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 
-nDetConstruction::nDetConstruction(){
+nDetConstruction::nDetConstruction(const G4double &scale/*=1*/){
     expHall_logV = NULL;
     expHall_physV = NULL;
     
@@ -74,24 +74,19 @@ nDetConstruction::nDetConstruction(){
 
     fDetectorMessenger=new nDetConstructionMessenger(this);
 
-    //fGeometry="ellipse";
-    //fGeometry="hexagon";
-    //fGeometry="array";
     fGeometry="rectangle";
 
     fCheckOverlaps = false;
     fTeflonThickness = 0.11*mm;
-    //fMylarThickness = 0.0125*mm;
     fMylarThickness = 0.*mm;
     fDetectorLength = 3.94*inch;
-    fDetectorWidth = 1.18*inch;
     fDetectorWidth = 6*mm;
     fTrapezoidLength = 1*inch;
     fHexagonRadius = 5*cm;
     fDetectorThickness = 0.24*inch;
-    //fDetectorWidth = 0.24*inch;
-
-    SiPM_dimension=3*mm;
+    SiPM_dimension=3*mm;    
+    
+    fLightYieldScale = scale;
 
     expHallX = assemblyBoxX + margin;
     expHallY = assemblyBoxY + margin;
@@ -942,18 +937,17 @@ void nDetConstruction::DefineMaterials() {
     //fEJ200MPT->AddConstProperty("FASTTIMECONSTANT", 0.5*ns); //TODO DPL Get Back to 2.1 ns
     fEJ200MPT->AddConstProperty("YIELDRATIO",1);// the strength of the fast component as a function of total scintillation yield
 
-    G4double pEF = 1; //SiPM efficiency (TODO - discuss it)
-    G4double protonScalingFact = 1.35;
+    G4double pEF = fLightYieldScale; 
+    G4double pSF = pEF * 1.35;
 
     //light yield - data taken form V.V. Verbinski et al, Nucl. Instrum. & Meth. 65 (1968) 8-25
-    int energyPoints = 26;
-    G4double particleEnergy[] = { 0.001*MeV, 0.1*MeV, 0.13*MeV, 0.17*MeV, 0.2*MeV,
-                                  0.24*MeV, 0.3*MeV, 0.34*MeV, 0.4*MeV, 0.48*MeV, 
-                                  0.6*MeV, 0.72*MeV, 0.84*MeV, 1.*MeV, 1.3*MeV, 
-                                  1.7*MeV, 2.*MeV, 2.4*MeV, 3.*MeV, 3.4*MeV, 4.*MeV, 
-                                  4.8*MeV, 6.*MeV,  7.2*MeV, 8.4*MeV, 10.*MeV };
+    G4double particleEnergy[26] = {0.001*MeV, 0.1*MeV, 0.13*MeV, 0.17*MeV, 0.2*MeV,
+                                   0.24*MeV, 0.3*MeV, 0.34*MeV, 0.4*MeV, 0.48*MeV, 
+                                   0.6*MeV, 0.72*MeV, 0.84*MeV, 1.*MeV, 1.3*MeV, 
+                                   1.7*MeV, 2.*MeV, 2.4*MeV, 3.*MeV, 3.4*MeV, 4.*MeV, 
+                                   4.8*MeV, 6.*MeV,  7.2*MeV, 8.4*MeV, 10.*MeV };
 
-    G4double electronYield[] = {0*pEF, 1000*pEF, 1300*pEF, 1700*pEF,
+    G4double electronYield[26] = {0*pEF, 1000*pEF, 1300*pEF, 1700*pEF,
                                 2000*pEF, 2400*pEF, 3000*pEF, 3400*pEF,
                                 4000*pEF, 4800*pEF, 6000*pEF, 7200*pEF,
                                 8400*pEF,10000*pEF, 13000*pEF, 17000*pEF,
@@ -961,27 +955,26 @@ void nDetConstruction::DefineMaterials() {
                                 40000*pEF, 48000*pEF, 60000*pEF, 72000*pEF,
                                 84000*pEF, 100000*pEF };
 
-    fEJ200MPT->AddProperty("ELECTRONSCINTILLATIONYIELD", particleEnergy, electronYield, energyPoints)->SetSpline(true);
-    G4double psF = protonScalingFact;
-    G4double protonYield[] = { 0.6*pEF*psF, 67.1*pEF*psF, 88.6*pEF*psF, 120.7*pEF*psF,
-                               146.5*pEF*psF, 183.8*pEF*psF, 246*pEF*psF, 290*pEF*psF,
-                               365*pEF*psF, 483*pEF*psF, 678*pEF*psF, 910*pEF*psF,
-                               1175*pEF*psF, 562*pEF*psF, 2385*pEF*psF, 3660*pEF*psF,
-                               4725*pEF*psF,6250*pEF*psF, 8660*pEF*psF, 10420*pEF*psF,
-                               13270*pEF*psF,17180*pEF*psF, 23100*pEF*psF, 29500*pEF*psF, 
-                               36200*pEF*psF, 45500*pEF*psF};
+    fEJ200MPT->AddProperty("ELECTRONSCINTILLATIONYIELD", particleEnergy, electronYield, 26)->SetSpline(true);
+    G4double protonYield[26] = {0.6*pSF, 67.1*pSF, 88.6*pSF, 120.7*pSF,
+                                146.5*pSF, 183.8*pSF, 246*pSF, 290*pSF,
+                                365*pSF, 483*pSF, 678*pSF, 910*pSF,
+                                1175*pSF, 562*pSF, 2385*pSF, 3660*pSF,
+                                4725*pSF,6250*pSF, 8660*pSF, 10420*pSF,
+                                13270*pSF,17180*pSF, 23100*pSF, 29500*pSF, 
+                                36200*pSF, 45500*pSF};
 
-    fEJ200MPT->AddProperty("PROTONSCINTILLATIONYIELD", particleEnergy, protonYield, energyPoints)->SetSpline(true);
+    fEJ200MPT->AddProperty("PROTONSCINTILLATIONYIELD", particleEnergy, protonYield, 26)->SetSpline(true);
 
-    G4double ionYield[] = { 0.2*pEF, 10.4*pEF, 12.7*pEF, 15.7*pEF,
-                            17.9*pEF, 20.8*pEF, 25.1*pEF, 27.9*pEF,
-                            31.9*pEF, 36.8*pEF, 43.6*pEF, 50.2*pEF,
-                            56.9*pEF, 65.7*pEF, 81.3*pEF, 101.6*pEF,
-                            116.5*pEF, 136.3*pEF, 166.15*pEF, 187.1*pEF,
-                            218.6*pEF, 260.54*pEF, 323.5*pEF, 387.5*pEF,
-                            451.54*pEF, 539.9*pEF };
+    G4double ionYield[26] = {0.2*pEF, 10.4*pEF, 12.7*pEF, 15.7*pEF,
+                             17.9*pEF, 20.8*pEF, 25.1*pEF, 27.9*pEF,
+                             31.9*pEF, 36.8*pEF, 43.6*pEF, 50.2*pEF,
+                             56.9*pEF, 65.7*pEF, 81.3*pEF, 101.6*pEF,
+                             116.5*pEF, 136.3*pEF, 166.15*pEF, 187.1*pEF,
+                             218.6*pEF, 260.54*pEF, 323.5*pEF, 387.5*pEF,
+                             451.54*pEF, 539.9*pEF };
 
-    fEJ200MPT->AddProperty("IONSCINTILLATIONYIELD", particleEnergy, ionYield, energyPoints)->SetSpline(true);
+    fEJ200MPT->AddProperty("IONSCINTILLATIONYIELD", particleEnergy, ionYield, 26)->SetSpline(true);
 
     fEJ200->SetMaterialPropertiesTable(fEJ200MPT);
 
@@ -1534,24 +1527,12 @@ void nDetConstruction::buildRectangle(){
     
     ej200_logV->SetVisAttributes(ej200_VisAtt);
 
-    G4Box *mylarBoxTop, *mylarBoxSide;
-    G4LogicalVolume *mylarLogTop, *mylarLogSide;
-
     G4Box *mylarCellBoxTop, *mylarCellBoxSide;
     G4LogicalVolume *mylarCellLogTop, *mylarCellLogSide;
     G4PVPlacement *cellMylarWrap[4];
 
     //Building the Mylar covers
     if(fMylarThickness > 0){
-		mylarBoxTop = new G4Box("mylar", fDetectorWidth/2, fMylarThickness/2, fDetectorLength/2);
-		mylarLogTop = new G4LogicalVolume(mylarBoxTop, fMylar, "mylar_log");
-
-		mylarBoxSide = new G4Box("mylar", fMylarThickness/2, fDetectorThickness/2, fDetectorLength/2);
-		mylarLogSide = new G4LogicalVolume(mylarBoxSide, fMylar, "mylar_log");
-		
-		mylarLogTop->SetVisAttributes(mylar_VisAtt);
-		mylarLogSide->SetVisAttributes(mylar_VisAtt);		
-
 		mylarCellBoxTop = new G4Box("mylar", cellWidth/2, fMylarThickness/2, fDetectorLength/2);
 		mylarCellLogTop = new G4LogicalVolume(mylarCellBoxTop, fMylar, "mylar_log");
 
@@ -1560,26 +1541,6 @@ void nDetConstruction::buildRectangle(){
 
 		mylarCellLogTop->SetVisAttributes(mylar_VisAtt);
 		mylarCellLogSide->SetVisAttributes(mylar_VisAtt);
-    
-    	// Top layer (+Y)
-	    /*G4ThreeVector position(0, fDetectorThickness/2 - fMylarThickness/2, 0);
-	    mylar_phys = new G4PVPlacement(0, position, mylarLogTop, "Mylar", assembly_logV, true, 0, fCheckOverlaps);
-	    new G4LogicalBorderSurface("Mylar", totalDetector_physVol, mylar_phys, fMylarOpticalSurface);
-
-	    // Bottom layer (-Y)
-	    position *= -1;
-	    mylar_phys = new G4PVPlacement(0, position, mylarLogTop, "Mylar", assembly_logV, true, 0, fCheckOverlaps);
-	    new G4LogicalBorderSurface("Mylar", totalDetector_physVol, mylar_phys, fMylarOpticalSurface);
-
-		// -X layer
-		position = G4ThreeVector(-fDetectorWidth/2 + fMylarThickness/2, 0, 0);
-	    mylar_phys = new G4PVPlacement(0, position, mylarLogSide, "Mylar", assembly_logV, true, 0, fCheckOverlaps);
-	    new G4LogicalBorderSurface("Mylar", totalDetector_physVol, mylar_phys, fMylarOpticalSurface);
-	    
-		// +X layer
-		position *= -1;
-	    mylar_phys = new G4PVPlacement(0, position, mylarLogSide, "Mylar", assembly_logV, true, 0, fCheckOverlaps);
-	    new G4LogicalBorderSurface("Mylar", totalDetector_physVol, mylar_phys, fMylarOpticalSurface);*/
 	}
 	
 	for(int col = 0; col < fNumColumns; col++){

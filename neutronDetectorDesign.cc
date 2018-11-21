@@ -59,7 +59,8 @@ int main(int argc, char** argv)
   handler.add(optionExt("input", required_argument, NULL, 'i', "<filename>", "Specify an input geant macro."));
   handler.add(optionExt("output", required_argument, NULL, 'o', "<filename>", "Specify the name of the output file."));
   handler.add(optionExt("gui", no_argument, NULL, 'g', "", "Run interactive GUI session."));
-  handler.add(optionExt("tree-name", required_argument, NULL, 't', "<treename>", "Set the output TTree name (default=\"data\")."));
+  handler.add(optionExt("tree", required_argument, NULL, 't', "<treename>", "Set the output TTree name (default=\"data\")."));
+  handler.add(optionExt("yield", required_argument, NULL, 'Y', "<multiplier>", "Specify the light yield multiplier to use when producing photons (default=1)."));
   handler.add(optionExt("verbose", no_argument, NULL, 'V', "", "Toggle verbose mode."));
 
   // Handle user input.
@@ -82,8 +83,12 @@ int main(int argc, char** argv)
   if(handler.getOption(3)->active) // Set output TTree name
     outputTreeName = handler.getOption(3)->argument;
 
+  double yieldMult = -1;
+  if(handler.getOption(4)->active) // Set output TTree name
+    yieldMult = strtod(handler.getOption(4)->argument.c_str(), NULL);
+
   bool verboseMode = false;
-  if(handler.getOption(4)->active) // Toggle verbose flag
+  if(handler.getOption(5)->active) // Toggle verbose flag
     verboseMode = true;
 
   if(batchMode && inputFilename.empty()){
@@ -111,10 +116,15 @@ int main(int argc, char** argv)
 
   // set mandatory initialization classes
   // Initialize the detector
-  nDetConstruction* detector = new nDetConstruction;
+  nDetConstruction* detector;
+  if(yieldMult < 0){ 
+    detector = new nDetConstruction();
+  }
+  else{ // Modify the photon yield of the detector
+    std::cout << "neutronDetectorDesign: Setting photon yield multiplier to " << yieldMult << std::endl;
+    detector = new nDetConstruction(yieldMult);
+  }
   runManager->SetUserInitialization( detector );
-
-  std::cout<<"nDetConstruction()-->"<<detector<<std::endl;
 
 /*  // Initialize the physics lists
   // The LBE modular physics list is used in this program

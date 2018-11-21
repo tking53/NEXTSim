@@ -59,7 +59,7 @@
 class nDetConstruction : public G4VUserDetectorConstruction
 {
   public:
-    nDetConstruction();
+    nDetConstruction(const G4double &scale=1);
     
    ~nDetConstruction();
 
@@ -175,6 +175,7 @@ private:
     G4double fDetectorWidth;
     G4double fTrapezoidLength;
     G4double fHexagonRadius;
+    G4double fLightYieldScale;
 
     G4int fNdetectors;
 	G4int fNumColumns;
