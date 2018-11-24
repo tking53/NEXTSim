@@ -2,7 +2,7 @@
 #include <sstream>
 #include <string.h>
 
-#include "optionHandler.hpp"
+#include "optionHandler.hh"
 
 /////////////////////////////////////////////////////////////////////
 // class optionExt
