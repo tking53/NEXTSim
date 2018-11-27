@@ -2,7 +2,6 @@
 #define PARTICLE_SOURCE_HH
 
 #include "G4VUserActionInitialization.hh"
-#include "G4SteppingVerbose.hh"
 #include "G4UImessenger.hh"
 #include "globals.hh"
 #include <vector>
@@ -189,21 +188,6 @@ class ParticleSourceMessenger: public G4UImessenger
     G4UIdirectory* fDir;
     
     G4UIcommand* fActionCmd[6];
-};
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-class SteppingVerbose : public G4SteppingVerbose {
-
-public:   
-
-  SteppingVerbose(){ }
-  
- ~SteppingVerbose(){ }
- 
-  virtual void TrackingStarted(){ }
-
-  virtual void StepInfo(){ }
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
