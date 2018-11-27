@@ -120,9 +120,9 @@ class ParticleSource : public nDetPrimaryGeneratorAction
 	
 	void SetDirection(const G4ThreeVector &d);
 
-	void SetType(const G4String &str);
+	bool SetType(const G4String &str);
 
-	void SetBeamType(const G4String &str);
+	bool SetBeamType(const G4String &str);
 	
 	void SetBeamspotRadius(const G4double &radius){ beamspot = radius*mm; }
 

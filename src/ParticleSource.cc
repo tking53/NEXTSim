@@ -199,7 +199,7 @@ void ParticleSource::SetDirection(const G4ThreeVector &d){
 	particleGun->SetParticleMomentumDirection(dir);
 }
 
-void ParticleSource::SetType(const G4String &str){ 
+bool ParticleSource::SetType(const G4String &str){ 
 	if(str == "137Cs")
 		this->Set137Cs();
 	else if(str == "60Co")
@@ -214,13 +214,14 @@ void ParticleSource::SetType(const G4String &str){
 		this->Set252Cf();
 	else{
 		std::cout << " ParticleSource: Unknown source type \"" << type << "\"\n";
-		return;
+		return false;
 	}
 	type = str;
 	std::cout << " ParticleSource: Setting " << type << " source.\n";
+	return true;
 }
 
-void ParticleSource::SetBeamType(const G4String &str){ 
+bool ParticleSource::SetBeamType(const G4String &str){ 
 	size_t index = str.find_first_of(' ');
 	std::string beamType = str;
 	double beamEnergy = 1; // MeV
@@ -234,12 +235,20 @@ void ParticleSource::SetBeamType(const G4String &str){
 		this->SetGammaRayBeam(beamEnergy);
 	else if(beamType == "electron")
 		this->SetElectronBeam(beamEnergy);
-	else{
-		std::cout << " ParticleSource: Unknown beam type \"" << str << "\"\n";
-		return;
+	else{ // A source beam?
+		if(SetType(beamType)){
+			psource->setIsIsotropic(false);
+			std::cout << " ParticleSource: Setting " << beamType << " beam.\n";
+			return true;
+		}
+		else{
+			std::cout << " ParticleSource: Unknown beam type \"" << beamType << "\"\n";
+			return false;
+		}
 	}
 	type = "beam";
 	std::cout << " ParticleSource: Setting " << beamType << " beam with energy of " << beamEnergy << " MeV.\n";
+	return true;
 }
 
 void ParticleSource::SetDetector(const nDetConstruction *det){
