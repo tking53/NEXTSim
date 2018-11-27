@@ -11,6 +11,7 @@
 
 // Selfdefine classes
 #include "nDetRunAction.hh"
+#include "nDetEventAction.hh"
 #include "nDetRunActionMessenger.hh"
 #include "nDetStackingAction.hh"
 #include "nDetTrackingAction.hh"
@@ -88,6 +89,7 @@ nDetRunAction::nDetRunAction(nDetConstruction *det){
     verbose = false;
     
     fFile = NULL;
+    eventAction = NULL;
     stacking = NULL;
     tracking = NULL;
     stepping = NULL;
@@ -131,6 +133,9 @@ void nDetRunAction::BeginOfRunAction(const G4Run* aRun)
         G4cout << "### FAILED TO OPEN OUTPUT FILE!\n";
     }
   }
+
+  // Set the total number of events
+  eventAction->SetTotalEvents(aRun->GetNumberOfEventToBeProcessed());
 
   // get RunId
   runNb = aRun->GetRunID();
@@ -366,7 +371,8 @@ void nDetRunAction::setOutputFilename(const std::string &fname){
   }
 }
 
-void nDetRunAction::setActions(nDetStackingAction *stacking_, nDetTrackingAction *tracking_, nDetSteppingAction *stepping_){
+void nDetRunAction::setActions(nDetEventAction *event_, nDetStackingAction *stacking_, nDetTrackingAction *tracking_, nDetSteppingAction *stepping_){
+  eventAction = event_;
   stacking = stacking_;
   tracking = tracking_;
   stepping = stepping_;

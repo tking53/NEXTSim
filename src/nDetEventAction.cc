@@ -10,6 +10,7 @@
 #include "nDetAnalysisManager.hh"
 
 #include "G4Event.hh"
+#include "G4Timer.hh"
 #include "G4EventManager.hh"
 #include "G4TrajectoryContainer.hh"
 #include "G4Trajectory.hh"
@@ -23,23 +24,19 @@
 #include "nDetSD.hh"
 #include "SiPMSD.hh"
 
-
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+ 
+nDetEventAction::nDetEventAction(nDetRunAction* run) : runAct(run), timer(new G4Timer), fAnalysisManager(NULL), depositedEnergy(0), avgTimePerEvent(0), previousTime(0), totalTime(0), eventID(0), previousEvents(0), totalEvents(0) { }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
  
-nDetEventAction::nDetEventAction(nDetRunAction* run)
-:runAct(run)
-{}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
- 
-nDetEventAction::~nDetEventAction() {
+nDetEventAction::~nDetEventAction(){ 
+  delete timer;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
  
-void nDetEventAction::BeginOfEventAction(const G4Event* evt)
-{
+void nDetEventAction::BeginOfEventAction(const G4Event* evt){
   // initialisation per event.
 
   //New event, add the user information object
@@ -48,23 +45,42 @@ void nDetEventAction::BeginOfEventAction(const G4Event* evt)
   eventID = evt->GetEventID();
   depositedEnergy = 0; 
 
-  if(eventID%1000 == 0) G4cout<<"Event ID: " << eventID << G4endl;
+  if(eventID != 0){
+    timer->Stop();
+    G4double tprime = timer->GetRealElapsed();
+    totalTime += tprime;
+    avgTimePerEvent += tprime;
+    if(totalTime - previousTime >= 10){ // Display every 10 seconds.
+      std::cout << "Event ID: " << eventID << ", TIME=" << totalTime << " s";
+      if(totalEvents > 0){
+        avgTimePerEvent = avgTimePerEvent/(eventID - previousEvents);
+        std::cout << ", REMAINING=" << (totalEvents-eventID)*avgTimePerEvent << " s";
+      }
+      std::cout << std::endl;
+      previousTime = totalTime;
+      previousEvents = eventID;
+      avgTimePerEvent = 0;
+    }
+    timer->Start();
+  }
+  else{ // Start the timer.
+    timer->Start();
+  }
 
-  fAnalysisManager=(nDetAnalysisManager*)nDetAnalysisManager::Instance();
+  fAnalysisManager = (nDetAnalysisManager*)nDetAnalysisManager::Instance();
 
   if(fAnalysisManager)
-  fAnalysisManager->BeginOfEventAction(evt);
+    fAnalysisManager->BeginOfEventAction(evt);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
  
-void nDetEventAction::EndOfEventAction(const G4Event* evt)
-{
-    //G4cout<<"nDetEventAction::EndOfEventAction()"<<G4endl;
+void nDetEventAction::EndOfEventAction(const G4Event* evt){
+  //G4cout<<"nDetEventAction::EndOfEventAction()"<<G4endl;
   // hit collection of event
   //G4int NbHits = (evt->GetHCofThisEvent())->GetNumberOfCollections();
 
-//G4cout<< "Number of Collections "<<NbHits<<G4endl;
+  //G4cout<< "Number of Collections "<<NbHits<<G4endl;
 
   //nDetHit* hit;
   //for(G4int i=0;i<NbHits;i++){
@@ -87,15 +103,13 @@ void nDetEventAction::EndOfEventAction(const G4Event* evt)
       runAct->vPhotonPositionYPushBack(hit->GetPos().y());
     }*/
   //
+
+  if(fpEventManager->GetVerboseLevel()==1){
     nDetUserEventInformation *theEventInformation= static_cast<nDetUserEventInformation*>(evt->GetUserInformation());
-
-    G4int nDetections=theEventInformation->GetDetectionCount();
-
-    
-    if(fpEventManager->GetVerboseLevel()==1){
-    G4cout<<"nDetEventAction::EndOfEventAction()->"<<nDetections<<" Photons detected in this event"<<G4endl;
-        //theEventInformation->Print();
-    }
+    G4int nDetections=theEventInformation->GetDetectionCount();    
+    G4cout << "nDetEventAction::EndOfEventAction()->" << nDetections << " Photons detected in this event" << G4endl;
+    //theEventInformation->Print();
+  }
 
   // set the depEnergy branch
   //G4cout<<depositedEnergy<<G4endl;
@@ -103,12 +117,20 @@ void nDetEventAction::EndOfEventAction(const G4Event* evt)
   //runAct->eventNb = evt->GetEventID();
 
   // fill branches
-    runAct->fillBranch();
-    if(fAnalysisManager)
-        fAnalysisManager->EndOfEventAction(evt);
+  runAct->fillBranch();
+  if(fAnalysisManager)
+    fAnalysisManager->EndOfEventAction(evt);
         
-    // clear vector for next event
-    runAct->vectorClear();
+  // clear vector for next event
+  runAct->vectorClear();
+}
+
+void nDetEventAction::StartTimer(){
+  timer->Start();
+}
+
+G4double nDetEventAction::GetTimeElapsed(){
+  return timer->GetRealElapsed();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

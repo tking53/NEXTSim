@@ -18,6 +18,7 @@
 //class G4Event;
 class nDetRunAction;
 class G4Event;
+class G4Timer;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -25,21 +26,39 @@ class nDetEventAction : public G4UserEventAction
 {
   public:
     nDetEventAction(nDetRunAction*);
+    
     virtual ~nDetEventAction();
 
   public:
     void BeginOfEventAction(const G4Event*);
-    void EndOfEventAction(const G4Event*);
     
-    void AddDepE(G4double depE){ depositedEnergy += depE; };
+    void EndOfEventAction(const G4Event*);
+
+    void StartTimer();
+    
+    void AddDepE(const G4double &depE){ depositedEnergy += depE; };
+
+    void SetTotalEvents(const G4long &events){ totalEvents = events; }
 
     G4long GetEventID(){ return eventID; };
 
+    G4double GetTimeElapsed();
+
   private:
-    nDetRunAction* runAct;
-    G4double depositedEnergy;   // deposited energy in Scintillator.
+    nDetRunAction *runAct;
+    
+    G4Timer *timer;
+    
     nDetAnalysisManager *fAnalysisManager;
+    
+    G4double depositedEnergy;   // deposited energy in Scintillator.
+    G4double avgTimePerEvent;
+    G4double previousTime;
+    G4double totalTime;
+    
     G4long eventID;
+    G4long previousEvents;
+    G4long totalEvents;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

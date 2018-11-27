@@ -25,6 +25,7 @@ class G4Timer;
 class G4Run;
 
 class nDetRunActionMessenger;
+class nDetEventAction;
 class nDetStackingAction;
 class nDetTrackingAction;
 class nDetSteppingAction;
@@ -134,7 +135,7 @@ class nDetRunAction : public G4UserRunAction
 	
 	void setOverwriteOutputFile(const bool &overwrite){ overwriteExistingFile = overwrite; }
 
-	void setActions(nDetStackingAction *stacking_, nDetTrackingAction *tracking_, nDetSteppingAction *stepping_);
+	void setActions(nDetEventAction *event_, nDetStackingAction *stacking_, nDetTrackingAction *tracking_, nDetSteppingAction *stepping_);
 
     bool toggleVerboseMode(){ return (verbose = !verbose); }
 
@@ -172,6 +173,7 @@ class nDetRunAction : public G4UserRunAction
     nDetAnalysisManager *fAnalysisManager;
     nDetRunActionMessenger *fActionMessenger;
     
+    nDetEventAction *eventAction;
     nDetStackingAction *stacking;
     nDetTrackingAction *tracking;
     nDetSteppingAction *stepping;
