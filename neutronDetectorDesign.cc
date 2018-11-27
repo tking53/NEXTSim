@@ -208,19 +208,16 @@ that didn't work... this is horribly deprecated*/
       // Set root output to a single output file.
       runAction->setPersistentMode(true);
 
-      G4UIExecutive * ui;
-      ui = new G4UIExecutive(argc, argv, "");
+      G4UIExecutive *ui = new G4UIExecutive(argc, argv, "");
       UImanager->ApplyCommand("/vis/open OGL");
       UImanager->ApplyCommand("/vis/drawVolume");
       UImanager->ApplyCommand("/vis/scene/add/trajectories");
       UImanager->ApplyCommand("/vis/viewer/set/viewpointThetaPhi 90 0");
       UImanager->ApplyCommand("/vis/viewer/set/viewpointVector -1 1 1");
       UImanager->ApplyCommand("/vis/viewer/refresh");
-
-	  /*G4String command = "/control/execute ";
+      G4String command = "/control/execute ";
       command += inputFilename;
-      std::cout << "cmd=" << command << std::endl;
-      UImanager->ApplyCommand(command);*/
+      UImanager->ApplyCommand(command);
       
       // start interactive session
       ui->SessionStart();      
