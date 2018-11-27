@@ -54,7 +54,7 @@ void nDetEventAction::BeginOfEventAction(const G4Event* evt){
       std::cout << "Event ID: " << eventID << ", TIME=" << totalTime << " s";
       if(totalEvents > 0){
         avgTimePerEvent = avgTimePerEvent/(eventID - previousEvents);
-        std::cout << ", REMAINING=" << (totalEvents-eventID)*avgTimePerEvent << " s";
+        std::cout << ", REMAINING=" << (totalEvents-eventID)*(totalTime/eventID) << " s";
       }
       std::cout << std::endl;
       previousTime = totalTime;
