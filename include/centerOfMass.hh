@@ -11,10 +11,10 @@ class G4Step;
 class TraceProcessor{
   public:
 	/// Default constructor.
-	TraceProcessor() : maximum(-9999), maxIndex(0), pulseArray(NULL), pulseLength(0) { }
+	TraceProcessor() : maximum(-9999), baseline(-9999), maxIndex(0), pulseArray(NULL), pulseLength(0) { }
 
 	/// Pulse constructor.
-	TraceProcessor(unsigned short *pulse, const size_t &len) : maximum(-1), maxIndex(0), pulseArray(pulse), pulseLength(len) { this->FindMaximum(); }
+	TraceProcessor(unsigned short *pulse, const size_t &len) : maximum(-9999), baseline(-9999), maxIndex(0), pulseArray(pulse), pulseLength(len) { this->FindMaximum(); }
 	
 	/// Destructor.
 	~TraceProcessor();
@@ -29,16 +29,16 @@ class TraceProcessor{
 	unsigned short GetMaximumIndex() const { return maxIndex; }
 	
 	/// Integrate the baseline corrected trace for QDC in the range [start_, stop_] and return the result.
-	static float IntegratePulse(unsigned short *pulse, const size_t &len, const size_t &start_=0, const size_t &stop_=0);
+	float IntegratePulse(unsigned short *pulse, const size_t &len, const size_t &start_=0, const size_t &stop_=0);
 
 	/// Integrate the baseline corrected trace for QDC in the range [start_, stop_] and return the result.
 	float IntegratePulse(const size_t &start_=0, const size_t &stop_=0);
 
 	/// Integrate the baseline corrected trace for QDC in the range [maxIndex-start_, maxIndex+stop_] and return the result.
-	float IntegratePulseFromMaximum(const size_t &start_=5, const size_t &stop_=10);
+	float IntegratePulseFromMaximum(const short &start_=5, const short &stop_=10);
 
 	/// Perform traditional CFD analysis on the waveform.
-	static float AnalyzeCFD(unsigned short *pulse, const size_t &len, const float &F_=0.5, const size_t &D_=1, const size_t &L_=1);
+	float AnalyzeCFD(unsigned short *pulse, const size_t &len, const float &F_=0.5, const size_t &D_=1, const size_t &L_=1);
 
 	/// Perform traditional CFD analysis on the waveform.
 	float AnalyzeCFD(const float &F_=0.5, const size_t &D_=1, const size_t &L_=1);
@@ -69,6 +69,7 @@ class TraceProcessor{
 	double cfdPar[7]; /// Cfd fitting parameters.
 	  
 	float maximum; /// The maximum value of the trace.
+	float baseline; /// Baseline offset of the trace.
 
 	unsigned short maxIndex; /// The index of the maximum trace bin (in ADC clock ticks).
 	
@@ -82,9 +83,9 @@ class TraceProcessor{
 
 class pmtResponse{
   public:
-	pmtResponse() : risetime(4.0), falltime(20.0), amplitude(0), peakOffset(0), peakMaximum(0), traceDelay(0), gain(1E4) { this->update(); }
+	pmtResponse() : risetime(4.0), falltime(20.0), amplitude(0), peakOffset(0), peakMaximum(0), traceDelay(20), gain(1E4) { this->update(); }
 	
-	pmtResponse(const double &risetime_, const double &falltime_) : risetime(risetime_), falltime(falltime_), amplitude(0), peakOffset(0), peakMaximum(0), gain(1) { this->update(); }
+	pmtResponse(const double &risetime_, const double &falltime_) : risetime(risetime_), falltime(falltime_), amplitude(0), peakOffset(0), peakMaximum(0), traceDelay(20), gain(1E4) { this->update(); }
 
 	/// Set the rise time of the pulse (in ns).
 	void setRisetime(const double &risetime_);
@@ -157,7 +158,9 @@ class centerOfMass{
 	
 	double getActiveAreaHeight() const { return activeHeight; }
 	
-	void getArrivalTimes(unsigned short *arr, const size_t &len) const ;
+	void getArrivalTimes(unsigned short *arr, const size_t &len, const double &baseline=0, const double &jitter=0) const ;
+	
+	pmtResponse *getPmtResponse(){ return &response; }
 	
 	short setNumColumns(const short &col_);
 	

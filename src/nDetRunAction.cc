@@ -94,6 +94,13 @@ nDetRunAction::nDetRunAction(nDetConstruction *det){
     tracking = NULL;
     stepping = NULL;
     detector = det;
+
+	baselineFraction = 0;
+	baselineJitterFraction = 0;
+	polyCfdFraction = 0.5;
+	
+	pulseIntegralLow = 5;
+	pulseIntegralHigh = 10;
     
     //create a messenger for this class
     fActionMessenger = new nDetRunActionMessenger(this); 
@@ -153,6 +160,14 @@ void nDetRunAction::EndOfRunAction(const G4Run* aRun)
 
   if(fAnalysisManager)
     fAnalysisManager->EndOfRunAction(aRun);
+}
+
+pmtResponse *nDetRunAction::getPmtResponseLeft(){
+  return detector->GetCenterOfMassPositiveSide()->getPmtResponse();
+}
+
+pmtResponse *nDetRunAction::getPmtResponseRight(){
+  return detector->GetCenterOfMassNegativeSide()->getPmtResponse();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -314,23 +329,23 @@ bool nDetRunAction::fillBranch()
   photonDetCenterOfMassZ[0] = centerL.getZ(); photonDetCenterOfMassZ[1] = centerR.getZ(); 
 
   // Get photon arrival times at the PMTs
-  cmL->getArrivalTimes(photonArrivalTimes, 50);
+  cmL->getArrivalTimes(photonArrivalTimes, 50, baselineFraction, baselineJitterFraction);
   photonMinArrivalTime[0] = cmL->getMinArrivalTime();
   photonAvgArrivalTime[0] = cmL->getAvgArrivalTime();
   
-  cmR->getArrivalTimes(&photonArrivalTimes[50], 50);
+  cmR->getArrivalTimes(&photonArrivalTimes[50], 50, baselineFraction, baselineJitterFraction);
   photonMinArrivalTime[1] = cmR->getMinArrivalTime();
   photonAvgArrivalTime[1] = cmR->getAvgArrivalTime();
 
   // Do some light pulse analysis
   TraceProcessor procL(photonArrivalTimes, 50);
-  pulsePhase[0] = procL.AnalyzePolyCFD(0.5);
-  pulseQDC[0] = procL.IntegratePulseFromMaximum(5, 10);
+  pulsePhase[0] = procL.AnalyzePolyCFD(polyCfdFraction);
+  pulseQDC[0] = procL.IntegratePulseFromMaximum(pulseIntegralLow, pulseIntegralHigh);
   pulseMax[0] = procL.GetMaximum();
   
   TraceProcessor procR(&photonArrivalTimes[50], 50);
-  pulsePhase[1] = procR.AnalyzePolyCFD(0.5);
-  pulseQDC[1] = procR.IntegratePulseFromMaximum(5, 10);
+  pulsePhase[1] = procR.AnalyzePolyCFD(polyCfdFraction);
+  pulseQDC[1] = procR.IntegratePulseFromMaximum(pulseIntegralLow, pulseIntegralHigh);
   pulseMax[1] = procR.GetMaximum();
 
   detector->Clear();

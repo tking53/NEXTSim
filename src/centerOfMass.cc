@@ -29,7 +29,7 @@ float TraceProcessor::IntegratePulse(unsigned short *pulse, const size_t &len, c
 
 	float qdc = 0.0;
 	for(size_t i = start_+1; i < stop; i++){ // Integrate using trapezoidal rule.
-		qdc += 0.5*(pulse[i-1] + pulse[i]);
+		qdc += 0.5*(pulse[i-1] + pulse[i]) - baseline;
 	}
 
 	return qdc;
@@ -41,9 +41,10 @@ float TraceProcessor::IntegratePulse(const size_t &start_/*=0*/, const size_t &s
 }
 
 /// Integrate the baseline corrected trace for QDC in the range [maxIndex-start_, maxIndex+stop_] and return the result.
-float TraceProcessor::IntegratePulseFromMaximum(const size_t &start_/*=5*/, const size_t &stop_/*=10*/){
+float TraceProcessor::IntegratePulseFromMaximum(const short &start_/*=5*/, const short &stop_/*=10*/){
 	if(maximum <= 0 && FindMaximum() <= 0) return -9999;
-	return this->IntegratePulse(pulseArray, pulseLength, maxIndex-start_, maxIndex+stop_);
+	size_t low = (maxIndex > start_ ? maxIndex-start_ : 0);
+	return this->IntegratePulse(pulseArray, pulseLength, low, maxIndex+stop_);
 }
 
 /// Perform traditional CFD analysis on the waveform.
@@ -60,7 +61,7 @@ float TraceProcessor::AnalyzeCFD(unsigned short *pulse, const size_t &len, const
 		cfdvals[cfdIndex] = 0.0;
 		if(cfdIndex >= L_ + D_ - 1){
 			for(size_t i = 0; i < L_; i++)
-				cfdvals[cfdIndex] += F_ * pulse[cfdIndex - i] - pulse[cfdIndex - i - D_];
+				cfdvals[cfdIndex] += F_ * (pulse[cfdIndex - i]-baseline) - (pulse[cfdIndex - i - D_]-baseline);
 		}
 		if(cfdvals[cfdIndex] < cfdMinimum){
 			cfdMinimum = cfdvals[cfdIndex];
@@ -94,7 +95,7 @@ float TraceProcessor::AnalyzePolyCFD(unsigned short *pulse, const size_t &len, c
 	if(len == 0 || !pulse) return -9999;
 	if(maximum <= 0 && FindMaximum() <= 0) return -9999;
 
-	double threshold = F_*maximum;
+	double threshold = F_*maximum + baseline;
 
 	float phase = -9999;
 	for(unsigned short cfdIndex = maxIndex; cfdIndex > 0; cfdIndex--){
@@ -122,20 +123,29 @@ float TraceProcessor::AnalyzePolyCFD(const float &F_/*=0.5*/){
 float TraceProcessor::FindMaximum(){
 	if(pulseLength == 0 || !pulseArray) return -9999;
 
+	// Find the baseline.
+	double tempbaseline = 0.0;
+	size_t sample_size = (15 <= pulseLength ? 15:pulseLength);
+	for(size_t i = 0; i < sample_size; i++){
+		tempbaseline += pulseArray[i];
+	}
+	tempbaseline = tempbaseline/sample_size;
+	baseline = float(tempbaseline);
+
 	// Find the maximum ADC value and the maximum bin.
 	unsigned short maxADC = 0;
 	for(size_t i = 0; i < pulseLength; i++){
-		if(pulseArray[i] > maxADC){ 
-			maxADC = pulseArray[i];
+		if(pulseArray[i] - baseline > maxADC){ 
+			maxADC = pulseArray[i] - baseline;
 			maxIndex = i;
 		}
 	}
 
 	// Find the pulse maximum by fitting with a third order polynomial.
 	if(pulseArray[maxIndex-1] >= pulseArray[maxIndex+1]) // Favor the left side of the pulse.
-		maximum = calculateP3(maxIndex-2, &pulseArray[maxIndex-2], cfdPar);
+		maximum = calculateP3(maxIndex-2, &pulseArray[maxIndex-2], cfdPar) - baseline;
 	else // Favor the right side of the pulse.
-		maximum = calculateP3(maxIndex-1, &pulseArray[maxIndex-1], cfdPar);
+		maximum = calculateP3(maxIndex-1, &pulseArray[maxIndex-1], cfdPar) - baseline;
 
 	return maximum;
 }
@@ -274,7 +284,7 @@ double centerOfMass::getCenterZ() const{
 	return (totalMass > 0 ? (1/totalMass)*center.getZ() : 0);
 }
 
-void centerOfMass::getArrivalTimes(unsigned short *arr, const size_t &len) const {
+void centerOfMass::getArrivalTimes(unsigned short *arr, const size_t &len, const double &baseline/*=0*/, const double &jitter/*=0*/) const {
 	const unsigned int adcBins = 65536;
 	size_t stop = (len <= 100 ? len : 100);
 	for(size_t i = 0; i < stop; i++){
@@ -285,6 +295,9 @@ void centerOfMass::getArrivalTimes(unsigned short *arr, const size_t &len) const
 			if(bin >= adcBins) bin = adcBins-1;
 			arr[i] = bin;
 		}
+		arr[i] += baseline*adcBins;
+		if(jitter != 0) 
+			arr[i] += (-jitter + 2*G4UniformRand()*jitter)*adcBins;
 	}
 }
 

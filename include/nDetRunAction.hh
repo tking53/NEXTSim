@@ -30,6 +30,7 @@ class nDetStackingAction;
 class nDetTrackingAction;
 class nDetSteppingAction;
 class nDetConstruction;
+class pmtResponse;
 
 class photonCounter;
 
@@ -119,6 +120,10 @@ class nDetRunAction : public G4UserRunAction
     
     void EndOfRunAction(const G4Run* aRun);
 
+	pmtResponse *getPmtResponseLeft();
+
+	pmtResponse *getPmtResponseRight();
+
     bool fillBranch(); // deposited energy in YAP
 
     // clear all the vector for the next event
@@ -139,6 +144,16 @@ class nDetRunAction : public G4UserRunAction
 	void setOverwriteOutputFile(const bool &overwrite){ overwriteExistingFile = overwrite; }
 
 	void setActions(nDetEventAction *event_, nDetStackingAction *stacking_, nDetTrackingAction *tracking_, nDetSteppingAction *stepping_);
+
+	void setBaselinePercentage(const double &percentage){ baselineFraction = percentage/100; }
+	
+	void setBaselineJitterPercentage(const double &percentage){ baselineJitterFraction = percentage/100; }
+
+	void setPolyCfdFraction(const double &frac){ polyCfdFraction = frac; }
+	
+	void setPulseIntegralLow(const short &low){ pulseIntegralLow = low; }
+	
+	void setPulseIntegralHigh(const short &high){ pulseIntegralHigh = high; }
 
     bool toggleVerboseMode(){ return (verbose = !verbose); }
 
@@ -172,6 +187,13 @@ class nDetRunAction : public G4UserRunAction
     bool persistentMode;
     bool outputEnabled;
     bool verbose;
+
+	double baselineFraction;
+	double baselineJitterFraction;
+	double polyCfdFraction;
+	
+	short pulseIntegralLow;
+	short pulseIntegralHigh;
 
     nDetAnalysisManager *fAnalysisManager;
     nDetRunActionMessenger *fActionMessenger;
