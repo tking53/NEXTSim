@@ -311,10 +311,12 @@ bool nDetRunAction::fillBranch()
 
   // Get photon arrival times at the PMTs
   cmL->getArrivalTimes(photonArrivalTimes, 50);
+  //cmL->getPulsePhase(photonArrivalTimes, 50, 0.5);
   photonMinArrivalTime[0] = cmL->getMinArrivalTime();
   photonAvgArrivalTime[0] = cmL->getAvgArrivalTime();
   
   cmR->getArrivalTimes(&photonArrivalTimes[50], 50);
+  //cmR->getPulsePhase(&photonArrivalTimes[50], 50, 0.5);
   photonMinArrivalTime[1] = cmR->getMinArrivalTime();
   photonAvgArrivalTime[1] = cmR->getAvgArrivalTime();
 

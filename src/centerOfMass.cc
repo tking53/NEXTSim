@@ -12,6 +12,220 @@
 
 const double coeff = 1.23984193E-3; // hc = Mev * nm
 
+///////////////////////////////////////////////////////////////////////////////
+// class TraceProcessor
+///////////////////////////////////////////////////////////////////////////////
+
+/// Destructor.
+TraceProcessor::~TraceProcessor(){ }
+
+/// Integrate the baseline corrected trace for QDC in the range [start_, stop_] and return the result.
+float TraceProcessor::IntegratePulse(unsigned short *pulse, const size_t &len, const size_t &start_/*=0*/, const size_t &stop_/*=0*/){
+	size_t stop = (stop_ == 0?len:stop_);
+
+	// Check for start index greater than stop index.
+	if(start_+1 >= stop) return -9999;
+
+	float qdc = 0.0;
+	for(size_t i = start_+1; i < stop; i++){ // Integrate using trapezoidal rule.
+		qdc += 0.5*(pulse[i-1] + pulse[i]);
+	}
+
+	return qdc;
+}
+
+/// Perform traditional CFD analysis on the waveform.
+float TraceProcessor::AnalyzeCFD(unsigned short *pulse, const size_t &len, const float &F_/*=0.5*/, const size_t &D_/*=1*/, const size_t &L_/*=1*/){
+	float cfdMinimum = 9999;
+	size_t cfdMinIndex = 0;
+	
+	float phase = -9999;
+	float *cfdvals = new float[len];
+
+	// Compute the cfd waveform.
+	for(size_t cfdIndex = 0; cfdIndex < len; ++cfdIndex){
+		cfdvals[cfdIndex] = 0.0;
+		if(cfdIndex >= L_ + D_ - 1){
+			for(size_t i = 0; i < L_; i++)
+				cfdvals[cfdIndex] += F_ * pulse[cfdIndex - i] - pulse[cfdIndex - i - D_];
+		}
+		if(cfdvals[cfdIndex] < cfdMinimum){
+			cfdMinimum = cfdvals[cfdIndex];
+			cfdMinIndex = cfdIndex;
+		}
+	}
+
+	// Find the zero-crossing.
+	if(cfdMinIndex > 0){
+		// Find the zero-crossing.
+		for(size_t cfdIndex = cfdMinIndex-1; cfdIndex > 0; cfdIndex--){
+			if(cfdvals[cfdIndex] >= 0.0 && cfdvals[cfdIndex+1] < 0.0){
+				phase = cfdIndex - cfdvals[cfdIndex]/(cfdvals[cfdIndex+1]-cfdvals[cfdIndex]);
+				break;
+			}
+		}
+	}
+	
+	delete[] cfdvals;
+
+	return phase;
+}
+
+/// Perform polynomial CFD analysis on the waveform.
+float TraceProcessor::AnalyzePolyCFD(unsigned short *pulse, const size_t &len, const float &F_/*=0.5*/){
+	double threshold = F_*FindMaximum(pulse, len);
+
+	float phase = -9999;
+	for(unsigned short cfdIndex = maxIndex; cfdIndex > 0; cfdIndex--){
+		if(pulse[cfdIndex-1] < threshold && pulse[cfdIndex] >= threshold){
+			calculateP2(cfdIndex-1, &pulse[cfdIndex-1], &cfdPar[4]);
+			
+			// Calculate the phase of the trace.
+			if(cfdPar[6] != 0)
+				phase = (-cfdPar[5]+std::sqrt(cfdPar[5]*cfdPar[5] - 4*cfdPar[6]*(cfdPar[4] - threshold)))/(2*cfdPar[6]);
+			else
+				phase = (threshold-cfdPar[4])/cfdPar[5];
+
+			break;
+		}
+	}
+
+	return phase;
+}
+
+float TraceProcessor::FindMaximum(unsigned short *pulse, const size_t &len){
+	// Find the maximum ADC value and the maximum bin.
+	unsigned short maxADC = 0;
+	for(size_t i = 0; i < len; i++){
+		if(pulse[i] > maxADC){ 
+			maxADC = pulse[i];
+			maxIndex = i;
+		}
+	}
+
+	// Find the pulse maximum by fitting with a third order polynomial.
+	if(pulse[maxIndex-1] >= pulse[maxIndex+1]) // Favor the left side of the pulse.
+		maximum = calculateP3(maxIndex-2, &pulse[maxIndex-2], cfdPar);
+	else // Favor the right side of the pulse.
+		maximum = calculateP3(maxIndex-1, &pulse[maxIndex-1], cfdPar);
+
+	return maximum;
+}
+
+/** Calculate the parameters for a second order polynomial which passes through 3 points.
+  * \param[in]  x0 - Initial x value. Sequential x values are assumed to be x0, x0+1, and x0+2.
+  * \param[in]  y  - Pointer to the beginning of the array of unsigned shorts containing the three y values.
+  * \param[out] p  - Pointer to the array of doubles for storing the three polynomial parameters.
+  * \return The maximum/minimum of the polynomial.
+  */
+double TraceProcessor::calculateP2(const short &x0, unsigned short *y, double *p){
+	double x1[3], x2[3];
+	for(size_t i = 0; i < 3; i++){
+		x1[i] = (x0+i);
+		x2[i] = std::pow(x0+i, 2);
+	}
+
+	double denom = (x1[1]*x2[2]-x2[1]*x1[2]) - x1[0]*(x2[2]-x2[1]*1) + x2[0]*(x1[2]-x1[1]*1);
+
+	p[0] = (y[0]*(x1[1]*x2[2]-x2[1]*x1[2]) - x1[0]*(y[1]*x2[2]-x2[1]*y[2]) + x2[0]*(y[1]*x1[2]-x1[1]*y[2]))/denom;
+	p[1] = ((y[1]*x2[2]-x2[1]*y[2]) - y[0]*(x2[2]-x2[1]*1) + x2[0]*(y[2]-y[1]*1))/denom;
+	p[2] = ((x1[1]*y[2]-y[1]*x1[2]) - x1[0]*(y[2]-y[1]*1) + y[0]*(x1[2]-x1[1]*1))/denom;
+	
+	// Calculate the maximum of the polynomial.
+	return (p[0] - p[1]*p[1]/(4*p[2]));
+}
+
+/** Calculate the parameters for a third order polynomial which passes through 4 points.
+  * \param[in]  x0 - Initial x value. Sequential x values are assumed to be x0, x0+1, x0+2, and x0+3.
+  * \param[in]  y  - Pointer to the beginning of the array of unsigned shorts containing the four y values.
+  * \param[out] p  - Pointer to the array of doubles for storing the three polynomial parameters.
+  * \return The local maximum/minimum of the polynomial.
+  */
+double TraceProcessor::calculateP3(const short &x, unsigned short *y, double *p){
+	double x1[4], x2[4], x3[4];
+	for(size_t i = 0; i < 4; i++){
+		x1[i] = (x+i);
+		x2[i] = std::pow(x+i, 2);
+		x3[i] = std::pow(x+i, 3);
+	}
+
+	double denom = (x1[1]*(x2[2]*x3[3]-x2[3]*x3[2]) - x1[2]*(x2[1]*x3[3]-x2[3]*x3[1]) + x1[3]*(x2[1]*x3[2]-x2[2]*x3[1])) - (x1[0]*(x2[2]*x3[3]-x2[3]*x3[2]) - x1[2]*(x2[0]*x3[3]-x2[3]*x3[0]) + x1[3]*(x2[0]*x3[2]-x2[2]*x3[0])) + (x1[0]*(x2[1]*x3[3]-x2[3]*x3[1]) - x1[1]*(x2[0]*x3[3]-x2[3]*x3[0]) + x1[3]*(x2[0]*x3[1]-x2[1]*x3[0])) - (x1[0]*(x2[1]*x3[2]-x2[2]*x3[1]) - x1[1]*(x2[0]*x3[2]-x2[2]*x3[0]) + x1[2]*(x2[0]*x3[1]-x2[1]*x3[0]));
+
+	p[0] = (y[0]*(x1[1]*(x2[2]*x3[3]-x2[3]*x3[2]) - x1[2]*(x2[1]*x3[3]-x2[3]*x3[1]) + x1[3]*(x2[1]*x3[2]-x2[2]*x3[1])) - y[1]*(x1[0]*(x2[2]*x3[3]-x2[3]*x3[2]) - x1[2]*(x2[0]*x3[3]-x2[3]*x3[0]) + x1[3]*(x2[0]*x3[2]-x2[2]*x3[0])) + y[2]*(x1[0]*(x2[1]*x3[3]-x2[3]*x3[1]) - x1[1]*(x2[0]*x3[3]-x2[3]*x3[0]) + x1[3]*(x2[0]*x3[1]-x2[1]*x3[0])) - y[3]*(x1[0]*(x2[1]*x3[2]-x2[2]*x3[1]) - x1[1]*(x2[0]*x3[2]-x2[2]*x3[0]) + x1[2]*(x2[0]*x3[1]-x2[1]*x3[0]))) / denom;
+	p[1] = ((y[1]*(x2[2]*x3[3]-x2[3]*x3[2]) - y[2]*(x2[1]*x3[3]-x2[3]*x3[1]) + y[3]*(x2[1]*x3[2]-x2[2]*x3[1])) - (y[0]*(x2[2]*x3[3]-x2[3]*x3[2]) - y[2]*(x2[0]*x3[3]-x2[3]*x3[0]) + y[3]*(x2[0]*x3[2]-x2[2]*x3[0])) + (y[0]*(x2[1]*x3[3]-x2[3]*x3[1]) - y[1]*(x2[0]*x3[3]-x2[3]*x3[0]) + y[3]*(x2[0]*x3[1]-x2[1]*x3[0])) - (y[0]*(x2[1]*x3[2]-x2[2]*x3[1]) - y[1]*(x2[0]*x3[2]-x2[2]*x3[0]) + y[2]*(x2[0]*x3[1]-x2[1]*x3[0]))) / denom;
+	p[2] = ((x1[1]*(y[2]*x3[3]-y[3]*x3[2]) - x1[2]*(y[1]*x3[3]-y[3]*x3[1]) + x1[3]*(y[1]*x3[2]-y[2]*x3[1])) - (x1[0]*(y[2]*x3[3]-y[3]*x3[2]) - x1[2]*(y[0]*x3[3]-y[3]*x3[0]) + x1[3]*(y[0]*x3[2]-y[2]*x3[0])) + (x1[0]*(y[1]*x3[3]-y[3]*x3[1]) - x1[1]*(y[0]*x3[3]-y[3]*x3[0]) + x1[3]*(y[0]*x3[1]-y[1]*x3[0])) - (x1[0]*(y[1]*x3[2]-y[2]*x3[1]) - x1[1]*(y[0]*x3[2]-y[2]*x3[0]) + x1[2]*(y[0]*x3[1]-y[1]*x3[0]))) / denom;
+	p[3] = ((x1[1]*(x2[2]*y[3]-x2[3]*y[2]) - x1[2]*(x2[1]*y[3]-x2[3]*y[1]) + x1[3]*(x2[1]*y[2]-x2[2]*y[1])) - (x1[0]*(x2[2]*y[3]-x2[3]*y[2]) - x1[2]*(x2[0]*y[3]-x2[3]*y[0]) + x1[3]*(x2[0]*y[2]-x2[2]*y[0])) + (x1[0]*(x2[1]*y[3]-x2[3]*y[1]) - x1[1]*(x2[0]*y[3]-x2[3]*y[0]) + x1[3]*(x2[0]*y[1]-x2[1]*y[0])) - (x1[0]*(x2[1]*y[2]-x2[2]*y[1]) - x1[1]*(x2[0]*y[2]-x2[2]*y[0]) + x1[2]*(x2[0]*y[1]-x2[1]*y[0]))) / denom;
+
+	if(p[3] == 0){
+		// Handle the case of p[3] == 0.
+		return (p[0] - p[1]*p[1]/(4*p[2]));
+	}
+
+	// Calculate the maximum of the polynomial.
+	double xmax1 = (-2*p[2]+std::sqrt(4*p[2]*p[2]-12*p[3]*p[1]))/(6*p[3]);
+	double xmax2 = (-2*p[2]-std::sqrt(4*p[2]*p[2]-12*p[3]*p[1]))/(6*p[3]);
+
+	if((2*p[2]+6*p[3]*xmax1) < 0) // The second derivative is negative (i.e. this is a maximum).
+		return (p[0] + p[1]*xmax1 + p[2]*xmax1*xmax1 + p[3]*xmax1*xmax1*xmax1);
+
+	return (p[0] + p[1]*xmax2 + p[2]*xmax2*xmax2 + p[3]*xmax2*xmax2*xmax2);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// class pmtResponse
+///////////////////////////////////////////////////////////////////////////////
+
+void pmtResponse::setRisetime(const double &risetime_){ 
+	risetime = risetime_; 
+	update();
+}
+
+void pmtResponse::setFalltime(const double &falltime_){ 
+	falltime = falltime_; 
+	update();
+}
+
+void pmtResponse::digitize(const double &arrival, double *arr, const size_t &len){
+	//double dt = arrival - peakOffset + traceDelay; // Arrival time is the peak of the pulse.
+	double dt = arrival + traceDelay; // Arrival time is the leading edge of the pulse.
+	if(dt < 0) dt = 0;
+	double dy;
+	double time = dt;
+	size_t index = (size_t)floor(dt/ADC_CLOCK_TICK);
+	time += ADC_CLOCK_TICK/2;
+	while(index < len){
+		dy = eval(time, dt);
+		arr[index] += dy;
+		time += ADC_CLOCK_TICK;
+		index++;
+	}
+}
+
+void pmtResponse::print(){
+	std::cout << " pmtResponse-\n";
+	std::cout << "  risetime    " << risetime << " ns" << std::endl;
+	std::cout << "  falltime    " << falltime << " ns" <<  std::endl;
+	std::cout << "  amplitude   " << amplitude << std::endl;
+	std::cout << "  peakOffset  " << peakOffset << " ns" <<  std::endl;
+	std::cout << "  peakMaximum " << peakMaximum << std::endl;
+	std::cout << "  gain        " << gain << std::endl;
+}
+
+void pmtResponse::update(){
+	amplitude = 1/(falltime-risetime);
+	peakOffset = std::log(risetime/falltime)/((1/falltime)-(1/risetime));
+	peakMaximum = eval(peakOffset);
+}
+
+double pmtResponse::eval(const double &t, const double &dt/*=0*/){
+	if(t-dt <= 0) return 0;
+	return gain*amplitude*(std::exp(-(t-dt)/falltime)-std::exp(-(t-dt)/risetime));
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// class centerOfMass
+///////////////////////////////////////////////////////////////////////////////
+
 centerOfMass::~centerOfMass(){
 	if(spec) delete spec;
 }
@@ -32,11 +246,23 @@ double centerOfMass::getCenterZ() const{
 	return (totalMass > 0 ? (1/totalMass)*center.getZ() : 0);
 }
 
-void centerOfMass::getArrivalTimes(unsigned short *arr, const size_t &len, const size_t &offset/*=0*/){
+void centerOfMass::getArrivalTimes(unsigned short *arr, const size_t &len) const {
+	const unsigned int adcBins = 65536;
 	size_t stop = (len <= 100 ? len : 100);
-	for(size_t i = offset; i < stop; i++){
-		arr[i] = arrivalTimes[i];
+	for(size_t i = 0; i < stop; i++){
+		if(arrivalTimes[i] == 0)
+			arr[i] = 0;
+		else{
+			unsigned int bin = floorl(arrivalTimes[i]);
+			if(bin >= adcBins) bin = adcBins-1;
+			arr[i] = bin;
+		}
 	}
+}
+
+float centerOfMass::getPulsePhase(unsigned short *arr, const size_t &len, const float &F_/*=0.5*/) const {
+	TraceProcessor proc;
+	return proc.AnalyzePolyCFD(arr, len, F_)*ADC_CLOCK_TICK;
 }
 
 short centerOfMass::setNumColumns(const short &col_){ 
@@ -126,10 +352,9 @@ bool centerOfMass::addPoint(const G4Step *step, const double &mass/*=1*/){
 	lambdaSum += wavelength;
 	if(time < t0) t0 = time;
 	
-	size_t index = (size_t)floor(time/ADC_CLOCK_TICK);
-	if(index < 100)
-		arrivalTimes[index]++;
-
+	// Add the PMT response to the "digitized" trace
+	response.digitize(time, arrivalTimes, 100);
+	
 	return true;
 }
 
