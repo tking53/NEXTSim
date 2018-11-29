@@ -13,55 +13,137 @@
 const double coeff = 1.23984193E-3; // hc = Mev * nm
 
 ///////////////////////////////////////////////////////////////////////////////
-// class TraceProcessor
+// class pmtResponse
 ///////////////////////////////////////////////////////////////////////////////
 
-/// Destructor.
-TraceProcessor::~TraceProcessor(){ }
+pmtResponse::pmtResponse() : risetime(4.0), falltime(20.0), amplitude(0), peakOffset(0), peakMaximum(0), traceDelay(50), gain(1E4),
+                             maximum(-9999), baseline(-9999), maxIndex(0), adcBins(4096), pulseLength(100), isDigitized(false), rawPulse(NULL), pulseArray(NULL) {
+	this->update();
+	this->setPulseLength(pulseLength);
+}
+
+pmtResponse::pmtResponse(const double &risetime_, const double &falltime_) : risetime(risetime_), falltime(falltime_), amplitude(0), peakOffset(0), peakMaximum(0), traceDelay(50), gain(1E4),
+                                                                             maximum(-9999), baseline(-9999), maxIndex(0), adcBins(4096), pulseLength(100), isDigitized(false), rawPulse(NULL), pulseArray(NULL) {
+	this->update();
+	this->setPulseLength(pulseLength);
+}
+
+pmtResponse::~pmtResponse(){
+	if(pulseLength > 0){
+		delete[] rawPulse;
+		delete[] pulseArray;
+	}
+}
+
+void pmtResponse::setRisetime(const double &risetime_){ 
+	risetime = risetime_; 
+	update();
+}
+
+void pmtResponse::setFalltime(const double &falltime_){ 
+	falltime = falltime_; 
+	update();
+}
+
+/// Set the length of the pulse in ADC bins.
+void pmtResponse::setPulseLength(const size_t &len){
+	if(pulseLength > 0){
+		delete[] rawPulse;
+		delete[] pulseArray;
+	}
+	pulseLength = len;
+	rawPulse = new double[len];
+	pulseArray = new unsigned short[len];
+	this->clear();
+	//std::cout << " pmtResponse: Set pulse length to " << len << " ADC bins (" << len*ADC_CLOCK_TICK << " ns)\n";
+}
+
+/// Set the length of the pulse in nanoseconds.
+void pmtResponse::setPulseLengthInNanoSeconds(const double &length){
+	size_t len = (size_t)ceil(length/ADC_CLOCK_TICK);
+	this->setPulseLength(len);
+}
+
+/// Set the dynamic bit range of the ADC.
+void pmtResponse::setBitRange(const size_t &len){
+	adcBins = 1;
+	for(size_t i = 0; i < len; i++){
+		adcBins *= 2;
+	}
+	//std::cout << " pmtResponse: Set ADC dynamic bit range to " << len << "-bit (" << adcBins << " channels)\n";
+}
+
+void pmtResponse::addPhoton(const double &arrival){
+	//double dt = arrival - peakOffset + traceDelay; // Arrival time is the peak of the pulse.
+	double dt = arrival + traceDelay; // Arrival time is the leading edge of the pulse.
+	if(dt < 0) dt = 0;
+	double dy;
+	double time = dt;
+	size_t index = (size_t)floor(dt/ADC_CLOCK_TICK);
+	time += ADC_CLOCK_TICK/2;
+	while(index < pulseLength){
+		dy = eval(time, dt);
+		rawPulse[index] += dy;
+		time += ADC_CLOCK_TICK;
+		index++;
+	}
+}
+
+void pmtResponse::digitize(const double &baseline_/*=0*/, const double &jitter_/*=0*/){
+	if(isDigitized) return;
+	for(size_t i = 0; i < pulseLength; i++){
+		if(rawPulse[i] == 0)
+			pulseArray[i] = 0;
+		else{
+			unsigned int bin = (unsigned int)floor(rawPulse[i]);
+			if(bin >= adcBins) bin = adcBins-1;
+			pulseArray[i] = bin;
+		}
+		pulseArray[i] += baseline_*adcBins;
+		if(jitter_ != 0) 
+			pulseArray[i] += (-jitter_ + 2*G4UniformRand()*jitter_)*adcBins;
+	}
+	isDigitized = true;
+}
 
 /// Integrate the baseline corrected trace for QDC in the range [start_, stop_] and return the result.
-float TraceProcessor::IntegratePulse(unsigned short *pulse, const size_t &len, const size_t &start_/*=0*/, const size_t &stop_/*=0*/){
-	if(len == 0 || !pulse) return -9999;
-	size_t stop = (stop_ == 0?len:stop_);
+float pmtResponse::integratePulse(const size_t &start_/*=0*/, const size_t &stop_/*=0*/){
+	if(pulseLength == 0 || !pulseArray) return -9999;
+	size_t stop = (stop_ == 0?pulseLength:stop_);
 
 	// Check for start index greater than stop index.
 	if(start_+1 >= stop) return -9999;
 
 	float qdc = 0.0;
 	for(size_t i = start_+1; i < stop; i++){ // Integrate using trapezoidal rule.
-		qdc += 0.5*(pulse[i-1] + pulse[i]) - baseline;
+		qdc += 0.5*(pulseArray[i-1] + pulseArray[i]) - baseline;
 	}
 
 	return qdc;
 }
 
-/// Integrate the baseline corrected trace for QDC in the range [start_, stop_] and return the result.
-float TraceProcessor::IntegratePulse(const size_t &start_/*=0*/, const size_t &stop_/*=0*/){
-	return this->IntegratePulse(pulseArray, pulseLength, start_, stop_);
-}
-
 /// Integrate the baseline corrected trace for QDC in the range [maxIndex-start_, maxIndex+stop_] and return the result.
-float TraceProcessor::IntegratePulseFromMaximum(const short &start_/*=5*/, const short &stop_/*=10*/){
-	if(maximum <= 0 && FindMaximum() <= 0) return -9999;
+float pmtResponse::integratePulseFromMaximum(const short &start_/*=5*/, const short &stop_/*=10*/){
+	if(maximum <= 0 && findMaximum() <= 0) return -9999;
 	size_t low = (maxIndex > start_ ? maxIndex-start_ : 0);
-	return this->IntegratePulse(pulseArray, pulseLength, low, maxIndex+stop_);
+	return this->integratePulse(low, maxIndex+stop_);
 }
 
 /// Perform traditional CFD analysis on the waveform.
-float TraceProcessor::AnalyzeCFD(unsigned short *pulse, const size_t &len, const float &F_/*=0.5*/, const size_t &D_/*=1*/, const size_t &L_/*=1*/){
-	if(len == 0 || !pulse) return -9999;
+float pmtResponse::analyzeCFD(const float &F_/*=0.5*/, const size_t &D_/*=1*/, const size_t &L_/*=1*/){
+	if(pulseLength == 0 || !pulseArray) return -9999;
 	float cfdMinimum = 9999;
 	size_t cfdMinIndex = 0;
 	
 	float phase = -9999;
-	float *cfdvals = new float[len];
+	float *cfdvals = new float[pulseLength];
 
 	// Compute the cfd waveform.
-	for(size_t cfdIndex = 0; cfdIndex < len; ++cfdIndex){
+	for(size_t cfdIndex = 0; cfdIndex < pulseLength; ++cfdIndex){
 		cfdvals[cfdIndex] = 0.0;
 		if(cfdIndex >= L_ + D_ - 1){
 			for(size_t i = 0; i < L_; i++)
-				cfdvals[cfdIndex] += F_ * (pulse[cfdIndex - i]-baseline) - (pulse[cfdIndex - i - D_]-baseline);
+				cfdvals[cfdIndex] += F_ * (pulseArray[cfdIndex - i]-baseline) - (pulseArray[cfdIndex - i - D_]-baseline);
 		}
 		if(cfdvals[cfdIndex] < cfdMinimum){
 			cfdMinimum = cfdvals[cfdIndex];
@@ -82,25 +164,21 @@ float TraceProcessor::AnalyzeCFD(unsigned short *pulse, const size_t &len, const
 	
 	delete[] cfdvals;
 
-	return phase*ADC_CLOCK_TICK;
+	return phase*ADC_CLOCK_TICK-traceDelay;
 }
 
-/// Perform traditional CFD analysis on the waveform.
-float TraceProcessor::AnalyzeCFD(const float &F_/*=0.5*/, const size_t &D_/*=1*/, const size_t &L_/*=1*/){
-	return this->AnalyzeCFD(pulseArray, pulseLength, F_, D_, L_);
-}
 
 /// Perform polynomial CFD analysis on the waveform.
-float TraceProcessor::AnalyzePolyCFD(unsigned short *pulse, const size_t &len, const float &F_/*=0.5*/){
-	if(len == 0 || !pulse) return -9999;
-	if(maximum <= 0 && FindMaximum() <= 0) return -9999;
+float pmtResponse::analyzePolyCFD(const float &F_/*=0.5*/){
+	if(pulseLength == 0 || !pulseArray) return -9999;
+	if(maximum <= 0 && findMaximum() <= 0) return -9999;
 
 	double threshold = F_*maximum + baseline;
 
 	float phase = -9999;
 	for(unsigned short cfdIndex = maxIndex; cfdIndex > 0; cfdIndex--){
-		if(pulse[cfdIndex-1] < threshold && pulse[cfdIndex] >= threshold){
-			calculateP2(cfdIndex-1, &pulse[cfdIndex-1], &cfdPar[4]);
+		if(pulseArray[cfdIndex-1] < threshold && pulseArray[cfdIndex] >= threshold){
+			calculateP2(cfdIndex-1, &pulseArray[cfdIndex-1], &cfdPar[4]);
 			
 			// Calculate the phase of the trace.
 			if(cfdPar[6] != 0)
@@ -112,42 +190,52 @@ float TraceProcessor::AnalyzePolyCFD(unsigned short *pulse, const size_t &len, c
 		}
 	}
 
-	return phase*ADC_CLOCK_TICK;
+	return phase*ADC_CLOCK_TICK-traceDelay;
 }
 
-/// Perform polynomial CFD analysis on the waveform.
-float TraceProcessor::AnalyzePolyCFD(const float &F_/*=0.5*/){
-	return this->AnalyzePolyCFD(pulseArray, pulseLength, F_);
-}
-
-float TraceProcessor::FindMaximum(){
-	if(pulseLength == 0 || !pulseArray) return -9999;
-
-	// Find the baseline.
-	double tempbaseline = 0.0;
-	size_t sample_size = (15 <= pulseLength ? 15:pulseLength);
-	for(size_t i = 0; i < sample_size; i++){
-		tempbaseline += pulseArray[i];
+void pmtResponse::copyTrace(unsigned short *arr, const size_t &len){
+	if(!isDigitized) this->digitize();
+	size_t stop = (len <= pulseLength ? len : pulseLength);
+	for(size_t i = 0; i < stop; i++){
+		arr[i] = pulseArray[i];
 	}
-	tempbaseline = tempbaseline/sample_size;
-	baseline = float(tempbaseline);
+}
 
-	// Find the maximum ADC value and the maximum bin.
-	unsigned short maxADC = 0;
+/// Copy the digitized trace into a vector.
+void pmtResponse::copyTrace(std::vector<unsigned short> &vec){
+	vec.clear();
+	vec.reserve(pulseLength);
 	for(size_t i = 0; i < pulseLength; i++){
-		if(pulseArray[i] - baseline > maxADC){ 
-			maxADC = pulseArray[i] - baseline;
-			maxIndex = i;
-		}
+		vec.push_back(pulseArray[i]);
+	}
+}
+
+void pmtResponse::clear(){
+	for(size_t i = 0; i < 7; i++){
+		cfdPar[i] = 0;
 	}
 
-	// Find the pulse maximum by fitting with a third order polynomial.
-	if(pulseArray[maxIndex-1] >= pulseArray[maxIndex+1]) // Favor the left side of the pulse.
-		maximum = calculateP3(maxIndex-2, &pulseArray[maxIndex-2], cfdPar) - baseline;
-	else // Favor the right side of the pulse.
-		maximum = calculateP3(maxIndex-1, &pulseArray[maxIndex-1], cfdPar) - baseline;
+	maximum = -9999;
+	baseline = -9999;
 
-	return maximum;
+	maxIndex = 0;
+	
+	isDigitized = false;
+	
+	for(size_t i = 0; i < pulseLength; i++){
+		rawPulse[i] = 0;
+		pulseArray[i] = 0;
+	}
+}
+
+void pmtResponse::print(){
+	std::cout << " pmtResponse-\n";
+	std::cout << "  risetime    " << risetime << " ns" << std::endl;
+	std::cout << "  falltime    " << falltime << " ns" <<  std::endl;
+	std::cout << "  amplitude   " << amplitude << std::endl;
+	std::cout << "  peakOffset  " << peakOffset << " ns" <<  std::endl;
+	std::cout << "  peakMaximum " << peakMaximum << std::endl;
+	std::cout << "  gain        " << gain << std::endl;
 }
 
 /** Calculate the parameters for a second order polynomial which passes through 3 points.
@@ -156,7 +244,7 @@ float TraceProcessor::FindMaximum(){
   * \param[out] p  - Pointer to the array of doubles for storing the three polynomial parameters.
   * \return The maximum/minimum of the polynomial.
   */
-double TraceProcessor::calculateP2(const short &x0, unsigned short *y, double *p){
+double pmtResponse::calculateP2(const short &x0, unsigned short *y, double *p){
 	double x1[3], x2[3];
 	for(size_t i = 0; i < 3; i++){
 		x1[i] = (x0+i);
@@ -179,7 +267,7 @@ double TraceProcessor::calculateP2(const short &x0, unsigned short *y, double *p
   * \param[out] p  - Pointer to the array of doubles for storing the three polynomial parameters.
   * \return The local maximum/minimum of the polynomial.
   */
-double TraceProcessor::calculateP3(const short &x, unsigned short *y, double *p){
+double pmtResponse::calculateP3(const short &x, unsigned short *y, double *p){
 	double x1[4], x2[4], x3[4];
 	for(size_t i = 0; i < 4; i++){
 		x1[i] = (x+i);
@@ -209,46 +297,6 @@ double TraceProcessor::calculateP3(const short &x, unsigned short *y, double *p)
 	return (p[0] + p[1]*xmax2 + p[2]*xmax2*xmax2 + p[3]*xmax2*xmax2*xmax2);
 }
 
-///////////////////////////////////////////////////////////////////////////////
-// class pmtResponse
-///////////////////////////////////////////////////////////////////////////////
-
-void pmtResponse::setRisetime(const double &risetime_){ 
-	risetime = risetime_; 
-	update();
-}
-
-void pmtResponse::setFalltime(const double &falltime_){ 
-	falltime = falltime_; 
-	update();
-}
-
-void pmtResponse::digitize(const double &arrival, double *arr, const size_t &len){
-	//double dt = arrival - peakOffset + traceDelay; // Arrival time is the peak of the pulse.
-	double dt = arrival + traceDelay; // Arrival time is the leading edge of the pulse.
-	if(dt < 0) dt = 0;
-	double dy;
-	double time = dt;
-	size_t index = (size_t)floor(dt/ADC_CLOCK_TICK);
-	time += ADC_CLOCK_TICK/2;
-	while(index < len){
-		dy = eval(time, dt);
-		arr[index] += dy;
-		time += ADC_CLOCK_TICK;
-		index++;
-	}
-}
-
-void pmtResponse::print(){
-	std::cout << " pmtResponse-\n";
-	std::cout << "  risetime    " << risetime << " ns" << std::endl;
-	std::cout << "  falltime    " << falltime << " ns" <<  std::endl;
-	std::cout << "  amplitude   " << amplitude << std::endl;
-	std::cout << "  peakOffset  " << peakOffset << " ns" <<  std::endl;
-	std::cout << "  peakMaximum " << peakMaximum << std::endl;
-	std::cout << "  gain        " << gain << std::endl;
-}
-
 void pmtResponse::update(){
 	amplitude = 1/(falltime-risetime);
 	peakOffset = std::log(risetime/falltime)/((1/falltime)-(1/risetime));
@@ -258,6 +306,37 @@ void pmtResponse::update(){
 double pmtResponse::eval(const double &t, const double &dt/*=0*/){
 	if(t-dt <= 0) return 0;
 	return gain*amplitude*(std::exp(-(t-dt)/falltime)-std::exp(-(t-dt)/risetime));
+}
+
+float pmtResponse::findMaximum(){
+	if(pulseLength == 0 || !pulseArray) return -9999;
+
+	// Find the baseline.
+	double tempbaseline = 0.0;
+	size_t sample_size = floor(traceDelay/ADC_CLOCK_TICK);
+	sample_size = (sample_size <= pulseLength ? 15:pulseLength);
+	for(size_t i = 0; i < sample_size; i++){
+		tempbaseline += pulseArray[i];
+	}
+	tempbaseline = tempbaseline/sample_size;
+	baseline = float(tempbaseline);
+
+	// Find the maximum ADC value and the maximum bin.
+	unsigned short maxADC = 0;
+	for(size_t i = 0; i < pulseLength; i++){
+		if(pulseArray[i] - baseline > maxADC){ 
+			maxADC = pulseArray[i] - baseline;
+			maxIndex = i;
+		}
+	}
+
+	// Find the pulse maximum by fitting with a third order polynomial.
+	if(pulseArray[maxIndex-1] >= pulseArray[maxIndex+1]) // Favor the left side of the pulse.
+		maximum = calculateP3(maxIndex-2, &pulseArray[maxIndex-2], cfdPar) - baseline;
+	else // Favor the right side of the pulse.
+		maximum = calculateP3(maxIndex-1, &pulseArray[maxIndex-1], cfdPar) - baseline;
+
+	return maximum;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -282,23 +361,6 @@ double centerOfMass::getCenterY() const{
 
 double centerOfMass::getCenterZ() const{
 	return (totalMass > 0 ? (1/totalMass)*center.getZ() : 0);
-}
-
-void centerOfMass::getArrivalTimes(unsigned short *arr, const size_t &len, const double &baseline/*=0*/, const double &jitter/*=0*/) const {
-	const unsigned int adcBins = 65536;
-	size_t stop = (len <= 100 ? len : 100);
-	for(size_t i = 0; i < stop; i++){
-		if(arrivalTimes[i] == 0)
-			arr[i] = 0;
-		else{
-			unsigned int bin = floorl(arrivalTimes[i]);
-			if(bin >= adcBins) bin = adcBins-1;
-			arr[i] = bin;
-		}
-		arr[i] += baseline*adcBins;
-		if(jitter != 0) 
-			arr[i] += (-jitter + 2*G4UniformRand()*jitter)*adcBins;
-	}
 }
 
 short centerOfMass::setNumColumns(const short &col_){ 
@@ -357,8 +419,7 @@ void centerOfMass::clear(){
 	totalMass = 0;
 	center = G4ThreeVector();
 	t0 = std::numeric_limits<double>::max();	
-	for(size_t i = 0; i < 100; i++)
-		arrivalTimes[i] = 0;
+	response.clear();
 }
 
 bool centerOfMass::addPoint(const G4Step *step, const double &mass/*=1*/){
@@ -389,7 +450,7 @@ bool centerOfMass::addPoint(const G4Step *step, const double &mass/*=1*/){
 	if(time < t0) t0 = time;
 	
 	// Add the PMT response to the "digitized" trace
-	response.digitize(time, arrivalTimes, 100);
+	response.addPhoton(time);
 	
 	return true;
 }

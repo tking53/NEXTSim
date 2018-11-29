@@ -8,46 +8,82 @@
 class TGraph;
 class G4Step;
 
-class TraceProcessor{
+class pmtResponse{
   public:
 	/// Default constructor.
-	TraceProcessor() : maximum(-9999), baseline(-9999), maxIndex(0), pulseArray(NULL), pulseLength(0) { }
-
+	pmtResponse();
+	
 	/// Pulse constructor.
-	TraceProcessor(unsigned short *pulse, const size_t &len) : maximum(-9999), baseline(-9999), maxIndex(0), pulseArray(pulse), pulseLength(len) { this->FindMaximum(); }
-	
+	pmtResponse(const double &risetime_, const double &falltime_);
+
 	/// Destructor.
-	~TraceProcessor();
-	
+	~pmtResponse();
+
+	size_t getPulseLength() const { return pulseLength; }
+
 	/// Return the maximum value of the pulse.
-	float GetMaximum() const { return maximum; }
+	float getMaximum() const { return maximum; }
 
 	/// Return a pointer to the array of Poly CFD parameters.
-	double *GetCfdParams() { return cfdPar; }
+	double *getCfdParams() { return cfdPar; }
 
 	/// Return the maximum ADC index of the pulse.
-	unsigned short GetMaximumIndex() const { return maxIndex; }
+	unsigned short getMaximumIndex() const { return maxIndex; }
+
+	double *getRawPulse(){ return rawPulse; }
 	
-	/// Integrate the baseline corrected trace for QDC in the range [start_, stop_] and return the result.
-	float IntegratePulse(unsigned short *pulse, const size_t &len, const size_t &start_=0, const size_t &stop_=0);
+	unsigned short *getDigitizedPulse(){ return pulseArray; }
+
+	/// Set the rise time of the pulse (in ns).
+	void setRisetime(const double &risetime_);
+	
+	/// Set the decay time of the pulse (in ns).
+	void setFalltime(const double &falltime_);
+
+	/// Set the time delay of the pulse (in ns).
+	void setTraceDelay(const double &traceDelay_){ traceDelay = traceDelay_; }
+
+	/// Set the gain. 
+	void setGain(const double &gain_){ gain = gain_; }
+
+	/// Set the length of the pulse in ADC bins.
+	void setPulseLength(const size_t &len);
+
+	/// Set the length of the pulse in nanoseconds.
+	void setPulseLengthInNanoSeconds(const double &length);
+
+	/// Set the dynamic bit range of the ADC.
+	void setBitRange(const size_t &len);
+
+	/// Add a photon signal to the raw pulse.
+	void addPhoton(const double &arrival);
+
+	/// "Digitize" the raw light pulse.
+	void digitize(const double &baseline=0, const double &jitter=0);
 
 	/// Integrate the baseline corrected trace for QDC in the range [start_, stop_] and return the result.
-	float IntegratePulse(const size_t &start_=0, const size_t &stop_=0);
+	float integratePulse(const size_t &start_=0, const size_t &stop_=0);
 
 	/// Integrate the baseline corrected trace for QDC in the range [maxIndex-start_, maxIndex+stop_] and return the result.
-	float IntegratePulseFromMaximum(const short &start_=5, const short &stop_=10);
+	float integratePulseFromMaximum(const short &start_=5, const short &stop_=10);
 
 	/// Perform traditional CFD analysis on the waveform.
-	float AnalyzeCFD(unsigned short *pulse, const size_t &len, const float &F_=0.5, const size_t &D_=1, const size_t &L_=1);
-
-	/// Perform traditional CFD analysis on the waveform.
-	float AnalyzeCFD(const float &F_=0.5, const size_t &D_=1, const size_t &L_=1);
+	float analyzeCFD(const float &F_=0.5, const size_t &D_=1, const size_t &L_=1);
 	
 	/// Perform polynomial CFD analysis on the waveform.
-	float AnalyzePolyCFD(unsigned short *pulse, const size_t &len, const float &F_=0.5);
+	float analyzePolyCFD(const float &F_=0.5);
 
-	/// Perform polynomial CFD analysis on the waveform.
-	float AnalyzePolyCFD(const float &F_=0.5);
+	/// Copy the digitized trace into another array.
+	void copyTrace(unsigned short *arr, const size_t &len);
+
+	/// Copy the digitized trace into a vector.
+	void copyTrace(std::vector<unsigned short> &vec);
+
+	/// Clear the ADC trace and all analysis variables.
+	void clear();
+
+	/// Print pulse parameters.
+	void print();
 
 	/** Calculate the parameters for a second order polynomial which passes through 3 points.
 	  * \param[in]  x0 - Initial x value. Sequential x values are assumed to be x0, x0+1, and x0+2.
@@ -64,48 +100,10 @@ class TraceProcessor{
 	  * \return The local maximum/minimum of the polynomial.
 	  */
 	static double calculateP3(const short &x0, unsigned short *y, double *p);
-	
-  private:
-	double cfdPar[7]; /// Cfd fitting parameters.
-	  
-	float maximum; /// The maximum value of the trace.
-	float baseline; /// Baseline offset of the trace.
-
-	unsigned short maxIndex; /// The index of the maximum trace bin (in ADC clock ticks).
-	
-	unsigned short *pulseArray;
-	
-	size_t pulseLength;
-	
-	/// Find the pulse maximum.
-	float FindMaximum();
-};
-
-class pmtResponse{
-  public:
-	pmtResponse() : risetime(4.0), falltime(20.0), amplitude(0), peakOffset(0), peakMaximum(0), traceDelay(20), gain(1E4) { this->update(); }
-	
-	pmtResponse(const double &risetime_, const double &falltime_) : risetime(risetime_), falltime(falltime_), amplitude(0), peakOffset(0), peakMaximum(0), traceDelay(20), gain(1E4) { this->update(); }
-
-	/// Set the rise time of the pulse (in ns).
-	void setRisetime(const double &risetime_);
-	
-	/// Set the decay time of the pulse (in ns).
-	void setFalltime(const double &falltime_);
-
-	/// Set the time delay of the pulse (in ns).
-	void setTraceDelay(const double &traceDelay_){ traceDelay = traceDelay_; }
-
-	/// Set the gain. 
-	void setGain(const double &gain_){ gain = gain_; }
-
-	/// "Digitize" a photon signal and add it to the pulse.
-	void digitize(const double &arrival, double *arr, const size_t &len);
-
-	/// Print pulse parameters.
-	void print();
 
   private:
+	double cfdPar[7]; /// Cfd fitting parameters.	
+
 	double risetime;
 	double falltime;
 	double amplitude;
@@ -114,9 +112,27 @@ class pmtResponse{
 	double traceDelay;
 	double gain;
 	
+	float maximum; /// The maximum value of the trace.
+	float baseline; /// Baseline offset of the trace.
+
+	unsigned short maxIndex; /// The index of the maximum trace bin (in ADC clock ticks).
+
+	unsigned int adcBins;
+
+	size_t pulseLength; /// Length of the raw and digitized ADC light pulses.
+	
+	bool isDigitized;
+	
+	double *rawPulse;
+
+	unsigned short *pulseArray;
+	
 	void update();
 	
 	double eval(const double &t, const double &dt=0);
+	
+	/// Find the pulse maximum.
+	float findMaximum();
 };
 
 class centerOfMass{
@@ -158,8 +174,6 @@ class centerOfMass{
 	
 	double getActiveAreaHeight() const { return activeHeight; }
 	
-	void getArrivalTimes(unsigned short *arr, const size_t &len, const double &baseline=0, const double &jitter=0) const ;
-	
 	pmtResponse *getPmtResponse(){ return &response; }
 	
 	short setNumColumns(const short &col_);
@@ -183,8 +197,6 @@ class centerOfMass{
 	void print();
   
   private:
-	double arrivalTimes[100];
-	
 	short Ncol;
 	short Nrow;
 	

@@ -96,8 +96,6 @@ class nDetRunAction : public G4UserRunAction
     std::vector<short> Nphotons;
     std::vector<short> recoilMass;
     
-    unsigned short photonArrivalTimes[100];
-    
     unsigned int nPhotonsTot;
     unsigned int nPhotonsDet[2];
     
@@ -140,6 +138,8 @@ class nDetRunAction : public G4UserRunAction
 	void setOutputFileTitle(const std::string &title){ runTitle = title; }	
 
 	void setOutputFileIndex(const G4int &index){ runIndex = index; }
+	
+	void setOutputTraces(const bool &enabled){ outputTraces = enabled; }
 	
 	void setOverwriteOutputFile(const bool &overwrite){ overwriteExistingFile = overwrite; }
 
@@ -187,6 +187,7 @@ class nDetRunAction : public G4UserRunAction
     bool persistentMode;
     bool outputEnabled;
     bool verbose;
+    bool outputTraces;
 
 	double baselineFraction;
 	double baselineJitterFraction;
@@ -194,6 +195,9 @@ class nDetRunAction : public G4UserRunAction
 	
 	short pulseIntegralLow;
 	short pulseIntegralHigh;
+
+	std::vector<unsigned short> lightPulseL;
+	std::vector<unsigned short> lightPulseR;
 
     nDetAnalysisManager *fAnalysisManager;
     nDetRunActionMessenger *fActionMessenger;

@@ -28,11 +28,11 @@ private:
     
     G4UIdirectory *fOutputDir[2];
     
-    G4UIcmdWithAString *fOutputFileCmd[5];
+    G4UIcmdWithAString *fOutputFileCmd[6];
     
-    G4UIcmdWithADouble *fOutputTraceParams[7];    
+    G4UIcmdWithADouble *fOutputTraceParams[8];    
     
-    G4UIcmdWithAnInteger *fOutputTraceAnalysis[2];
+    G4UIcmdWithAnInteger *fOutputTraceAnalysis[3];
     
     G4UIcmdWithAnInteger *fOutputFileIndex;
 };

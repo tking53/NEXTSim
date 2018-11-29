@@ -87,6 +87,7 @@ nDetRunAction::nDetRunAction(nDetConstruction *det){
     persistentMode = false;
     outputEnabled = true;
     verbose = false;
+    outputTraces = false;
     
     fFile = NULL;
     eventAction = NULL;
@@ -267,7 +268,6 @@ bool nDetRunAction::openRootFile(const G4Run* aRun)
 	fTree->Branch("nInitEnergy", &initEnergy);
 	fTree->Branch("nAbsorbed", &nAbsorbed);
 
-    fTree->Branch("photonTimes[100]", photonArrivalTimes);
     fTree->Branch("nPhotonsTot", &nPhotonsTot);
     fTree->Branch("nPhotonsDet[2]", nPhotonsDet);
     fTree->Branch("photonComX[2]", photonDetCenterOfMassX);
@@ -278,8 +278,12 @@ bool nDetRunAction::openRootFile(const G4Run* aRun)
     fTree->Branch("pulsePhase[2]", pulsePhase);
     fTree->Branch("pulseQDC[2]", pulseQDC);
     fTree->Branch("pulseMax[2]", pulseMax);
-
     fTree->Branch("photonDetEff", &photonDetEfficiency);
+
+	if(outputTraces){ // Add the lilght pulses to the output tree.
+	  	fTree->Branch("lightPulseL", &lightPulseL);
+	    fTree->Branch("lightPulseR", &lightPulseR);
+	}
 
     defineRootBranch = true;
   }
@@ -329,25 +333,35 @@ bool nDetRunAction::fillBranch()
   photonDetCenterOfMassZ[0] = centerL.getZ(); photonDetCenterOfMassZ[1] = centerR.getZ(); 
 
   // Get photon arrival times at the PMTs
-  cmL->getArrivalTimes(photonArrivalTimes, 50, baselineFraction, baselineJitterFraction);
   photonMinArrivalTime[0] = cmL->getMinArrivalTime();
   photonAvgArrivalTime[0] = cmL->getAvgArrivalTime();
-  
-  cmR->getArrivalTimes(&photonArrivalTimes[50], 50, baselineFraction, baselineJitterFraction);
+
   photonMinArrivalTime[1] = cmR->getMinArrivalTime();
   photonAvgArrivalTime[1] = cmR->getAvgArrivalTime();
 
-  // Do some light pulse analysis
-  TraceProcessor procL(photonArrivalTimes, 50);
-  pulsePhase[0] = procL.AnalyzePolyCFD(polyCfdFraction);
-  pulseQDC[0] = procL.IntegratePulseFromMaximum(pulseIntegralLow, pulseIntegralHigh);
-  pulseMax[0] = procL.GetMaximum();
-  
-  TraceProcessor procR(&photonArrivalTimes[50], 50);
-  pulsePhase[1] = procR.AnalyzePolyCFD(polyCfdFraction);
-  pulseQDC[1] = procR.IntegratePulseFromMaximum(pulseIntegralLow, pulseIntegralHigh);
-  pulseMax[1] = procR.GetMaximum();
+  pmtResponse *pmtL = getPmtResponseLeft();
+  pmtResponse *pmtR = getPmtResponseRight();
 
+  // "Digitize" the light pulses.
+  pmtL->digitize(baselineFraction, baselineJitterFraction);
+  pmtR->digitize(baselineFraction, baselineJitterFraction);
+
+  // Copy the trace into the trace vector.
+  if(outputTraces){
+    pmtL->copyTrace(lightPulseL);
+    pmtR->copyTrace(lightPulseR);
+  }
+
+  // Do some light pulse analysis
+  pulsePhase[0] = pmtL->analyzePolyCFD(polyCfdFraction);
+  pulseQDC[0] = pmtL->integratePulseFromMaximum(pulseIntegralLow, pulseIntegralHigh);
+  pulseMax[0] = pmtL->getMaximum();
+  
+  pulsePhase[1] = pmtR->analyzePolyCFD(polyCfdFraction);
+  pulseQDC[1] = pmtR->integratePulseFromMaximum(pulseIntegralLow, pulseIntegralHigh);
+  pulseMax[1] = pmtR->getMaximum();
+
+  // Clear all photon statistics from the detector.
   detector->Clear();
 
   if(fTree)
@@ -379,6 +393,9 @@ void nDetRunAction::vectorClear(){
   segmentRow.clear();
   Nphotons.clear();
   recoilMass.clear();
+
+  lightPulseL.clear();
+  lightPulseR.clear();
 
   stacking->Reset();
   tracking->Reset();

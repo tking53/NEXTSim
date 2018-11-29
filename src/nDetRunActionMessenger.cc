@@ -37,6 +37,10 @@ nDetRunActionMessenger::nDetRunActionMessenger(nDetRunAction *action) : fAction(
 	fOutputFileCmd[4]->SetGuidance("Enable or disable persistent mode (i.e. to keep the output file open)");
 	fOutputFileCmd[4]->SetCandidates("true false");
 
+	fOutputFileCmd[5] = new G4UIcmdWithAString("/nDet/output/trace/enabled", this);
+	fOutputFileCmd[5]->SetGuidance("Enable or disable writing of light pulse to root tree");
+	fOutputFileCmd[5]->SetCandidates("true false");
+
 	fOutputFileIndex = new G4UIcmdWithAnInteger("/nDet/output/index", this);
 	fOutputFileIndex->SetGuidance("Sets the run number suffix of the output root file.");
 	
@@ -46,35 +50,41 @@ nDetRunActionMessenger::nDetRunActionMessenger(nDetRunAction *action) : fAction(
 	fOutputTraceParams[1] = new G4UIcmdWithADouble("/nDet/output/trace/setFalltime", this);
 	fOutputTraceParams[1]->SetGuidance("Set the PMT light response falltime (ns)");
 	
-	fOutputTraceParams[2] = new G4UIcmdWithADouble("/nDet/output/trace/setDelay", this);
-	fOutputTraceParams[2]->SetGuidance("Set the delay of the PMT light response pulse (ns)");
-	
-	fOutputTraceParams[3] = new G4UIcmdWithADouble("/nDet/output/trace/setGain", this);
-	fOutputTraceParams[3]->SetGuidance("Set the gain of the PMT light response pulse");
+	fOutputTraceParams[2] = new G4UIcmdWithADouble("/nDet/output/trace/setGain", this);
+	fOutputTraceParams[2]->SetGuidance("Set the gain of the PMT light response pulse");
 
-	fOutputTraceParams[4] = new G4UIcmdWithADouble("/nDet/output/trace/setBaseline", this);
-	fOutputTraceParams[4]->SetGuidance("Set the baseline of the PMT light response pulse as a percentage of the full ADC range");
+	fOutputTraceParams[3] = new G4UIcmdWithADouble("/nDet/output/trace/setBaseline", this);
+	fOutputTraceParams[3]->SetGuidance("Set the baseline of the PMT light response pulse as a percentage of the full ADC range");
 	
-	fOutputTraceParams[5] = new G4UIcmdWithADouble("/nDet/output/trace/setJitter", this);
-	fOutputTraceParams[5]->SetGuidance("Set the baseline jitter of the PMT light response pulse as a percentage of the full ADC range");
+	fOutputTraceParams[4] = new G4UIcmdWithADouble("/nDet/output/trace/setJitter", this);
+	fOutputTraceParams[4]->SetGuidance("Set the baseline jitter of the PMT light response pulse as a percentage of the full ADC range");
 	
-	fOutputTraceParams[6] = new G4UIcmdWithADouble("/nDet/output/trace/setCfdFraction", this);
-	fOutputTraceParams[6]->SetGuidance("Set the Cfd F parameter as a fraction of the maximum pulse height");	
+	fOutputTraceParams[5] = new G4UIcmdWithADouble("/nDet/output/trace/setCfdFraction", this);
+	fOutputTraceParams[5]->SetGuidance("Set the Cfd F parameter as a fraction of the maximum pulse height");	
+
+	fOutputTraceParams[6] = new G4UIcmdWithADouble("/nDet/output/trace/setTraceDelay", this);
+	fOutputTraceParams[6]->SetGuidance("Set the delay of the PMT light response pulse (ns)");
+
+	fOutputTraceParams[7] = new G4UIcmdWithADouble("/nDet/output/trace/setTraceLength", this);
+	fOutputTraceParams[7]->SetGuidance("Set the length of the PMT light response pulse (ns)");	
 	
 	fOutputTraceAnalysis[0] = new G4UIcmdWithAnInteger("/nDet/output/trace/setIntegralLow", this);
 	fOutputTraceAnalysis[0]->SetGuidance("Set the low pulse integration limit in ADC bins");
 	
 	fOutputTraceAnalysis[1] = new G4UIcmdWithAnInteger("/nDet/output/trace/setIntegralHigh", this);
 	fOutputTraceAnalysis[1]->SetGuidance("Set the high pulse integration limit in ADC bins");
+	
+	fOutputTraceAnalysis[2] = new G4UIcmdWithAnInteger("/nDet/output/trace/setBitRange", this);
+	fOutputTraceAnalysis[2]->SetGuidance("Set the ADC dynamic bit range");
 }
 
 nDetRunActionMessenger::~nDetRunActionMessenger() {
 	delete fOutputDir[0];
 	delete fOutputDir[1];
-	for(int i = 0; i < 5; i++){
+	for(int i = 0; i < 6; i++){
 		delete fOutputFileCmd[i];
 	}
-	for(int i = 0; i < 7; i++){
+	for(int i = 0; i < 8; i++){
 		delete fOutputTraceParams[i];
 	}
 	for(int i = 0; i < 2; i++){
@@ -101,6 +111,9 @@ void nDetRunActionMessenger::SetNewValue(G4UIcommand *command, G4String newValue
 	else if(command == fOutputFileCmd[4]){
 		fAction->setPersistentMode((newValue == "true") ? true : false);
 	}
+	else if(command == fOutputFileCmd[5]){
+		fAction->setOutputTraces((newValue == "true") ? true : false);
+	}
 	else if(command == fOutputTraceParams[0]){
 		G4double val = fOutputTraceParams[0]->ConvertToDouble(newValue);
 		prL->setRisetime(val);
@@ -113,25 +126,30 @@ void nDetRunActionMessenger::SetNewValue(G4UIcommand *command, G4String newValue
 	}
 	else if(command == fOutputTraceParams[2]){
 		G4double val = fOutputTraceParams[2]->ConvertToDouble(newValue);
-		prL->setTraceDelay(val);
-		prR->setTraceDelay(val);
-	}
-	else if(command == fOutputTraceParams[3]){
-		G4double val = fOutputTraceParams[3]->ConvertToDouble(newValue);
 		prL->setGain(val);
 		prR->setGain(val);
 	}
+	else if(command == fOutputTraceParams[3]){
+		G4double val = fOutputTraceParams[3]->ConvertToDouble(newValue);
+		fAction->setBaselinePercentage(val);
+	}
 	else if(command == fOutputTraceParams[4]){
 		G4double val = fOutputTraceParams[4]->ConvertToDouble(newValue);
-		fAction->setBaselinePercentage(val);
+		fAction->setBaselineJitterPercentage(val);
 	}
 	else if(command == fOutputTraceParams[5]){
 		G4double val = fOutputTraceParams[5]->ConvertToDouble(newValue);
-		fAction->setBaselineJitterPercentage(val);
+		fAction->setPolyCfdFraction(val);
 	}
 	else if(command == fOutputTraceParams[6]){
 		G4double val = fOutputTraceParams[6]->ConvertToDouble(newValue);
-		fAction->setPolyCfdFraction(val);
+		prL->setTraceDelay(val);
+		prR->setTraceDelay(val);
+	}
+	else if(command == fOutputTraceParams[7]){
+		G4double val = fOutputTraceParams[7]->ConvertToDouble(newValue);
+		prL->setPulseLengthInNanoSeconds(val);
+		prR->setPulseLengthInNanoSeconds(val);
 	}
 	else if(command == fOutputTraceAnalysis[0]){
 		G4int val = fOutputTraceAnalysis[0]->ConvertToInt(newValue);
@@ -140,6 +158,11 @@ void nDetRunActionMessenger::SetNewValue(G4UIcommand *command, G4String newValue
 	else if(command == fOutputTraceAnalysis[1]){
 		G4int val = fOutputTraceAnalysis[1]->ConvertToInt(newValue);
 		fAction->setPulseIntegralHigh(val);
+	}
+	else if(command == fOutputTraceAnalysis[2]){
+		G4int val = fOutputTraceAnalysis[2]->ConvertToInt(newValue);
+		prL->setBitRange(val);
+		prR->setBitRange(val);
 	}
 	else if(command == fOutputFileIndex){
 		G4int val = fOutputFileIndex->ConvertToInt(newValue);
