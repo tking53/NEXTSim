@@ -49,17 +49,15 @@ void nDetEventAction::BeginOfEventAction(const G4Event* evt){
     timer->Stop();
     G4double tprime = timer->GetRealElapsed();
     totalTime += tprime;
-    avgTimePerEvent += tprime;
     if(totalTime - previousTime >= 10){ // Display every 10 seconds.
       std::cout << "Event ID: " << eventID << ", TIME=" << totalTime << " s";
+      avgTimePerEvent = totalTime/eventID;
       if(totalEvents > 0){
-        avgTimePerEvent = avgTimePerEvent/(eventID - previousEvents);
-        std::cout << ", REMAINING=" << (totalEvents-eventID)*(totalTime/eventID) << " s";
+        std::cout << ", REMAINING=" << (totalEvents-eventID)*avgTimePerEvent << " s";
       }
-      std::cout << std::endl;
+      std::cout << ", RATE=" << 1/avgTimePerEvent << " evt/s\n";
       previousTime = totalTime;
       previousEvents = eventID;
-      avgTimePerEvent = 0;
     }
     timer->Start();
   }
