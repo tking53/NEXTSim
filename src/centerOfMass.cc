@@ -21,6 +21,7 @@ TraceProcessor::~TraceProcessor(){ }
 
 /// Integrate the baseline corrected trace for QDC in the range [start_, stop_] and return the result.
 float TraceProcessor::IntegratePulse(unsigned short *pulse, const size_t &len, const size_t &start_/*=0*/, const size_t &stop_/*=0*/){
+	if(len == 0 || !pulse) return -9999;
 	size_t stop = (stop_ == 0?len:stop_);
 
 	// Check for start index greater than stop index.
@@ -34,8 +35,20 @@ float TraceProcessor::IntegratePulse(unsigned short *pulse, const size_t &len, c
 	return qdc;
 }
 
+/// Integrate the baseline corrected trace for QDC in the range [start_, stop_] and return the result.
+float TraceProcessor::IntegratePulse(const size_t &start_/*=0*/, const size_t &stop_/*=0*/){
+	return this->IntegratePulse(pulseArray, pulseLength, start_, stop_);
+}
+
+/// Integrate the baseline corrected trace for QDC in the range [maxIndex-start_, maxIndex+stop_] and return the result.
+float TraceProcessor::IntegratePulseFromMaximum(const size_t &start_/*=5*/, const size_t &stop_/*=10*/){
+	if(maximum <= 0 && FindMaximum() <= 0) return -9999;
+	return this->IntegratePulse(pulseArray, pulseLength, maxIndex-start_, maxIndex+stop_);
+}
+
 /// Perform traditional CFD analysis on the waveform.
 float TraceProcessor::AnalyzeCFD(unsigned short *pulse, const size_t &len, const float &F_/*=0.5*/, const size_t &D_/*=1*/, const size_t &L_/*=1*/){
+	if(len == 0 || !pulse) return -9999;
 	float cfdMinimum = 9999;
 	size_t cfdMinIndex = 0;
 	
@@ -68,12 +81,20 @@ float TraceProcessor::AnalyzeCFD(unsigned short *pulse, const size_t &len, const
 	
 	delete[] cfdvals;
 
-	return phase;
+	return phase*ADC_CLOCK_TICK;
+}
+
+/// Perform traditional CFD analysis on the waveform.
+float TraceProcessor::AnalyzeCFD(const float &F_/*=0.5*/, const size_t &D_/*=1*/, const size_t &L_/*=1*/){
+	return this->AnalyzeCFD(pulseArray, pulseLength, F_, D_, L_);
 }
 
 /// Perform polynomial CFD analysis on the waveform.
 float TraceProcessor::AnalyzePolyCFD(unsigned short *pulse, const size_t &len, const float &F_/*=0.5*/){
-	double threshold = F_*FindMaximum(pulse, len);
+	if(len == 0 || !pulse) return -9999;
+	if(maximum <= 0 && FindMaximum() <= 0) return -9999;
+
+	double threshold = F_*maximum;
 
 	float phase = -9999;
 	for(unsigned short cfdIndex = maxIndex; cfdIndex > 0; cfdIndex--){
@@ -90,24 +111,31 @@ float TraceProcessor::AnalyzePolyCFD(unsigned short *pulse, const size_t &len, c
 		}
 	}
 
-	return phase;
+	return phase*ADC_CLOCK_TICK;
 }
 
-float TraceProcessor::FindMaximum(unsigned short *pulse, const size_t &len){
+/// Perform polynomial CFD analysis on the waveform.
+float TraceProcessor::AnalyzePolyCFD(const float &F_/*=0.5*/){
+	return this->AnalyzePolyCFD(pulseArray, pulseLength, F_);
+}
+
+float TraceProcessor::FindMaximum(){
+	if(pulseLength == 0 || !pulseArray) return -9999;
+
 	// Find the maximum ADC value and the maximum bin.
 	unsigned short maxADC = 0;
-	for(size_t i = 0; i < len; i++){
-		if(pulse[i] > maxADC){ 
-			maxADC = pulse[i];
+	for(size_t i = 0; i < pulseLength; i++){
+		if(pulseArray[i] > maxADC){ 
+			maxADC = pulseArray[i];
 			maxIndex = i;
 		}
 	}
 
 	// Find the pulse maximum by fitting with a third order polynomial.
-	if(pulse[maxIndex-1] >= pulse[maxIndex+1]) // Favor the left side of the pulse.
-		maximum = calculateP3(maxIndex-2, &pulse[maxIndex-2], cfdPar);
+	if(pulseArray[maxIndex-1] >= pulseArray[maxIndex+1]) // Favor the left side of the pulse.
+		maximum = calculateP3(maxIndex-2, &pulseArray[maxIndex-2], cfdPar);
 	else // Favor the right side of the pulse.
-		maximum = calculateP3(maxIndex-1, &pulse[maxIndex-1], cfdPar);
+		maximum = calculateP3(maxIndex-1, &pulseArray[maxIndex-1], cfdPar);
 
 	return maximum;
 }
@@ -258,11 +286,6 @@ void centerOfMass::getArrivalTimes(unsigned short *arr, const size_t &len) const
 			arr[i] = bin;
 		}
 	}
-}
-
-float centerOfMass::getPulsePhase(unsigned short *arr, const size_t &len, const float &F_/*=0.5*/) const {
-	TraceProcessor proc;
-	return proc.AnalyzePolyCFD(arr, len, F_)*ADC_CLOCK_TICK;
 }
 
 short centerOfMass::setNumColumns(const short &col_){ 

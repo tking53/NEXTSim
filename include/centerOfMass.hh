@@ -11,7 +11,10 @@ class G4Step;
 class TraceProcessor{
   public:
 	/// Default constructor.
-	TraceProcessor() : maximum(0), maxIndex(0) { }
+	TraceProcessor() : maximum(-9999), maxIndex(0), pulseArray(NULL), pulseLength(0) { }
+
+	/// Pulse constructor.
+	TraceProcessor(unsigned short *pulse, const size_t &len) : maximum(-1), maxIndex(0), pulseArray(pulse), pulseLength(len) { this->FindMaximum(); }
 	
 	/// Destructor.
 	~TraceProcessor();
@@ -19,27 +22,33 @@ class TraceProcessor{
 	/// Return the maximum value of the pulse.
 	float GetMaximum() const { return maximum; }
 
+	/// Return a pointer to the array of Poly CFD parameters.
+	double *GetCfdParams() { return cfdPar; }
+
+	/// Return the maximum ADC index of the pulse.
 	unsigned short GetMaximumIndex() const { return maxIndex; }
 	
 	/// Integrate the baseline corrected trace for QDC in the range [start_, stop_] and return the result.
-	float IntegratePulse(unsigned short *pulse, const size_t &len, const size_t &start_=0, const size_t &stop_=0);
+	static float IntegratePulse(unsigned short *pulse, const size_t &len, const size_t &start_=0, const size_t &stop_=0);
+
+	/// Integrate the baseline corrected trace for QDC in the range [start_, stop_] and return the result.
+	float IntegratePulse(const size_t &start_=0, const size_t &stop_=0);
+
+	/// Integrate the baseline corrected trace for QDC in the range [maxIndex-start_, maxIndex+stop_] and return the result.
+	float IntegratePulseFromMaximum(const size_t &start_=5, const size_t &stop_=10);
 
 	/// Perform traditional CFD analysis on the waveform.
-	float AnalyzeCFD(unsigned short *pulse, const size_t &len, const float &F_=0.5, const size_t &D_=1, const size_t &L_=1);
+	static float AnalyzeCFD(unsigned short *pulse, const size_t &len, const float &F_=0.5, const size_t &D_=1, const size_t &L_=1);
+
+	/// Perform traditional CFD analysis on the waveform.
+	float AnalyzeCFD(const float &F_=0.5, const size_t &D_=1, const size_t &L_=1);
 	
 	/// Perform polynomial CFD analysis on the waveform.
 	float AnalyzePolyCFD(unsigned short *pulse, const size_t &len, const float &F_=0.5);
-	
-  private:
-	float maximum; /// The maximum value of the trace.
 
-	double cfdPar[7]; /// Cfd fitting parameters.
-	
-	unsigned short maxIndex; /// The index of the maximum trace bin (in ADC clock ticks).
-	
-	/// Find the pulse maximum.
-	float FindMaximum(unsigned short *pulse, const size_t &len);
-	
+	/// Perform polynomial CFD analysis on the waveform.
+	float AnalyzePolyCFD(const float &F_=0.5);
+
 	/** Calculate the parameters for a second order polynomial which passes through 3 points.
 	  * \param[in]  x0 - Initial x value. Sequential x values are assumed to be x0, x0+1, and x0+2.
 	  * \param[in]  y  - Pointer to the beginning of the array of unsigned shorts containing the three y values.
@@ -55,6 +64,20 @@ class TraceProcessor{
 	  * \return The local maximum/minimum of the polynomial.
 	  */
 	static double calculateP3(const short &x0, unsigned short *y, double *p);
+	
+  private:
+	double cfdPar[7]; /// Cfd fitting parameters.
+	  
+	float maximum; /// The maximum value of the trace.
+
+	unsigned short maxIndex; /// The index of the maximum trace bin (in ADC clock ticks).
+	
+	unsigned short *pulseArray;
+	
+	size_t pulseLength;
+	
+	/// Find the pulse maximum.
+	float FindMaximum();
 };
 
 class pmtResponse{
@@ -135,8 +158,6 @@ class centerOfMass{
 	double getActiveAreaHeight() const { return activeHeight; }
 	
 	void getArrivalTimes(unsigned short *arr, const size_t &len) const ;
-	
-	float getPulsePhase(unsigned short *arr, const size_t &len, const float &F_=0.5) const ;
 	
 	short setNumColumns(const short &col_);
 	

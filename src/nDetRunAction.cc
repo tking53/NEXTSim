@@ -260,6 +260,10 @@ bool nDetRunAction::openRootFile(const G4Run* aRun)
     //fTree->Branch("photonComZ[2]", photonDetCenterOfMassZ);   
     fTree->Branch("photonMinTime[2]", photonMinArrivalTime);
     fTree->Branch("photonAvgTime[2]", photonAvgArrivalTime);    
+    fTree->Branch("pulsePhase[2]", pulsePhase);
+    fTree->Branch("pulseQDC[2]", pulseQDC);
+    fTree->Branch("pulseMax[2]", pulseMax);
+
     fTree->Branch("photonDetEff", &photonDetEfficiency);
 
     defineRootBranch = true;
@@ -311,14 +315,23 @@ bool nDetRunAction::fillBranch()
 
   // Get photon arrival times at the PMTs
   cmL->getArrivalTimes(photonArrivalTimes, 50);
-  //cmL->getPulsePhase(photonArrivalTimes, 50, 0.5);
   photonMinArrivalTime[0] = cmL->getMinArrivalTime();
   photonAvgArrivalTime[0] = cmL->getAvgArrivalTime();
   
   cmR->getArrivalTimes(&photonArrivalTimes[50], 50);
-  //cmR->getPulsePhase(&photonArrivalTimes[50], 50, 0.5);
   photonMinArrivalTime[1] = cmR->getMinArrivalTime();
   photonAvgArrivalTime[1] = cmR->getAvgArrivalTime();
+
+  // Do some light pulse analysis
+  TraceProcessor procL(photonArrivalTimes, 50);
+  pulsePhase[0] = procL.AnalyzePolyCFD(0.5);
+  pulseQDC[0] = procL.IntegratePulseFromMaximum(5, 10);
+  pulseMax[0] = procL.GetMaximum();
+  
+  TraceProcessor procR(&photonArrivalTimes[50], 50);
+  pulsePhase[1] = procR.AnalyzePolyCFD(0.5);
+  pulseQDC[1] = procR.IntegratePulseFromMaximum(5, 10);
+  pulseMax[1] = procR.GetMaximum();
 
   detector->Clear();
 
