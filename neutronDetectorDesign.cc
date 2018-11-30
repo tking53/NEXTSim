@@ -31,9 +31,6 @@
 //#include "LBE.hh"
 #include "QGSP_BERT_HP.hh"
 
-//trying Sergei's physics list
-#include "LENSLongPhysicsList.hh"
-
 // selfdefine classes
 #include "nDetConstruction.hh"
 #include "nDetRunAction.hh"
