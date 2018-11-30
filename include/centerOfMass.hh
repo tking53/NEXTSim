@@ -55,8 +55,14 @@ class pmtResponse{
 	/// Set the dynamic bit range of the ADC.
 	void setBitRange(const size_t &len);
 
+	/// Disable use of PMT spectral response function.
+	void disableSpectralResponse(){ useSpectralResponse = false; }
+
+	/// Load PMT spectral response from root file.
+	bool loadSpectralResponse(const char *fname, const char *name="spec");
+
 	/// Add a photon signal to the raw pulse.
-	void addPhoton(const double &arrival);
+	bool addPhoton(const double &arrival, const double &wavelength=0);
 
 	/// "Digitize" the raw light pulse.
 	void digitize(const double &baseline=0, const double &jitter=0);
@@ -122,10 +128,13 @@ class pmtResponse{
 	size_t pulseLength; /// Length of the raw and digitized ADC light pulses.
 	
 	bool isDigitized;
+	bool useSpectralResponse;
 	
 	double *rawPulse;
 
 	unsigned short *pulseArray;
+
+	TGraph *spec;
 	
 	void update();
 	
@@ -138,7 +147,7 @@ class pmtResponse{
 class centerOfMass{
   public:
 	centerOfMass() : Ncol(-1), Nrow(-1), Npts(0), NnotDetected(0), totalMass(0), t0(std::numeric_limits<double>::max()), tSum(0), lambdaSum(0),
-	                 activeWidth(0), activeHeight(0), pixelWidth(0), pixelHeight(0), center(0, 0, 0), spec(NULL), useSpectralResponse(false) { }
+	                 activeWidth(0), activeHeight(0), pixelWidth(0), pixelHeight(0), center(0, 0, 0) { }
 
 	~centerOfMass();
 
@@ -188,8 +197,6 @@ class centerOfMass{
 	
 	bool loadSpectralResponse(const char *fname, const char *name="spec");
 	
-	void disableSpectralResponse(){ useSpectralResponse = false; }
-	
 	void clear();
 	
 	bool addPoint(const G4Step *step, const double &mass=1);
@@ -217,10 +224,6 @@ class centerOfMass{
 	G4ThreeVector center;
 	
 	pmtResponse response;
-	
-	TGraph *spec;
-	
-	bool useSpectralResponse;
 };
 
 #endif

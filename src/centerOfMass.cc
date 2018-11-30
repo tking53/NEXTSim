@@ -17,13 +17,15 @@ const double coeff = 1.23984193E-3; // hc = Mev * nm
 ///////////////////////////////////////////////////////////////////////////////
 
 pmtResponse::pmtResponse() : risetime(4.0), falltime(20.0), amplitude(0), peakOffset(0), peakMaximum(0), traceDelay(50), gain(1E4),
-                             maximum(-9999), baseline(-9999), maxIndex(0), adcBins(4096), pulseLength(100), isDigitized(false), rawPulse(NULL), pulseArray(NULL) {
+                             maximum(-9999), baseline(-9999), maxIndex(0), adcBins(4096), pulseLength(100), isDigitized(false), 
+                             useSpectralResponse(false), rawPulse(NULL), pulseArray(NULL), spec(NULL) {
 	this->update();
 	this->setPulseLength(pulseLength);
 }
 
 pmtResponse::pmtResponse(const double &risetime_, const double &falltime_) : risetime(risetime_), falltime(falltime_), amplitude(0), peakOffset(0), peakMaximum(0), traceDelay(50), gain(1E4),
-                                                                             maximum(-9999), baseline(-9999), maxIndex(0), adcBins(4096), pulseLength(100), isDigitized(false), rawPulse(NULL), pulseArray(NULL) {
+                                                                             maximum(-9999), baseline(-9999), maxIndex(0), adcBins(4096), pulseLength(100), isDigitized(false), 
+                                                                             useSpectralResponse(false), rawPulse(NULL), pulseArray(NULL), spec(NULL) {
 	this->update();
 	this->setPulseLength(pulseLength);
 }
@@ -33,6 +35,7 @@ pmtResponse::~pmtResponse(){
 		delete[] rawPulse;
 		delete[] pulseArray;
 	}
+	if(spec) delete spec;
 }
 
 void pmtResponse::setRisetime(const double &risetime_){ 
@@ -55,7 +58,6 @@ void pmtResponse::setPulseLength(const size_t &len){
 	rawPulse = new double[len];
 	pulseArray = new unsigned short[len];
 	this->clear();
-	//std::cout << " pmtResponse: Set pulse length to " << len << " ADC bins (" << len*ADC_CLOCK_TICK << " ns)\n";
 }
 
 /// Set the length of the pulse in nanoseconds.
@@ -70,10 +72,29 @@ void pmtResponse::setBitRange(const size_t &len){
 	for(size_t i = 0; i < len; i++){
 		adcBins *= 2;
 	}
-	//std::cout << " pmtResponse: Set ADC dynamic bit range to " << len << "-bit (" << adcBins << " channels)\n";
 }
 
-void pmtResponse::addPhoton(const double &arrival){
+/// Load PMT spectral response from root file.
+bool pmtResponse::loadSpectralResponse(const char *fname, const char *name/*="spec"*/){
+	TFile *f = new TFile(fname, "READ");
+	if(!f->IsOpen()) return false;
+	TGraph *g1 = (TGraph*)f->Get(name);
+	if(!g1){
+		f->Close();
+		return false;
+	}
+	if(spec) delete spec;
+	spec = (TGraph*)g1->Clone("spec");
+	useSpectralResponse = true;
+	f->Close();
+	return true;
+}
+
+bool pmtResponse::addPhoton(const double &arrival, const double &wavelength/*=0*/){
+	if(useSpectralResponse && G4UniformRand() > spec->Eval(wavelength)/100){ // Not detected
+		return false;
+	}
+
 	//double dt = arrival - peakOffset + traceDelay; // Arrival time is the peak of the pulse.
 	double dt = arrival + traceDelay; // Arrival time is the leading edge of the pulse.
 	if(dt < 0) dt = 0;
@@ -87,6 +108,8 @@ void pmtResponse::addPhoton(const double &arrival){
 		time += ADC_CLOCK_TICK;
 		index++;
 	}
+	
+	return true;
 }
 
 void pmtResponse::digitize(const double &baseline_/*=0*/, const double &jitter_/*=0*/){
@@ -344,7 +367,6 @@ float pmtResponse::findMaximum(){
 ///////////////////////////////////////////////////////////////////////////////
 
 centerOfMass::~centerOfMass(){
-	if(spec) delete spec;
 }
 
 G4ThreeVector centerOfMass::getCenter() const {
@@ -397,18 +419,7 @@ void centerOfMass::setSegmentedPmt(const short &col_, const short &row_, const d
 }
 
 bool centerOfMass::loadSpectralResponse(const char *fname, const char *name/*="spec"*/){
-	TFile *f = new TFile(fname, "READ");
-	if(!f->IsOpen()) return false;
-	TGraph *g1 = (TGraph*)f->Get(name);
-	if(!g1){
-		f->Close();
-		return false;
-	}
-	if(spec) delete spec;
-	spec = (TGraph*)g1->Clone("spec");
-	useSpectralResponse = true;
-	f->Close();
-	return true;
+	return response.loadSpectralResponse(fname, name);
 }
 
 void centerOfMass::clear(){
@@ -424,8 +435,10 @@ void centerOfMass::clear(){
 
 bool centerOfMass::addPoint(const G4Step *step, const double &mass/*=1*/){
 	double wavelength = coeff/step->GetTrack()->GetTotalEnergy(); // in nm
+	double time = step->GetPostStepPoint()->GetGlobalTime(); // in ns
 
-	if(useSpectralResponse && G4UniformRand() > spec->Eval(wavelength)/100){ // Not detected
+	// Add the PMT response to the "digitized" trace
+	if(!response.addPhoton(time, wavelength)){ // Not detected
 		NnotDetected++;
 		return false;
 	}
@@ -443,14 +456,9 @@ bool centerOfMass::addPoint(const G4Step *step, const double &mass/*=1*/){
 		center += mass*pos;
 	}
 	
-	double time = step->GetPostStepPoint()->GetGlobalTime();
-	
 	tSum += time;
 	lambdaSum += wavelength;
 	if(time < t0) t0 = time;
-	
-	// Add the PMT response to the "digitized" trace
-	response.addPhoton(time);
 	
 	return true;
 }
