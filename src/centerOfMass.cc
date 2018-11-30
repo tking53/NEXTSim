@@ -151,9 +151,10 @@ bool pmtResponse::loadSpectralResponse(const char *fname){
 	return (useSpectralResponse = spec.load(fname));
 }
 
-bool pmtResponse::addPhoton(const double &arrival, const double &wavelength/*=0*/){
-	if(useSpectralResponse && G4UniformRand() > spec.eval(wavelength)/100){ // Not detected
-		return false;
+void pmtResponse::addPhoton(const double &arrival, const double &wavelength/*=0*/){
+	double efficiency = 1;
+	if(useSpectralResponse){ // Compute the quantum efficiency of the PMT for this wavelength.
+		efficiency = spec.eval(wavelength)/100;
 	}
 
 	//double dt = arrival - peakOffset + traceDelay; // Arrival time is the peak of the pulse.
@@ -164,13 +165,11 @@ bool pmtResponse::addPhoton(const double &arrival, const double &wavelength/*=0*
 	size_t index = (size_t)floor(dt/ADC_CLOCK_TICK);
 	time += ADC_CLOCK_TICK/2;
 	while(index < pulseLength){
-		dy = eval(time, dt);
+		dy = efficiency*eval(time, dt);
 		rawPulse[index] += dy;
 		time += ADC_CLOCK_TICK;
 		index++;
 	}
-	
-	return true;
 }
 
 void pmtResponse::digitize(const double &baseline_/*=0*/, const double &jitter_/*=0*/){
@@ -499,10 +498,7 @@ bool centerOfMass::addPoint(const G4Step *step, const double &mass/*=1*/){
 	double time = step->GetPostStepPoint()->GetGlobalTime(); // in ns
 
 	// Add the PMT response to the "digitized" trace
-	if(!response.addPhoton(time, wavelength)){ // Not detected
-		NnotDetected++;
-		return false;
-	}
+	response.addPhoton(time, wavelength);
 
 	totalMass += mass;
 	Npts++;
