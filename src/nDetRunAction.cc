@@ -5,11 +5,11 @@
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-// Make this appear first!
-#include "G4Timer.hh"
 #include "time.h"
 
-// Selfdefine classes
+#include "G4Timer.hh"
+#include "G4Run.hh"
+
 #include "nDetRunAction.hh"
 #include "nDetEventAction.hh"
 #include "nDetRunActionMessenger.hh"
@@ -17,9 +17,6 @@
 #include "nDetTrackingAction.hh"
 #include "nDetSteppingAction.hh"
 #include "nDetConstruction.hh"
-
-// geant4 class
-#include "G4Run.hh"
 
 const double KINETIC_ENERGY_THRESHOLD = 0.001; // MeV
 
@@ -83,7 +80,6 @@ void primaryTrackInfo::print(){
 
 nDetRunAction::nDetRunAction(nDetConstruction *det){
     timer = new G4Timer;
-    fAnalysisManager= (nDetAnalysisManager*)nDetAnalysisManager::Instance();
     persistentMode = false;
     outputEnabled = true;
     verbose = false;
@@ -117,8 +113,6 @@ nDetRunAction::nDetRunAction(nDetConstruction *det){
 nDetRunAction::~nDetRunAction()
 {
   delete timer;
-  fAnalysisManager = 0;
-    
   delete fActionMessenger;
     
   // Close the root file, if it's still open.
@@ -147,9 +141,6 @@ void nDetRunAction::BeginOfRunAction(const G4Run* aRun)
 
   // get RunId
   runNb = aRun->GetRunID();
-
-  if(fAnalysisManager)
-    fAnalysisManager->BeginOfRunAction(aRun);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -158,9 +149,6 @@ void nDetRunAction::EndOfRunAction(const G4Run* aRun)
 {   
   timer->Stop();
   G4cout << "number of event = " << aRun->GetNumberOfEvent() << " " << *timer << G4endl;
-
-  if(fAnalysisManager)
-    fAnalysisManager->EndOfRunAction(aRun);
 }
 
 pmtResponse *nDetRunAction::getPmtResponseLeft(){

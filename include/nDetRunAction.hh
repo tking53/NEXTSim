@@ -10,8 +10,9 @@
 
 #include "globals.hh"
 #include "G4UserRunAction.hh"
-
-#include "nDetAnalysisManager.hh"
+#include "G4Step.hh"
+#include "G4ThreeVector.hh"
+#include "G4ParticleDefinition.hh"
 
 #include "TFile.h"
 #include "TTree.h"
@@ -199,7 +200,6 @@ class nDetRunAction : public G4UserRunAction
 	std::vector<unsigned short> lightPulseL;
 	std::vector<unsigned short> lightPulseR;
 
-    nDetAnalysisManager *fAnalysisManager;
     nDetRunActionMessenger *fActionMessenger;
     
     nDetEventAction *eventAction;

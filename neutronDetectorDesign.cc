@@ -36,14 +36,11 @@
 
 // selfdefine classes
 #include "nDetConstruction.hh"
-#include "nDetPrimaryGeneratorAction.hh"
 #include "nDetRunAction.hh"
 #include "nDetEventAction.hh"
 #include "nDetStackingAction.hh"
 #include "nDetSteppingAction.hh"
-#include "nDetAnalysisManager.hh"
 #include "nDetTrackingAction.hh"
-#include "nDetPhysicsList.hh"
 #include "ParticleSource.hh"
 #include "optionHandler.hh"
 //#include "nDetActionInitialization.hh"
@@ -143,8 +140,6 @@ that didn't work... this is horribly deprecated*/
 //Using "high precision" neutron scattering model.  Warning: this will be slow.
 
 
-  //nDetPhysicsList* physics = (nDetPhysicsList*)new QGSP_BERT_HP();
-    //nDetPhysicsList* physics = new nDetPhysicsList();
   G4VModularPhysicsList* physics = new QGSP_BERT_HP();
 
   G4OpticalPhysics *theOpticalPhysics=new G4OpticalPhysics();
@@ -159,10 +154,6 @@ that didn't work... this is horribly deprecated*/
 #endif
 
   //set optional user action classes
-
-  nDetAnalysisManager *theManager= new nDetAnalysisManager();
-  if(!outputFilename.empty()) theManager->setFilename(outputFilename);
-  if(!outputTreeName.empty()) theManager->setTreeName(outputTreeName);
 
   //Geant complains we need to change this for multithreading.  Moving the following to nDetActionInitialization.cc
   nDetRunAction* runAction = new nDetRunAction(detector);

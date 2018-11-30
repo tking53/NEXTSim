@@ -10,8 +10,6 @@
 
 #include "G4LogicalVolume.hh"
 #include "G4VPhysicalVolume.hh"
-#include "SiPMSD.hh"
-#include "nDetSD.hh"
 #include "G4Element.hh"
 #include "G4Material.hh"
 #include "G4MaterialPropertiesTable.hh"
@@ -686,8 +684,6 @@ void nDetConstruction::buildDisk()
   psSiPM_logV->SetVisAttributes(psSiPM_VisAtt);
 
   //Add Sensitive Detector to SiPM
-   // psSiPM_logV->SetSensitiveDetector(fSiPMSD);
-
   G4LogicalSkinSurface* psSiPMSurface = new G4LogicalSkinSurface("SiPMSurface", psSiPM_logV, SiPMSurface);
 
   // create assembly of SiPM sensitive part
@@ -863,7 +859,6 @@ void nDetConstruction::buildEllipse() {
     G4VPhysicalVolume *physVol=new G4PVPlacement(0,G4ThreeVector(0,0,0),ej200_logV,"Scint",assembly_logV,0,0,true);
 
     buildSiPMs();
-    //psSiPM_logV->SetSensitiveDetector(fSiPMSD);
     return;
 
 }
@@ -1235,41 +1230,6 @@ void nDetConstruction::buildSiPMs(const G4double &zOffset/*=0*/) {
 }
 
 void nDetConstruction::ConstructSDandField(){
-
-
-    G4cout<<"nDetConstruction::ConstructSDandField()-->"<<G4endl;
-
-
-    if(ej200_logV) {
-
-        fScintSD=(nDetSD*)G4SDManager::GetSDMpointer()->FindSensitiveDetector("/theScintSD",false);
-
-        if(!fScintSD)
-        fScintSD = new nDetSD("/theScintSD");
-
-        G4cout << "fScintSD--> " << fScintSD << G4endl;
-
-        G4SDManager::GetSDMpointer()->AddNewDetector(fScintSD);
-
-        SetSensitiveDetector(ej200_logV, fScintSD);
-    }
-
-
-    if(psSiPM_logV) {
-
-        fSiPMSD=(SiPMSD*)G4SDManager::GetSDMpointer()->FindSensitiveDetector("/theSiPMSD",false);
-
-
-        if(!fSiPMSD)
-        fSiPMSD = new SiPMSD("/theSiPMSD");
-
-        G4cout << "fSiPMSD--> " << fSiPMSD << G4endl;
-
-        G4SDManager::GetSDMpointer()->AddNewDetector(fSiPMSD);
-
-        SetSensitiveDetector(psSiPM_logV, fSiPMSD);
-    }
-
 }
 
 
@@ -1519,7 +1479,6 @@ void nDetConstruction::buildEllipse2() {
     }
 
     buildSiPMs();
-    //psSiPM_logV->SetSensitiveDetector(fSiPMSD);
     return;
 
 }
@@ -1996,8 +1955,6 @@ void nDetConstruction::buildDisk2() {
     psSiPM_logV->SetVisAttributes(psSiPM_VisAtt);
 
     //Add Sensitive Detector to SiPM
-    // psSiPM_logV->SetSensitiveDetector(fSiPMSD);
-
     G4LogicalSkinSurface *psSiPMSurface = new G4LogicalSkinSurface("SiPMSurface", psSiPM_logV, SiPMSurface);
 
     // create assembly of SiPM sensitive part

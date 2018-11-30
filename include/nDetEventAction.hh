@@ -9,11 +9,9 @@
 #define nDetEventAction_h 1
 
 #include "nDetRunAction.hh"
-#include "nDetHits.hh"
 
 #include "G4UserEventAction.hh"
 #include "globals.hh"
-#include "nDetAnalysisManager.hh"
 
 //class G4Event;
 class nDetRunAction;
@@ -48,8 +46,6 @@ class nDetEventAction : public G4UserEventAction
     nDetRunAction *runAct;
     
     G4Timer *timer;
-    
-    nDetAnalysisManager *fAnalysisManager;
     
     G4double depositedEnergy;   // deposited energy in Scintillator.
     G4double avgTimePerEvent;

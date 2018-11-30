@@ -2,16 +2,19 @@
 #define PARTICLE_SOURCE_HH
 
 #include "G4VUserActionInitialization.hh"
+#include "G4VUserPrimaryGeneratorAction.hh"
+#include "G4SystemOfUnits.hh"
 #include "G4UImessenger.hh"
+#include "G4RotationMatrix.hh"
 #include "globals.hh"
 #include <vector>
-
-#include "nDetPrimaryGeneratorAction.hh"
 
 class G4ParticleGun;
 class G4Event;
 
 class ParticleSource;
+class nDetRunAction;
+
 class G4UIdirectory;
 class G4UIcmdWithoutParameter;
 
@@ -101,10 +104,9 @@ class Californium252 : public Source {
 class ParticleSourceMessenger;
 class nDetConstruction;
 
-class ParticleSource : public nDetPrimaryGeneratorAction
-{
+class ParticleSource : public G4VUserPrimaryGeneratorAction {
   public:
-    ParticleSource(nDetRunAction *run, const nDetConstruction *det=NULL);   
+    ParticleSource(nDetRunAction *run, const nDetConstruction *det=NULL);
      
    ~ParticleSource();
 
@@ -164,6 +166,10 @@ class ParticleSource : public nDetPrimaryGeneratorAction
 	G4ThreeVector unitY;
 	G4ThreeVector unitZ;
 
+	nDetRunAction *runAction;
+
+	G4ParticleGun *particleGun;
+	
 	G4RotationMatrix rot;
 
     void InitFunction(){ }

@@ -6,7 +6,7 @@
 #define NEXTMULTIPLESCATTERING_NDETTRACKINGACTION_HH
 
 #include "G4UserTrackingAction.hh"
-#include "nDetAnalysisManager.hh"
+#include "G4Types.hh"
 
 class nDetRunAction;
 
@@ -22,7 +22,6 @@ public:
 
 private:
     nDetRunAction* runAction;
-    nDetAnalysisManager *fAnlManager;
 
     G4int prevTrackID;
 };

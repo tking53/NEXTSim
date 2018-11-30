@@ -8,7 +8,6 @@
 
 #include <vector>
 
-#include "nDetSD.hh"
 #include "G4Step.hh"
 #include "G4OpBoundaryProcess.hh"
 #include "G4OpAbsorption.hh"
@@ -25,8 +24,6 @@
 #include "G4EventManager.hh"
 
 #include "nDetSteppingAction.hh"
-#include "nDetUserTrackingInformation.hh"
-#include "nDetUserEventInformation.hh"
 #include "nDetConstruction.hh"
 #include "nDetRunAction.hh"
 #include "nDetEventAction.hh"
@@ -35,12 +32,7 @@
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-nDetSteppingAction::nDetSteppingAction( 
-					nDetConstruction* det,
-					nDetRunAction* runAct,
-                                        nDetEventAction* evtAct)
-//:runAction(runAct), evtAction(evtAct)
-:detector(det), runAction(runAct), evtAction(evtAct)
+nDetSteppingAction::nDetSteppingAction(nDetConstruction* det, nDetRunAction* runAct, nDetEventAction* evtAct) : detector(det), runAction(runAct), evtAction(evtAct)
 {
   neutronTrack = false;
   eventID = -1;
@@ -56,12 +48,6 @@ nDetSteppingAction::~nDetSteppingAction()
 
 void nDetSteppingAction::UserSteppingAction(const G4Step* aStep)
 {
-
-  // collect energy step by step only if 
-  // the energy deposited in the CsI are recorded.
-  // used for debug...
-  //G4cout<<aStep->GetTrack()->GetVolume()->GetName()<<G4endl;
-
   if(neutronTrack){
     if(aStep->GetTrack()->GetTrackID() != 1) 
       neutronTrack = false;
@@ -87,100 +73,6 @@ void nDetSteppingAction::UserSteppingAction(const G4Step* aStep)
         detector->AddDetectedPhoton(aStep);
     }
   }
-  
-  /*if(aStep->GetTrack()->GetDefinition() == G4OpticalPhoton::OpticalPhotonDefinition()){
-    if(aStep->GetTrack()->GetMaterial()->GetName() != "G4_AIR"){
-      counter.addPhoton(aStep->GetTrack()->GetParentID());
-    }
-    else
-      aStep->GetTrack()->SetTrackStatus(fStopAndKill);
-  }
-
-  nDetUserTrackingInformation *theTrackingInfo;
-  theTrackingInfo = static_cast<nDetUserTrackingInformation*>( aStep->GetTrack()->GetUserInformation());
-
-  nDetUserEventInformation *theEventInfo;
-  theEventInfo = static_cast<nDetUserEventInformation*>(G4EventManager::GetEventManager()->GetUserInformation());
-
-  G4OpBoundaryProcessStatus boundaryStatus=Undefined;
-  G4OpBoundaryProcess* boundary=NULL;
-
-  if( (name.find("EJ") != name.npos ) && aStep->GetTotalEnergyDeposit() > 0 ){
-    G4double edep = aStep->GetTotalEnergyDeposit();
-
-    //Xiaodong says we can put some code here.  GetParticleName 
-    //step->track->particlename
-
-    //  G4String pname = aStep->GetTrack()->GetParticleDefinition()->GetParticleName();
-    //  G4cout << pname << G4endl;
-
-    //G4cout<<G4BestUnit(edep,"Energy")<<"**";
-    //G4cout<<aStep->GetTrack()->GetMaterial()->GetName()<<G4endl;
-    evtAction->AddDepE(edep);
-  }
-
-  // collect detected photons in the siPM
-  G4OpBoundaryProcessStatus boundaryStatus=Undefined;
-  G4OpBoundaryProcess* boundary=NULL;
-  if(!boundary) {
-      G4ProcessManager *pm
-              = aStep->GetTrack()->GetDefinition()->GetProcessManager();
-      G4int nprocesses = pm->GetProcessListLength();
-      G4ProcessVector *pv = pm->GetProcessList();
-      G4int i;
-      for (i = 0; i < nprocesses; i++) {
-          if ((*pv)[i]->GetProcessName() == "OpBoundary") {
-              boundary = (G4OpBoundaryProcess *) (*pv)[i];
-              //G4cout<<boundary->GetStatus()<<G4endl;
-              break;
-          }
-      }
-
-      if (i < nprocesses) {
-          boundaryStatus = boundary->GetStatus();
-          if (aStep->GetPostStepPoint()->GetStepStatus() == fGeomBoundary) {
-
-              switch (boundaryStatus) {
-                  case Detection: {
-                      //Triger sensitive detector manually since photon is
-                      //absorbed but status was Detection
-                      G4SDManager *SDman = G4SDManager::GetSDMpointer();
-                      SiPMSD *sipmSD = (SiPMSD *) SDman->FindSensitiveDetector("/theSiPMSD");
-                      if (sipmSD)sipmSD->ProcessHits_constStep(aStep, NULL);
-                      G4String vName = aStep->GetPostStepPoint()->GetPhysicalVolume()->GetName();
-                      theTrackingInfo->IncDetections();
-                      theEventInfo->IncDetections();
-                      if(vName.find("psSiPM") != std::string::npos)
-                          detector->AddDetectedPhoton(aStep);
-                      break;
-                  }
-                  case FresnelReflection:
-                  case TotalInternalReflection:
-                  case LambertianReflection:
-                  case LobeReflection:
-                  case SpikeReflection:
-                  case BackScattering: {
-                      //G4cout << "Reflection of "<<aStep->GetTrack()->GetParticleDefinition()->GetParticleName()<<
-                       //                         " in " << aStep->GetPostStepPoint()->GetPhysicalVolume()->GetName() << G4endl;
-                      theTrackingInfo->IncReflections();
-                  }
-                      break;
-                  case Absorption: {
-                      theTrackingInfo->IncAbsortions();
-                      theEventInfo->IncAbsortions();
-                      //G4cout<<"Absortion in "<<aStep->GetPostStepPoint()->GetPhysicalVolume()->GetName()
-                      //      <<" "<<theEventInfo->GetAbsortionCount()<<G4endl;
-                    break;
-                    }
-                  default:
-                      //G4cout<<"Other Boundary effect in "<<aStep->GetPostStepPoint()->GetPhysicalVolume()->GetName()
-                      //     <<" "<<boundaryStatus<<G4endl;
-                    break;
-
-              }
-          }
-      }
-  }*/
 }
 
 void nDetSteppingAction::Reset(){

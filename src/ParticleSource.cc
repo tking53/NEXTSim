@@ -1,5 +1,6 @@
 #include "ParticleSource.hh"
 #include "nDetConstruction.hh"
+#include "nDetRunAction.hh"
 
 #include "G4Event.hh"
 #include "G4ParticleGun.hh"
@@ -118,11 +119,11 @@ double Californium252::func(const double &E_) const {
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-ParticleSource::ParticleSource(nDetRunAction *run, const nDetConstruction *det/*=NULL*/) : nDetPrimaryGeneratorAction(), fGunMessenger(0), psource(), pos(0, 0, 0), 
+ParticleSource::ParticleSource(nDetRunAction *run, const nDetConstruction *det/*=NULL*/) : G4VUserPrimaryGeneratorAction(), fGunMessenger(0), psource(), pos(0, 0, 0),
 												                               dir(0, 0, 0), detPos(0, 0, 0), detSize(0, 0, 0), type("iso"), beamspot(0),
 												                               unitX(1, 0, 0), unitY(0, 1, 0), unitZ(0, 0, 1)
 {
-	runAct = run;
+	runAction = run;
 
 	particleGun = new G4ParticleGun(1);
 	particleGun->SetParticlePosition(this->pos);
@@ -143,7 +144,7 @@ void ParticleSource::GeneratePrimaries(G4Event* anEvent)
 {
 	double energy = psource->sample();
 	particleGun->SetParticleEnergy(energy);
-	runAct->initEnergy = energy;
+	runAction->initEnergy = energy;
 	if(psource->getIsIsotropic()){ // Generate particles psuedo-isotropically
 		// We don't really use a true isotropic source because that would be really slow.
 		// Generate a random point inside the volume of the detector in the frame of the detector.
