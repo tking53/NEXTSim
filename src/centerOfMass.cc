@@ -110,14 +110,14 @@ bool centerOfMass::addPoint(const G4Step *step, const double &mass/*=1*/){
 	double wavelength = coeff/step->GetTrack()->GetTotalEnergy(); // in nm
 	double time = step->GetPostStepPoint()->GetGlobalTime(); // in ns
 
-	totalMass += mass;
-	Npts++;
-	
 	if(Ncol < 0 && Nrow < 0){ // Default behavior
 		center += mass*step->GetPostStepPoint()->GetPosition();	
 		
 		// Add the PMT response to the "digitized" trace
 		response.addPhoton(time, wavelength);
+		
+		// Add the "mass" to the others
+		totalMass += mass;		
 	}
 	else{ // Segmented PMT behavior
 		G4ThreeVector pos = step->GetPostStepPoint()->GetPosition();
@@ -131,12 +131,18 @@ bool centerOfMass::addPoint(const G4Step *step, const double &mass/*=1*/){
 		// Add the PMT response to the "digitized" trace
 		int xAnode = (int)floor(xpos);
 		int yAnode = (int)floor(ypos);
-		response.addPhoton(time, wavelength, gainMatrix[xAnode][yAnode]/100);
+		double gain = gainMatrix[xAnode][yAnode]/100;
+		response.addPhoton(time, wavelength, gain);
+		
+		// Add the "mass" to the others weighted by the individual anode gain
+		totalMass += gain*mass;
 	}
 	
 	tSum += time;
 	lambdaSum += wavelength;
 	if(time < t0) t0 = time;
+
+	Npts++;
 	
 	return true;
 }
