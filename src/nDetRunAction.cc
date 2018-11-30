@@ -287,6 +287,7 @@ bool nDetRunAction::closeRootFile(){
     delete fFile;
     fFile = NULL;
   }
+  return true;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
