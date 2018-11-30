@@ -30,7 +30,7 @@ private:
     
     G4UIcmdWithAString *fOutputFileCmd[6];
     
-    G4UIcmdWithADouble *fOutputTraceParams[8];    
+    G4UIcmdWithADouble *fOutputTraceParams[9];    
     
     G4UIcmdWithAnInteger *fOutputTraceAnalysis[3];
     

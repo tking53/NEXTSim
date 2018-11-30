@@ -89,14 +89,14 @@ void spectralResponse::close(){
 // class pmtResponse
 ///////////////////////////////////////////////////////////////////////////////
 
-pmtResponse::pmtResponse() : risetime(4.0), falltime(20.0), amplitude(0), peakOffset(0), peakMaximum(0), traceDelay(50), gain(1E4),
+pmtResponse::pmtResponse() : risetime(4.0), falltime(20.0), timeSpread(0), amplitude(0), peakOffset(0), peakMaximum(0), traceDelay(50), gain(1E4),
                              maximum(-9999), baseline(-9999), maxIndex(0), adcBins(4096), pulseLength(100), isDigitized(false), 
                              useSpectralResponse(false), rawPulse(NULL), pulseArray(NULL), spec() {
 	this->update();
 	this->setPulseLength(pulseLength);
 }
 
-pmtResponse::pmtResponse(const double &risetime_, const double &falltime_) : risetime(risetime_), falltime(falltime_), amplitude(0), peakOffset(0), peakMaximum(0), traceDelay(50), gain(1E4),
+pmtResponse::pmtResponse(const double &risetime_, const double &falltime_) : risetime(risetime_), falltime(falltime_), timeSpread(0), amplitude(0), peakOffset(0), peakMaximum(0), traceDelay(50), gain(1E4),
                                                                              maximum(-9999), baseline(-9999), maxIndex(0), adcBins(4096), pulseLength(100), isDigitized(false), 
                                                                              useSpectralResponse(false), rawPulse(NULL), pulseArray(NULL), spec() {
 	this->update();
@@ -159,6 +159,9 @@ void pmtResponse::addPhoton(const double &arrival, const double &wavelength/*=0*
 
 	//double dt = arrival - peakOffset + traceDelay; // Arrival time is the peak of the pulse.
 	double dt = arrival + traceDelay; // Arrival time is the leading edge of the pulse.
+	if(timeSpread > 0){ // Smear the time offset based on the photo-electron transit time spread.
+		dt += (G4UniformRand()-0.5)*timeSpread;
+	}
 	if(dt < 0) dt = 0;
 	double dy;
 	double time = dt;

@@ -63,11 +63,14 @@ class pmtResponse{
 	
 	unsigned short *getDigitizedPulse(){ return pulseArray; }
 
-	/// Set the rise time of the pulse (in ns).
+	/// Set the rise time of the single photon pulse (in ns).
 	void setRisetime(const double &risetime_);
 	
-	/// Set the decay time of the pulse (in ns).
+	/// Set the decay time of the single photon pulse (in ns).
 	void setFalltime(const double &falltime_);
+
+	/// Set the FWHM spread in the photo-electron transit time (in ns).
+	void setTransitTimeSpread(const double &spread_){ timeSpread = spread_; }
 
 	/// Set the time delay of the pulse (in ns).
 	void setTraceDelay(const double &traceDelay_){ traceDelay = traceDelay_; }
@@ -141,6 +144,7 @@ class pmtResponse{
 
 	double risetime;
 	double falltime;
+	double timeSpread;
 	double amplitude;
 	double peakOffset;
 	double peakMaximum;

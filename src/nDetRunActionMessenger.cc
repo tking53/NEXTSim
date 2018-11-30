@@ -67,6 +67,9 @@ nDetRunActionMessenger::nDetRunActionMessenger(nDetRunAction *action) : fAction(
 
 	fOutputTraceParams[7] = new G4UIcmdWithADouble("/nDet/output/trace/setTraceLength", this);
 	fOutputTraceParams[7]->SetGuidance("Set the length of the PMT light response pulse (ns)");	
+
+	fOutputTraceParams[8] = new G4UIcmdWithADouble("/nDet/output/trace/setTimeSpread", this);
+	fOutputTraceParams[8]->SetGuidance("Set the FWHM spread in the photo-electron transit time of the PMT (ns)");	
 	
 	fOutputTraceAnalysis[0] = new G4UIcmdWithAnInteger("/nDet/output/trace/setIntegralLow", this);
 	fOutputTraceAnalysis[0]->SetGuidance("Set the low pulse integration limit in ADC bins");
@@ -84,7 +87,7 @@ nDetRunActionMessenger::~nDetRunActionMessenger() {
 	for(int i = 0; i < 6; i++){
 		delete fOutputFileCmd[i];
 	}
-	for(int i = 0; i < 8; i++){
+	for(int i = 0; i < 9; i++){
 		delete fOutputTraceParams[i];
 	}
 	for(int i = 0; i < 2; i++){
@@ -150,6 +153,11 @@ void nDetRunActionMessenger::SetNewValue(G4UIcommand *command, G4String newValue
 		G4double val = fOutputTraceParams[7]->ConvertToDouble(newValue);
 		prL->setPulseLengthInNanoSeconds(val);
 		prR->setPulseLengthInNanoSeconds(val);
+	}
+	else if(command == fOutputTraceParams[8]){
+		G4double val = fOutputTraceParams[8]->ConvertToDouble(newValue);
+		prL->setTransitTimeSpread(val);
+		prR->setTransitTimeSpread(val);
 	}
 	else if(command == fOutputTraceAnalysis[0]){
 		G4int val = fOutputTraceAnalysis[0]->ConvertToInt(newValue);
