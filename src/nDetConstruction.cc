@@ -192,6 +192,15 @@ bool nDetConstruction::setPmtSpectralResponse(const char *fname){
   return retval;
 }
 
+bool nDetConstruction::setPmtGainMatrix(const char *fname){
+  bool retval = (center[0].loadGainMatrix(fname) && center[1].loadGainMatrix(fname));
+  if(retval)
+    std::cout << " nDetConstruction: Successfully loaded PMT anode gain matrix\n";
+  else
+    std::cout << " nDetConstruction: ERROR! Failed to load PMT anode gain matrix from \"" << fname << "\"!\n";
+  return retval;
+}
+
 void nDetConstruction::buildExpHall()
 {
   // **************** expHalll **************

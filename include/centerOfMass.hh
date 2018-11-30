@@ -2,6 +2,7 @@
 #define CENTER_OF_MASS_HPP
 
 #include <limits>
+#include <vector>
 
 #include "G4ThreeVector.hh"
 
@@ -12,7 +13,7 @@ class G4Step;
 class centerOfMass{
   public:
 	centerOfMass() : Ncol(-1), Nrow(-1), Npts(0), NnotDetected(0), totalMass(0), t0(std::numeric_limits<double>::max()), tSum(0), lambdaSum(0),
-	                 activeWidth(0), activeHeight(0), pixelWidth(0), pixelHeight(0), center(0, 0, 0) { }
+	                 activeWidth(0), activeHeight(0), pixelWidth(0), pixelHeight(0), center(0, 0, 0), response() { }
 
 	~centerOfMass();
 
@@ -62,6 +63,8 @@ class centerOfMass{
 	
 	bool loadSpectralResponse(const char *fname);
 	
+	bool loadGainMatrix(const char *fname);
+	
 	void clear();
 	
 	bool addPoint(const G4Step *step, const double &mass=1);
@@ -89,6 +92,8 @@ class centerOfMass{
 	G4ThreeVector center;
 	
 	pmtResponse response;
+	
+	std::vector<std::vector<double> > gainMatrix;
 };
 
 #endif

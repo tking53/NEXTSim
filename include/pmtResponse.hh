@@ -90,7 +90,7 @@ class pmtResponse{
 	bool loadSpectralResponse(const char *fname);
 
 	/// Add a photon signal to the raw pulse.
-	void addPhoton(const double &arrival, const double &wavelength=0);
+	void addPhoton(const double &arrival, const double &wavelength=0, const double &gain=1);
 
 	/// "Digitize" the raw light pulse.
 	void digitize(const double &baseline=0, const double &jitter=0);

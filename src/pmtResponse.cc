@@ -150,7 +150,7 @@ bool pmtResponse::loadSpectralResponse(const char *fname){
 	return (useSpectralResponse = spec.load(fname));
 }
 
-void pmtResponse::addPhoton(const double &arrival, const double &wavelength/*=0*/){
+void pmtResponse::addPhoton(const double &arrival, const double &wavelength/*=0*/, const double &gain/*=1*/){
 	double efficiency = 1;
 	if(useSpectralResponse){ // Compute the quantum efficiency of the PMT for this wavelength.
 		efficiency = spec.eval(wavelength)/100;
@@ -167,7 +167,7 @@ void pmtResponse::addPhoton(const double &arrival, const double &wavelength/*=0*
 	size_t index = (size_t)floor(dt/ADC_CLOCK_TICK);
 	time += ADC_CLOCK_TICK/2;
 	while(index < pulseLength){
-		dy = efficiency*eval(time, dt);
+		dy = gain*efficiency*eval(time, dt);
 		rawPulse[index] += dy;
 		time += ADC_CLOCK_TICK;
 		index++;

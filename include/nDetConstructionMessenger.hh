@@ -5,10 +5,8 @@
 #ifndef NEXTMULTIPLESCATTERING_NDETCONSTRUCTIONMESSENGER_HH
 #define NEXTMULTIPLESCATTERING_NDETCONSTRUCTIONMESSENGER_HH 1
 
-
 #include "G4UImessenger.hh"
 #include "globals.hh"
-
 
 class nDetConstruction;
 class G4UIcommand;
@@ -20,22 +18,22 @@ class G4UIdirectory;
 
 class nDetConstructionMessenger:public G4UImessenger
 {
-public:
+  public:
+	//Constructor
+	nDetConstructionMessenger(nDetConstruction*);
+	
+	//Destructor
+	virtual ~nDetConstructionMessenger();
 
-//Constructor
-nDetConstructionMessenger(nDetConstruction*);
-//Destructor
-virtual ~nDetConstructionMessenger();
+	virtual void SetNewValue(G4UIcommand*,G4String);
 
-virtual void SetNewValue(G4UIcommand*,G4String);
-
-private:
-
+  private:
     nDetConstruction *fDetector;
     G4UIdirectory    *fDetectorDir;
 
     G4UIcmdWithAString   *fGeometryCmd;
     G4UIcmdWithAString   *fSpectralFilename;
+    G4UIcmdWithAString   *fGainFilename;
     G4UIcmdWithADouble   *fSiliconDimensionsCmd;
     G4UIcmdWithADouble   *fDetectorLengthCmd;
     G4UIcmdWithADouble   *fDetectorWidthCmd;
@@ -47,8 +45,6 @@ private:
     G4UIcmdWithAnInteger *fNumberColumnsPmtCmd;
     G4UIcmdWithAnInteger *fNumberRowsPmtCmd;
     G4UIcommand          *fUpdateCmd;
-
 };
-
 
 #endif //NEXTMULTIPLESCATTERING_NDETCONSTRUCTIONMESSENGER_HH

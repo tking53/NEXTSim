@@ -30,6 +30,9 @@ nDetConstructionMessenger::nDetConstructionMessenger(nDetConstruction* detector)
     fSpectralFilename->SetGuidance("Load PMT spectral response from a root file");
     fSpectralFilename->SetGuidance("Input file MUST contain a TGraph named \"spec\"");
 
+	fGainFilename = new G4UIcmdWithAString("/nDet/detector/setGainMatrix",this);
+    fGainFilename->SetGuidance("Load segmented PMT anode gain matrix file");
+
     fSiliconDimensionsCmd=new G4UIcmdWithADouble("/nDet/detector/setSiPMdimensions",this);
     fSiliconDimensionsCmd->SetGuidance("Defines the size of the SiPMs in mm");
 
@@ -67,6 +70,7 @@ nDetConstructionMessenger::~nDetConstructionMessenger(){
     delete fSiliconDimensionsCmd;
     delete fGeometryCmd;
     delete fSpectralFilename;
+    delete fGainFilename;
     delete fDetectorWidthCmd;
     delete fDetectorLengthCmd;
     delete fDetectorThicknessCmd;
@@ -87,6 +91,11 @@ void nDetConstructionMessenger::SetNewValue(G4UIcommand* command,G4String newVal
 
 	if(command == fSpectralFilename){
 		fDetector->setPmtSpectralResponse(newValue.c_str());
+	}
+
+	if(command == fGainFilename){
+		std::cout << "HERE! " << newValue << std::endl;
+		fDetector->setPmtGainMatrix(newValue.c_str());
 	}
 
     if(command == fSiliconDimensionsCmd) {

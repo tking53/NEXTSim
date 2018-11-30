@@ -72,6 +72,8 @@ class nDetConstruction : public G4VUserDetectorConstruction
 
     bool setPmtSpectralResponse(const char *fname);
 
+	bool setPmtGainMatrix(const char *fname);
+
 	G4double GetDetectorLength() const { return fDetectorLength; }
 	
 	G4double GetDetectorWidth() const { return fDetectorWidth; }

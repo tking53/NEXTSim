@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 
 #include "G4Step.hh"
 
@@ -60,10 +61,38 @@ void centerOfMass::setSegmentedPmt(const short &col_, const short &row_, const d
 	activeHeight = height_;
 	pixelWidth = activeWidth / Ncol;
 	pixelHeight = activeHeight / Nrow;
+	
+	// Setup the anode gain matrix.
+	gainMatrix.clear();
+	for(short i = 0; i < Ncol; i++){
+		gainMatrix.push_back(std::vector<double>(Nrow, 1));
+	}
 }
 
 bool centerOfMass::loadSpectralResponse(const char *fname){
 	return response.loadSpectralResponse(fname);
+}
+
+bool centerOfMass::loadGainMatrix(const char *fname){
+	if(gainMatrix.empty() || Ncol*Nrow == 0) return false;
+	std::ifstream gainFile(fname);
+	if(!gainFile.good()) return false;
+	
+	double readval;
+	for(short col = 0; col < Ncol; col++){
+		for(short row = 0; row < Nrow; row++){
+			gainFile >> readval;
+			if(gainFile.eof()){
+				gainFile.close();
+				return false;
+			}
+			gainMatrix[col][row] = readval;
+		}
+	}
+	
+	gainFile.close();
+	
+	return true;
 }
 
 void centerOfMass::clear(){
@@ -81,20 +110,28 @@ bool centerOfMass::addPoint(const G4Step *step, const double &mass/*=1*/){
 	double wavelength = coeff/step->GetTrack()->GetTotalEnergy(); // in nm
 	double time = step->GetPostStepPoint()->GetGlobalTime(); // in ns
 
-	// Add the PMT response to the "digitized" trace
-	response.addPhoton(time, wavelength);
-
 	totalMass += mass;
 	Npts++;
 	
 	if(Ncol < 0 && Nrow < 0){ // Default behavior
 		center += mass*step->GetPostStepPoint()->GetPosition();	
+		
+		// Add the PMT response to the "digitized" trace
+		response.addPhoton(time, wavelength);
 	}
 	else{ // Segmented PMT behavior
 		G4ThreeVector pos = step->GetPostStepPoint()->GetPosition();
-		pos.setX(((pos.getX()+activeWidth/2)/pixelWidth)*(activeWidth/Ncol)-activeWidth/2);
-		pos.setY(((pos.getY()+activeHeight/2)/pixelHeight)*(activeHeight/Nrow)-activeHeight/2);
+		double xpos = (pos.getX()+activeWidth/2)/pixelWidth;
+		double ypos = (pos.getY()+activeHeight/2)/pixelHeight;
+		
+		pos.setX(xpos*(activeWidth/Ncol)-activeWidth/2);
+		pos.setY(ypos*(activeHeight/Nrow)-activeHeight/2);
 		center += mass*pos;
+		
+		// Add the PMT response to the "digitized" trace
+		int xAnode = (int)floor(xpos);
+		int yAnode = (int)floor(ypos);
+		response.addPhoton(time, wavelength, gainMatrix[xAnode][yAnode]/100);
 	}
 	
 	tSum += time;
