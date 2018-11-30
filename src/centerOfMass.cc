@@ -2,6 +2,7 @@
 
 #include "TFile.h"
 #include "TGraph.h"
+#include "TF1.h"
 
 #include "G4Step.hh"
 #include "Randomize.hh"
@@ -13,19 +14,91 @@
 const double coeff = 1.23984193E-3; // hc = Mev * nm
 
 ///////////////////////////////////////////////////////////////////////////////
+// class spectralResponse
+///////////////////////////////////////////////////////////////////////////////
+
+/// Destructor.
+spectralResponse::~spectralResponse(){
+	this->close();
+}
+
+/// Load response function from a file.
+bool spectralResponse::load(const char *fname){
+	this->close();
+
+	TFile *f = new TFile(fname, "READ");
+	if(!f->IsOpen()) return false;
+	TGraph *g1 = (TGraph*)f->Get("spec");
+	if(!g1){
+		f->Close();
+		return false;
+	}
+	spectrum = (TGraph*)g1->Clone("spec");
+	
+	TF1 *f1 = (TF1*)f->Get("exlow");
+	TF1 *f2 = (TF1*)f->Get("exhigh");
+	
+	if(f1) extrapolateLow = (TF1*)f1->Clone("ex1");
+	if(f2) extrapolateHigh = (TF1*)f2->Clone("ex2");
+	
+	this->scanSpectrum();
+	
+	f->Close();
+	return true;
+}
+
+/// Return the PMT quantum efficiency for a given wavelength.
+double spectralResponse::eval(const double &wavelength){
+	if(wavelength < xmin){ // Attempt to extrapolate toward smaller wavelengths.
+		if(!extrapolateLow) return 0;
+		return extrapolateLow->Eval(wavelength);
+	}
+	else if(wavelength <= xmax){ // Interpolate the distribution.
+		return spectrum->Eval(wavelength);
+	}
+	else{ // Attempt to extrapolate toward larger wavelengths.
+		if(!extrapolateHigh) return 0;
+		return extrapolateHigh->Eval(wavelength);
+	}
+	return 0;
+}
+
+void spectralResponse::scanSpectrum(){
+	double x, y;
+	spectrum->GetPoint(0, x, y);
+	xmin = x;
+	spectrum->GetPoint(spectrum->GetN()-1, x, y);
+	xmax = x;
+}
+
+void spectralResponse::close(){
+	if(spectrum) 
+		delete spectrum;
+	if(extrapolateLow) 
+		delete extrapolateLow;
+	if(extrapolateHigh) 
+		delete extrapolateHigh;
+	spectrum = NULL;
+	extrapolateLow = NULL;
+	extrapolateHigh = NULL;
+	xmin = 0;
+	xmax = 0;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // class pmtResponse
 ///////////////////////////////////////////////////////////////////////////////
 
 pmtResponse::pmtResponse() : risetime(4.0), falltime(20.0), amplitude(0), peakOffset(0), peakMaximum(0), traceDelay(50), gain(1E4),
                              maximum(-9999), baseline(-9999), maxIndex(0), adcBins(4096), pulseLength(100), isDigitized(false), 
-                             useSpectralResponse(false), rawPulse(NULL), pulseArray(NULL), spec(NULL) {
+                             useSpectralResponse(false), rawPulse(NULL), pulseArray(NULL), spec() {
 	this->update();
 	this->setPulseLength(pulseLength);
 }
 
 pmtResponse::pmtResponse(const double &risetime_, const double &falltime_) : risetime(risetime_), falltime(falltime_), amplitude(0), peakOffset(0), peakMaximum(0), traceDelay(50), gain(1E4),
                                                                              maximum(-9999), baseline(-9999), maxIndex(0), adcBins(4096), pulseLength(100), isDigitized(false), 
-                                                                             useSpectralResponse(false), rawPulse(NULL), pulseArray(NULL), spec(NULL) {
+                                                                             useSpectralResponse(false), rawPulse(NULL), pulseArray(NULL), spec() {
 	this->update();
 	this->setPulseLength(pulseLength);
 }
@@ -35,7 +108,6 @@ pmtResponse::~pmtResponse(){
 		delete[] rawPulse;
 		delete[] pulseArray;
 	}
-	if(spec) delete spec;
 }
 
 void pmtResponse::setRisetime(const double &risetime_){ 
@@ -75,23 +147,12 @@ void pmtResponse::setBitRange(const size_t &len){
 }
 
 /// Load PMT spectral response from root file.
-bool pmtResponse::loadSpectralResponse(const char *fname, const char *name/*="spec"*/){
-	TFile *f = new TFile(fname, "READ");
-	if(!f->IsOpen()) return false;
-	TGraph *g1 = (TGraph*)f->Get(name);
-	if(!g1){
-		f->Close();
-		return false;
-	}
-	if(spec) delete spec;
-	spec = (TGraph*)g1->Clone("spec");
-	useSpectralResponse = true;
-	f->Close();
-	return true;
+bool pmtResponse::loadSpectralResponse(const char *fname){
+	return (useSpectralResponse = spec.load(fname));
 }
 
 bool pmtResponse::addPhoton(const double &arrival, const double &wavelength/*=0*/){
-	if(useSpectralResponse && G4UniformRand() > spec->Eval(wavelength)/100){ // Not detected
+	if(useSpectralResponse && G4UniformRand() > spec.eval(wavelength)/100){ // Not detected
 		return false;
 	}
 
@@ -418,8 +479,8 @@ void centerOfMass::setSegmentedPmt(const short &col_, const short &row_, const d
 	pixelHeight = activeHeight / Nrow;
 }
 
-bool centerOfMass::loadSpectralResponse(const char *fname, const char *name/*="spec"*/){
-	return response.loadSpectralResponse(fname, name);
+bool centerOfMass::loadSpectralResponse(const char *fname){
+	return response.loadSpectralResponse(fname);
 }
 
 void centerOfMass::clear(){

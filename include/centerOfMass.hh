@@ -6,7 +6,36 @@
 #include "G4ThreeVector.hh"
 
 class TGraph;
+class TF1;
+
 class G4Step;
+
+class spectralResponse{
+  public:
+	/// Default constructor.
+	spectralResponse() : spectrum(NULL), extrapolateLow(NULL), extrapolateHigh(NULL), xmin(0), xmax(0) { }
+
+	/// Destructor.
+	~spectralResponse();
+
+	/// Load response function from a file.
+	bool load(const char *fname);
+
+	/// Return the PMT quantum efficiency for a given wavelength.
+	double eval(const double &wavelength);
+
+  private:
+	TGraph *spectrum;
+	
+	TF1 *extrapolateLow;
+	TF1 *extrapolateHigh;
+	
+	double xmin, xmax;
+	
+	void scanSpectrum();
+	
+	void close();
+};
 
 class pmtResponse{
   public:
@@ -59,7 +88,7 @@ class pmtResponse{
 	void disableSpectralResponse(){ useSpectralResponse = false; }
 
 	/// Load PMT spectral response from root file.
-	bool loadSpectralResponse(const char *fname, const char *name="spec");
+	bool loadSpectralResponse(const char *fname);
 
 	/// Add a photon signal to the raw pulse.
 	bool addPhoton(const double &arrival, const double &wavelength=0);
@@ -134,7 +163,7 @@ class pmtResponse{
 
 	unsigned short *pulseArray;
 
-	TGraph *spec;
+	spectralResponse spec;
 	
 	void update();
 	
@@ -195,7 +224,7 @@ class centerOfMass{
 	
 	void setSegmentedPmt(const short &col_, const short &row_, const double &width_, const double &height_);
 	
-	bool loadSpectralResponse(const char *fname, const char *name="spec");
+	bool loadSpectralResponse(const char *fname);
 	
 	void clear();
 	
