@@ -1673,15 +1673,13 @@ void nDetConstruction::buildRectangle(){
     	    for(size_t i = 0; i < 4; i++)
     	        new G4LogicalBorderSurface("Mylar", trapPhysicalR, cellMylarWrap[i], fMylarOpticalSurface);
     	}
-    	
-    	buildSiPMs(fTrapezoidLength+greaseThickness);
-	}
-	else{
-	    buildSiPMs(0);
 	}
 
+	// Build the sensitive PMT surfaces.
+	const G4String name = "psSiPM";
+
 	// BE CAREFUL, for some reason SiPM_dimension is set to the user defined SiPM dimension divided by 2 in nDetConstructionMessenger!!!
-	/*G4Box* grease_solidV2 = new G4Box("grease", SiPM_dimension, SiPM_dimension, greaseThickness/2);
+	G4Box* grease_solidV2 = new G4Box("grease", SiPM_dimension, SiPM_dimension, greaseThickness/2);
 	grease_logV = new G4LogicalVolume(grease_solidV2, fGrease, "grease_logV");
 	grease_logV->SetVisAttributes(grease_VisAtt);
 	
@@ -1698,15 +1696,15 @@ void nDetConstruction::buildRectangle(){
     new G4PVPlacement(0, G4ThreeVector(0, 0, -windowZ), window_logV, "Quartz", assembly_logV, true, 0, fCheckOverlaps);
     
     // The photon sensitive surface
-    G4Box *sensitive_solidV = new G4Box("sensitive_solidV", SiPM_dimension, SiPM_dimension, windowThickness/2);
-    G4LogicalVolume *sensitive_logV = new G4LogicalVolume(sensitive_solidV, fSil, "sensitive_logV");
-    G4LogicalSkinSurface *sensitiveSurface = new G4LogicalSkinSurface("sensitive", sensitive_logV, fSiliconPMOpticalSurface);
+    G4Box *sensitive_solidV = new G4Box(name+"_solidV", SiPM_dimension, SiPM_dimension, windowThickness/2);
+    G4LogicalVolume *sensitive_logV = new G4LogicalVolume(sensitive_solidV, fSil, name+"_logV");
+    G4LogicalSkinSurface *sensitiveSurface = new G4LogicalSkinSurface(name, sensitive_logV, fSiliconPMOpticalSurface);
     G4VisAttributes *sensitive_VisAtt = new G4VisAttributes(G4Colour(0.75, 0.75, 0.75)); // grey
     sensitive_VisAtt->SetForceSolid(true);
     sensitive_logV->SetVisAttributes(sensitive_VisAtt);
     
-    new G4PVPlacement(0, G4ThreeVector(0, 0, sensitiveZ), sensitive_logV, "Sensitive", assembly_logV, true, 0, fCheckOverlaps);
-    new G4PVPlacement(0,  G4ThreeVector(0, 0, -sensitiveZ), sensitive_logV, "Sensitive", assembly_logV, true, 0, fCheckOverlaps);*/
+    new G4PVPlacement(0, G4ThreeVector(0, 0, sensitiveZ), sensitive_logV, name, assembly_logV, true, 0, fCheckOverlaps);
+    new G4PVPlacement(0,  G4ThreeVector(0, 0, -sensitiveZ), sensitive_logV, name, assembly_logV, true, 0, fCheckOverlaps);
 
     return;
 }
