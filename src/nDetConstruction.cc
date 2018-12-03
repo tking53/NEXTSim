@@ -968,7 +968,8 @@ void nDetConstruction::DefineMaterials() {
     fEJ200MPT->AddProperty("ABSLENGTH", PhotonEnergy2, Absorption_EJ200, 2);
     fEJ200MPT->AddProperty("FASTCOMPONENT", PhotonEnergy, ScintilFast_EJ200, 33);
 
-    fEJ200MPT->AddConstProperty("SCINTILLATIONYIELD", 0.64*17400/MeV); // 64% of Anthracene
+    //fEJ200MPT->AddConstProperty("SCINTILLATIONYIELD", 0.64*17400/MeV); // 64% of Anthracene
+    fEJ200MPT->AddConstProperty("SCINTILLATIONYIELD", 10000/MeV); // Scintillation efficiency as per Eljen specs
     fEJ200MPT->AddConstProperty("RESOLUTIONSCALE", 1.0); // Intrinsic resolution
 
     //fEJ200MPT->AddConstProperty("RISETIMECONSTANT", 0.9*ns); Geant4 10.1 TODO
