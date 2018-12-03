@@ -48,8 +48,10 @@ nDetSteppingAction::~nDetSteppingAction()
 
 void nDetSteppingAction::UserSteppingAction(const G4Step* aStep)
 {
+  G4Track *track = aStep->GetTrack();
+
   if(neutronTrack){
-    if(aStep->GetTrack()->GetTrackID() != 1) 
+    if(track->GetTrackID() != 1) 
       neutronTrack = false;
     else if(aStep->GetPreStepPoint()->GetMaterial()->GetName() == "G4_AIR"){ // Escape
       runAction->finalizeNeutron(aStep);
@@ -58,19 +60,21 @@ void nDetSteppingAction::UserSteppingAction(const G4Step* aStep)
     else // Normal scatter
       runAction->scatterNeutron(aStep);
   }
-  else if(aStep->GetTrack()->GetTrackID() == 1){ // Enter the material.
-    //if(!aStep->GetPostStepPoint()->GetMaterial()) // Unknown event (scatter in air)
-      //std::cout << " STRT id=" << aStep->GetTrack()->GetTrackID() << " from " << aStep->GetPreStepPoint()->GetMaterial()->GetName() << " into NONE!!!\n";
+  else if(track->GetParticleDefinition()->GetParticleName() == "e-"){ // Kill all electrons immediately to avoid endless electron scattering.
+    track->SetTrackStatus(fStopAndKill);
+  }
+  else if(track->GetTrackID() == 1){ // Enter the material.
     runAction->initializeNeutron(aStep);
     neutronTrack = true;
   }
 
   // Simplifying this process to try and alleviate problems (CRT)
-  if(aStep->GetTrack()->GetDefinition() == G4OpticalPhoton::OpticalPhotonDefinition()){
+  if(track->GetDefinition() == G4OpticalPhoton::OpticalPhotonDefinition()){
     if (aStep->GetPostStepPoint()->GetStepStatus() == fGeomBoundary) {
       G4String vName = aStep->GetPostStepPoint()->GetPhysicalVolume()->GetName();
-      if(vName.find("psSiPM") != std::string::npos)
+      if(vName.find("psSiPM") != std::string::npos){
         detector->AddDetectedPhoton(aStep);
+      }
     }
   }
 }
