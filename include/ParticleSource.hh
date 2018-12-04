@@ -1,13 +1,16 @@
 #ifndef PARTICLE_SOURCE_HH
 #define PARTICLE_SOURCE_HH
 
+#include <vector>
+
 #include "G4VUserActionInitialization.hh"
 #include "G4VUserPrimaryGeneratorAction.hh"
 #include "G4SystemOfUnits.hh"
 #include "G4UImessenger.hh"
 #include "G4RotationMatrix.hh"
 #include "globals.hh"
-#include <vector>
+
+#include "messengerHandler.hh"
 
 class G4ParticleGun;
 class G4Event;
@@ -114,6 +117,8 @@ class ParticleSource : public G4VUserPrimaryGeneratorAction {
 
 	Source *GetParticleSource(){ return psource; }
 
+	ParticleSourceMessenger *GetMessenger(){ return fGunMessenger; }
+
     G4double RejectAccept() const { return 0; }
 
     G4double InverseCumul() const { return 0; }
@@ -179,21 +184,14 @@ class ParticleSource : public G4VUserPrimaryGeneratorAction {
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class ParticleSourceMessenger: public G4UImessenger
-{
+class ParticleSourceMessenger: public messengerHandler {
   public:
-    ParticleSourceMessenger(ParticleSource*);
+    ParticleSourceMessenger(ParticleSource* Gun);
     
-   ~ParticleSourceMessenger();
-    
-    virtual void SetNewValue(G4UIcommand*, G4String);
+    void SetNewValue(G4UIcommand* command, G4String newValue);
     
   private:
     ParticleSource* fAction;
-    
-    G4UIdirectory* fDir;
-    
-    G4UIcommand* fActionCmd[6];
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

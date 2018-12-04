@@ -123,6 +123,8 @@ class nDetRunAction : public G4UserRunAction
 
 	pmtResponse *getPmtResponseRight();
 
+	nDetRunActionMessenger *getMessenger(){ return fActionMessenger; }
+
     bool fillBranch(); // deposited energy in YAP
 
     // clear all the vector for the next event

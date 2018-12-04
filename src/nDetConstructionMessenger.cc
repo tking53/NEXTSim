@@ -13,142 +13,109 @@
 #include "G4UIcmdWithAnInteger.hh"
 #include "G4SystemOfUnits.hh"
 
-nDetConstructionMessenger::nDetConstructionMessenger(nDetConstruction* detector) : fDetector(detector) {
+nDetConstructionMessenger::nDetConstructionMessenger(nDetConstruction* detector) : messengerHandler(), fDetector(detector) {
+    addDirectory("/nDet/detector/", "Detector geometry control");
 
-    fDetectorDir=new G4UIdirectory("/nDet/detector/");
-    fDetectorDir->SetGuidance("Detector geometry control");
+    addCommand(new G4UIcmdWithAString("/nDet/detector/setGeometry", this));
+    addGuidance("Defines the Geometry of the detector");
+    addGuidance("Default is the disk");
+    addCandidates("disk hexagon ellipse rectangle array");
 
-    fGeometryCmd=new G4UIcmdWithAString("/nDet/detector/setGeometry",this);
-    fGeometryCmd->SetGuidance("Defines the Geometry of the detector");
-    fGeometryCmd->SetGuidance("Default is the disk");
-    fGeometryCmd->SetCandidates("disk hexagon ellipse rectangle array");
-    fGeometryCmd->SetParameterName("geometry",true);
-    fGeometryCmd->SetDefaultValue("disk");
-    fGeometryCmd->AvailableForStates(G4State_PreInit,G4State_Idle);
+    addCommand(new G4UIcmdWithAString("/nDet/detector/setSpectralResponse", this));
+    addGuidance("Load PMT spectral response from a root file");
+    addGuidance("Input file MUST contain a TGraph named \"spec\"");
 
-    fSpectralFilename = new G4UIcmdWithAString("/nDet/detector/setSpectralResponse",this);
-    fSpectralFilename->SetGuidance("Load PMT spectral response from a root file");
-    fSpectralFilename->SetGuidance("Input file MUST contain a TGraph named \"spec\"");
+	addCommand(new G4UIcmdWithAString("/nDet/detector/setGainMatrix", this));
+    addGuidance("Load segmented PMT anode gain matrix file");
 
-	fGainFilename = new G4UIcmdWithAString("/nDet/detector/setGainMatrix",this);
-    fGainFilename->SetGuidance("Load segmented PMT anode gain matrix file");
+    addCommand(new G4UIcmdWithADouble("/nDet/detector/setSiPMdimensions", this));
+    addGuidance("Defines the size of the SiPMs in mm");
 
-    fSiliconDimensionsCmd=new G4UIcmdWithADouble("/nDet/detector/setSiPMdimensions",this);
-    fSiliconDimensionsCmd->SetGuidance("Defines the size of the SiPMs in mm");
+    addCommand(new G4UIcmdWithADouble("/nDet/detector/setDetectorLength", this));
+    addGuidance("Defines the size of the plastic in cm");
 
-    fDetectorLengthCmd=new G4UIcmdWithADouble("/nDet/detector/setDetectorLength",this);
-    fDetectorLengthCmd->SetGuidance("Defines the size of the plastic in cm");
+    addCommand(new G4UIcmdWithADouble("/nDet/detector/setDetectorWidth", this));
+    addGuidance("Defines the width of the plastic in cm");
 
-    fDetectorWidthCmd=new G4UIcmdWithADouble("/nDet/detector/setDetectorWidth",this);
-    fDetectorWidthCmd->SetGuidance("Defines the width of the plastic in cm");
+    addCommand(new G4UIcmdWithADouble("/nDet/detector/setDetectorThickness", this));
+    addGuidance("Defines the thickness of the plastic in mm");
 
-    fDetectorThicknessCmd=new G4UIcmdWithADouble("/nDet/detector/setDetectorThickness",this);
-    fDetectorThicknessCmd->SetGuidance("Defines the thickness of the plastic in mm");
+    addCommand(new G4UIcmdWithADouble("/nDet/detector/setMylarThickness", this));
+    addGuidance("Defines the thickness of the plastic the mylar in mm (0 for no mylar)");
 
-    fMylarThicknessCmd=new G4UIcmdWithADouble("/nDet/detector/setMylarThickness",this);
-    fMylarThicknessCmd->SetGuidance("Defines the thickness of the plastic the mylar in mm (0 for no mylar)");
+    addCommand(new G4UIcmdWithADouble("/nDet/detector/setTrapezoidLength", this));
+    addGuidance("Defines the length of the trapezoidal part of ellipse in cm");
 
-    fTrapezoidLengthCmd=new G4UIcmdWithADouble("/nDet/detector/setTrapezoidLength",this);
-    fTrapezoidLengthCmd->SetGuidance("Defines the length of the trapezoidal part of ellipse in cm");
+    addCommand(new G4UIcommand("/nDet/detector/update", this));
+    addGuidance("Updates the detector Geometry");
 
-    fUpdateCmd=new G4UIcommand("/nDet/detector/update",this);
-    fUpdateCmd->SetGuidance("Updates the detector Geometry");
-
-    fNumberColumnsCmd = new G4UIcmdWithAnInteger("/nDet/detector/setNumColumns", this);
-    fNumberColumnsCmd->SetGuidance("Set the number of columns in a segmented scintillator.");
-    fNumberRowsCmd = new G4UIcmdWithAnInteger("/nDet/detector/setNumRows", this);
-    fNumberRowsCmd->SetGuidance("Set the number of rows in a segmented scintillator.");
+    addCommand(new G4UIcmdWithAnInteger("/nDet/detector/setNumColumns", this));
+    addGuidance("Set the number of columns in a segmented scintillator.");
     
-    fNumberColumnsPmtCmd = new G4UIcmdWithAnInteger("/nDet/detector/setPmtColumns", this);
-    fNumberColumnsPmtCmd->SetGuidance("Set the number of anode columns in a segmented PSPMT.");
-    fNumberRowsPmtCmd = new G4UIcmdWithAnInteger("/nDet/detector/setPmtRows", this);
-    fNumberRowsPmtCmd->SetGuidance("Set the number of anode rows in a segmented PSPMT.");
+    addCommand(new G4UIcmdWithAnInteger("/nDet/detector/setNumRows", this));
+    addGuidance("Set the number of rows in a segmented scintillator.");
+    
+    addCommand(new G4UIcmdWithAnInteger("/nDet/detector/setPmtColumns", this));
+    addGuidance("Set the number of anode columns in a segmented PSPMT.");
+    
+    addCommand(new G4UIcmdWithAnInteger("/nDet/detector/setPmtRows", this));
+    addGuidance("Set the number of anode rows in a segmented PSPMT.");
 }
 
-nDetConstructionMessenger::~nDetConstructionMessenger(){
-    delete fDetectorDir;
-    delete fSiliconDimensionsCmd;
-    delete fGeometryCmd;
-    delete fSpectralFilename;
-    delete fGainFilename;
-    delete fDetectorWidthCmd;
-    delete fDetectorLengthCmd;
-    delete fDetectorThicknessCmd;
-    delete fTrapezoidLengthCmd;
-    delete fMylarThicknessCmd;
-    delete fUpdateCmd;
-    delete fNumberColumnsCmd;
-    delete fNumberRowsCmd;
-    delete fNumberColumnsPmtCmd;
-    delete fNumberRowsPmtCmd;
-}
+void nDetConstructionMessenger::SetNewValue(G4UIcommand* command, G4String newValue){
+	size_t index;
+	if(!findCommand(command, index)) return;
 
-void nDetConstructionMessenger::SetNewValue(G4UIcommand* command,G4String newValue){
-
-    if(command == fGeometryCmd){
+    if(index == 0){
         fDetector->SetGeometry(newValue);
     }
-
-	if(command == fSpectralFilename){
+	else if(index == 1){
 		fDetector->setPmtSpectralResponse(newValue.c_str());
 	}
-
-	if(command == fGainFilename){
-		std::cout << "HERE! " << newValue << std::endl;
+	else if(index == 2){
 		fDetector->setPmtGainMatrix(newValue.c_str());
 	}
-
-    if(command == fSiliconDimensionsCmd) {
-        G4double dimensions=fSiliconDimensionsCmd->ConvertToDouble(newValue);
+    else if(index == 3) {
+        G4double dimensions = command->ConvertToDouble(newValue);
         fDetector->SetSiPM_dimension(dimensions/2.*mm);
     }
-
-    if(command == fDetectorLengthCmd) {
-        G4double length=fDetectorLengthCmd->ConvertToDouble(newValue);
+    else if(index == 4) {
+        G4double length = command->ConvertToDouble(newValue);
         fDetector->SetDetectorLength(length*cm);
     }
-
-    if(command == fDetectorWidthCmd) {
-        G4double length=fDetectorWidthCmd->ConvertToDouble(newValue);
+    else if(index == 5) {
+        G4double length = command->ConvertToDouble(newValue);
         fDetector->SetDetectorWidth(length*cm);
     }
-
-    if(command == fDetectorThicknessCmd) {
-        G4double thickness=fDetectorThicknessCmd->ConvertToDouble(newValue);
+    else if(index == 6) {
+        G4double thickness = command->ConvertToDouble(newValue);
         fDetector->SetDetectorThickness(thickness*mm);
     }
-
-    if(command == fTrapezoidLengthCmd) {
-        G4double length=fTrapezoidLengthCmd->ConvertToDouble(newValue);
+    else if(index == 7) {
+        G4double val = command->ConvertToDouble(newValue);
+        fDetector->SetMylarThickness(val*mm);
+    }    
+    else if(index == 8) {
+        G4double length = command->ConvertToDouble(newValue);
         fDetector->SetTrapezoidLength(length*cm);
     }
-
-    if(command == fMylarThicknessCmd) {
-        G4double val=fMylarThicknessCmd->ConvertToDouble(newValue);
-        fDetector->SetMylarThickness(val*mm);
-    }
-
-    if(command == fUpdateCmd){
+    else if(index == 9){
        fDetector->UpdateGeometry();
     }
-    
-    if(command == fNumberColumnsCmd){
-        G4int val = fNumberColumnsCmd->ConvertToInt(newValue);
+    else if(index == 10){
+        G4int val = command->ConvertToInt(newValue);
         fDetector->SetNumColumns(val);
     }
-    
-    if(command == fNumberRowsCmd){
-        G4int val = fNumberRowsCmd->ConvertToInt(newValue);
+    else if(index == 11){
+        G4int val = command->ConvertToInt(newValue);
         fDetector->SetNumRows(val);
     }
-
-    if(command == fNumberColumnsPmtCmd){
-        G4int val = fNumberColumnsCmd->ConvertToInt(newValue);
+    else if(index == 12){
+        G4int val = command->ConvertToInt(newValue);
         fDetector->SetNumPmtColumns(val);
     }
-    
-    if(command == fNumberRowsPmtCmd){
-        G4int val = fNumberRowsCmd->ConvertToInt(newValue);
+    else if(index == 13){
+        G4int val = command->ConvertToInt(newValue);
         fDetector->SetNumPmtRows(val);
     }
 }

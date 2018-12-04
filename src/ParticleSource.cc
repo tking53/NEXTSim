@@ -355,51 +355,42 @@ Source *ParticleSource::GetNewSource(const double &E_/*=-1*/){
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-ParticleSourceMessenger::ParticleSourceMessenger(ParticleSource* Gun) : G4UImessenger(), fAction(Gun), fDir(0)
-{
-	fDir = new G4UIdirectory("/nDet/source/");
-	fDir->SetGuidance("Particle Source Control");
+ParticleSourceMessenger::ParticleSourceMessenger(ParticleSource* Gun) : fAction(Gun){
+	addDirectory("/nDet/source/", "Particle Source Control");
 	
-	fActionCmd[0] = new G4UIcmdWithoutParameter("/nDet/source/sample",this); // test function
-	fActionCmd[0]->SetGuidance("Test distribution by outputing a random energy");
+	addCommand(new G4UIcmdWithoutParameter("/nDet/source/sample", this)); // test function
+	addGuidance("Test distribution by outputing a random energy");
 	
-	fActionCmd[1] = new G4UIcmdWith3VectorAndUnit("/nDet/source/position",this); // position of source
-	fActionCmd[1]->SetGuidance("Set the position of the source in the lab frame");
+	addCommand(new G4UIcmdWith3VectorAndUnit("/nDet/source/position", this)); // position of source
+	addGuidance("Set the position of the source in the lab frame");
 	
-	fActionCmd[2] = new G4UIcmdWith3Vector("/nDet/source/direction",this); // direction of source
-	fActionCmd[2]->SetGuidance("Set the direction of the source by specifying angles about the x, y, and z axes (in deg)");
+	addCommand(new G4UIcmdWith3Vector("/nDet/source/direction", this)); // direction of source
+	addGuidance("Set the direction of the source by specifying angles about the x, y, and z axes (in deg)");
 	
-	fActionCmd[3] = new G4UIcmdWithAString("/nDet/source/type",this); // type of source (252Cf, 137Cs, etc)
-	fActionCmd[3]->SetGuidance("Set a pre-defined isotropic particle source");
-	((G4UIcmdWithAString*)fActionCmd[3])->SetCandidates("252Cf 137Cs 60Co 133Ba 241Am 90Sr");
+	addCommand(new G4UIcmdWithAString("/nDet/source/type", this)); // type of source (252Cf, 137Cs, etc)
+	addGuidance("Set a pre-defined isotropic particle source");
+	addCandidates("252Cf 137Cs 60Co 133Ba 241Am 90Sr");
 
-	fActionCmd[4] = new G4UIcmdWithAString("/nDet/source/beam",this); // type of beam (neutron, gamma, electron)
-	fActionCmd[4]->SetGuidance("Set a pre-defined particle pencil beam");
+	addCommand(new G4UIcmdWithAString("/nDet/source/beam", this)); // type of beam (neutron, gamma, electron)
+	addGuidance("Set a pre-defined particle pencil beam");
 	
-	fActionCmd[5] = new G4UIcmdWithADouble("/nDet/source/spot",this); // beamspot radius (mm)
-	fActionCmd[5]->SetGuidance("Set the radius of the beam (in mm)");
+	addCommand(new G4UIcmdWithADouble("/nDet/source/spot", this)); // beamspot radius (mm)
+	addGuidance("Set the radius of the beam (in mm)");
 }
 
-ParticleSourceMessenger::~ParticleSourceMessenger()
-{
-	delete fDir;
-	for(int i = 0; i < 6; i++){
-		delete fActionCmd[i];
-	}
-}
-
-void ParticleSourceMessenger::SetNewValue(G4UIcommand* command, G4String newValue)
-{ 
-	if(command == fActionCmd[0])
+void ParticleSourceMessenger::SetNewValue(G4UIcommand* command, G4String newValue){ 
+	size_t index;
+	if(!findCommand(command, index)) return;
+	if(index == 0)
 		std::cout << " energy=" << fAction->GetParticleSource()->sample() << " MeV\n";
-	else if(command == fActionCmd[1])
+	else if(index == 1)
 		fAction->SetPosition(G4UIcommand::ConvertToDimensioned3Vector(newValue));
-	else if(command == fActionCmd[2])
+	else if(index == 2)
 		fAction->SetDirection(G4UIcommand::ConvertTo3Vector(newValue));
-	else if(command == fActionCmd[3])
+	else if(index == 3)
 		fAction->SetType(newValue);
-	else if(command == fActionCmd[4])
+	else if(index == 4)
 		fAction->SetBeamType(newValue);
-	else if(command == fActionCmd[5])
+	else if(index == 5)
 		fAction->SetBeamspotRadius(G4UIcommand::ConvertToDouble(newValue));
 }

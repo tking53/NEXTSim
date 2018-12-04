@@ -102,6 +102,8 @@ class nDetConstruction : public G4VUserDetectorConstruction
   
     centerOfMass *GetCenterOfMassNegativeSide(){ return &center[1]; }
 
+	nDetConstructionMessenger *GetMessenger(){ return fDetectorMessenger; }
+
     bool PmtIsSegmented() const { return (fNumColumnsPmt > 0 && fNumRowsPmt > 0); }
     
     bool AddDetectedPhoton(const G4Step *step, const double &mass=1);
@@ -114,10 +116,10 @@ class nDetConstruction : public G4VUserDetectorConstruction
 
 private:
     nDetConstructionMessenger *fDetectorMessenger;
-    // data of detector structure; half of size
-    G4double expHallX;		// width
-    G4double expHallY;		// length
-    G4double expHallZ;		// thickness
+    
+    G4double expHallX;
+    G4double expHallY;
+    G4double expHallZ;
 
     G4double assemblyBoxX;
     G4double assemblyBoxY;
@@ -168,7 +170,7 @@ private:
     G4LogicalVolume* expHall_logV;
     G4LogicalVolume* assembly_logV;
 
-    G4LogicalVolume* ej200_logV;    // ej200 scintillator
+    G4LogicalVolume* ej200_logV; // ej200 scintillator
     G4LogicalVolume *mylar_logV;
     G4LogicalVolume* grease_logV;
     G4LogicalVolume* qwSiPM_logV;
@@ -181,7 +183,6 @@ private:
     nDetSD *fScintSD;
 
     //Materials and elements
-
     G4Element* fH;
     G4Element* fC;
     G4Element* fO;
