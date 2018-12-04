@@ -60,9 +60,6 @@ void nDetSteppingAction::UserSteppingAction(const G4Step* aStep)
     else // Normal scatter
       runAction->scatterNeutron(aStep);
   }
-  else if(track->GetParticleDefinition()->GetParticleName() == "e-"){ // Kill all electrons immediately to avoid endless electron scattering.
-    track->SetTrackStatus(fStopAndKill);
-  }
   else if(track->GetTrackID() == 1){ // Enter the material.
     runAction->initializeNeutron(aStep);
     neutronTrack = true;

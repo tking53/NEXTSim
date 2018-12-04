@@ -272,24 +272,26 @@ void nDetConstruction::DefineMaterials() {
     G4double Absorption_EJ200[nEntries_EJ200] =  { 400*cm, 400*cm, 400*cm, 400*cm, 400*cm };
     G4double ScintilFast_EJ200[nEntries_EJ200] = { 0.05, 0.25, 0.55, 1.00, 0.0};*/
 
-    G4double PhotonEnergy[33] = {2.490*eV, 2.517*eV, 2.552*eV, 2.585*eV, 2.613*eV, 2.635*eV, 2.656*eV, 2.686*eV, 2.720*eV, 2.749*eV,
-                                 2.772*eV, 2.791*eV, 2.809*eV, 2.826*eV, 2.842*eV, 2.861*eV, 2.884*eV, 2.919*eV, 2.946*eV, 2.954*eV, 
-                                 2.961*eV, 2.967*eV, 2.974*eV, 2.981*eV, 2.987*eV, 2.994*eV, 3.001*eV, 3.009*eV, 3.018*eV, 3.029*eV, 
-                                 3.041*eV, 3.056*eV, 3.083*eV};
+	G4double PhotonEnergy[44] = {2.004*eV, 2.058*eV, 2.112*eV, 2.166*eV, 2.220*eV, 2.274*eV, 2.328*eV, 2.382*eV, 2.436*eV, 2.490*eV, 
+		                         2.517*eV, 2.552*eV, 2.585*eV, 2.613*eV, 2.635*eV, 2.656*eV, 2.686*eV, 2.720*eV, 2.749*eV, 2.772*eV, 
+		                         2.791*eV, 2.809*eV, 2.826*eV, 2.842*eV, 2.861*eV, 2.884*eV, 2.919*eV, 2.946*eV, 2.954*eV, 2.961*eV, 
+		                         2.967*eV, 2.974*eV, 2.981*eV, 2.987*eV, 2.994*eV, 3.001*eV, 3.009*eV, 3.018*eV, 3.029*eV, 3.041*eV, 
+		                         3.056*eV, 3.083*eV, 3.137*eV, 3.191*eV};
 
-    G4double ScintilFast_EJ200[33] = {0.060, 0.084, 0.122, 0.175, 0.234, 0.294, 0.356, 0.416, 0.473, 0.533,
-                                      0.594, 0.657, 0.720, 0.784, 0.846, 0.903, 0.962, 1.000, 0.917, 0.857, 
-                                      0.798, 0.732, 0.669, 0.604, 0.542, 0.480, 0.422, 0.359, 0.297, 0.237, 
-                                      0.170, 0.105, 0.028};
-
-	G4double PhotonEnergy2[2] = {0.060, 0.028};
-	G4double RefIndex_EJ200[2] = {1.58, 1.58};
+	G4double ScintilFast_EJ200[44] = {0.000, 0.001, 0.001, 0.002, 0.003, 0.006, 0.010, 0.018, 0.033, 0.060, 
+		                              0.084, 0.122, 0.175, 0.234, 0.294, 0.356, 0.416, 0.473, 0.533, 0.594, 
+		                              0.657, 0.720, 0.784, 0.846, 0.903, 0.962, 1.000, 0.917, 0.857, 0.798, 
+		                              0.732, 0.669, 0.604, 0.542, 0.480, 0.422, 0.359, 0.297, 0.237, 0.170, 
+		                              0.105, 0.028, 0.004, 0.000};
+                                  
+	G4double PhotonEnergy2[2] = {2.004*eV, 3.191*eV};
+	G4double RefIndex_EJ200[2] = {1.580, 1.580};
 	G4double Absorption_EJ200[2] = {400*cm, 400*cm};
 
     fEJ200MPT = new G4MaterialPropertiesTable();
     fEJ200MPT->AddProperty("RINDEX", PhotonEnergy2, RefIndex_EJ200, 2);
     fEJ200MPT->AddProperty("ABSLENGTH", PhotonEnergy2, Absorption_EJ200, 2);
-    fEJ200MPT->AddProperty("FASTCOMPONENT", PhotonEnergy, ScintilFast_EJ200, 33);
+    fEJ200MPT->AddProperty("FASTCOMPONENT", PhotonEnergy, ScintilFast_EJ200, 44);
 
     //fEJ200MPT->AddConstProperty("SCINTILLATIONYIELD", 0.64*17400/MeV); // 64% of Anthracene
     fEJ200MPT->AddConstProperty("SCINTILLATIONYIELD", 10000/MeV); // Scintillation efficiency as per Eljen specs
