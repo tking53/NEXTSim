@@ -14,9 +14,12 @@ class nDetTrackingAction: public G4UserTrackingAction {
 
 public:
     nDetTrackingAction(nDetRunAction *run);
+    
     ~nDetTrackingAction();
+    
     void PreUserTrackingAction(const G4Track* aTrack);
-    void PostUserTrackingAction(const G4Track* aTrack);
+    
+    void PostUserTrackingAction(const G4Track*){ }
 
     void Reset(){ prevTrackID = 0; }
 

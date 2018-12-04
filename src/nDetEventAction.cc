@@ -60,7 +60,7 @@ void nDetEventAction::BeginOfEventAction(const G4Event* evt){
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
  
-void nDetEventAction::EndOfEventAction(const G4Event* evt){
+void nDetEventAction::EndOfEventAction(const G4Event*){
   // fill branches
   runAct->fillBranch();
         

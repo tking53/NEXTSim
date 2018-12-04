@@ -27,6 +27,3 @@ void nDetTrackingAction::PreUserTrackingAction(const G4Track* aTrack){
     }
   }
 }
-
-void nDetTrackingAction::PostUserTrackingAction(const G4Track* aTrack) {
-}
