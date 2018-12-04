@@ -12,11 +12,14 @@
 
 #include "nDetRunAction.hh"
 #include "nDetEventAction.hh"
-#include "nDetRunActionMessenger.hh"
 #include "nDetStackingAction.hh"
 #include "nDetTrackingAction.hh"
 #include "nDetSteppingAction.hh"
 #include "nDetConstruction.hh"
+#include "ParticleSource.hh"
+
+#include "nDetConstructionMessenger.hh"
+#include "nDetRunActionMessenger.hh"
 
 const double KINETIC_ENERGY_THRESHOLD = 0.001; // MeV
 
@@ -91,6 +94,9 @@ nDetRunAction::nDetRunAction(nDetConstruction *det){
     tracking = NULL;
     stepping = NULL;
     detector = det;
+    
+    // Setup the particle source.
+    source = new ParticleSource(this, detector);
 
 	baselineFraction = 0;
 	baselineJitterFraction = 0;
@@ -216,7 +222,13 @@ bool nDetRunAction::openRootFile(const G4Run* aRun)
         break;
       }
     }
-  
+
+	// Add user commands to the output file.
+	TDirectory *dir = fFile->mkdir("setup");
+	detector->GetMessenger()->write(dir);
+	source->GetMessenger()->write(dir);
+	fActionMessenger->write(dir);
+
     // Create root tree.
     if(treename.empty()) treename = "data"; //"neutronEvent";
     fTree = new TTree(treename.c_str(),"Photons produced by thermal neutrons");

@@ -13,7 +13,6 @@
                                                                          
 // c/c++ headers
 
-// Geant4 base classes
 #include "G4MTRunManager.hh"
 #include "G4RunManager.hh"
 #include "G4UImanager.hh"
@@ -28,10 +27,8 @@
 
 // using the modular physics list
 #include "G4VModularPhysicsList.hh"
-//#include "LBE.hh"
 #include "QGSP_BERT_HP.hh"
 
-// selfdefine classes
 #include "nDetConstruction.hh"
 #include "nDetRunAction.hh"
 #include "nDetEventAction.hh"
@@ -40,7 +37,6 @@
 #include "nDetTrackingAction.hh"
 #include "ParticleSource.hh"
 #include "optionHandler.hh"
-//#include "nDetActionInitialization.hh"
 
 #include "G4OpticalPhysics.hh"
 
@@ -150,9 +146,6 @@ that didn't work... this is horribly deprecated*/
   visManager->Initialize();
 #endif
 
-  //set optional user action classes
-
-  //Geant complains we need to change this for multithreading.  Moving the following to nDetActionInitialization.cc
   nDetRunAction* runAction = new nDetRunAction(detector);
   if(!outputFilename.empty()){
     size_t index = outputFilename.find('.');
@@ -163,10 +156,8 @@ that didn't work... this is horribly deprecated*/
   if(!outputTreeName.empty()) runAction->setOutputTreeName(outputTreeName);
   if(verboseMode) runAction->toggleVerboseMode();
   runManager->SetUserAction( runAction );
+  runManager->SetUserAction( runAction->getSource() );
 
-  G4VUserPrimaryGeneratorAction* primaryGeneratorAction = new ParticleSource(runAction, detector);
-  runManager->SetUserAction( primaryGeneratorAction );
-  
   nDetEventAction* eventAction = new nDetEventAction(runAction);
   runManager->SetUserAction( eventAction );
 
@@ -217,7 +208,7 @@ that didn't work... this is horribly deprecated*/
     command += inputFilename;
     UImanager->ApplyCommand(command);
   }
- 
+
   // job termination
 #ifdef G4VIS_USE
   delete visManager;

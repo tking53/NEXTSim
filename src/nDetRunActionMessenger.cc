@@ -80,7 +80,7 @@ nDetRunActionMessenger::nDetRunActionMessenger(nDetRunAction *action) : messenge
 
 void nDetRunActionMessenger::SetNewValue(G4UIcommand *command, G4String newValue){
 	size_t index;
-	if(!findCommand(command, index)) return;
+	if(!findCommand(command, newValue, index)) return;
 
 	pmtResponse *prL = fAction->getPmtResponseLeft();
 	pmtResponse *prR = fAction->getPmtResponseRight();

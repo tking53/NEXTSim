@@ -380,7 +380,7 @@ ParticleSourceMessenger::ParticleSourceMessenger(ParticleSource* Gun) : fAction(
 
 void ParticleSourceMessenger::SetNewValue(G4UIcommand* command, G4String newValue){ 
 	size_t index;
-	if(!findCommand(command, index)) return;
+	if(!findCommand(command, newValue, index)) return;
 	if(index == 0)
 		std::cout << " energy=" << fAction->GetParticleSource()->sample() << " MeV\n";
 	else if(index == 1)

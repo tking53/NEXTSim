@@ -8,15 +8,15 @@
 
 class G4UIcommand;
 class G4UIdirectory;
-class TFile;
+class TDirectory;
 
 class messengerHandler : public G4UImessenger {
   public:
-	messengerHandler() : G4UImessenger() { }
+	messengerHandler() : G4UImessenger(), size(0) { }
 	
 	virtual ~messengerHandler();
 	
-	virtual void write(TFile*){ }
+	virtual void write(TDirectory*);
 
     virtual void SetNewValue(G4UIcommand*, G4String){ }
 
@@ -34,7 +34,7 @@ class messengerHandler : public G4UImessenger {
 	void addCandidates(const std::string &str);
 
 	/// Find a command pointed to by cmd and return the index in the vector.
-	bool findCommand(G4UIcommand *cmd, size_t &index);
+	bool findCommand(G4UIcommand *cmd, const std::string &str, size_t &index, const bool &verbose=false);
 
 	/// Get the most recently added command.
 	G4UIcommand* getBack(){ return fCmd.back(); }
@@ -43,6 +43,12 @@ class messengerHandler : public G4UImessenger {
 	std::vector<G4UIdirectory*> fDir;
   
 	std::vector<G4UIcommand*> fCmd;
+	
+	std::vector<bool> fCmdCalled;
+	
+	std::vector<std::string> fCmdString;
+	
+	size_t size;
 };
 
 #endif

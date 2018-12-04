@@ -34,6 +34,7 @@ class nDetConstruction;
 class pmtResponse;
 
 class photonCounter;
+class ParticleSource;
 
 class primaryTrackInfo{
   public:
@@ -122,12 +123,11 @@ class nDetRunAction : public G4UserRunAction
 	pmtResponse *getPmtResponseLeft();
 
 	pmtResponse *getPmtResponseRight();
+	
+	ParticleSource *getSource(){ return source; }
 
-	nDetRunActionMessenger *getMessenger(){ return fActionMessenger; }
+    bool fillBranch();
 
-    bool fillBranch(); // deposited energy in YAP
-
-    // clear all the vector for the next event
     void vectorClear();
 
 	void setOutputFilename(const std::string &fname);
@@ -208,7 +208,8 @@ class nDetRunAction : public G4UserRunAction
     nDetStackingAction *stacking;
     nDetTrackingAction *tracking;
     nDetSteppingAction *stepping;
-    nDetConstruction *detector;    
+    nDetConstruction *detector;  
+    ParticleSource *source;  
     
     std::vector<primaryTrackInfo> primaryTracks;
     
