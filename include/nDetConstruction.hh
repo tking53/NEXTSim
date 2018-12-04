@@ -221,24 +221,8 @@ private:
 
     // member functions
     void buildExpHall();
-    void buildAssembly();
-    void buildDisk();
-    void buildDisk2();
-    void buildEllipse();
-    void buildEllipse2();
+
     void buildRectangle();
-    void buildArray();
-
-    G4VSolid* ConstructEllipse(G4String name,G4ThreeVector dimensions,G4double thickness);
-
-    G4VSolid* ConstructHexagon(G4String name,G4double radius,G4double thickness,G4ThreeVector Boxdimensions);
-    
-    G4VSolid* ConstructHexagon(G4String name,G4double radius,G4double thickness);
-    
-    G4VSolid* ConstructNextModule(G4String name,G4double length,G4double width1,G4double width2,G4double thickness);
-
-    //G4LogicalVolume* ConstructArray(G4String name, G4int NDetectors);
-    G4AssemblyVolume* ConstructArray(G4String name, G4int NDetectors);
 
     void DefineMaterials();
 
