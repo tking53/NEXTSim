@@ -115,6 +115,8 @@ class nDetConstruction : public G4VUserDetectorConstruction
 	void Clear();
     
     void UpdateGeometry();
+    
+    G4LogicalVolume *LoadGDML(const char *fname);
 
 private:
     nDetConstructionMessenger *fDetectorMessenger;
@@ -227,7 +229,9 @@ private:
     void buildExpHall();
 
     void buildRectangle();
-
+    
+    void buildTestAssembly();
+    
     void DefineMaterials();
 
     void buildSiPMs(const G4double &zOffset=0);

@@ -19,6 +19,7 @@
 #include "G4AssemblyVolume.hh"
 //#include "G4VSolid.hh"
 
+#include "G4GDMLParser.hh"
 #include "G4SolidStore.hh"
 #include "G4LogicalVolumeStore.hh"
 #include "G4PhysicalVolumeStore.hh"
@@ -151,6 +152,8 @@ G4VPhysicalVolume* nDetConstruction::ConstructDetector(){
   // Build the detector.
   if(fGeometry == "rectangle")
     buildRectangle();
+  else if(fGeometry == "test")
+    buildTestAssembly();
     
   return expHall_physV;
 }
@@ -605,6 +608,21 @@ void nDetConstruction::UpdateGeometry(){
       setSegmentedPmt(fNumColumnsPmt, fNumRowsPmt, SiPM_dimension*2, SiPM_dimension*2);
 }
 
+G4LogicalVolume *nDetConstruction::LoadGDML(const char *fname){
+	G4GDMLParser parser;
+	
+	parser.Read(fname, false);
+	
+	G4VPhysicalVolume *W = parser.GetWorldVolume();
+	G4LogicalVolume *W_log = W->GetLogicalVolume();
+	
+	std::cout << " debug: N=" << W_log->GetNoDaughters() << std::endl;
+	
+	G4VPhysicalVolume *daughter = W_log->GetDaughter(0);
+	
+	return daughter->GetLogicalVolume();
+}
+
 void nDetConstruction::buildRectangle(){
 	const G4double cellWidth = (fDetectorThickness-2*fNumColumns*fMylarThickness)/fNumColumns;
 	const G4double cellHeight = (fDetectorThickness-2*fNumRows*fMylarThickness)/fNumRows;
@@ -836,4 +854,17 @@ void nDetConstruction::buildRectangle(){
     new G4PVPlacement(0,  G4ThreeVector(0, 0, -sensitiveZ), sensitive_logV, name, assembly_logV, true, 0, fCheckOverlaps);
 
     return;
+}
+
+void nDetConstruction::buildTestAssembly(){
+	G4LogicalVolume *log = LoadGDML("gdml/dummy.gdml");
+	log->SetMaterial(fAcrylic);
+
+    G4VisAttributes *visAtt = new G4VisAttributes();
+    visAtt->SetColor(1, 0, 1, 0.5); // Alpha=50%
+    visAtt->SetForceSolid(true);
+    
+    log->SetVisAttributes(visAtt);
+	
+	new G4PVPlacement(0, G4ThreeVector(0,0,0), log, "Test", expHall_logV, 0, 0, true);
 }

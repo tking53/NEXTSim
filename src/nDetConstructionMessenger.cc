@@ -18,8 +18,7 @@ nDetConstructionMessenger::nDetConstructionMessenger(nDetConstruction* detector)
 
 	addCommand(new G4UIcmdWithAString("/nDet/detector/setGeometry", this));
 	addGuidance("Defines the Geometry of the detector");
-	addGuidance("Default is the disk");
-	addCandidates("disk hexagon ellipse rectangle array");
+	addCandidates("rectangle test");
 
 	addCommand(new G4UIcmdWithADouble("/nDet/detector/setSiPMdimensions", this));
 	addGuidance("Defines the size of the SiPMs in mm");
