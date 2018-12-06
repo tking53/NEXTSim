@@ -36,6 +36,9 @@ nDetConstructionMessenger::nDetConstructionMessenger(nDetConstruction* detector)
 	addCommand(new G4UIcmdWithADouble("/nDet/detector/setMylarThickness", this));
 	addGuidance("Defines the thickness of the plastic the mylar in mm (0 for no mylar)");
 
+	addCommand(new G4UIcmdWithADouble("/nDet/detector/setGreaseThickness", this));
+	addGuidance("Defines the thickness of the optical grease layer in mm (0 for no grease)");
+
 	addCommand(new G4UIcmdWithADouble("/nDet/detector/setTrapezoidLength", this));
 	addGuidance("Defines the length of the trapezoidal part of ellipse in cm");
 
@@ -90,32 +93,36 @@ void nDetConstructionMessenger::SetNewValue(G4UIcommand* command, G4String newVa
 		fDetector->SetMylarThickness(val*mm);
 	}	
 	else if(index == 6) {
-		G4double length = command->ConvertToDouble(newValue);
-		fDetector->SetTrapezoidLength(length*cm);
+		G4double val = command->ConvertToDouble(newValue);
+		fDetector->SetGreaseThickness(val*mm);
 	}
-	else if(index == 7){
-		G4int val = command->ConvertToInt(newValue);
-		fDetector->SetNumColumns(val);
+	else if(index == 7) {
+		G4double val = command->ConvertToDouble(newValue);
+		fDetector->SetTrapezoidLength(val*cm);
 	}
 	else if(index == 8){
 		G4int val = command->ConvertToInt(newValue);
-		fDetector->SetNumRows(val);
+		fDetector->SetNumColumns(val);
 	}
 	else if(index == 9){
 		G4int val = command->ConvertToInt(newValue);
-		fDetector->SetNumPmtColumns(val);
+		fDetector->SetNumRows(val);
 	}
 	else if(index == 10){
 		G4int val = command->ConvertToInt(newValue);
-		fDetector->SetNumPmtRows(val);
+		fDetector->SetNumPmtColumns(val);
 	}
 	else if(index == 11){
+		G4int val = command->ConvertToInt(newValue);
+		fDetector->SetNumPmtRows(val);
+	}
+	else if(index == 12){
 		fDetector->UpdateGeometry();
 	}	
-	else if(index == 12){
+	else if(index == 13){
 		fDetector->setPmtSpectralResponse(newValue.c_str());
 	}
-	else if(index == 13){
+	else if(index == 14){
 		fDetector->setPmtGainMatrix(newValue.c_str());
 	}
 }

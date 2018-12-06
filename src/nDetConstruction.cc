@@ -98,7 +98,8 @@ nDetConstruction::nDetConstruction(const G4double &scale/*=1*/){
 
     fCheckOverlaps = false;
     fTeflonThickness = 0.11*mm;
-    fMylarThickness = 0.*mm;
+    fMylarThickness = 0;
+    fGreaseThickness = 1*mm;
     fDetectorLength = 3.94*inch;
     fDetectorWidth = 6*mm;
     fTrapezoidLength = 0;
@@ -614,12 +615,11 @@ void nDetConstruction::buildRectangle(){
 	const G4double cellWidth = (fDetectorThickness-2*fNumColumns*fMylarThickness)/fNumColumns;
 	const G4double cellHeight = (fDetectorThickness-2*fNumRows*fMylarThickness)/fNumRows;
 
-    const G4double greaseThickness = 1*mm;
-    const G4double windowThickness = 1*mm;
+    G4double windowThickness = fGreaseThickness;
 
-	G4double assemblyLength = fDetectorLength + 2*greaseThickness + 4*windowThickness;
-	if(2*SiPM_dimension < fDetectorWidth) // Account for light guides
-	    assemblyLength += 2*fTrapezoidLength + 2*greaseThickness;
+	G4double assemblyLength = fDetectorLength + 2*(fGreaseThickness + windowThickness) + 2*mm;
+	if(fTrapezoidLength > 0) // Account for light guides
+	    assemblyLength += 2*fTrapezoidLength + 2*fGreaseThickness;
 
     //G4Box *theRectangle = new G4Box("rectangle", fDetectorWidth/2, fDetectorThickness/2, fDetectorLength/2);
 
@@ -683,27 +683,29 @@ void nDetConstruction::buildRectangle(){
 
     G4VisAttributes* grease_VisAtt = new G4VisAttributes(G4Colour(1.0, 0.0, 0.0)); // red
 
-    greaseZ = fDetectorLength/2 + greaseThickness/2;
-    G4double windowZ = fDetectorLength/2 + greaseThickness + windowThickness/2;
-    G4double sensitiveZ = fDetectorLength/2 + greaseThickness + 1.5*windowThickness;
+    greaseZ = fDetectorLength/2 + fGreaseThickness/2;
+    G4double windowZ = fDetectorLength/2 + fGreaseThickness + windowThickness/2;
+    G4double sensitiveZ = fDetectorLength/2 + fGreaseThickness + 1.5*windowThickness;
 
     if(fTrapezoidLength > 0){ // Build the light guides (if needed)
         G4double trapezoidW1 = fDetectorWidth - 2*fMylarThickness;
         G4double trapezoidW2 = fDetectorThickness - 2*fMylarThickness;
     
         //The grease
-        G4Box* grease_solidV = new G4Box("grease", trapezoidW1/2, trapezoidW2/2, greaseThickness/2);
-        grease_logV = new G4LogicalVolume(grease_solidV, fGrease, "grease_logV");
-        grease_logV->SetVisAttributes(grease_VisAtt);
-    
-        new G4PVPlacement(0, G4ThreeVector(0, 0, greaseZ), grease_logV, "Grease", assembly_logV, true, 0, fCheckOverlaps);
-        new G4PVPlacement(0, G4ThreeVector(0, 0, -greaseZ), grease_logV, "Grease", assembly_logV, true, 0, fCheckOverlaps);
+        if(fGreaseThickness > 0){
+		    G4Box* grease_solidV = new G4Box("grease", trapezoidW1/2, trapezoidW2/2, fGreaseThickness/2);
+		    grease_logV = new G4LogicalVolume(grease_solidV, fGrease, "grease_logV");
+		    grease_logV->SetVisAttributes(grease_VisAtt);
+		
+		    new G4PVPlacement(0, G4ThreeVector(0, 0, greaseZ), grease_logV, "Grease", assembly_logV, true, 0, fCheckOverlaps);
+		    new G4PVPlacement(0, G4ThreeVector(0, 0, -greaseZ), grease_logV, "Grease", assembly_logV, true, 0, fCheckOverlaps);
+		}
     
         // BE CAREFUL, for some reason SiPM_dimension is set to the user defined SiPM dimension divided by 2 in nDetConstructionMessenger!!!
         G4Trd *lightGuide = new G4Trd("lightGuide", trapezoidW1/2, SiPM_dimension, trapezoidW2/2, SiPM_dimension, fTrapezoidLength/2);
         G4LogicalVolume *lightGuideLog = new G4LogicalVolume(lightGuide, fAcrylic, "lightGuide_logV");
         
-        G4double trapezoidZ = fDetectorLength/2 + fTrapezoidLength/2 + greaseThickness;
+        G4double trapezoidZ = fDetectorLength/2 + fTrapezoidLength/2 + fGreaseThickness;
         
         // "Left" side (+z)
     	G4PVPlacement *trapPhysicalL = new G4PVPlacement(0, G4ThreeVector(0, 0, trapezoidZ), lightGuideLog, "Acrylic", assembly_logV, true, 0, fCheckOverlaps);
@@ -714,9 +716,9 @@ void nDetConstruction::buildRectangle(){
     	G4PVPlacement *trapPhysicalR = new G4PVPlacement(rot, G4ThreeVector(0, 0, -trapezoidZ), lightGuideLog, "Acrylic", assembly_logV, true, 0, fCheckOverlaps);
     	
     	// Offset the PSPMT to account for the light-guide and another layer of grease.
-    	greaseZ += greaseThickness + fTrapezoidLength;
-    	windowZ += greaseThickness + fTrapezoidLength;
-    	sensitiveZ += greaseThickness + fTrapezoidLength;
+    	greaseZ += fGreaseThickness + fTrapezoidLength;
+    	windowZ += fGreaseThickness + fTrapezoidLength;
+    	sensitiveZ += fGreaseThickness + fTrapezoidLength;
     	
     	if(fMylarThickness > 0){ // Construct the mylar cover flaps
     	    G4double topFlapOffset = fDetectorThickness/2-fMylarThickness-SiPM_dimension;
@@ -806,25 +808,27 @@ void nDetConstruction::buildRectangle(){
 	// Build the sensitive PMT surfaces.
 	const G4String name = "psSiPM";
 
-	// BE CAREFUL, for some reason SiPM_dimension is set to the user defined SiPM dimension divided by 2 in nDetConstructionMessenger!!!
-	G4Box* grease_solidV2 = new G4Box("grease", SiPM_dimension, SiPM_dimension, greaseThickness/2);
-	grease_logV = new G4LogicalVolume(grease_solidV2, fGrease, "grease_logV");
-	grease_logV->SetVisAttributes(grease_VisAtt);
+	if(fGreaseThickness > 0){
+		// BE CAREFUL, for some reason SiPM_dimension is set to the user defined SiPM dimension divided by 2 in nDetConstructionMessenger!!!
+		G4Box* grease_solidV2 = new G4Box("grease", SiPM_dimension, SiPM_dimension, fGreaseThickness/2);
+		grease_logV = new G4LogicalVolume(grease_solidV2, fGrease, "grease_logV");
+		grease_logV->SetVisAttributes(grease_VisAtt);
 	
-	new G4PVPlacement(0, G4ThreeVector(0, 0, greaseZ), grease_logV, "Grease", assembly_logV, true, 0, fCheckOverlaps);
-    new G4PVPlacement(0, G4ThreeVector(0, 0, -greaseZ), grease_logV, "Grease", assembly_logV, true, 0, fCheckOverlaps);
-    
-    // The quartz window
-    G4Box* window_solidV = new G4Box("window_solidV", SiPM_dimension, SiPM_dimension, windowThickness/2);
-    G4LogicalVolume *window_logV = new G4LogicalVolume(window_solidV, fSiO2, "window_logV");
-    G4VisAttributes* window_VisAtt= new G4VisAttributes(G4Colour(0.0, 1.0, 1.0)); // cyan
-    window_logV->SetVisAttributes(window_VisAtt);
-    
-    new G4PVPlacement(0, G4ThreeVector(0, 0, windowZ), window_logV, "Quartz", assembly_logV, true, 0, fCheckOverlaps);
-    new G4PVPlacement(0, G4ThreeVector(0, 0, -windowZ), window_logV, "Quartz", assembly_logV, true, 0, fCheckOverlaps);
-    
+		new G4PVPlacement(0, G4ThreeVector(0, 0, greaseZ), grease_logV, "Grease", assembly_logV, true, 0, fCheckOverlaps);
+		new G4PVPlacement(0, G4ThreeVector(0, 0, -greaseZ), grease_logV, "Grease", assembly_logV, true, 0, fCheckOverlaps);
+		
+		// The quartz window
+		G4Box* window_solidV = new G4Box("window_solidV", SiPM_dimension, SiPM_dimension, windowThickness/2);
+		G4LogicalVolume *window_logV = new G4LogicalVolume(window_solidV, fSiO2, "window_logV");
+		G4VisAttributes* window_VisAtt= new G4VisAttributes(G4Colour(0.0, 1.0, 1.0)); // cyan
+		window_logV->SetVisAttributes(window_VisAtt);
+		
+		new G4PVPlacement(0, G4ThreeVector(0, 0, windowZ), window_logV, "Quartz", assembly_logV, true, 0, fCheckOverlaps);
+		new G4PVPlacement(0, G4ThreeVector(0, 0, -windowZ), window_logV, "Quartz", assembly_logV, true, 0, fCheckOverlaps);
+	}
+	
     // The photon sensitive surface
-    G4Box *sensitive_solidV = new G4Box(name+"_solidV", SiPM_dimension, SiPM_dimension, windowThickness/2);
+    G4Box *sensitive_solidV = new G4Box(name+"_solidV", SiPM_dimension, SiPM_dimension, 0.5*mm);
     G4LogicalVolume *sensitive_logV = new G4LogicalVolume(sensitive_solidV, fSil, name+"_logV");
 
     G4VisAttributes *sensitive_VisAtt = new G4VisAttributes(G4Colour(0.75, 0.75, 0.75)); // grey

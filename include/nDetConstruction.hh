@@ -60,6 +60,8 @@ class nDetConstruction : public G4VUserDetectorConstruction
         
     void SetMylarThickness(G4double val){ fMylarThickness = val; }
     
+    void SetGreaseThickness(G4double val){ fGreaseThickness = val; }
+    
 	void SetNumColumns(const G4int &val){ fNumColumns = val; }
 	
 	void SetNumRows(const G4int &val){ fNumRows = val; }
@@ -148,6 +150,7 @@ private:
     G4double SiPM_dimension;
     G4double fTeflonThickness;
     G4double fMylarThickness;
+    G4double fGreaseThickness;
     G4double fDetectorLength;
     G4double fDetectorThickness;
     G4double fDetectorWidth;
