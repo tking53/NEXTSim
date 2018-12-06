@@ -273,11 +273,11 @@ void nDetConstruction::DefineMaterials() {
     G4double Absorption_EJ200[nEntries_EJ200] =  { 400*cm, 400*cm, 400*cm, 400*cm, 400*cm };
     G4double ScintilFast_EJ200[nEntries_EJ200] = { 0.05, 0.25, 0.55, 1.00, 0.0};*/
 
-	G4double PhotonEnergy[44] = {2.004*eV, 2.058*eV, 2.112*eV, 2.166*eV, 2.220*eV, 2.274*eV, 2.328*eV, 2.382*eV, 2.436*eV, 2.490*eV, 
-		                         2.517*eV, 2.552*eV, 2.585*eV, 2.613*eV, 2.635*eV, 2.656*eV, 2.686*eV, 2.720*eV, 2.749*eV, 2.772*eV, 
-		                         2.791*eV, 2.809*eV, 2.826*eV, 2.842*eV, 2.861*eV, 2.884*eV, 2.919*eV, 2.946*eV, 2.954*eV, 2.961*eV, 
-		                         2.967*eV, 2.974*eV, 2.981*eV, 2.987*eV, 2.994*eV, 3.001*eV, 3.009*eV, 3.018*eV, 3.029*eV, 3.041*eV, 
-		                         3.056*eV, 3.083*eV, 3.137*eV, 3.191*eV};
+	G4double photonEnergy_Ej200[44] = {2.004*eV, 2.058*eV, 2.112*eV, 2.166*eV, 2.220*eV, 2.274*eV, 2.328*eV, 2.382*eV, 2.436*eV, 2.490*eV, 
+		                               2.517*eV, 2.552*eV, 2.585*eV, 2.613*eV, 2.635*eV, 2.656*eV, 2.686*eV, 2.720*eV, 2.749*eV, 2.772*eV, 
+		                               2.791*eV, 2.809*eV, 2.826*eV, 2.842*eV, 2.861*eV, 2.884*eV, 2.919*eV, 2.946*eV, 2.954*eV, 2.961*eV, 
+		                               2.967*eV, 2.974*eV, 2.981*eV, 2.987*eV, 2.994*eV, 3.001*eV, 3.009*eV, 3.018*eV, 3.029*eV, 3.041*eV, 
+		                               3.056*eV, 3.083*eV, 3.137*eV, 3.191*eV};
 
 	G4double ScintilFast_EJ200[44] = {0.000, 0.001, 0.001, 0.002, 0.003, 0.006, 0.010, 0.018, 0.033, 0.060, 
 		                              0.084, 0.122, 0.175, 0.234, 0.294, 0.356, 0.416, 0.473, 0.533, 0.594, 
@@ -285,14 +285,14 @@ void nDetConstruction::DefineMaterials() {
 		                              0.732, 0.669, 0.604, 0.542, 0.480, 0.422, 0.359, 0.297, 0.237, 0.170, 
 		                              0.105, 0.028, 0.004, 0.000};
                                   
-	G4double PhotonEnergy2[2] = {2.004*eV, 3.191*eV};
+	G4double photonEnergy_Ej200_2[2] = {2.004*eV, 3.191*eV};
 	G4double RefIndex_EJ200[2] = {1.580, 1.580};
 	G4double Absorption_EJ200[2] = {400*cm, 400*cm};
 
     fEJ200MPT = new G4MaterialPropertiesTable();
-    fEJ200MPT->AddProperty("RINDEX", PhotonEnergy2, RefIndex_EJ200, 2);
-    fEJ200MPT->AddProperty("ABSLENGTH", PhotonEnergy2, Absorption_EJ200, 2);
-    fEJ200MPT->AddProperty("FASTCOMPONENT", PhotonEnergy, ScintilFast_EJ200, 44);
+    fEJ200MPT->AddProperty("RINDEX", photonEnergy_Ej200_2, RefIndex_EJ200, 2);
+    fEJ200MPT->AddProperty("ABSLENGTH", photonEnergy_Ej200_2, Absorption_EJ200, 2);
+    fEJ200MPT->AddProperty("FASTCOMPONENT", photonEnergy_Ej200, ScintilFast_EJ200, 44);
 
     //fEJ200MPT->AddConstProperty("SCINTILLATIONYIELD", 0.64*17400/MeV); // 64% of Anthracene
     fEJ200MPT->AddConstProperty("SCINTILLATIONYIELD", 10000/MeV); // Scintillation efficiency as per Eljen specs
@@ -369,15 +369,14 @@ void nDetConstruction::DefineMaterials() {
 
     fSiO2 = manNist->FindOrBuildMaterial("G4_SILICON_DIOXIDE");
 
-    const G4int nEntries_SiO2 = 5;
-
     //optical properties of SiO2 - fused silica or fused quartz
-    G4double RefractiveIndex_SiO2[nEntries_SiO2] = { 1.54, 1.54, 1.54, 1.54, 1.54 };
-    G4double Absorption_SiO2[nEntries_SiO2] =  {125.*cm, 123.5*cm, 122.*cm, 121.*cm, 120.*cm};
+    G4double PhotonEnergy[5] = { 2.484*eV, 2.615*eV, 2.760*eV, 2.922*eV, 3.105*eV };
+    G4double RefractiveIndex_SiO2[5] = { 1.54, 1.54, 1.54, 1.54, 1.54 };
+    G4double Absorption_SiO2[5] = {125.*cm, 123.5*cm, 122.*cm, 121.*cm, 120.*cm};
 
     fSiO2MPT = new G4MaterialPropertiesTable();
-    fSiO2MPT->AddProperty("RINDEX", PhotonEnergy, RefractiveIndex_SiO2, nEntries_SiO2);
-    fSiO2MPT->AddProperty("ABSLENGTH", PhotonEnergy, Absorption_SiO2,nEntries_SiO2);
+    fSiO2MPT->AddProperty("RINDEX", PhotonEnergy, RefractiveIndex_SiO2, 5);
+    fSiO2MPT->AddProperty("ABSLENGTH", PhotonEnergy, Absorption_SiO2, 5);
     fSiO2->SetMaterialPropertiesTable(fSiO2MPT);
 
     fSil=manNist->FindOrBuildMaterial("G4_Si");
@@ -385,22 +384,21 @@ void nDetConstruction::DefineMaterials() {
     // optical properties,    
     fSilMPT = new G4MaterialPropertiesTable();
     
-    const G4int nEntries_Sil = 5;
     /*G4double RefractiveReal_Si[nEntries_Sil] = { 4.293, 4.453, 4.676, 5.008, 5.587 };
     G4double RefractiveImg_Si[nEntries_Sil] = { 0.045, 0.060, 0.091, 0.150, 0.303 };
     fSilMPT->AddProperty("REALRINDEX", PhotonEnergy, RefractiveReal_Si, nEntries_Sil);
     fSilMPT->AddProperty("IMAGINARYRINDEX", PhotonEnergy, RefractiveImg_Si, nEntries_Sil);*/
     
     // Ideal detector
-    G4double EfficiencyIndex_Si[nEntries_Sil] = { 1., 1., 1., 1., 1. };
-    G4double Reflective_Si[nEntries_Sil] = { 0., 0., 0., 0., 0.};
+    G4double EfficiencyIndex_Si[5] = { 1., 1., 1., 1., 1. };
+    G4double Reflective_Si[5] = { 0., 0., 0., 0., 0.};
     
     // Non-ideal
     //G4double EfficiencyIndex_Si[nEntries_Sil] = { 0.37, 0.42, 0.39, 0.36, 0.32 };        
     //G4double Reflective_Si[nEntries_Sil] = { 0.49, 0.45, 0.42, 0.40, 0.39};
 
-    fSilMPT->AddProperty("EFFICIENCY",   PhotonEnergy, EfficiencyIndex_Si, nEntries_Sil);
-    fSilMPT->AddProperty("REFLECTIVITY",   PhotonEnergy, Reflective_Si, nEntries_Sil);
+    fSilMPT->AddProperty("EFFICIENCY", PhotonEnergy, EfficiencyIndex_Si, 5);
+    fSilMPT->AddProperty("REFLECTIVITY", PhotonEnergy, Reflective_Si, 5);
 
     fSil->SetMaterialPropertiesTable(fSilMPT);
 
@@ -457,22 +455,18 @@ void nDetConstruction::DefineMaterials() {
     fSiliconPMOpticalSurface->SetMaterialPropertiesTable(fSilMPT);
 
     G4Material *Al=manNist->FindOrBuildMaterial("G4_Al");
-
-    G4cout<<"manNist->FindOrBuildMaterial(\"G4_Al\")"<<Al<<G4endl;
-
     G4Material *Mylar=manNist->FindOrBuildMaterial("G4_MYLAR");
 
     fMylar=new G4Material("AluninizedMylar",density=1.39*g/cm3,ncomponents=2);
     fMylar->AddMaterial(Mylar,0.8);
     fMylar->AddMaterial(Al,0.2);
 
-    const G4int nEntries_Mylar = 5;
-    G4double RefractiveReal_Mylar[nEntries_Mylar]={0.81257,0.72122,0.63324,0.55571,0.48787};
-    G4double RefractiveImg_Mylar[nEntries_Mylar]={6.0481,5.7556,5.4544,5.1464,4.8355};
+    G4double RefractiveReal_Mylar[5] = {0.81257,0.72122,0.63324,0.55571,0.48787};
+    G4double RefractiveImg_Mylar[5] = {6.0481,5.7556,5.4544,5.1464,4.8355};
 
     fMylarMPT=new G4MaterialPropertiesTable();
-    fMylarMPT->AddProperty("REALRINDEX", PhotonEnergy,RefractiveReal_Mylar,nEntries_Mylar);
-    fMylarMPT->AddProperty("IMAGINARYRINDEX", PhotonEnergy,RefractiveImg_Mylar,nEntries_Mylar);
+    fMylarMPT->AddProperty("REALRINDEX", PhotonEnergy, RefractiveReal_Mylar, 5);
+    fMylarMPT->AddProperty("IMAGINARYRINDEX", PhotonEnergy, RefractiveImg_Mylar, 5);
 
     fMylarOpticalSurface=new G4OpticalSurface("MylarSurface",glisur,polished,dielectric_metal,1.0);
 
