@@ -101,7 +101,7 @@ nDetConstruction::nDetConstruction(const G4double &scale/*=1*/){
     fMylarThickness = 0.*mm;
     fDetectorLength = 3.94*inch;
     fDetectorWidth = 6*mm;
-    fTrapezoidLength = 1*inch;
+    fTrapezoidLength = 0;
     fHexagonRadius = 5*cm;
     fDetectorThickness = 0.24*inch;
     SiPM_dimension=3*mm;    
@@ -687,7 +687,7 @@ void nDetConstruction::buildRectangle(){
     G4double windowZ = fDetectorLength/2 + greaseThickness + windowThickness/2;
     G4double sensitiveZ = fDetectorLength/2 + greaseThickness + 1.5*windowThickness;
 
-    if(2*SiPM_dimension < fDetectorWidth){ // Build the light guides (if needed)
+    if(fTrapezoidLength > 0){ // Build the light guides (if needed)
         G4double trapezoidW1 = fDetectorWidth - 2*fMylarThickness;
         G4double trapezoidW2 = fDetectorThickness - 2*fMylarThickness;
     
