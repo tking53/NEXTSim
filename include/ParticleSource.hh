@@ -151,6 +151,8 @@ class ParticleSource : public G4VUserPrimaryGeneratorAction {
 	
 	void SetGammaRayBeam(const double &energy_);
 	
+	void SetLaserBeam(const double &energy_);
+	
 	void SetElectronBeam(const double &energy_);
 
   private:    

@@ -10,6 +10,7 @@
 #include "G4SystemOfUnits.hh"
 #include "G4Neutron.hh"
 #include "G4Gamma.hh"
+#include "G4OpticalPhoton.hh"
 #include "G4Electron.hh"
 #include "Randomize.hh"
 
@@ -19,6 +20,8 @@
 #include "G4UIcmdWith3Vector.hh"
 #include "G4UIcmdWithADouble.hh"
 #include "G4UIcmdWithAString.hh"
+
+const double coeff = 1.23984193E-3; // hc = Mev * nm
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -113,8 +116,8 @@ double Source::sampleDistribution() const {
 double Californium252::func(const double &E_) const {
 	const double a = 1.174; // MeV (Mannhart)
 	const double b = 1.043; // 1/MeV (Mannhart)
-	const double coeff = (2/std::sqrt(pi*b*a*a*a))*std::exp(-a*b/4);
-	return coeff*std::exp(-E_/a)*std::sinh(std::sqrt(b*E_));
+	const double C = (2/std::sqrt(pi*b*a*a*a))*std::exp(-a*b/4);
+	return C*std::exp(-E_/a)*std::sinh(std::sqrt(b*E_));
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -234,6 +237,10 @@ bool ParticleSource::SetBeamType(const G4String &str){
 		this->SetNeutronBeam(beamEnergy);
 	else if(beamType == "gamma")
 		this->SetGammaRayBeam(beamEnergy);
+	else if(beamType == "laser"){
+		beamEnergy = coeff / beamEnergy; // Now in MeV
+		this->SetLaserBeam(beamEnergy);
+	}
 	else if(beamType == "electron")
 		this->SetElectronBeam(beamEnergy);
 	else{ // A source beam?
@@ -339,6 +346,11 @@ void ParticleSource::SetNeutronBeam(const double &energy_){
 void ParticleSource::SetGammaRayBeam(const double &energy_){
 	GetNewSource(energy_);
 	particleGun->SetParticleDefinition(G4Gamma::GammaDefinition());
+}
+
+void ParticleSource::SetLaserBeam(const double &energy_){
+	GetNewSource(energy_);
+	particleGun->SetParticleDefinition(G4OpticalPhoton::OpticalPhotonDefinition());
 }
 
 void ParticleSource::SetElectronBeam(const double &energy_){
