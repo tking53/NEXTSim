@@ -94,6 +94,8 @@ class centerOfMass{
 	pmtResponse response;
 	
 	std::vector<std::vector<double> > gainMatrix;
+	
+	double getGain(const int &x, const int &y);
 };
 
 #endif

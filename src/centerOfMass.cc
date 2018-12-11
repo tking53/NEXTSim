@@ -107,6 +107,11 @@ void centerOfMass::clear(){
 }
 
 bool centerOfMass::addPoint(const G4Step *step, const double &mass/*=1*/){
+	if(!step->GetPostStepPoint()){
+		std::cout << " WARNING! INVALID POST POINT!\n";
+		return false;
+	}
+
 	double wavelength = coeff/step->GetTrack()->GetTotalEnergy(); // in nm
 	double time = step->GetPostStepPoint()->GetGlobalTime(); // in ns
 
@@ -129,9 +134,7 @@ bool centerOfMass::addPoint(const G4Step *step, const double &mass/*=1*/){
 		center += mass*pos;
 		
 		// Add the PMT response to the "digitized" trace
-		int xAnode = (int)floor(xpos);
-		int yAnode = (int)floor(ypos);
-		double gain = gainMatrix[xAnode][yAnode]/100;
+		double gain = getGain((int)floor(xpos), (int)floor(ypos));
 		response.addPhoton(time, wavelength, gain);
 		
 		// Add the "mass" to the others weighted by the individual anode gain
@@ -152,4 +155,9 @@ void centerOfMass::print(){
 		std::cout << "M=" << totalMass << ", c=(" << getCenterX() << ", " << getCenterY() << ", " << getCenterZ() << ")\n";
 		std::cout << " t0=" << t0 << ", tAvg=" << tSum/Npts << std::endl;
 	}
+}
+
+double centerOfMass::getGain(const int &x, const int &y){
+	if((x < 0 || x >= Ncol) || (y < 0 || y >= Nrow)) return 0;
+	return gainMatrix[x][y]/100;
 }
