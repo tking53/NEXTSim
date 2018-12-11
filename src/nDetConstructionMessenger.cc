@@ -62,6 +62,9 @@ nDetConstructionMessenger::nDetConstructionMessenger(nDetConstruction* detector)
 
 	addCommand(new G4UIcmdWithAString("/nDet/detector/setGainMatrix", this));
 	addGuidance("Load segmented PMT anode gain matrix file");
+	
+	addCommand(new G4UIcmdWithAString("/nDet/detector/loadGDML", this));
+	addGuidance("Load a GDML geometry file for testing");
 }
 
 void nDetConstructionMessenger::SetNewValue(G4UIcommand* command, G4String newValue){
@@ -123,5 +126,8 @@ void nDetConstructionMessenger::SetNewValue(G4UIcommand* command, G4String newVa
 	}
 	else if(index == 14){
 		fDetector->setPmtGainMatrix(newValue.c_str());
+	}
+	else if(index == 15){
+		fDetector->SetGdmlFilename(newValue.c_str());
 	}
 }

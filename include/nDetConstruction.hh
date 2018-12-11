@@ -12,6 +12,8 @@
 #include "globals.hh"
 #include "centerOfMass.hh"
 
+#include "G4RotationMatrix.hh"
+
 // Class declarations
 class nDetConstructionMessenger;
 class G4LogicalVolume;
@@ -26,9 +28,46 @@ class G4LogicalSkinSurface;
 class G4LogicalBorderSurface;
 class G4VPhysicalVolume;
 class G4AssemblyVolume;
+class G4PVPlacement;
 class G4VSolid;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
+class gdmlSolid{
+  public:
+	gdmlSolid() : parent_physV(NULL), parent_logV(NULL), nDaughters(0) { }
+	
+	gdmlSolid(const char *fname);
+
+	double getWidth() const { return 2*size[0]; }
+	
+	double getThickness() const { return 2*size[1]; }
+	
+	double getLength() const { return 2*size[2]; }
+
+	G4VPhysicalVolume *getPhysicalVolume(){ return parent_physV; }
+	
+	G4LogicalVolume *getLogicalVolume(){ return parent_logV; }
+
+	G4LogicalVolume *read(const char *fname, G4OpticalSurface *surface=NULL, const bool &checkOverlaps=false);
+
+  private:
+	G4VPhysicalVolume *parent_physV;
+	G4LogicalVolume *parent_logV;
+  
+	std::vector<G4VPhysicalVolume*> physV;  
+	std::vector<G4LogicalVolume*> logV;
+	
+	std::vector<G4PVPlacement*> placements;
+	std::vector<G4LogicalBorderSurface*> borders;
+  
+	std::vector<G4ThreeVector> pos;
+	std::vector<G4RotationMatrix*> rot;
+	
+	size_t nDaughters;
+	
+	double size[3];
+};
 
 class nDetConstruction : public G4VUserDetectorConstruction
 {
@@ -76,6 +115,8 @@ class nDetConstruction : public G4VUserDetectorConstruction
 
 	bool setPmtGainMatrix(const char *fname);
 
+	void SetGdmlFilename(const std::string &fname){ gdmlFilename = fname; }
+
 	G4double GetDetectorLength() const { return fDetectorLength; }
 	
 	G4double GetDetectorWidth() const { return fDetectorWidth; }
@@ -116,7 +157,7 @@ class nDetConstruction : public G4VUserDetectorConstruction
     
     void UpdateGeometry();
     
-    G4LogicalVolume *LoadGDML(const char *fname);
+    G4LogicalVolume *LoadGDML(const G4String &fname, gdmlSolid &solid, G4OpticalSurface *surface=NULL);
 
 private:
     nDetConstructionMessenger *fDetectorMessenger;
@@ -196,6 +237,7 @@ private:
     G4Element* fAl;
 
     G4Material* fAir;
+    G4Material* fVacuum;
     G4Material* fTeflon;
     G4Material* fEJ200;
     G4Material* fEJ299;
@@ -224,6 +266,8 @@ private:
     G4LogicalSkinSurface* fWrapSkinSurface;
     G4LogicalSkinSurface* fSiPMSkinSurface;
     G4LogicalBorderSurface* fMylarSurface;
+
+	std::string gdmlFilename; // GDML model filename to load.
 
     // member functions
     void buildExpHall();
