@@ -30,14 +30,59 @@ class G4VPhysicalVolume;
 class G4AssemblyVolume;
 class G4PVPlacement;
 class G4VSolid;
+class G4Box;
+class G4GDMLParser;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
+class gdmlSegment{
+  public:
+	gdmlSegment();
+  
+	gdmlSegment(G4GDMLParser *parser, const G4int &daughter);
+  
+	G4ThreeVector getUnitX() const { return unit[0]; }
+  	
+  	G4ThreeVector getUnitY() const { return unit[1]; }
+  	
+	G4ThreeVector getUnitZ() const { return unit[2]; }
+
+	G4ThreeVector getOffset() const { return pos; }
+	
+	G4ThreeVector getOffset(const G4RotationMatrix &matrix) const ;
+	
+	G4RotationMatrix *getRotationMatrix(){ return rot; }
+	
+	G4VPhysicalVolume *getPhysicalVolume(){ return physV; }
+	
+	G4LogicalVolume *getLogicalVolume(){ return logV; }
+
+	void rotate(const G4RotationMatrix &matrix);
+	
+	void rotate(const double &x, const double &y, const double &z);
+
+	G4ThreeVector transform(const G4ThreeVector &vec) const ;
+
+  private:
+	G4RotationMatrix *rot;
+	G4VPhysicalVolume *physV;  
+	G4LogicalVolume *logV;
+	
+	G4ThreeVector pos;
+	G4ThreeVector unit[3];
+};
+
 class gdmlSolid{
   public:
-	gdmlSolid() : parent_physV(NULL), parent_logV(NULL), nDaughters(0) { }
+	gdmlSolid() : name(), parent_physV(NULL), parent_logV(NULL), nDaughters(0) { }
 	
 	gdmlSolid(const char *fname);
+
+	std::string getName() const { return name; }
+
+	size_t getNumDaughters() const { return nDaughters; }
+
+	bool isLoaded() const { return (nDaughters > 0); }
 
 	double getWidth() const { return 2*size[0]; }
 	
@@ -45,24 +90,28 @@ class gdmlSolid{
 	
 	double getLength() const { return 2*size[2]; }
 
-	G4VPhysicalVolume *getPhysicalVolume(){ return parent_physV; }
+	G4Box *getBoundingBox(){ return parent_physV; }
 	
 	G4LogicalVolume *getLogicalVolume(){ return parent_logV; }
 
 	G4LogicalVolume *read(const char *fname, G4OpticalSurface *surface=NULL, const bool &checkOverlaps=false);
 
+	void placeSolid(G4RotationMatrix *rotation, const G4ThreeVector &position, G4LogicalVolume *parent, std::vector<G4PVPlacement*> &volumes, const bool &checkOverlaps=false);
+
+	void setLogicalBorders(const G4String &borderName, G4PVPlacement *phys, G4OpticalSurface *surface);
+
+	void rotate(const double &x, const double &y, const double &z);
+
   private:
-	G4VPhysicalVolume *parent_physV;
+	std::string name;
+  
+	G4Box *parent_physV;
 	G4LogicalVolume *parent_logV;
   
-	std::vector<G4VPhysicalVolume*> physV;  
-	std::vector<G4LogicalVolume*> logV;
-	
 	std::vector<G4PVPlacement*> placements;
 	std::vector<G4LogicalBorderSurface*> borders;
-  
-	std::vector<G4ThreeVector> pos;
-	std::vector<G4RotationMatrix*> rot;
+
+	std::vector<gdmlSegment> daughters;
 	
 	size_t nDaughters;
 	
@@ -261,6 +310,7 @@ private:
     G4OpticalSurface* fTeflonOpticalSurface;
     G4OpticalSurface* fSiliconPMOpticalSurface;
     G4OpticalSurface* fMylarOpticalSurface;
+    G4OpticalSurface* fEsrOpticalSurface;
 
     //Logical Skins
     G4LogicalSkinSurface* fWrapSkinSurface;
