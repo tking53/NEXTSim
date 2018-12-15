@@ -94,11 +94,19 @@ class gdmlSolid{
 	
 	G4LogicalVolume *getLogicalVolume(){ return parent_logV; }
 
+	G4LogicalVolume *getWorldLogicalVolume(){ return worldLogV; }
+
 	G4LogicalVolume *read(const char *fname, G4OpticalSurface *surface=NULL, const bool &checkOverlaps=false);
 
 	void placeSolid(G4RotationMatrix *rotation, const G4ThreeVector &position, G4LogicalVolume *parent, std::vector<G4PVPlacement*> &volumes, const bool &checkOverlaps=false);
 
-	void setLogicalBorders(const G4String &borderName, G4PVPlacement *phys, G4OpticalSurface *surface);
+	void setLogicalBorders(const G4String &borderName, G4OpticalSurface *surface, G4PVPlacement *phys);
+
+	static void setLogicalBorders(const G4String &borderName, G4OpticalSurface *surface, const std::vector<G4PVPlacement*> &phys);
+
+	static void setLogicalBorders(const G4String &borderName, G4OpticalSurface *surface, const std::vector<G4PVPlacement*> &p1, G4PVPlacement *p2);
+
+	static void setLogicalBorders(const G4String &borderName, G4OpticalSurface *surface, const std::vector<G4PVPlacement*> &p1, const std::vector<G4PVPlacement*> &p2);
 
 	void rotate(const double &x, const double &y, const double &z);
 
@@ -107,6 +115,9 @@ class gdmlSolid{
   
 	G4Box *parent_physV;
 	G4LogicalVolume *parent_logV;
+  
+	G4VPhysicalVolume *world;
+	G4LogicalVolume *worldLogV;
   
 	std::vector<G4PVPlacement*> placements;
 	std::vector<G4LogicalBorderSurface*> borders;

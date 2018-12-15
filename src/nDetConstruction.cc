@@ -128,17 +128,17 @@ G4LogicalVolume *gdmlSolid::read(const char *fname, G4OpticalSurface *surface/*=
 	
 	parser.Read(fname, false);
 
-	G4VPhysicalVolume *W = parser.GetWorldVolume();
-	G4LogicalVolume *W_log = W->GetLogicalVolume();
+	world = parser.GetWorldVolume();
+	worldLogV = world->GetLogicalVolume();
 	
 	// Set the name of the object.
-	name = W_log->GetName();
+	name = worldLogV->GetName();
 	
 	for(size_t i = 0; i < 3; i++){
 		size[i] = -1E10;
 	}
 
-	for(G4int i = 0; i < W_log->GetNoDaughters(); i++){ // Loop over the daughters.
+	for(G4int i = 0; i < worldLogV->GetNoDaughters(); i++){ // Loop over the daughters.
 		daughters.push_back(gdmlSegment(&parser, i));
 		
 		// Get the maximum size of the object.
@@ -157,23 +157,18 @@ G4LogicalVolume *gdmlSolid::read(const char *fname, G4OpticalSurface *surface/*=
 	parent_logV = new G4LogicalVolume(parent_physV, manNist->FindOrBuildMaterial("G4_AIR"), "assembly_logV");
 	parent_logV->SetVisAttributes(G4VisAttributes::Invisible);
 	
-	for(size_t i = 0; i < nDaughters; i++){ // Place the daughters within the parent.
-		gdmlSegment *segment = &daughters.at(i);
-	
-		G4ThreeVector p = segment->getOffset();
-		G4RotationMatrix *r = segment->getRotationMatrix();
-		
-		G4LogicalVolume *log = segment->getLogicalVolume();
-		placements.push_back(new G4PVPlacement(r, p, log, log->GetName(), parent_logV, true, 0, checkOverlaps));
+	for(std::vector<gdmlSegment>::iterator iter = daughters.begin(); iter != daughters.end(); iter++){ // Place the daughters within the parent.
+		G4RotationMatrix *r = iter->getRotationMatrix();
+		G4LogicalVolume *log = iter->getLogicalVolume();
+		log->SetMaterial(manNist->FindOrBuildMaterial("G4_SILICON_DIOXIDE"));
+		placements.push_back(new G4PVPlacement(r, G4ThreeVector(0, 0, 0), log, log->GetName(), parent_logV, true, 0, checkOverlaps));
 	}
 
 	if(surface){ // Define logical border surfaces.
-		for(size_t i = 0; i < nDaughters; i++){ 
-			G4PVPlacement *pvpl1 = placements.at(i);
-			for(size_t j = 0; j < nDaughters; j++){
-				if(i == j) continue; // No border with itself.
-				G4PVPlacement *pvpl2 = placements.at(j);
-				borders.push_back(new G4LogicalBorderSurface("Surface", pvpl1, pvpl2, surface));
+		for(std::vector<G4PVPlacement*>::iterator iter1 = placements.begin(); iter1 != placements.end(); iter1++){ 
+			for(std::vector<G4PVPlacement*>::iterator iter2 = placements.begin(); iter2 != placements.end(); iter2++){
+				if(iter1 == iter2) continue; // No border with itself.
+				borders.push_back(new G4LogicalBorderSurface("Surface", (*iter1), (*iter2), surface));
 			}
 		}
 	}
@@ -182,17 +177,39 @@ G4LogicalVolume *gdmlSolid::read(const char *fname, G4OpticalSurface *surface/*=
 }
 
 void gdmlSolid::placeSolid(G4RotationMatrix *rotation, const G4ThreeVector &position, G4LogicalVolume *parent, std::vector<G4PVPlacement*> &volumes, const bool &checkOverlaps/*=false*/){
-	for(size_t i = 0; i < nDaughters; i++){ // Place the daughters within the parent.
-		gdmlSegment *segment = &daughters.at(i);
-		G4LogicalVolume *log = segment->getLogicalVolume();
-		volumes.push_back(new G4PVPlacement(rotation, segment->getOffset(*rotation)+position, log, log->GetName(), parent, true, 0, checkOverlaps));
+	for(std::vector<gdmlSegment>::iterator iter = daughters.begin(); iter != daughters.end(); iter++){ // Place the daughters within the parent.
+		G4LogicalVolume *log = iter->getLogicalVolume();
+		volumes.push_back(new G4PVPlacement(rotation, position, log, log->GetName(), parent, true, 0, checkOverlaps));
 	}
 }
 
-void gdmlSolid::setLogicalBorders(const G4String &borderName, G4PVPlacement *phys, G4OpticalSurface *surface){
-	for(size_t i = 0; i < nDaughters; i++){ 
-		G4PVPlacement *pvpl = placements.at(i);
-		borders.push_back(new G4LogicalBorderSurface(borderName, pvpl, phys, surface));
+void gdmlSolid::setLogicalBorders(const G4String &borderName, G4OpticalSurface *surface, G4PVPlacement *phys){
+	for(std::vector<G4PVPlacement*>::iterator iter = placements.begin(); iter != placements.end(); iter++){ 
+		new G4LogicalBorderSurface(borderName, (*iter), phys, surface);
+	}
+}
+
+void gdmlSolid::setLogicalBorders(const G4String &borderName, G4OpticalSurface *surface, const std::vector<G4PVPlacement*> &phys){
+	for(std::vector<G4PVPlacement*>::const_iterator iter1 = phys.begin(); iter1 != phys.end(); iter1++){ 
+		for(std::vector<G4PVPlacement*>::const_iterator iter2 = phys.begin(); iter2 != phys.end(); iter2++){
+			if(iter1 == iter2) continue; // No border with itself.
+			new G4LogicalBorderSurface(borderName, (*iter1), (*iter2), surface);
+		}
+	}
+}
+
+void gdmlSolid::setLogicalBorders(const G4String &borderName, G4OpticalSurface *surface, const std::vector<G4PVPlacement*> &p1, G4PVPlacement *p2){
+	for(std::vector<G4PVPlacement*>::const_iterator iter1 = p1.begin(); iter1 != p1.end(); iter1++){ 
+		new G4LogicalBorderSurface(borderName, (*iter1), p2, surface);
+	}
+}
+
+void gdmlSolid::setLogicalBorders(const G4String &borderName, G4OpticalSurface *surface, const std::vector<G4PVPlacement*> &p1, const std::vector<G4PVPlacement*> &p2){
+	for(std::vector<G4PVPlacement*>::const_iterator iter1 = p1.begin(); iter1 != p1.end(); iter1++){ 
+		for(std::vector<G4PVPlacement*>::const_iterator iter2 = p2.begin(); iter2 != p2.end(); iter2++){
+			if(iter1 == iter2) continue; // No border with itself.
+			new G4LogicalBorderSurface(borderName, (*iter1), (*iter2), surface);
+		}
 	}
 }
 
@@ -259,7 +276,7 @@ nDetConstruction::nDetConstruction(const G4double &scale/*=1*/){
 
     fGeometry="rectangle";
 
-    fCheckOverlaps = true;
+    fCheckOverlaps = false;
     fTeflonThickness = 0.11*mm;
     fMylarThickness = 0;
     fGreaseThickness = 1*mm;
@@ -349,13 +366,12 @@ void nDetConstruction::buildExpHall()
   // **************** expHalll **************
   //      ------------- Volumes --------------
   
-  G4Box* expHall_solidV = new G4Box("expHall_solidV",expHallX,expHallY,expHallZ);
+  G4Box* expHall_solidV = new G4Box("expHall_solidV", expHallX, expHallY, expHallZ);
 
-  expHall_logV  = new G4LogicalVolume(expHall_solidV, fAir, "expHall_logV",0,0,0);
+  expHall_logV  = new G4LogicalVolume(expHall_solidV, fAir, "expHall_logV", 0, 0, 0);
   expHall_logV->SetVisAttributes(G4VisAttributes::Invisible);
 
-  expHall_physV = new G4PVPlacement(0,G4ThreeVector(0., 0., 0.),expHall_logV,
-                                   "expHall_physV",0,false,0);
+  expHall_physV = new G4PVPlacement(0, G4ThreeVector(0, 0, 0), expHall_logV, "expHall_physV",0,false,0);
  
   return;
 } // end of buildExpHall function
@@ -385,7 +401,7 @@ void nDetConstruction::DefineMaterials() {
 	fVacuum = new G4Material("G4_VACUUM", 1E-5*g/cm3, 1, kStateGas, STP_Temperature, 2E-2*bar);
 	fVacuum->AddMaterial(fAir, 1.0);
 
-    const G4int nEntries_Air = 2;
+    /*const G4int nEntries_Air = 2;
     G4double photonEnergy_Air[nEntries_Air] = { 1.55*eV,  4.13*eV }; // from 800 nm to 300 nm
     G4double refractiveIndex_Air[nEntries_Air] = { 1.00, 1.00 };
     G4double Absorption_Air[nEntries_Air] = { 1700 * m ,1700 * m  };
@@ -395,7 +411,7 @@ void nDetConstruction::DefineMaterials() {
     fAirMPT = new G4MaterialPropertiesTable();
     fAirMPT->AddProperty("RINDEX", photonEnergy_Air, refractiveIndex_Air, nEntries_Air);
     fAirMPT->AddProperty("ABSLENGTH", photonEnergy_Air, Absorption_Air, nEntries_Air);
-    fAir->SetMaterialPropertiesTable(fAirMPT);
+    fAir->SetMaterialPropertiesTable(fAirMPT);*/
 
     G4double density;
     int natoms;
@@ -791,7 +807,7 @@ G4LogicalVolume *nDetConstruction::LoadGDML(const G4String &fname, gdmlSolid &so
 void nDetConstruction::buildRectangle(){
 	gdmlSolid solid;
     if(!gdmlFilename.empty()){ // Load the light-guide from a GDML file.
-        LoadGDML(gdmlFilename, solid, fEsrOpticalSurface);
+        LoadGDML(gdmlFilename, solid);
         fTrapezoidLength = solid.getThickness()*mm;
 	}
 
@@ -807,7 +823,7 @@ void nDetConstruction::buildRectangle(){
     //G4Box *theRectangle = new G4Box("rectangle", fDetectorWidth/2, fDetectorThickness/2, fDetectorLength/2);
 
 	G4Box *assembly = new G4Box("assembly", fDetectorWidth/2, fDetectorThickness/2, assemblyLength/2);
-    assembly_logV = new G4LogicalVolume(assembly, fMylar, "assembly_logV");
+    assembly_logV = new G4LogicalVolume(assembly, fAir, "assembly_logV");
     G4VisAttributes* assembly_VisAtt = new G4VisAttributes();
     assembly_VisAtt->SetVisibility(false);
     assembly_logV->SetVisAttributes(assembly_VisAtt);
@@ -886,7 +902,7 @@ void nDetConstruction::buildRectangle(){
 
 		    // BE CAREFUL, for some reason SiPM_dimension is set to the user defined SiPM dimension divided by 2 in nDetConstructionMessenger!!!
 		    lightGuide = new G4Trd("lightGuide", trapezoidW1/2, SiPM_dimension, trapezoidW2/2, SiPM_dimension, fTrapezoidLength/2);
-		    lightGuideLog = new G4LogicalVolume(lightGuide, fAcrylic, "lightGuide_logV");	
+		    lightGuideLog = new G4LogicalVolume(lightGuide, fSiO2, "lightGuide_logV");	
 		    
 		    trapRot[1]->rotateY(180*deg);		        	
         }
@@ -925,6 +941,9 @@ void nDetConstruction::buildRectangle(){
 	    	solid.placeSolid(trapRot[0], G4ThreeVector(0, 0, trapezoidZ), assembly_logV, trapPhysicalL);
 	    	solid.placeSolid(trapRot[1], G4ThreeVector(0, 0, -trapezoidZ), assembly_logV, trapPhysicalR);
 	    }
+	    
+	    solid.setLogicalBorders("ESR", fEsrOpticalSurface, trapPhysicalL);
+	    solid.setLogicalBorders("ESR", fEsrOpticalSurface, trapPhysicalR);
     	
     	// Offset the PSPMT to account for the light-guide and another layer of grease.
     	greaseZ += fGreaseThickness + fTrapezoidLength;
@@ -1028,7 +1047,7 @@ void nDetConstruction::buildRectangle(){
 	if(fGreaseThickness > 0){
 		// BE CAREFUL, for some reason SiPM_dimension is set to the user defined SiPM dimension divided by 2 in nDetConstructionMessenger!!!
 		G4Box* grease_solidV2 = new G4Box("grease", SiPM_dimension, SiPM_dimension, fGreaseThickness/2);
-		grease_logV = new G4LogicalVolume(grease_solidV2, fGrease, "grease_logV");
+		grease_logV = new G4LogicalVolume(grease_solidV2, fSiO2, "grease_logV");
 		grease_logV->SetVisAttributes(grease_VisAtt);
 	
 		new G4PVPlacement(0, G4ThreeVector(0, 0, greaseZ), grease_logV, "Grease", assembly_logV, true, 0, fCheckOverlaps);
@@ -1056,7 +1075,7 @@ void nDetConstruction::buildRectangle(){
     new G4LogicalSkinSurface(name, sensitive_logV, fSiliconPMOpticalSurface);    
     
     new G4PVPlacement(0, G4ThreeVector(0, 0, sensitiveZ), sensitive_logV, name, assembly_logV, true, 0, fCheckOverlaps);
-    new G4PVPlacement(0,  G4ThreeVector(0, 0, -sensitiveZ), sensitive_logV, name, assembly_logV, true, 0, fCheckOverlaps);
+    new G4PVPlacement(0, G4ThreeVector(0, 0, -sensitiveZ), sensitive_logV, name, assembly_logV, true, 0, fCheckOverlaps);
 }
 
 void nDetConstruction::buildTestAssembly(){
@@ -1064,12 +1083,14 @@ void nDetConstruction::buildTestAssembly(){
 
 	// Load the solid.
     gdmlSolid solid;
-    G4LogicalVolume *lightGuideLog = LoadGDML(gdmlFilename, solid, fEsrOpticalSurface);
+    LoadGDML(gdmlFilename, solid, fEsrOpticalSurface);
     
 	G4RotationMatrix *trapRot = new G4RotationMatrix;
-	//trapRot->rotateY(90*deg);
     trapRot->rotateZ(90*deg);
     
     // Place the model at the origin.
-	new G4PVPlacement(trapRot, G4ThreeVector(0, 0, 0), lightGuideLog, solid.getName(), expHall_logV, true, 0, fCheckOverlaps);
+	std::vector<G4PVPlacement*> trapPhysical;
+    solid.placeSolid(trapRot, G4ThreeVector(0, 0, 0), expHall_logV, trapPhysical);
+
+	solid.setLogicalBorders("Mylar", fEsrOpticalSurface, trapPhysical, (G4PVPlacement*)expHall_physV); // Works. But light cannot escape the model.
 }
