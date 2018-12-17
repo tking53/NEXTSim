@@ -65,6 +65,9 @@ nDetConstructionMessenger::nDetConstructionMessenger(nDetConstruction* detector)
 	
 	addCommand(new G4UIcmdWithAString("/nDet/detector/loadGDML", this));
 	addGuidance("Load a GDML geometry file for testing");
+	
+	addCommand(new G4UIcmdWithADouble("/nDet/detector/setDiffuserLength", this));
+	addGuidance("Defines the length of the straight light diffuser in cm");
 }
 
 void nDetConstructionMessenger::SetNewValue(G4UIcommand* command, G4String newValue){
@@ -129,5 +132,9 @@ void nDetConstructionMessenger::SetNewValue(G4UIcommand* command, G4String newVa
 	}
 	else if(index == 15){
 		fDetector->SetGdmlFilename(newValue.c_str());
+	}
+	else if(index == 16){
+		G4double val = command->ConvertToDouble(newValue);
+		fDetector->SetDiffuserLength(val*cm);
 	}
 }

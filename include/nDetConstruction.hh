@@ -155,6 +155,8 @@ class nDetConstruction : public G4VUserDetectorConstruction
     
     void SetTrapezoidLength(G4double val){ fTrapezoidLength = val; }
 
+    void SetDiffuserLength(G4double val){ fDiffuserLength = val; }
+
     void SetHexagonRadius(G4double val){ fHexagonRadius = val; }
         
     void SetMylarThickness(G4double val){ fMylarThickness = val; }
@@ -258,6 +260,7 @@ private:
     G4double fDetectorThickness;
     G4double fDetectorWidth;
     G4double fTrapezoidLength;
+    G4double fDiffuserLength;
     G4double fHexagonRadius;
     G4double fLightYieldScale;
 

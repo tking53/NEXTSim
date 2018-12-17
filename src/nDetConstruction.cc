@@ -283,6 +283,7 @@ nDetConstruction::nDetConstruction(const G4double &scale/*=1*/){
     fDetectorLength = 3.94*inch;
     fDetectorWidth = 6*mm;
     fTrapezoidLength = 0;
+    fDiffuserLength = 0;
     fHexagonRadius = 5*cm;
     fDetectorThickness = 0.24*inch;
     SiPM_dimension=3*mm;    
@@ -817,6 +818,8 @@ void nDetConstruction::buildRectangle(){
     G4double windowThickness = fGreaseThickness;
 
 	G4double assemblyLength = fDetectorLength + 2*(fGreaseThickness + windowThickness) + 2*mm;
+	if(fDiffuserLength > 0) // Account for light diffusers
+	    assemblyLength += 2*fDiffuserLength + 2*fGreaseThickness;
 	if(fTrapezoidLength > 0) // Account for light guides
 	    assemblyLength += 2*fTrapezoidLength + 2*fGreaseThickness;
 
@@ -886,6 +889,33 @@ void nDetConstruction::buildRectangle(){
     G4double windowZ = fDetectorLength/2 + fGreaseThickness + windowThickness/2;
     G4double sensitiveZ = fDetectorLength/2 + fGreaseThickness + windowThickness + 0.5*mm;
 
+    if(fDiffuserLength > 0){ // Build the light diffusers (if needed)
+		G4double diffuserW1 = fDetectorWidth - 2*fMylarThickness;
+		G4double diffuserW2 = fDetectorThickness - 2*fMylarThickness;
+
+        G4Box *lightDiffuser = new G4Box("lightDiffuser", diffuserW1/2, diffuserW2/2, fDiffuserLength/2);
+        G4LogicalVolume *lightDiffuserLog = new G4LogicalVolume(lightDiffuser, fSiO2, "lightDiffuser_logV");
+
+        //The grease
+        if(fGreaseThickness > 0){
+		    G4Box* grease_solidV = new G4Box("grease", diffuserW1/2, diffuserW2/2, fGreaseThickness/2);
+		    grease_logV = new G4LogicalVolume(grease_solidV, fGrease, "grease_logV");
+		    grease_logV->SetVisAttributes(grease_VisAtt);
+		
+		    new G4PVPlacement(0, G4ThreeVector(0, 0, greaseZ), grease_logV, "Grease", assembly_logV, true, 0, fCheckOverlaps);
+		    new G4PVPlacement(0, G4ThreeVector(0, 0, -greaseZ), grease_logV, "Grease", assembly_logV, true, 0, fCheckOverlaps);
+		}
+        
+        G4double diffuserZ = fDetectorLength/2 + fGreaseThickness + fDiffuserLength/2;
+        new G4PVPlacement(0, G4ThreeVector(0, 0, diffuserZ), lightDiffuserLog, "Diffuser", assembly_logV, true, 0, fCheckOverlaps);
+        new G4PVPlacement(0, G4ThreeVector(0, 0, -diffuserZ), lightDiffuserLog, "Diffuser", assembly_logV, true, 0, fCheckOverlaps);
+        
+    	// Offset the other layers to account for the light-diffuser and another layer of grease.
+    	greaseZ += fGreaseThickness + fDiffuserLength;
+    	windowZ += fGreaseThickness + fDiffuserLength;
+    	sensitiveZ += fGreaseThickness + fDiffuserLength;
+    }
+
     if(fTrapezoidLength > 0 || !gdmlFilename.empty()){ // Build the light guides (if needed)
         G4double trapezoidW1;
         G4double trapezoidW2;
@@ -928,7 +958,7 @@ void nDetConstruction::buildRectangle(){
 		    new G4PVPlacement(0, G4ThreeVector(0, 0, -greaseZ), grease_logV, "Grease", assembly_logV, true, 0, fCheckOverlaps);
 		}
     	
-        G4double trapezoidZ = fDetectorLength/2 + fTrapezoidLength/2 + fGreaseThickness;
+        G4double trapezoidZ = fDetectorLength/2 + fGreaseThickness + fDiffuserLength + fTrapezoidLength/2;
         
         std::vector<G4PVPlacement*> trapPhysicalL;
 		std::vector<G4PVPlacement*> trapPhysicalR;
@@ -946,9 +976,9 @@ void nDetConstruction::buildRectangle(){
 	    solid.setLogicalBorders("ESR", fEsrOpticalSurface, trapPhysicalR);
     	
     	// Offset the PSPMT to account for the light-guide and another layer of grease.
-    	greaseZ += fGreaseThickness + fTrapezoidLength;
-    	windowZ += fGreaseThickness + fTrapezoidLength;
-    	sensitiveZ += fGreaseThickness + fTrapezoidLength;
+    	greaseZ += fGreaseThickness + fTrapezoidLength - 1E-6*m;
+    	windowZ += fGreaseThickness + fTrapezoidLength - 1E-6*m;
+    	sensitiveZ += fGreaseThickness + fTrapezoidLength - 1E-6*m;
     	
     	if(fMylarThickness > 0){ // Construct the mylar cover flaps
     	    G4double topFlapOffset = trapezoidW2/2-SiPM_dimension;
