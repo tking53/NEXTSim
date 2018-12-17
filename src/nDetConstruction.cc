@@ -823,12 +823,19 @@ void nDetConstruction::buildRectangle(){
 	if(fTrapezoidLength > 0) // Account for light guides
 	    assemblyLength += 2*fTrapezoidLength + 2*fGreaseThickness;
 
+	G4double assemblyWidth = fDetectorWidth;
+	G4double assemblyThickness = fDetectorThickness;
+	if(solid.isLoaded()){
+		assemblyWidth = std::max(assemblyWidth, solid.getWidth());
+		assemblyThickness = std::max(assemblyThickness, solid.getLength());
+	}
+
     //G4Box *theRectangle = new G4Box("rectangle", fDetectorWidth/2, fDetectorThickness/2, fDetectorLength/2);
 
-	G4Box *assembly = new G4Box("assembly", fDetectorWidth/2, fDetectorThickness/2, assemblyLength/2);
+	G4Box *assembly = new G4Box("assembly", assemblyWidth/2, assemblyThickness/2, assemblyLength/2);
     assembly_logV = new G4LogicalVolume(assembly, fAir, "assembly_logV");
     G4VisAttributes* assembly_VisAtt = new G4VisAttributes();
-    assembly_VisAtt->SetVisibility(false);
+    //assembly_VisAtt->SetVisibility(false);
     assembly_logV->SetVisAttributes(assembly_VisAtt);
 
     fWrapSkinSurface = new G4LogicalSkinSurface("wrapping", assembly_logV, fMylarOpticalSurface); //Outside
@@ -916,7 +923,7 @@ void nDetConstruction::buildRectangle(){
     	sensitiveZ += fGreaseThickness + fDiffuserLength;
     }
 
-    if(fTrapezoidLength > 0 || !gdmlFilename.empty()){ // Build the light guides (if needed)
+    if(fTrapezoidLength > 0 || solid.isLoaded()){ // Build the light guides (if needed)
         G4double trapezoidW1;
         G4double trapezoidW2;
         std::string trapName = "Acrylic";
@@ -958,7 +965,7 @@ void nDetConstruction::buildRectangle(){
 		    new G4PVPlacement(0, G4ThreeVector(0, 0, -greaseZ), grease_logV, "Grease", assembly_logV, true, 0, fCheckOverlaps);
 		}
     	
-        G4double trapezoidZ = fDetectorLength/2 + fGreaseThickness + fDiffuserLength + fTrapezoidLength/2;
+        G4double trapezoidZ = fDetectorLength/2 + 2*fGreaseThickness + fDiffuserLength + fTrapezoidLength/2;
         
         std::vector<G4PVPlacement*> trapPhysicalL;
 		std::vector<G4PVPlacement*> trapPhysicalR;
@@ -976,9 +983,9 @@ void nDetConstruction::buildRectangle(){
 	    solid.setLogicalBorders("ESR", fEsrOpticalSurface, trapPhysicalR);
     	
     	// Offset the PSPMT to account for the light-guide and another layer of grease.
-    	greaseZ += fGreaseThickness + fTrapezoidLength - 1E-6*m;
-    	windowZ += fGreaseThickness + fTrapezoidLength - 1E-6*m;
-    	sensitiveZ += fGreaseThickness + fTrapezoidLength - 1E-6*m;
+    	greaseZ += fGreaseThickness + fTrapezoidLength;
+    	windowZ += fGreaseThickness + fTrapezoidLength;
+    	sensitiveZ += fGreaseThickness + fTrapezoidLength;
     	
     	if(fMylarThickness > 0){ // Construct the mylar cover flaps
     	    G4double topFlapOffset = trapezoidW2/2-SiPM_dimension;
