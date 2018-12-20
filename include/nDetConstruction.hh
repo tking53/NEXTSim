@@ -179,6 +179,8 @@ class nDetConstruction : public G4VUserDetectorConstruction
 
 	void SetGdmlFilename(const std::string &fname){ gdmlFilename = fname; }
 
+	void SetGdmlDefaultRotation(const G4ThreeVector &rotation){ gdmlRotation = rotation; }
+
 	G4double GetDetectorLength() const { return fDetectorLength; }
 	
 	G4double GetDetectorWidth() const { return fDetectorWidth; }
@@ -332,6 +334,8 @@ private:
     G4LogicalBorderSurface* fMylarSurface;
 
 	std::string gdmlFilename; // GDML model filename to load.
+
+	G4ThreeVector gdmlRotation; // Default rotation of GDML model.
 
     // member functions
     void buildExpHall();

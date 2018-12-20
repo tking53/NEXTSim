@@ -8,7 +8,7 @@
 #include "G4UIcommand.hh"
 #include "G4UIcmdWithAString.hh"
 #include "G4UIdirectory.hh"
-#include "G4UIcmdWith3VectorAndUnit.hh"
+#include "G4UIcmdWith3Vector.hh"
 #include "G4UIcmdWithADouble.hh"
 #include "G4UIcmdWithAnInteger.hh"
 #include "G4SystemOfUnits.hh"
@@ -68,6 +68,9 @@ nDetConstructionMessenger::nDetConstructionMessenger(nDetConstruction* detector)
 	
 	addCommand(new G4UIcmdWithADouble("/nDet/detector/setDiffuserLength", this));
 	addGuidance("Defines the length of the straight light diffuser in cm");
+	
+	addCommand(new G4UIcmdWith3Vector("/nDet/detector/setGDMLrotation", this));
+	addGuidance("Defines the default rotation of the loaded GDML model in degrees");
 }
 
 void nDetConstructionMessenger::SetNewValue(G4UIcommand* command, G4String newValue){
@@ -136,5 +139,9 @@ void nDetConstructionMessenger::SetNewValue(G4UIcommand* command, G4String newVa
 	else if(index == 16){
 		G4double val = command->ConvertToDouble(newValue);
 		fDetector->SetDiffuserLength(val*cm);
+	}
+	else if(index == 17){
+		G4ThreeVector val = command->ConvertTo3Vector(newValue);
+		fDetector->SetGdmlDefaultRotation(val);
 	}
 }

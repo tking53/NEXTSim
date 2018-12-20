@@ -809,7 +809,7 @@ void nDetConstruction::buildRectangle(){
 	gdmlSolid solid;
     if(!gdmlFilename.empty()){ // Load the light-guide from a GDML file.
         LoadGDML(gdmlFilename, solid);
-        fTrapezoidLength = solid.getThickness()*mm;
+        fTrapezoidLength = solid.getLength()*mm;
 	}
 
 	const G4double cellWidth = (fDetectorThickness-2*fNumColumns*fMylarThickness)/fNumColumns;
@@ -827,7 +827,7 @@ void nDetConstruction::buildRectangle(){
 	G4double assemblyThickness = fDetectorThickness;
 	if(solid.isLoaded()){
 		assemblyWidth = std::max(assemblyWidth, solid.getWidth());
-		assemblyThickness = std::max(assemblyThickness, solid.getLength());
+		assemblyThickness = std::max(assemblyThickness, solid.getThickness());
 	}
 
     //G4Box *theRectangle = new G4Box("rectangle", fDetectorWidth/2, fDetectorThickness/2, fDetectorLength/2);
@@ -838,7 +838,7 @@ void nDetConstruction::buildRectangle(){
     //assembly_VisAtt->SetVisibility(false);
     assembly_logV->SetVisAttributes(assembly_VisAtt);
 
-    fWrapSkinSurface = new G4LogicalSkinSurface("wrapping", assembly_logV, fMylarOpticalSurface); //Outside
+    //fWrapSkinSurface = new G4LogicalSkinSurface("wrapping", assembly_logV, fMylarOpticalSurface); //Outside
 
     // Full detector physical volume
     new G4PVPlacement(0, G4ThreeVector(0,0,0), assembly_logV, "Wrapping", expHall_logV, 0, 0, true);//fCheckOverlaps);
@@ -949,10 +949,18 @@ void nDetConstruction::buildRectangle(){
 
 			// Set the dimensions of the light-guide.
 		    trapezoidW1 = solid.getWidth()*mm;
-		    trapezoidW2 = solid.getLength()*mm;
+		    trapezoidW2 = solid.getThickness()*mm;
+
+			trapRot[0]->rotateX(gdmlRotation.getX()*deg);
+			trapRot[0]->rotateY(gdmlRotation.getY()*deg);
+			trapRot[0]->rotateZ(gdmlRotation.getZ()*deg);
+
+			trapRot[1]->rotateX(gdmlRotation.getX()*deg);
+			trapRot[1]->rotateY(gdmlRotation.getY()*deg);
+			trapRot[1]->rotateZ(gdmlRotation.getZ()*deg);
 	        
-	        trapRot[0]->rotateX(90*deg);
-        	trapRot[1]->rotateX(-90*deg);
+	        //trapRot[0]->rotateX(90*deg);
+        	//trapRot[1]->rotateX(-90*deg);
 	    }
 
         //The grease
@@ -965,7 +973,9 @@ void nDetConstruction::buildRectangle(){
 		    new G4PVPlacement(0, G4ThreeVector(0, 0, -greaseZ), grease_logV, "Grease", assembly_logV, true, 0, fCheckOverlaps);
 		}
     	
-        G4double trapezoidZ = fDetectorLength/2 + 2*fGreaseThickness + fDiffuserLength + fTrapezoidLength/2;
+        G4double trapezoidZ = fDetectorLength/2 + fGreaseThickness + fTrapezoidLength/2;
+        if(fDiffuserLength > 0)
+			trapezoidZ += fGreaseThickness + fDiffuserLength;
         
         std::vector<G4PVPlacement*> trapPhysicalL;
 		std::vector<G4PVPlacement*> trapPhysicalR;
@@ -1123,11 +1133,13 @@ void nDetConstruction::buildTestAssembly(){
     LoadGDML(gdmlFilename, solid, fEsrOpticalSurface);
     
 	G4RotationMatrix *trapRot = new G4RotationMatrix;
-    trapRot->rotateZ(90*deg);
+    trapRot->rotateX(gdmlRotation.getX()*deg);
+    trapRot->rotateY(gdmlRotation.getY()*deg);
+    trapRot->rotateZ(gdmlRotation.getZ()*deg);
     
     // Place the model at the origin.
 	std::vector<G4PVPlacement*> trapPhysical;
     solid.placeSolid(trapRot, G4ThreeVector(0, 0, 0), expHall_logV, trapPhysical);
 
-	solid.setLogicalBorders("Mylar", fEsrOpticalSurface, trapPhysical, (G4PVPlacement*)expHall_physV); // Works. But light cannot escape the model.
+    solid.setLogicalBorders("ESR", fEsrOpticalSurface, trapPhysical); // This works as expected.
 }
