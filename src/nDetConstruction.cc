@@ -234,13 +234,6 @@ nDetConstruction::nDetConstruction(const G4double &scale/*=1*/){
     assembly_logV = NULL;
     assembly_physV = NULL;
     
-    assemblyBoxX = 15.11*mm; // reducing size to eliminate non-physical PTFE.  Noticed excessive scattering of flourine and carbon.
-    assemblyBoxX = 16.66667*mm; //10x30 bars KS 5/23/16
-    assemblyBoxX = 50*mm; // 30X30 scintillator bars, each has a dimension of 3X100X3 mm3
-    assemblyBoxY = 51.2*mm; // length of scintillator: 100 mm + 0.1 mm thick grease + 1 mm thick SiPM window + 0.1 mm thick sensitive part of SiPM on both ends of scintillator
-    assemblyBoxZ = 45.31*mm; // closing gaps.  Teflon tape measures ~.02 mm thick.
-    assemblyBoxZ = 50*mm; // the gaps of scintillators are filled with reflectors, such as Teflon
-    
     ej200_logV = NULL;
     ej200X = 1.5*mm;
     ej200Y = 50*mm;
@@ -402,18 +395,6 @@ void nDetConstruction::DefineMaterials() {
 	fVacuum = new G4Material("G4_VACUUM", 1E-5*g/cm3, 1, kStateGas, STP_Temperature, 2E-2*bar);
 	fVacuum->AddMaterial(fAir, 1.0);
 
-    /*const G4int nEntries_Air = 2;
-    G4double photonEnergy_Air[nEntries_Air] = { 1.55*eV,  4.13*eV }; // from 800 nm to 300 nm
-    G4double refractiveIndex_Air[nEntries_Air] = { 1.00, 1.00 };
-    G4double Absorption_Air[nEntries_Air] = { 1700 * m ,1700 * m  };
-    // note that the aborption data are not correct. If they are employed, the purpose is to kill photons quickly
-    // to speed up the program...
-    //G4double absorptionLength_Air[nEntries] = {90.2*mm, 90.2*mm};
-    fAirMPT = new G4MaterialPropertiesTable();
-    fAirMPT->AddProperty("RINDEX", photonEnergy_Air, refractiveIndex_Air, nEntries_Air);
-    fAirMPT->AddProperty("ABSLENGTH", photonEnergy_Air, Absorption_Air, nEntries_Air);
-    fAir->SetMaterialPropertiesTable(fAirMPT);*/
-
     G4double density;
     int natoms;
     int ncomponents;
@@ -453,12 +434,6 @@ void nDetConstruction::DefineMaterials() {
     fEJ200->AddElement(fH, 10);
     fEJ200->AddElement(fC, 9);
 
-    /*const G4int nEntries_EJ200 = 5;
-    G4double PhotonEnergy[nEntries_EJ200] = { 2.484*eV, 2.615*eV, 2.760*eV, 2.922*eV, 3.105*eV };
-    G4double RefractiveIndex_EJ200[nEntries_EJ200] = { 1.58, 1.58, 1.58, 1.58, 1.58 };
-    G4double Absorption_EJ200[nEntries_EJ200] =  { 400*cm, 400*cm, 400*cm, 400*cm, 400*cm };
-    G4double ScintilFast_EJ200[nEntries_EJ200] = { 0.05, 0.25, 0.55, 1.00, 0.0};*/
-
 	G4double photonEnergy_Ej200[44] = {2.004*eV, 2.058*eV, 2.112*eV, 2.166*eV, 2.220*eV, 2.274*eV, 2.328*eV, 2.382*eV, 2.436*eV, 2.490*eV, 
 		                               2.517*eV, 2.552*eV, 2.585*eV, 2.613*eV, 2.635*eV, 2.656*eV, 2.686*eV, 2.720*eV, 2.749*eV, 2.772*eV, 
 		                               2.791*eV, 2.809*eV, 2.826*eV, 2.842*eV, 2.861*eV, 2.884*eV, 2.919*eV, 2.946*eV, 2.954*eV, 2.961*eV, 
@@ -493,40 +468,30 @@ void nDetConstruction::DefineMaterials() {
     G4double pSF = pEF * 1.35;
 
     //light yield - data taken form V.V. Verbinski et al, Nucl. Instrum. & Meth. 65 (1968) 8-25
-    G4double particleEnergy[26] = {0.001*MeV, 0.1*MeV, 0.13*MeV, 0.17*MeV, 0.2*MeV,
-                                   0.24*MeV, 0.3*MeV, 0.34*MeV, 0.4*MeV, 0.48*MeV, 
-                                   0.6*MeV, 0.72*MeV, 0.84*MeV, 1.*MeV, 1.3*MeV, 
-                                   1.7*MeV, 2.*MeV, 2.4*MeV, 3.*MeV, 3.4*MeV, 4.*MeV, 
-                                   4.8*MeV, 6.*MeV,  7.2*MeV, 8.4*MeV, 10.*MeV };
+	G4double particleEnergy[36] = {1E-3, 0.10*MeV, 0.13*MeV, 0.17*MeV, 0.20*MeV, 0.24*MeV, 0.30*MeV, 0.34*MeV, 0.40*MeV, 
+		                           0.48*MeV, 0.60*MeV, 0.72*MeV, 0.84*MeV, 1.00*MeV, 1.30*MeV, 1.70*MeV, 2.00*MeV, 2.40*MeV, 
+		                           3.00*MeV, 3.40*MeV, 4.00*MeV, 4.80*MeV, 6.00*MeV, 7.20*MeV, 8.40*MeV, 10.00*MeV, 11.00*MeV, 
+		                           12.00*MeV, 13.00*MeV, 14.00*MeV, 15.00*MeV, 16.00*MeV, 17.00*MeV, 18.00*MeV, 19.00*MeV, 20.00*MeV};
+		                           
+	G4double electronYield[36] = {0.0E+00*pEF, 1.0E+03*pEF, 1.3E+03*pEF, 1.7E+03*pEF, 2.0E+03*pEF, 2.4E+03*pEF, 3.0E+03*pEF, 3.4E+03*pEF, 4.0E+03*pEF, 
+		                          4.8E+03*pEF, 6.0E+03*pEF, 7.2E+03*pEF, 8.4E+03*pEF, 1.0E+04*pEF, 1.3E+04*pEF, 1.7E+04*pEF, 2.0E+04*pEF, 2.4E+04*pEF, 
+		                          3.0E+04*pEF, 3.4E+04*pEF, 4.0E+04*pEF, 4.8E+04*pEF, 6.0E+04*pEF, 7.2E+04*pEF, 8.4E+04*pEF, 1.0E+05*pEF, 1.1E+05*pEF, 
+		                          1.2E+05*pEF, 1.3E+05*pEF, 1.4E+05*pEF, 1.5E+05*pEF, 1.6E+05*pEF, 1.7E+05*pEF, 1.8E+05*pEF, 1.9E+05*pEF, 2.0E+05*pEF};
 
-    G4double electronYield[26] = {0*pEF, 1000*pEF, 1300*pEF, 1700*pEF,
-                                2000*pEF, 2400*pEF, 3000*pEF, 3400*pEF,
-                                4000*pEF, 4800*pEF, 6000*pEF, 7200*pEF,
-                                8400*pEF,10000*pEF, 13000*pEF, 17000*pEF,
-                                20000*pEF, 24000*pEF, 30000*pEF, 34000*pEF,
-                                40000*pEF, 48000*pEF, 60000*pEF, 72000*pEF,
-                                84000*pEF, 100000*pEF };
+    fEJ200MPT->AddProperty("ELECTRONSCINTILLATIONYIELD", particleEnergy, electronYield, 36)->SetSpline(true);
+	G4double protonYield[36] = {0.6*pSF, 67.1*pSF, 88.6*pSF, 120.7*pSF, 146.5*pSF, 183.8*pSF, 246.0*pSF, 290.0*pSF, 365.0*pSF, 
+		                        483.0*pSF, 678.0*pSF, 910.0*pSF, 1175.0*pSF, 1562.0*pSF, 2385.0*pSF, 3660.0*pSF, 4725.0*pSF, 6250.0*pSF, 
+		                        8660.0*pSF, 10420.0*pSF, 13270.0*pSF, 17180.0*pSF, 23100.0*pSF, 29500.0*pSF, 36200.0*pSF, 45500.0*pSF, 51826.7*pSF, 
+		                        58313.7*pSF, 65047.2*pSF, 72027.4*pSF, 79254.2*pSF, 86727.6*pSF, 94447.6*pSF, 102414.2*pSF, 110627.4*pSF, 119087.2*pSF};
 
-    fEJ200MPT->AddProperty("ELECTRONSCINTILLATIONYIELD", particleEnergy, electronYield, 26)->SetSpline(true);
-    G4double protonYield[26] = {0.6*pSF, 67.1*pSF, 88.6*pSF, 120.7*pSF,
-                                146.5*pSF, 183.8*pSF, 246*pSF, 290*pSF,
-                                365*pSF, 483*pSF, 678*pSF, 910*pSF,
-                                1175*pSF, 562*pSF, 2385*pSF, 3660*pSF,
-                                4725*pSF,6250*pSF, 8660*pSF, 10420*pSF,
-                                13270*pSF,17180*pSF, 23100*pSF, 29500*pSF, 
-                                36200*pSF, 45500*pSF};
+    fEJ200MPT->AddProperty("PROTONSCINTILLATIONYIELD", particleEnergy, protonYield, 36)->SetSpline(true);
 
-    fEJ200MPT->AddProperty("PROTONSCINTILLATIONYIELD", particleEnergy, protonYield, 26)->SetSpline(true);
-
-    G4double ionYield[26] = {0.2*pEF, 10.4*pEF, 12.7*pEF, 15.7*pEF,
-                             17.9*pEF, 20.8*pEF, 25.1*pEF, 27.9*pEF,
-                             31.9*pEF, 36.8*pEF, 43.6*pEF, 50.2*pEF,
-                             56.9*pEF, 65.7*pEF, 81.3*pEF, 101.6*pEF,
-                             116.5*pEF, 136.3*pEF, 166.15*pEF, 187.1*pEF,
-                             218.6*pEF, 260.54*pEF, 323.5*pEF, 387.5*pEF,
-                             451.54*pEF, 539.9*pEF };
-
-    fEJ200MPT->AddProperty("IONSCINTILLATIONYIELD", particleEnergy, ionYield, 26)->SetSpline(true);
+	G4double ionYield[36] = {0.2*pEF, 10.4*pEF, 12.7*pEF, 15.7*pEF, 17.9*pEF, 20.8*pEF, 25.1*pEF, 27.9*pEF, 31.9*pEF, 
+		                     36.8*pEF, 43.6*pEF, 50.2*pEF, 56.9*pEF, 65.7*pEF, 81.3*pEF, 101.6*pEF, 116.5*pEF, 136.3*pEF, 
+		                     166.2*pEF, 187.1*pEF, 218.6*pEF, 260.5*pEF, 323.5*pEF, 387.5*pEF, 451.5*pEF, 539.9*pEF, 595.5*pEF, 
+		                     651.8*pEF, 708.7*pEF, 766.2*pEF, 824.2*pEF, 882.9*pEF, 942.2*pEF, 1002.1*pEF, 1062.6*pEF, 1123.7*pEF}; 
+                         
+    fEJ200MPT->AddProperty("IONSCINTILLATIONYIELD", particleEnergy, ionYield, 36)->SetSpline(true);
 
     fEJ200->SetMaterialPropertiesTable(fEJ200MPT);
 
@@ -663,87 +628,6 @@ void nDetConstruction::DefineMaterials() {
     fEsrOpticalSurface->SetModel(LUT);    
     fEsrOpticalSurface->SetFinish(polishedvm2000air);
     //fEsrOpticalSurface->SetFinish(polishedvm2000glue);
-
-    return;
-}
-
-void nDetConstruction::buildSiPMs(const G4double &zOffset/*=0*/) {
-    if(fGeometry == "ellipse" || fGeometry == "rectangle") {
-        greaseX = SiPM_dimension;
-        greaseZ = SiPM_dimension;
-        qwSiPMx = SiPM_dimension;
-        qwSiPMz = SiPM_dimension;
-        psSiPMx = SiPM_dimension;
-        psSiPMz = SiPM_dimension;
-    }
-
-    fNdetectors=2;
-    G4int factor=1;
-
-    G4ThreeVector mother_position(0, 0, 0);
-
-    //The Grease
-    G4Box* grease_solidV = new G4Box("grease", greaseX, greaseY, greaseZ);
-    grease_logV = new G4LogicalVolume(grease_solidV, fGrease, "grease_logV", 0, 0, 0);
-    G4VisAttributes* grease_VisAtt= new G4VisAttributes(G4Colour(1.0,0.0,0.0));//red
-    //grease_VisAtt->SetForceSolid(true);
-    grease_logV->SetVisAttributes(grease_VisAtt);
-
-    G4AssemblyVolume *theGrease=new G4AssemblyVolume();
-    for(G4int det = 0; det < fNdetectors; det++) {
-        if(det == 1)
-            factor=-1;
-        G4ThreeVector position(0, 0, factor*(fDetectorLength/ 2+greaseY+zOffset));
-        G4RotationMatrix *rot = new G4RotationMatrix();
-        rot->rotateX(90 * deg);
-        theGrease->AddPlacedVolume(grease_logV, position, rot);
-    }
-    theGrease->MakeImprint(assembly_logV,mother_position,NULL);
-
-    //The SiPM window
-    G4Box* qwSiPM_solidV = new G4Box("qwSiPM_solidV", qwSiPMx, qwSiPMy, qwSiPMz);
-
-    qwSiPM_logV = new G4LogicalVolume(qwSiPM_solidV,fSiO2,"SiPMwindow_log");
-
-    G4VisAttributes* window_VisAtt= new G4VisAttributes(G4Colour(0.0,1.0,1.0));//cyan
-    //window_VisAtt->SetForceSolid(true);
-    qwSiPM_logV->SetVisAttributes(window_VisAtt);
-
-    factor=1;
-
-    G4AssemblyVolume* theSiPMWindows=new G4AssemblyVolume();
-    for(G4int det = 0; det < fNdetectors; det++) {
-        if(det == 1)
-            factor=-1;
-        G4ThreeVector position(0, 0, factor*(fDetectorLength/2 + qwSiPMy+2*greaseY+zOffset));
-        G4RotationMatrix *rot = new G4RotationMatrix();
-        rot->rotateX(90 * deg);
-        theSiPMWindows->AddPlacedVolume(qwSiPM_logV, position, rot);
-    }
-    theSiPMWindows->MakeImprint(assembly_logV,mother_position,NULL);
-
-    // The Sensitive surface
-    G4Box* psSiPM_solidV = new G4Box("psSiPM_solidV", psSiPMx, psSiPMy, psSiPMz);
-
-    psSiPM_logV = new G4LogicalVolume(psSiPM_solidV,fSil, "psSiPM_logV", 0, 0, 0);
-
-	// The logical surface
-    new G4LogicalSkinSurface("theSiPM", psSiPM_logV, fSiliconPMOpticalSurface);
-
-    G4VisAttributes* psSiPM_VisAtt= new G4VisAttributes(G4Colour(0.1,1.0,0.0));//magenta
-    psSiPM_VisAtt->SetForceSolid(true);
-    psSiPM_logV->SetVisAttributes(psSiPM_VisAtt);
-    factor=1;
-    G4AssemblyVolume* psSiPMAssembly = new G4AssemblyVolume();
-    for(G4int det = 0; det < fNdetectors; det++) {
-        if(det==1)
-            factor=-1;
-        G4ThreeVector position(0, 0, factor*(fDetectorLength / 2  + 2*qwSiPMy+2*greaseY+psSiPMy+zOffset));
-        G4RotationMatrix *rot = new G4RotationMatrix();
-        rot->rotateX(90 * deg);
-        psSiPMAssembly->AddPlacedVolume(psSiPM_logV, position, rot);
-    }
-    psSiPMAssembly->MakeImprint(assembly_logV,mother_position,NULL);
 
     return;
 }
@@ -958,9 +842,6 @@ void nDetConstruction::buildRectangle(){
 			trapRot[1]->rotateX(gdmlRotation.getX()*deg);
 			trapRot[1]->rotateY(gdmlRotation.getY()*deg);
 			trapRot[1]->rotateZ(gdmlRotation.getZ()*deg);
-	        
-	        //trapRot[0]->rotateX(90*deg);
-        	//trapRot[1]->rotateX(-90*deg);
 	    }
 
         //The grease
