@@ -272,12 +272,12 @@ bool nDetRunAction::openRootFile(const G4Run* aRun)
     fTree->Branch("nPhotonsDet[2]", nPhotonsDet);
     fTree->Branch("photonComX[2]", photonDetCenterOfMassX);
     fTree->Branch("photonComY[2]", photonDetCenterOfMassY);
-    //fTree->Branch("photonComZ[2]", photonDetCenterOfMassZ);   
     fTree->Branch("photonMinTime[2]", photonMinArrivalTime);
     fTree->Branch("photonAvgTime[2]", photonAvgArrivalTime);    
     fTree->Branch("pulsePhase[2]", pulsePhase);
     fTree->Branch("pulseQDC[2]", pulseQDC);
     fTree->Branch("pulseMax[2]", pulseMax);
+    fTree->Branch("lightBalance", &photonLightBalance);
     fTree->Branch("photonDetEff", &photonDetEfficiency);
 
 	if(outputTraces){ // Add the lilght pulses to the output tree.
@@ -361,6 +361,9 @@ bool nDetRunAction::fillBranch()
   pulsePhase[1] = pmtR->analyzePolyCFD(polyCfdFraction);
   pulseQDC[1] = pmtR->integratePulseFromMaximum(pulseIntegralLow, pulseIntegralHigh);
   pulseMax[1] = pmtR->getMaximum();
+
+  // Compute the light balance (Z).
+  photonLightBalance = (pulseQDC[0]-pulseQDC[1])/(pulseQDC[0]+pulseQDC[1]);
 
   // Clear all photon statistics from the detector.
   detector->Clear();

@@ -21,7 +21,7 @@
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
  
-nDetEventAction::nDetEventAction(nDetRunAction* run) : runAct(run), timer(new G4Timer), depositedEnergy(0), avgTimePerEvent(0), previousTime(0), totalTime(0), eventID(0), previousEvents(0), totalEvents(0) { }
+nDetEventAction::nDetEventAction(nDetRunAction* run) : runAct(run), timer(new G4Timer), previousTime(0), totalTime(0), totalEvents(0), numPhotons(0), numPhotonsDet(0) { }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
  
@@ -34,37 +34,43 @@ nDetEventAction::~nDetEventAction(){
 void nDetEventAction::BeginOfEventAction(const G4Event* evt){
   // initialisation per event.
 
-  eventID = evt->GetEventID();
-  depositedEnergy = 0; 
+  G4long eventID = evt->GetEventID();
+
+  double avgTimePerEvent;
+  double avgTimePerPhoton;
+  double avgTimePerDetection;
 
   if(eventID != 0){
     timer->Stop();
-    G4double tprime = timer->GetRealElapsed();
-    totalTime += tprime;
+    totalTime += timer->GetRealElapsed();
     if(totalTime - previousTime >= 10){ // Display every 10 seconds.
       std::cout << "Event ID: " << eventID << ", TIME=" << totalTime << " s";
       avgTimePerEvent = totalTime/eventID;
+      avgTimePerPhoton = totalTime/numPhotons;
+      avgTimePerDetection = totalTime/numPhotonsDet;
       if(totalEvents > 0){
         std::cout << ", REMAINING=" << (totalEvents-eventID)*avgTimePerEvent << " s";
       }
-      std::cout << ", RATE=" << 1/avgTimePerEvent << " evt/s\n";
+      std::cout << ", RATE=" << 1/avgTimePerEvent << " evt/s (" << 1/avgTimePerPhoton << " phot/s & " << 1/avgTimePerDetection << " det/s)\n";
       previousTime = totalTime;
-      previousEvents = eventID;
     }
-    timer->Start();
   }
-  else{ // Start the timer.
-    timer->Start();
-  }
+  
+  // Start the timer.
+  timer->Start();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
  
 void nDetEventAction::EndOfEventAction(const G4Event*){
-  // fill branches
+  // Fill branches
   runAct->fillBranch();
+
+  // Update photon statistics.
+  numPhotons += runAct->nPhotonsTot;
+  numPhotonsDet += runAct->nPhotonsDet[0]+runAct->nPhotonsDet[1];
         
-  // clear vector for next event
+  // Clear vector for next event
   runAct->vectorClear();
 }
 

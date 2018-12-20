@@ -34,11 +34,7 @@ class nDetEventAction : public G4UserEventAction
 
     void StartTimer();
     
-    void AddDepE(const G4double &depE){ depositedEnergy += depE; };
-
     void SetTotalEvents(const G4long &events){ totalEvents = events; }
-
-    G4long GetEventID(){ return eventID; };
 
     G4double GetTimeElapsed();
 
@@ -47,14 +43,13 @@ class nDetEventAction : public G4UserEventAction
     
     G4Timer *timer;
     
-    G4double depositedEnergy;   // deposited energy in Scintillator.
-    G4double avgTimePerEvent;
     G4double previousTime;
     G4double totalTime;
     
-    G4long eventID;
-    G4long previousEvents;
     G4long totalEvents;
+    
+    unsigned long long numPhotons;
+    unsigned long long numPhotonsDet;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

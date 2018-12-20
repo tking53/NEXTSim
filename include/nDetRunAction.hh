@@ -111,6 +111,7 @@ class nDetRunAction : public G4UserRunAction
     float pulseQDC[2];
 
     double photonDetEfficiency;
+	double photonLightBalance;
     
     nDetRunAction(nDetConstruction *det);
     
