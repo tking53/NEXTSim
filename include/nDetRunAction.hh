@@ -64,28 +64,30 @@ class primaryTrackInfo{
 class nDetRunAction : public G4UserRunAction
 {
   public:
+	// Run information.
     short runNb;
-    short eventNb;
+
+    // Normal neutron output.
     short nScatters;
 
-    double neutronIncidentPositionX;
-    double neutronIncidentPositionY;
-    double neutronIncidentPositionZ;
-
-	double neutronExitPositionX;
-	double neutronExitPositionY;
-	double neutronExitPositionZ;
-
-	double nTimeToFirstScatter;
-	double nLengthToFirstScatter;
-
-	double incidentTime;
-	double timeInMaterial;
     double depEnergy; // energy deposition inside of the EJ200 scintillator
     double initEnergy; // Initial energy of the neutron (CRT)
     
     bool nAbsorbed;
 
+	// Neutron debug output variables.
+    double neutronIncidentPositionX;
+    double neutronIncidentPositionY;
+    double neutronIncidentPositionZ;
+	double neutronExitPositionX;
+	double neutronExitPositionY;
+	double neutronExitPositionZ;	
+
+	double nTimeToFirstScatter;
+	double nLengthToFirstScatter;
+	double incidentTime;
+	double timeInMaterial;
+	
     std::vector<double> nScatterX;
     std::vector<double> nScatterY;
     std::vector<double> nScatterZ;
@@ -97,8 +99,20 @@ class nDetRunAction : public G4UserRunAction
     std::vector<short> segmentRow;
     std::vector<short> Nphotons;
     std::vector<short> recoilMass;
+
+    // Normal photon output.
+    double photonDetEfficiency;
+	double photonLightBalance;    
+    double barCenterOfMassX;
+    double barCenterOfMassY;
     
+    float barTOF;
+    float barQDC;    
+    float barMaxADC;
+    
+    // Photon debug output variables.
     unsigned int nPhotonsTot;
+    unsigned int nPhotonsDetTot;
     unsigned int nPhotonsDet[2];
     
     double photonDetCenterOfMassX[2];
@@ -106,12 +120,10 @@ class nDetRunAction : public G4UserRunAction
     double photonDetCenterOfMassZ[2];
     double photonMinArrivalTime[2];
     double photonAvgArrivalTime[2];
+    
     float pulsePhase[2];
     float pulseMax[2];
     float pulseQDC[2];
-
-    double photonDetEfficiency;
-	double photonLightBalance;
     
     nDetRunAction(nDetConstruction *det);
     
@@ -144,6 +156,8 @@ class nDetRunAction : public G4UserRunAction
 	void setOutputFileIndex(const G4int &index){ runIndex = index; }
 	
 	void setOutputTraces(const bool &enabled){ outputTraces = enabled; }
+	
+	void setOutputDebug(const bool &enabled){ outputDebug = enabled; }
 	
 	void setOverwriteOutputFile(const bool &overwrite){ overwriteExistingFile = overwrite; }
 
@@ -192,6 +206,7 @@ class nDetRunAction : public G4UserRunAction
     bool outputEnabled;
     bool verbose;
     bool outputTraces;
+    bool outputDebug;
 
 	double baselineFraction;
 	double baselineJitterFraction;

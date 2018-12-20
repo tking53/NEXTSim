@@ -76,6 +76,10 @@ nDetRunActionMessenger::nDetRunActionMessenger(nDetRunAction *action) : messenge
 
 	addCommand(new G4UIcmdWithAnInteger("/nDet/output/trace/setBitRange", this));
 	addGuidance("Set the ADC dynamic bit range");
+
+	addCommand(new G4UIcmdWithAString("/nDet/output/debug", this));
+	addGuidance("Enable or disable writing of detailed debug information to output file");
+	addCandidates("true false");
 }
 
 void nDetRunActionMessenger::SetNewValue(G4UIcommand *command, G4String newValue){
@@ -161,5 +165,8 @@ void nDetRunActionMessenger::SetNewValue(G4UIcommand *command, G4String newValue
 		G4int val = command->ConvertToInt(newValue);
 		prL->setBitRange(val);
 		prR->setBitRange(val);
+	}
+	else if(index == 19){
+		fAction->setOutputDebug((newValue == "true") ? true : false);
 	}
 }
