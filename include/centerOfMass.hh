@@ -29,6 +29,10 @@ class centerOfMass{
 	
 	double getCenterZ() const;
 
+	bool getCenterSegment(G4ThreeVector &pos, short &col, short &row) const ;
+
+	bool getCenterSegment(short &col, short &row) const ;
+	
 	double getDetectionEfficiency() const { return (Npts > 0 ? double(Npts)/(Npts+NnotDetected) : -1); }
 
 	double getAvgWavelength() const { return (Npts > 0 ? lambdaSum/Npts : -1); }

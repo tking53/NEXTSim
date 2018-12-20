@@ -268,19 +268,20 @@ bool nDetRunAction::openRootFile(const G4Run* aRun)
 	
 	fTree->Branch("lightBalance", &photonLightBalance);
 	fTree->Branch("photonDetEff", &photonDetEfficiency);
-	fTree->Branch("barComX", &barCenterOfMassX);
-	fTree->Branch("barComY", &barCenterOfMassY);
 	fTree->Branch("barTOF", &barTOF);
 	fTree->Branch("barQDC", &barQDC);
 	fTree->Branch("barMaxADC", &barMaxADC);
+	fTree->Branch("goodEvent", &goodEvent);
+	fTree->Branch("pulsePhase[2]", pulsePhase);
+	fTree->Branch("photonComX[2]", photonDetCenterOfMassX);
+	fTree->Branch("photonComY[2]", photonDetCenterOfMassY);
+	fTree->Branch("photonComCol[2]", centerOfMassColumn);
+	fTree->Branch("photonComRow[2]", centerOfMassRow);
 
 	if(outputDebug){ // Output extra photon information (off by default).
 		fTree->Branch("nPhotons[2]", nPhotonsDet);
-		fTree->Branch("photonComX[2]", photonDetCenterOfMassX);
-		fTree->Branch("photonComY[2]", photonDetCenterOfMassY);
 		fTree->Branch("photonMinTime[2]", photonMinArrivalTime);
 		fTree->Branch("photonAvgTime[2]", photonAvgArrivalTime);		
-		fTree->Branch("pulsePhase[2]", pulsePhase);
 		fTree->Branch("pulseQDC[2]", pulseQDC);
 		fTree->Branch("pulseMax[2]", pulseMax);
 	}
@@ -332,6 +333,9 @@ bool nDetRunAction::fillBranch()
 	else
 		photonDetEfficiency = -1;
 
+	if(nPhotonsDetTot > 0)
+		goodEvent = true;
+
 	// Get the photon center-of-mass positions
 	G4ThreeVector centerL = cmL->getCenter();
 	G4ThreeVector centerR = cmR->getCenter();
@@ -378,6 +382,10 @@ bool nDetRunAction::fillBranch()
 	barQDC = std::sqrt(pulseQDC[0]*pulseQDC[1]);
 	barMaxADC = std::sqrt(pulseMax[0]*pulseMax[1]);
 
+	// Get the segment of the detector where the photon CoM occurs.
+	cmL->getCenterSegment(centerOfMassColumn[0], centerOfMassRow[0]);
+	cmR->getCenterSegment(centerOfMassColumn[1], centerOfMassRow[1]);
+	
 	// Clear all photon statistics from the detector.
 	detector->Clear();
 
@@ -397,6 +405,7 @@ void nDetRunAction::vectorClear(){
 	incidentTime = 0;
 	depEnergy = 0;
 	nAbsorbed = false;
+	goodEvent = false;
 
 	nScatterX.clear();
 	nScatterY.clear();

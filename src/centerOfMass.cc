@@ -22,13 +22,31 @@ double centerOfMass::getCenterX() const {
 	return (totalMass > 0 ? (1/totalMass)*center.getX() : 0);
 }
 
-double centerOfMass::getCenterY() const{
+double centerOfMass::getCenterY() const {
 	return (totalMass > 0 ? (1/totalMass)*center.getY() : 0);
 }
 
-double centerOfMass::getCenterZ() const{
+double centerOfMass::getCenterZ() const {
 	return (totalMass > 0 ? (1/totalMass)*center.getZ() : 0);
 }
+
+bool centerOfMass::getCenterSegment(G4ThreeVector &pos, short &col, short &row) const {
+	double xpos = (pos.getX()+activeWidth/2)/pixelWidth;
+	double ypos = (pos.getY()+activeHeight/2)/pixelHeight;
+	
+	pos.setX(xpos*(activeWidth/Ncol)-activeWidth/2);
+	pos.setY(ypos*(activeHeight/Nrow)-activeHeight/2);
+	
+	col = (short)floor(xpos);
+	row = (short)floor(ypos);
+	
+	return ((col >= 0 && col < Ncol) && (row >= 0 && row < Nrow));
+}
+
+bool centerOfMass::getCenterSegment(short &col, short &row) const {
+	G4ThreeVector pos = this->getCenter();
+	return this->getCenterSegment(pos, col, row);
+}	
 
 short centerOfMass::setNumColumns(const short &col_){ 
 	Ncol = col_;
@@ -125,12 +143,9 @@ bool centerOfMass::addPoint(const G4Step *step, const double &mass/*=1*/){
 		totalMass += mass;		
 	}
 	else{ // Segmented PMT behavior
+		short xpos, ypos;
 		G4ThreeVector pos = step->GetPostStepPoint()->GetPosition();
-		double xpos = (pos.getX()+activeWidth/2)/pixelWidth;
-		double ypos = (pos.getY()+activeHeight/2)/pixelHeight;
-		
-		pos.setX(xpos*(activeWidth/Ncol)-activeWidth/2);
-		pos.setY(ypos*(activeHeight/Nrow)-activeHeight/2);
+		this->getCenterSegment(pos, xpos, ypos);
 		center += mass*pos;
 		
 		// Add the PMT response to the "digitized" trace

@@ -74,6 +74,7 @@ class nDetRunAction : public G4UserRunAction
     double initEnergy; // Initial energy of the neutron (CRT)
     
     bool nAbsorbed;
+    bool goodEvent;
 
 	// Neutron debug output variables.
     double neutronIncidentPositionX;
@@ -105,23 +106,27 @@ class nDetRunAction : public G4UserRunAction
 	double photonLightBalance;    
     double barCenterOfMassX;
     double barCenterOfMassY;
-    
+
     float barTOF;
     float barQDC;    
     float barMaxADC;
+	float pulsePhase[2];
+
+	double photonDetCenterOfMassX[2];
+	double photonDetCenterOfMassY[2];
+
+    short centerOfMassColumn[2];
+    short centerOfMassRow[2];
     
     // Photon debug output variables.
     unsigned int nPhotonsTot;
     unsigned int nPhotonsDetTot;
     unsigned int nPhotonsDet[2];
-    
-    double photonDetCenterOfMassX[2];
-    double photonDetCenterOfMassY[2];
+
     double photonDetCenterOfMassZ[2];
     double photonMinArrivalTime[2];
     double photonAvgArrivalTime[2];
-    
-    float pulsePhase[2];
+
     float pulseMax[2];
     float pulseQDC[2];
     
