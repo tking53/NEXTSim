@@ -55,6 +55,12 @@ class centerOfMass{
 	
 	pmtResponse *getPmtResponse(){ return &response; }
 	
+	void getAnodeCurrents(double *array) const ;
+	
+	double getReconstructedX() const ;
+	
+	double getReconstructedY() const ;
+	
 	short setNumColumns(const short &col_);
 	
 	short setNumRows(const short &row_);
@@ -93,6 +99,8 @@ class centerOfMass{
 	double pixelWidth;
 	double pixelHeight;
 	
+	double anodeCurrent[4];
+	
 	G4ThreeVector center;
 	
 	pmtResponse response;
@@ -100,6 +108,8 @@ class centerOfMass{
 	std::vector<std::vector<double> > gainMatrix;
 	
 	double getGain(const int &x, const int &y);
+	
+	double *getCurrent(const int &x, const int &y);
 };
 
 #endif

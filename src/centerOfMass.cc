@@ -4,6 +4,7 @@
 #include "G4Step.hh"
 
 #include "centerOfMass.hh"
+#include "vertilon.hh"
 
 const double coeff = 1.23984193E-3; // hc = Mev * nm
 
@@ -47,6 +48,20 @@ bool centerOfMass::getCenterSegment(short &col, short &row) const {
 	G4ThreeVector pos = this->getCenter();
 	return this->getCenterSegment(pos, col, row);
 }	
+
+void centerOfMass::getAnodeCurrents(double *array) const {
+	for(size_t i = 0; i < 4; i++){
+		array[i] = anodeCurrent[i];
+	}
+}
+
+double centerOfMass::getReconstructedX() const {
+	return ((anodeCurrent[0]+anodeCurrent[1])-(anodeCurrent[2]+anodeCurrent[3]))/(anodeCurrent[0]+anodeCurrent[1]+anodeCurrent[2]+anodeCurrent[3]);
+}
+
+double centerOfMass::getReconstructedY() const {
+	return ((anodeCurrent[1]+anodeCurrent[2])-(anodeCurrent[3]+anodeCurrent[0]))/(anodeCurrent[0]+anodeCurrent[1]+anodeCurrent[2]+anodeCurrent[3]);
+}
 
 short centerOfMass::setNumColumns(const short &col_){ 
 	Ncol = col_;
@@ -122,6 +137,9 @@ void centerOfMass::clear(){
 	center = G4ThreeVector();
 	t0 = std::numeric_limits<double>::max();	
 	response.clear();
+	for(size_t i = 0; i < 4; i++){
+		anodeCurrent[i] = 0;
+	}
 }
 
 bool centerOfMass::addPoint(const G4Step *step, const double &mass/*=1*/){
@@ -145,15 +163,37 @@ bool centerOfMass::addPoint(const G4Step *step, const double &mass/*=1*/){
 	else{ // Segmented PMT behavior
 		short xpos, ypos;
 		G4ThreeVector pos = step->GetPostStepPoint()->GetPosition();
-		this->getCenterSegment(pos, xpos, ypos);
-		center += mass*pos;
-		
-		// Add the PMT response to the "digitized" trace
-		double gain = getGain((int)floor(xpos), (int)floor(ypos));
-		response.addPhoton(time, wavelength, gain);
-		
-		// Add the "mass" to the others weighted by the individual anode gain
-		totalMass += gain*mass;
+		if(this->getCenterSegment(pos, xpos, ypos)){
+			// Get the gain of this anode.
+			double gain = getGain(xpos, ypos);
+
+			// Add the anger logic currents to the anode outputs.
+			/*for(size_t i = 0; i < 4; i++){
+				anodeCurrent[i] += gain*mass*currents[xpos][ypos][i];
+			}*/
+			
+			// Compute resistor network leakage current.
+			const double leakage[3][3] = {{1E-3, 1E-2, 1E-3},
+			                              {1E-2, 1.00, 1E-2},
+			                              {1E-3, 1E-2, 1E-3}};
+			for(short anodeX = -1; anodeX <= 1; anodeX++){
+				for(short anodeY = -1; anodeY <= 1; anodeY++){
+					double *current = getCurrent(xpos+anodeX, ypos+anodeY);
+					if(current){ // Add the anger logic currents to the anode outputs.
+						for(size_t i = 0; i < 4; i++){
+							anodeCurrent[i] += gain*mass*leakage[anodeX+1][anodeY+1]*current[3-i];
+						}
+					}
+				}
+			}
+			
+			// Add the PMT response to the "digitized" trace
+			response.addPhoton(time, wavelength, gain);
+
+			// Add the "mass" to the others weighted by the individual anode gain
+			center += (gain*mass)*pos;
+			totalMass += gain*mass;
+		}
 	}
 	
 	tSum += time;
@@ -175,4 +215,9 @@ void centerOfMass::print(){
 double centerOfMass::getGain(const int &x, const int &y){
 	if((x < 0 || x >= Ncol) || (y < 0 || y >= Nrow)) return 0;
 	return gainMatrix[x][y]/100;
+}
+
+double *centerOfMass::getCurrent(const int &x, const int &y){
+	if((x < 0 || x >= 8) || (y < 0 || y >= 8)) return NULL;
+	return currents[x][y];
 }
