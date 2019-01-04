@@ -148,6 +148,9 @@ void nDetRunAction::BeginOfRunAction(const G4Run* aRun)
 
 	// get RunId
 	runNb = aRun->GetRunID();
+	
+	// Update the source.
+	source->SetDetector(detector);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -275,6 +278,8 @@ bool nDetRunAction::openRootFile(const G4Run* aRun)
 	fTree->Branch("pulsePhase[2]", pulsePhase);
 	fTree->Branch("photonComX[2]", photonDetCenterOfMassX);
 	fTree->Branch("photonComY[2]", photonDetCenterOfMassY);
+	fTree->Branch("reconComX[2]", reconstructedCenterX);
+	fTree->Branch("reconComY[2]", reconstructedCenterY);
 	fTree->Branch("photonComCol[2]", centerOfMassColumn);
 	fTree->Branch("photonComRow[2]", centerOfMassRow);
 
@@ -284,6 +289,7 @@ bool nDetRunAction::openRootFile(const G4Run* aRun)
 		fTree->Branch("photonAvgTime[2]", photonAvgArrivalTime);		
 		fTree->Branch("pulseQDC[2]", pulseQDC);
 		fTree->Branch("pulseMax[2]", pulseMax);
+		fTree->Branch("anode", anodeCurrent, "anode[2][4]/D");
 	}
 
 	if(outputTraces){ // Add the lilght pulses to the output tree.
@@ -333,7 +339,8 @@ bool nDetRunAction::fillBranch()
 	else
 		photonDetEfficiency = -1;
 
-	if(nPhotonsDetTot > 0)
+	// Check for valid bar detection
+	if(nPhotonsDet[0]*nPhotonsDet[1] > 0)
 		goodEvent = true;
 
 	// Get the photon center-of-mass positions
@@ -382,9 +389,20 @@ bool nDetRunAction::fillBranch()
 	barQDC = std::sqrt(pulseQDC[0]*pulseQDC[1]);
 	barMaxADC = std::sqrt(pulseMax[0]*pulseMax[1]);
 
+	// Retrieve the reconstructed center of mass position.
+	reconstructedCenterX[0] = cmL->getReconstructedX();
+	reconstructedCenterY[0] = cmL->getReconstructedY();
+	reconstructedCenterX[1] = cmR->getReconstructedX();
+	reconstructedCenterY[1] = cmR->getReconstructedY();
+
 	// Get the segment of the detector where the photon CoM occurs.
 	cmL->getCenterSegment(centerOfMassColumn[0], centerOfMassRow[0]);
 	cmR->getCenterSegment(centerOfMassColumn[1], centerOfMassRow[1]);
+	
+	if(outputDebug){ // Retrieve the anode currents.
+		cmL->getAnodeCurrents(anodeCurrent[0]);
+		cmR->getAnodeCurrents(anodeCurrent[1]);
+	}
 	
 	// Clear all photon statistics from the detector.
 	detector->Clear();

@@ -114,6 +114,8 @@ class nDetRunAction : public G4UserRunAction
 
 	double photonDetCenterOfMassX[2];
 	double photonDetCenterOfMassY[2];
+	double reconstructedCenterX[2];
+	double reconstructedCenterY[2];
 
     short centerOfMassColumn[2];
     short centerOfMassRow[2];
@@ -129,6 +131,8 @@ class nDetRunAction : public G4UserRunAction
 
     float pulseMax[2];
     float pulseQDC[2];
+    
+    double anodeCurrent[2][4];
     
     nDetRunAction(nDetConstruction *det);
     
