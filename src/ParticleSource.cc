@@ -358,6 +358,10 @@ void ParticleSource::SetElectronBeam(const double &energy_){
 	particleGun->SetParticleDefinition(G4Electron::ElectronDefinition());
 }
 
+void ParticleSource::SetIsotropicMode(bool state_/*=true*/){
+	psource->setIsIsotropic(state_);
+}
+
 Source *ParticleSource::GetNewSource(const double &E_/*=-1*/){
 	if(psource) delete psource;
 	if(E_ > 0)
@@ -388,6 +392,9 @@ ParticleSourceMessenger::ParticleSourceMessenger(ParticleSource* Gun) : fAction(
 	
 	addCommand(new G4UIcmdWithADouble("/nDet/source/spot", this)); // beamspot radius (mm)
 	addGuidance("Set the radius of the beam (in mm)");
+
+	addCommand(new G4UIcommand("/nDet/source/iso", this));
+	addGuidance("Set the source to psuedo-isotropic mode");
 }
 
 void ParticleSourceMessenger::SetNewValue(G4UIcommand* command, G4String newValue){ 
@@ -405,4 +412,6 @@ void ParticleSourceMessenger::SetNewValue(G4UIcommand* command, G4String newValu
 		fAction->SetBeamType(newValue);
 	else if(index == 5)
 		fAction->SetBeamspotRadius(G4UIcommand::ConvertToDouble(newValue));
+	else if(index == 6)
+		fAction->SetIsotropicMode(true);
 }

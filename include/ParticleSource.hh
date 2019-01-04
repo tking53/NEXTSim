@@ -154,6 +154,8 @@ class ParticleSource : public G4VUserPrimaryGeneratorAction {
 	void SetLaserBeam(const double &energy_);
 	
 	void SetElectronBeam(const double &energy_);
+	
+	void SetIsotropicMode(bool state_=true);
 
   private:    
 	ParticleSourceMessenger *fGunMessenger;
@@ -178,7 +180,7 @@ class ParticleSource : public G4VUserPrimaryGeneratorAction {
 	G4ParticleGun *particleGun;
 	
 	G4RotationMatrix rot;
-
+	
     void InitFunction(){ }
     
     Source *GetNewSource(const double &E_=-1);
