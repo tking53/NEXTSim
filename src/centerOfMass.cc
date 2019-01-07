@@ -167,11 +167,6 @@ bool centerOfMass::addPoint(const G4Step *step, const double &mass/*=1*/){
 			// Get the gain of this anode.
 			double gain = getGain(xpos, ypos);
 
-			// Add the anger logic currents to the anode outputs.
-			/*for(size_t i = 0; i < 4; i++){
-				anodeCurrent[i] += gain*mass*currents[xpos][ypos][i];
-			}*/
-			
 			// Compute resistor network leakage current.
 			const double leakage[3][3] = {{1E-3, 1E-2, 1E-3},
 			                              {1E-2, 1.00, 1E-2},
@@ -181,7 +176,7 @@ bool centerOfMass::addPoint(const G4Step *step, const double &mass/*=1*/){
 					double *current = getCurrent(xpos+anodeX, ypos+anodeY);
 					if(current){ // Add the anger logic currents to the anode outputs.
 						for(size_t i = 0; i < 4; i++){
-							anodeCurrent[i] += gain*mass*leakage[anodeX+1][anodeY+1]*current[3-i];
+							anodeCurrent[i] += gain*leakage[anodeX+1][anodeY+1]*current[3-i];
 						}
 					}
 				}
@@ -191,8 +186,8 @@ bool centerOfMass::addPoint(const G4Step *step, const double &mass/*=1*/){
 			response.addPhoton(time, wavelength, gain);
 
 			// Add the "mass" to the others weighted by the individual anode gain
-			center += (gain*mass)*pos;
-			totalMass += gain*mass;
+			center += pos;
+			totalMass += mass;
 		}
 	}
 	
