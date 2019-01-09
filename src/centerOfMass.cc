@@ -167,8 +167,16 @@ bool centerOfMass::addPoint(const G4Step *step, const double &mass/*=1*/){
 			// Get the gain of this anode.
 			double gain = getGain(xpos, ypos);
 
-			// Compute resistor network leakage current.
-			const double leakage[3][3] = {{1E-3, 1E-2, 1E-3},
+			// Add the anger logic currents to the anode outputs.
+			double *current = getCurrent(xpos, ypos);
+			if(current){
+				for(size_t i = 0; i < 4; i++){
+					anodeCurrent[i] += gain*mass*current[i];
+				}
+			}
+			
+			// Compute resistor network leakage current. This is unnecessary for symmetric leakage... CRT
+			/*const double leakage[3][3] = {{1E-3, 1E-2, 1E-3},
 			                              {1E-2, 1.00, 1E-2},
 			                              {1E-3, 1E-2, 1E-3}};
 			for(short anodeX = -1; anodeX <= 1; anodeX++){
@@ -180,7 +188,7 @@ bool centerOfMass::addPoint(const G4Step *step, const double &mass/*=1*/){
 						}
 					}
 				}
-			}
+			}*/
 			
 			// Add the PMT response to the "digitized" trace
 			response.addPhoton(time, wavelength, gain);
@@ -214,5 +222,5 @@ double centerOfMass::getGain(const int &x, const int &y){
 
 double *centerOfMass::getCurrent(const int &x, const int &y){
 	if((x < 0 || x >= 8) || (y < 0 || y >= 8)) return NULL;
-	return currents[x][y];
+	return vertilon::currents[x][y];
 }
