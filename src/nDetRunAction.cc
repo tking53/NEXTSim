@@ -246,12 +246,15 @@ bool nDetRunAction::openRootFile(const G4Run* aRun)
 	fTree->Branch("nPhotonsDet", &nPhotonsDetTot);
 
 	if(outputDebug){ // Output extra neutron scattering information (off by default).
-		fTree->Branch("nEnterPosX",&neutronIncidentPositionX);
-		fTree->Branch("nEnterPosY",&neutronIncidentPositionY);
-		fTree->Branch("nEnterPosZ",&neutronIncidentPositionZ);
-		fTree->Branch("nExitPosX",&neutronExitPositionX);
-		fTree->Branch("nExitPosY",&neutronExitPositionY);
-		fTree->Branch("nExitPosZ",&neutronExitPositionZ);
+		fTree->Branch("nEnterPosX", &neutronIncidentPositionX);
+		fTree->Branch("nEnterPosY", &neutronIncidentPositionY);
+		fTree->Branch("nEnterPosZ", &neutronIncidentPositionZ);
+		fTree->Branch("nExitPosX", &neutronExitPositionX);
+		fTree->Branch("nExitPosY", &neutronExitPositionY);
+		fTree->Branch("nExitPosZ", &neutronExitPositionZ);
+		fTree->Branch("nComX", &neutronCenterOfMass[0]);
+		fTree->Branch("nComY", &neutronCenterOfMass[1]);
+		fTree->Branch("nComZ", &neutronCenterOfMass[2]);		
 		fTree->Branch("nFirstScatterTime", &nTimeToFirstScatter);
 		fTree->Branch("nFirstScatterLen", &nLengthToFirstScatter);		
 		fTree->Branch("nEnterTime", &incidentTime);
@@ -289,6 +292,7 @@ bool nDetRunAction::openRootFile(const G4Run* aRun)
 		fTree->Branch("photonAvgTime[2]", photonAvgArrivalTime);		
 		fTree->Branch("pulseQDC[2]", pulseQDC);
 		fTree->Branch("pulseMax[2]", pulseMax);
+		fTree->Branch("detSpdLight", &detSpeedLight);
 		fTree->Branch("anode", anodeCurrent, "anode[2][4]/D");
 	}
 
@@ -379,6 +383,17 @@ bool nDetRunAction::fillBranch()
 	pulseQDC[1] = pmtR->integratePulseFromMaximum(pulseIntegralLow, pulseIntegralHigh);
 	pulseMax[1] = pmtR->getMaximum();
 
+	if(outputDebug){
+		// Compute the bar speed-of-light.
+		double barTimeDiff = pulsePhase[1] - pulsePhase[0];
+		detSpeedLight = 2*neutronCenterOfMass[2]/barTimeDiff;
+	
+		// Compute the neutron scatter center-of-mass.
+		neutronCenterOfMass[0] = neutronCenterOfMass[0]/neutronWeight;
+		neutronCenterOfMass[1] = neutronCenterOfMass[1]/neutronWeight;
+		neutronCenterOfMass[2] = neutronCenterOfMass[2]/neutronWeight;
+	}
+
 	// Compute the light balance (Z).
 	photonLightBalance = (pulseQDC[0]-pulseQDC[1])/(pulseQDC[0]+pulseQDC[1]);
 
@@ -424,6 +439,11 @@ void nDetRunAction::vectorClear(){
 	depEnergy = 0;
 	nAbsorbed = false;
 	goodEvent = false;
+
+	neutronCenterOfMass[0] = 0;
+	neutronCenterOfMass[1] = 0;
+	neutronCenterOfMass[2] = 0;
+	neutronWeight = 0;
 
 	nScatterX.clear();
 	nScatterY.clear();
@@ -520,6 +540,11 @@ void nDetRunAction::scatterEvent(const G4Track *track){
 		nScatterX.push_back(vertex.getX());
 		nScatterY.push_back(vertex.getY());
 		nScatterZ.push_back(vertex.getZ());
+
+		neutronCenterOfMass[0] += priTrack->dkE*vertex.getX();
+		neutronCenterOfMass[1] += priTrack->dkE*vertex.getY();
+		neutronCenterOfMass[2] += priTrack->dkE*vertex.getZ();
+		neutronWeight += priTrack->dkE;
 
 		nScatterAngle.push_back(priTrack->angle);
 		impartedE.push_back(priTrack->dkE);

@@ -134,6 +134,10 @@ class nDetRunAction : public G4UserRunAction
     
     double anodeCurrent[2][4];
     
+	double neutronCenterOfMass[3];
+	double neutronWeight;
+	double detSpeedLight;
+    
     nDetRunAction(nDetConstruction *det);
     
     virtual ~nDetRunAction();
