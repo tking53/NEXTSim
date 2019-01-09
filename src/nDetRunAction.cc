@@ -405,9 +405,9 @@ bool nDetRunAction::fillBranch()
 	barMaxADC = std::sqrt(pulseMax[0]*pulseMax[1]);
 
 	// Retrieve the reconstructed center of mass position.
-	reconstructedCenterX[0] = cmL->getReconstructedX();
+	reconstructedCenterX[0] = -cmL->getReconstructedX();
 	reconstructedCenterY[0] = cmL->getReconstructedY();
-	reconstructedCenterX[1] = cmR->getReconstructedX();
+	reconstructedCenterX[1] = -cmR->getReconstructedX();
 	reconstructedCenterY[1] = cmR->getReconstructedY();
 
 	// Get the segment of the detector where the photon CoM occurs.
