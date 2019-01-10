@@ -59,6 +59,8 @@ class pmtResponse{
 	
 	unsigned short *getDigitizedPulse(){ return pulseArray; }
 
+	bool getPulseIsSaturated() const { return pulseIsSaturated; }
+
 	/// Set the rise time of the single photon pulse (in ns).
 	void setRisetime(const double &risetime_);
 	
@@ -158,6 +160,7 @@ class pmtResponse{
 	
 	bool isDigitized;
 	bool useSpectralResponse;
+	bool pulseIsSaturated;
 	
 	double *rawPulse;
 

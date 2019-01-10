@@ -90,14 +90,14 @@ void spectralResponse::close(){
 
 pmtResponse::pmtResponse() : risetime(4.0), falltime(20.0), timeSpread(0), amplitude(0), peakOffset(0), peakMaximum(0), traceDelay(50), gain(1E4),
                              maximum(-9999), baseline(-9999), maxIndex(0), adcBins(4096), pulseLength(100), isDigitized(false), 
-                             useSpectralResponse(false), rawPulse(NULL), pulseArray(NULL), spec() {
+                             useSpectralResponse(false), pulseIsSaturated(false), rawPulse(NULL), pulseArray(NULL), spec() {
 	this->update();
 	this->setPulseLength(pulseLength);
 }
 
 pmtResponse::pmtResponse(const double &risetime_, const double &falltime_) : risetime(risetime_), falltime(falltime_), timeSpread(0), amplitude(0), peakOffset(0), peakMaximum(0), traceDelay(50), gain(1E4),
                                                                              maximum(-9999), baseline(-9999), maxIndex(0), adcBins(4096), pulseLength(100), isDigitized(false), 
-                                                                             useSpectralResponse(false), rawPulse(NULL), pulseArray(NULL), spec() {
+                                                                             useSpectralResponse(false), pulseIsSaturated(false), rawPulse(NULL), pulseArray(NULL), spec() {
 	this->update();
 	this->setPulseLength(pulseLength);
 }
@@ -176,17 +176,26 @@ void pmtResponse::addPhoton(const double &arrival, const double &wavelength/*=0*
 
 void pmtResponse::digitize(const double &baseline_/*=0*/, const double &jitter_/*=0*/){
 	if(isDigitized) return;
+	pulseIsSaturated = false;
 	for(size_t i = 0; i < pulseLength; i++){
+		unsigned int value;
 		if(rawPulse[i] == 0)
-			pulseArray[i] = 0;
+			value = 0;
 		else{
 			unsigned int bin = (unsigned int)floor(rawPulse[i]);
 			if(bin >= adcBins) bin = adcBins-1;
-			pulseArray[i] = bin;
+			value = bin;
 		}
-		pulseArray[i] += baseline_*adcBins;
+		value += baseline_*adcBins;
 		if(jitter_ != 0) 
-			pulseArray[i] += (-jitter_ + 2*G4UniformRand()*jitter_)*adcBins;
+			value += (-jitter_ + 2*G4UniformRand()*jitter_)*adcBins;
+			
+		if(value <= 65535) // Pulse is not saturated.
+			pulseArray[i] = (unsigned short)value;
+		else{ // Pulse is saturated.
+			pulseIsSaturated = true;
+			pulseArray[i] = 65535;
+		}
 	}
 	isDigitized = true;
 }

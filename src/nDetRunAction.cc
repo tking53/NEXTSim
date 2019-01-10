@@ -368,6 +368,11 @@ bool nDetRunAction::fillBranch()
 	pmtL->digitize(baselineFraction, baselineJitterFraction);
 	pmtR->digitize(baselineFraction, baselineJitterFraction);
 
+	// Check for saturated pulse.
+	if(pmtL->getPulseIsSaturated() || pmtR->getPulseIsSaturated()){
+		std::cout << " Warning: One or more PMT's traces have saturated! Recommend lowering the gain.\n";
+	}
+
 	// Copy the trace into the trace vector.
 	if(outputTraces){
 		pmtL->copyTrace(lightPulseL);
