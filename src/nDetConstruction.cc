@@ -318,18 +318,20 @@ G4VPhysicalVolume* nDetConstruction::Construct() {
 }
 
 G4VPhysicalVolume* nDetConstruction::ConstructDetector(){
-  // Build experiment hall
-  buildExpHall();
+	// Build experiment hall
+	buildExpHall();
 
-  // Build the detector.
-  if(fGeometry == "rectangle")
-    buildRectangle();
-  else if(fGeometry == "ellipse")
-  	buildEllipse();
-  else if(fGeometry == "test")
-    buildTestAssembly();
-    
-  return expHall_physV;
+	// Build the detector.
+	if(fGeometry == "rectangle")
+		buildRectangle();
+	else if(fGeometry == "ellipse")
+		buildEllipse();
+	else if(fGeometry == "plate")
+		buildPlate();
+	else if(fGeometry == "test")
+		buildTestAssembly();
+
+	return expHall_physV;
 }
 
 void nDetConstruction::setSegmentedPmt(const short &col_, const short &row_, const double &width_, const double &height_){
@@ -968,25 +970,18 @@ void nDetConstruction::buildRectangle(){
 
 void nDetConstruction::buildEllipse(){
 	// Width of the detector (defined by the trapezoid length and SiPM dimensions).
-	fDetectorWidth = 2*(SiPM_dimension+(fTrapezoidLength/std::tan(50*deg)))*mm;
+	fDetectorWidth = 2*(SiPM_dimension+(fTrapezoidLength/std::tan(60*deg)))*mm;
 
 	// Length of the rectangular body.
 	G4double bodyLength = fDetectorLength - 2*fTrapezoidLength;
-
-	std::cout << " fDetectorWidth = " << fDetectorWidth << " mm\n";
-	std::cout << " bodyLength= " << bodyLength << " mm\n";
 
 	G4double assemblyLength = fDetectorLength + 2*(fGreaseThickness + fWindowThickness) + 2*mm;
 	G4double assemblyWidth = fDetectorWidth;
 	G4double assemblyThickness = fDetectorThickness;
 
-	std::cout << " assemblyLength=" << assemblyLength << std::endl;
-	std::cout << " assemblyWidth=" << assemblyWidth << std::endl;
-	std::cout << " assemblyThickness=" << assemblyThickness << std::endl;
-	
 	G4Box *assembly = new G4Box("assembly", assemblyWidth/2, assemblyThickness/2, assemblyLength/2);
     assembly_logV = new G4LogicalVolume(assembly, fAir, "assembly_logV");
-    //assembly_logV->SetVisAttributes(G4VisAttributes::Invisible);
+    assembly_logV->SetVisAttributes(G4VisAttributes::Invisible);
 
 	// ESR reflective wrapping.
 	fWrapSkinSurface = new G4LogicalSkinSurface("Wrapping", assembly_logV, fEsrOpticalSurface); //Outside
@@ -1016,6 +1011,36 @@ void nDetConstruction::buildEllipse(){
 	subRot->rotateX(90*deg);
 
 	new G4PVPlacement(subRot, G4ThreeVector(0, 0, 0), ellipseBody_logV, "Scint", assembly_logV, true, 0, fCheckOverlaps);
+	
+	constructPSPmts(assembly_logV, fDetectorLength/2);
+
+	G4RotationMatrix *rot = new G4RotationMatrix;
+	rot->rotateZ(90*deg);
+
+    // Full detector physical volume
+    new G4PVPlacement(rot, G4ThreeVector(0,0,0), assembly_logV, "Assembly", expHall_logV, 0, 0, true);//fCheckOverlaps);
+}
+
+void nDetConstruction::buildPlate(){
+	G4double assemblyLength = fDetectorLength + 2*(fGreaseThickness + fWindowThickness) + 2*mm;
+	G4double assemblyWidth = fDetectorWidth;
+	G4double assemblyThickness = fDetectorThickness;
+
+	G4Box *assembly = new G4Box("assembly", assemblyWidth/2, assemblyThickness/2, assemblyLength/2);
+    assembly_logV = new G4LogicalVolume(assembly, fAir, "assembly_logV");
+    assembly_logV->SetVisAttributes(G4VisAttributes::Invisible);
+
+	// ESR reflective wrapping.
+	fWrapSkinSurface = new G4LogicalSkinSurface("Wrapping", assembly_logV, fEsrOpticalSurface); //Outside
+
+    G4Box *plateBody = new G4Box("", fDetectorWidth/2, fDetectorThickness/2, fDetectorLength/2);
+    G4LogicalVolume *plateBody_logV = new G4LogicalVolume(plateBody, fEJ200, "plateBody_logV");
+
+    G4VisAttributes* ej200_VisAtt = new G4VisAttributes(G4Colour(0.0, 0.0, 1.0)); //blue
+    ej200_VisAtt->SetVisibility(true);
+    plateBody_logV->SetVisAttributes(ej200_VisAtt);
+
+	new G4PVPlacement(0, G4ThreeVector(0, 0, 0), plateBody_logV, "Scint", assembly_logV, true, 0, fCheckOverlaps);
 	
 	constructPSPmts(assembly_logV, fDetectorLength/2);
 

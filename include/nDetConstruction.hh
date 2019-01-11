@@ -341,6 +341,8 @@ private:
     void buildRectangle();
     
     void buildEllipse();
+
+	void buildPlate();
     
     void buildTestAssembly();
     
