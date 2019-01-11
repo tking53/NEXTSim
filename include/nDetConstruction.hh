@@ -254,6 +254,8 @@ private:
     G4double fTeflonThickness;
     G4double fMylarThickness;
     G4double fGreaseThickness;
+    G4double fWindowThickness;
+    G4double fSensitiveThickness;
     G4double fDetectorLength;
     G4double fDetectorThickness;
     G4double fDetectorWidth;
@@ -344,7 +346,7 @@ private:
     
     void DefineMaterials();
 
-    void constructPSPmts(G4LogicalVolume *assembly, const G4double &offset, const G4double &windowThickness);
+    void constructPSPmts(G4LogicalVolume *assembly, const G4double &offset);
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
