@@ -83,11 +83,14 @@ void primaryTrackInfo::print(){
 
 nDetRunAction::nDetRunAction(nDetConstruction *det){
 	timer = new G4Timer;
+	
 	persistentMode = false;
-	outputEnabled = true;
 	verbose = false;
+	
+	outputEnabled = true;
 	outputTraces = false;
 	outputDebug = false;
+	outputBadEvents = false;
 	
 	fFile = NULL;
 	eventAction = NULL;
@@ -277,7 +280,8 @@ bool nDetRunAction::openRootFile(const G4Run* aRun)
 	fTree->Branch("barTOF", &barTOF);
 	fTree->Branch("barQDC", &barQDC);
 	fTree->Branch("barMaxADC", &barMaxADC);
-	fTree->Branch("goodEvent", &goodEvent);
+	if(outputBadEvents)
+		fTree->Branch("goodEvent", &goodEvent);
 	fTree->Branch("pulsePhase[2]", pulsePhase);
 	fTree->Branch("photonComX[2]", photonDetCenterOfMassX);
 	fTree->Branch("photonComY[2]", photonDetCenterOfMassY);
@@ -427,7 +431,7 @@ bool nDetRunAction::fillBranch()
 	// Clear all photon statistics from the detector.
 	detector->Clear();
 
-	if(fTree)
+	if(outputBadEvents || goodEvent)
 		fTree->Fill(); // Fill the tree
 
 	return true;

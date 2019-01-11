@@ -172,6 +172,8 @@ class nDetRunAction : public G4UserRunAction
 	
 	void setOutputDebug(const bool &enabled){ outputDebug = enabled; }
 	
+	void setOutputBadEvents(const bool &enabled){ outputBadEvents = enabled; }
+	
 	void setOverwriteOutputFile(const bool &overwrite){ overwriteExistingFile = overwrite; }
 
 	void setActions(nDetEventAction *event_, nDetStackingAction *stacking_, nDetTrackingAction *tracking_, nDetSteppingAction *stepping_);
@@ -216,10 +218,12 @@ class nDetRunAction : public G4UserRunAction
     
     bool defineRootBranch;
     bool persistentMode;
-    bool outputEnabled;
     bool verbose;
+    
+	bool outputEnabled;
     bool outputTraces;
     bool outputDebug;
+    bool outputBadEvents;
 
 	double baselineFraction;
 	double baselineJitterFraction;
