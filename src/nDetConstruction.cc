@@ -241,9 +241,6 @@ nDetConstruction::nDetConstruction(const G4double &scale/*=1*/){
     
     // 100 micron thick grease on both ends of EJ200 bar
     grease_logV = NULL;
-    greaseX = 1.5*mm;
-    greaseY = 0.05*mm;
-    greaseZ = 1.5*mm; 
     
     // 1 mm thick SiPM window
     qwSiPM_logV = NULL;
@@ -325,6 +322,8 @@ G4VPhysicalVolume* nDetConstruction::ConstructDetector(){
   // Build the detector.
   if(fGeometry == "rectangle")
     buildRectangle();
+  else if(fGeometry == "ellipse")
+  	buildEllipse();
   else if(fGeometry == "test")
     buildTestAssembly();
     
@@ -724,9 +723,6 @@ void nDetConstruction::buildRectangle(){
 
     //fWrapSkinSurface = new G4LogicalSkinSurface("wrapping", assembly_logV, fMylarOpticalSurface); //Outside
 
-    // Full detector physical volume
-    new G4PVPlacement(0, G4ThreeVector(0,0,0), assembly_logV, "Wrapping", expHall_logV, 0, 0, true);//fCheckOverlaps);
-
     // Building the Scintillator
     G4Box *theScint = new G4Box("scintillator", cellWidth/2, cellHeight/2, fDetectorLength/2);
 
@@ -776,9 +772,7 @@ void nDetConstruction::buildRectangle(){
 
     G4VisAttributes* grease_VisAtt = new G4VisAttributes(G4Colour(1.0, 0.0, 0.0)); // red
 
-    greaseZ = fDetectorLength/2 + fGreaseThickness/2;
-    G4double windowZ = fDetectorLength/2 + fGreaseThickness + windowThickness/2;
-    G4double sensitiveZ = fDetectorLength/2 + fGreaseThickness + windowThickness + 0.5*mm;
+    G4double greaseZ = fDetectorLength/2 + fGreaseThickness/2;
 
     if(fDiffuserLength > 0){ // Build the light diffusers (if needed)
 		G4double diffuserW1 = fDetectorWidth - 2*fMylarThickness;
@@ -803,8 +797,6 @@ void nDetConstruction::buildRectangle(){
         
     	// Offset the other layers to account for the light-diffuser and another layer of grease.
     	greaseZ += fGreaseThickness + fDiffuserLength;
-    	windowZ += fGreaseThickness + fDiffuserLength;
-    	sensitiveZ += fGreaseThickness + fDiffuserLength;
     }
 
     if(fTrapezoidLength > 0 || solid.isLoaded()){ // Build the light guides (if needed)
@@ -875,8 +867,6 @@ void nDetConstruction::buildRectangle(){
     	
     	// Offset the PSPMT to account for the light-guide and another layer of grease.
     	greaseZ += fGreaseThickness + fTrapezoidLength;
-    	windowZ += fGreaseThickness + fTrapezoidLength;
-    	sensitiveZ += fGreaseThickness + fTrapezoidLength;
     	
     	if(fMylarThickness > 0){ // Construct the mylar cover flaps
     	    G4double topFlapOffset = trapezoidW2/2-SiPM_dimension;
@@ -969,41 +959,73 @@ void nDetConstruction::buildRectangle(){
     	}
 	}
 
-	// Build the sensitive PMT surfaces.
-	const G4String name = "psSiPM";
-
-	if(fGreaseThickness > 0){
-		// BE CAREFUL, for some reason SiPM_dimension is set to the user defined SiPM dimension divided by 2 in nDetConstructionMessenger!!!
-		G4Box* grease_solidV2 = new G4Box("grease", SiPM_dimension, SiPM_dimension, fGreaseThickness/2);
-		grease_logV = new G4LogicalVolume(grease_solidV2, fSiO2, "grease_logV");
-		grease_logV->SetVisAttributes(grease_VisAtt);
+	// Build the two PSPmts
+	constructPSPmts(assembly_logV, greaseZ, windowThickness);
 	
-		new G4PVPlacement(0, G4ThreeVector(0, 0, greaseZ), grease_logV, "Grease", assembly_logV, true, 0, fCheckOverlaps);
-		new G4PVPlacement(0, G4ThreeVector(0, 0, -greaseZ), grease_logV, "Grease", assembly_logV, true, 0, fCheckOverlaps);
-		
-		// The quartz window
-		G4Box* window_solidV = new G4Box("window_solidV", SiPM_dimension, SiPM_dimension, windowThickness/2);
-		G4LogicalVolume *window_logV = new G4LogicalVolume(window_solidV, fSiO2, "window_logV");
-		G4VisAttributes* window_VisAtt= new G4VisAttributes(G4Colour(0.0, 1.0, 1.0)); // cyan
-		window_logV->SetVisAttributes(window_VisAtt);
-		
-		new G4PVPlacement(0, G4ThreeVector(0, 0, windowZ), window_logV, "Quartz", assembly_logV, true, 0, fCheckOverlaps);
-		new G4PVPlacement(0, G4ThreeVector(0, 0, -windowZ), window_logV, "Quartz", assembly_logV, true, 0, fCheckOverlaps);
-	}
-	
-    // The photon sensitive surface
-    G4Box *sensitive_solidV = new G4Box(name+"_solidV", SiPM_dimension, SiPM_dimension, 0.5*mm);
-    G4LogicalVolume *sensitive_logV = new G4LogicalVolume(sensitive_solidV, fSil, name+"_logV");
+    // Full detector physical volume
+    new G4PVPlacement(0, G4ThreeVector(0,0,0), assembly_logV, "Assembly", expHall_logV, 0, 0, true);//fCheckOverlaps);
+}
 
-    G4VisAttributes *sensitive_VisAtt = new G4VisAttributes(G4Colour(0.75, 0.75, 0.75)); // grey
-    sensitive_VisAtt->SetForceSolid(true);
-    sensitive_logV->SetVisAttributes(sensitive_VisAtt);
-    
-    // Logical skin surface.
-    new G4LogicalSkinSurface(name, sensitive_logV, fSiliconPMOpticalSurface);    
-    
-    new G4PVPlacement(0, G4ThreeVector(0, 0, sensitiveZ), sensitive_logV, name, assembly_logV, true, 0, fCheckOverlaps);
-    new G4PVPlacement(0, G4ThreeVector(0, 0, -sensitiveZ), sensitive_logV, name, assembly_logV, true, 0, fCheckOverlaps);
+void nDetConstruction::buildEllipse(){
+	// Width of the detector (defined by the trapezoid length and SiPM dimensions).
+	fDetectorWidth = 2*(SiPM_dimension+(fTrapezoidLength/std::tan(50*deg)))*mm;
+
+	// Length of the rectangular body.
+	G4double bodyLength = fDetectorLength - 2*fTrapezoidLength;
+
+	std::cout << " fDetectorWidth = " << fDetectorWidth << " mm\n";
+	std::cout << " bodyLength= " << bodyLength << " mm\n";
+
+	G4double windowThickness = fGreaseThickness;
+
+	G4double assemblyLength = fDetectorLength + 2*(fGreaseThickness + windowThickness) + 2*mm;
+	G4double assemblyWidth = fDetectorWidth;
+	G4double assemblyThickness = fDetectorThickness;
+
+	std::cout << " assemblyLength=" << assemblyLength << std::endl;
+	std::cout << " assemblyWidth=" << assemblyWidth << std::endl;
+	std::cout << " assemblyThickness=" << assemblyThickness << std::endl;
+	
+	G4Box *assembly = new G4Box("assembly", assemblyWidth/2, assemblyThickness/2, assemblyLength/2);
+    assembly_logV = new G4LogicalVolume(assembly, fAir, "assembly_logV");
+    //assembly_logV->SetVisAttributes(G4VisAttributes::Invisible);
+
+	// ESR reflective wrapping.
+	fWrapSkinSurface = new G4LogicalSkinSurface("Wrapping", assembly_logV, fEsrOpticalSurface); //Outside
+
+    // Right side (+x)
+    std::vector<G4TwoVector> ellipsePoints;
+    ellipsePoints.push_back(G4TwoVector(bodyLength/2, -fDetectorWidth/2));
+    ellipsePoints.push_back(G4TwoVector(bodyLength/2+fTrapezoidLength, -SiPM_dimension));
+    ellipsePoints.push_back(G4TwoVector(bodyLength/2+fTrapezoidLength, +SiPM_dimension));
+    ellipsePoints.push_back(G4TwoVector(bodyLength/2, +fDetectorWidth/2));
+
+	// Left side (-x)
+    ellipsePoints.push_back(G4TwoVector(-bodyLength/2, +fDetectorWidth/2));
+    ellipsePoints.push_back(G4TwoVector(-bodyLength/2-fTrapezoidLength, +SiPM_dimension));
+    ellipsePoints.push_back(G4TwoVector(-bodyLength/2-fTrapezoidLength, -SiPM_dimension));
+    ellipsePoints.push_back(G4TwoVector(-bodyLength/2, -fDetectorWidth/2));	
+
+    G4ExtrudedSolid *ellipseBody = new G4ExtrudedSolid("", ellipsePoints, fDetectorThickness/2, G4TwoVector(0, 0), 1, G4TwoVector(0, 0), 1);
+    G4LogicalVolume *ellipseBody_logV = new G4LogicalVolume(ellipseBody, fEJ200, "ellipseBody_logV");
+
+    G4VisAttributes* ej200_VisAtt = new G4VisAttributes(G4Colour(0.0, 0.0, 1.0)); //blue
+    ej200_VisAtt->SetVisibility(true);
+    ellipseBody_logV->SetVisAttributes(ej200_VisAtt);
+
+	G4RotationMatrix *subRot = new G4RotationMatrix;
+	subRot->rotateY(90*deg);
+	subRot->rotateX(90*deg);
+
+	new G4PVPlacement(subRot, G4ThreeVector(0, 0, 0), ellipseBody_logV, "Scint", assembly_logV, true, 0, fCheckOverlaps);
+	
+	constructPSPmts(assembly_logV, fDetectorLength/2, windowThickness);
+
+	G4RotationMatrix *rot = new G4RotationMatrix;
+	rot->rotateZ(90*deg);
+
+    // Full detector physical volume
+    new G4PVPlacement(rot, G4ThreeVector(0,0,0), assembly_logV, "Assembly", expHall_logV, 0, 0, true);//fCheckOverlaps);
 }
 
 void nDetConstruction::buildTestAssembly(){
@@ -1023,4 +1045,51 @@ void nDetConstruction::buildTestAssembly(){
     solid.placeSolid(trapRot, G4ThreeVector(0, 0, 0), expHall_logV, trapPhysical);
 
     solid.setLogicalBorders("ESR", fEsrOpticalSurface, trapPhysical); // This works as expected.
+}
+
+void nDetConstruction::constructPSPmts(G4LogicalVolume *assembly, const G4double &offset, const G4double &windowThickness){
+	// Build the sensitive PMT surfaces.
+	const G4String name = "psSiPM";
+
+	const G4double sensitiveThickness = 1*mm;
+
+	G4double greaseZ = offset + fGreaseThickness/2;
+	G4double windowZ = offset + fGreaseThickness + windowThickness/2;
+	G4double sensitiveZ = offset + fGreaseThickness + windowThickness + sensitiveThickness/2;
+
+	G4VisAttributes* grease_VisAtt = new G4VisAttributes(G4Colour(1.0, 0.0, 0.0)); // red
+
+	if(fGreaseThickness > 0){ // The optical grease layers.
+		// BE CAREFUL, for some reason SiPM_dimension is set to the user defined SiPM dimension divided by 2 in nDetConstructionMessenger!!!
+		G4Box* grease_solidV2 = new G4Box("grease", SiPM_dimension, SiPM_dimension, fGreaseThickness/2);
+		grease_logV = new G4LogicalVolume(grease_solidV2, fSiO2, "grease_logV");
+		grease_logV->SetVisAttributes(grease_VisAtt);
+	
+		new G4PVPlacement(0, G4ThreeVector(0, 0, greaseZ), grease_logV, "Grease", assembly, true, 0, fCheckOverlaps);
+		new G4PVPlacement(0, G4ThreeVector(0, 0, -greaseZ), grease_logV, "Grease", assembly, true, 0, fCheckOverlaps);
+	}
+
+	if(windowThickness > 0){ // The quartz window
+		G4Box* window_solidV = new G4Box("window_solidV", SiPM_dimension, SiPM_dimension, windowThickness/2);
+		G4LogicalVolume *window_logV = new G4LogicalVolume(window_solidV, fSiO2, "window_logV");
+		G4VisAttributes* window_VisAtt= new G4VisAttributes(G4Colour(0.0, 1.0, 1.0)); // cyan
+		window_logV->SetVisAttributes(window_VisAtt);
+	
+		new G4PVPlacement(0, G4ThreeVector(0, 0, windowZ), window_logV, "Quartz", assembly, true, 0, fCheckOverlaps);
+		new G4PVPlacement(0, G4ThreeVector(0, 0, -windowZ), window_logV, "Quartz", assembly, true, 0, fCheckOverlaps);
+	}
+	
+    // The photon sensitive surface
+    G4Box *sensitive_solidV = new G4Box(name+"_solidV", SiPM_dimension, SiPM_dimension, sensitiveThickness/2);
+    G4LogicalVolume *sensitive_logV = new G4LogicalVolume(sensitive_solidV, fSil, name+"_logV");
+
+    G4VisAttributes *sensitive_VisAtt = new G4VisAttributes(G4Colour(0.75, 0.75, 0.75)); // grey
+    sensitive_VisAtt->SetForceSolid(true);
+    sensitive_logV->SetVisAttributes(sensitive_VisAtt);
+    
+    // Logical skin surface.
+    new G4LogicalSkinSurface(name, sensitive_logV, fSiliconPMOpticalSurface);    
+    
+    new G4PVPlacement(0, G4ThreeVector(0, 0, sensitiveZ), sensitive_logV, name, assembly, true, 0, fCheckOverlaps);
+    new G4PVPlacement(0, G4ThreeVector(0, 0, -sensitiveZ), sensitive_logV, name, assembly, true, 0, fCheckOverlaps);
 }

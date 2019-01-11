@@ -242,10 +242,6 @@ private:
     G4double ej200Y;
     G4double ej200Z;
 
-    G4double greaseX;
-    G4double greaseY;
-    G4double greaseZ;
-
     G4double qwSiPMx;
     G4double qwSiPMy;
     G4double qwSiPMz;
@@ -342,11 +338,13 @@ private:
 
     void buildRectangle();
     
+    void buildEllipse();
+    
     void buildTestAssembly();
     
     void DefineMaterials();
 
-    void buildSiPMs(const G4double &zOffset=0);
+    void constructPSPmts(G4LogicalVolume *assembly, const G4double &offset, const G4double &windowThickness);
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
