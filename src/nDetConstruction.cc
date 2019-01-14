@@ -983,9 +983,6 @@ void nDetConstruction::buildEllipse(){
     assembly_logV = new G4LogicalVolume(assembly, fAir, "assembly_logV");
     assembly_logV->SetVisAttributes(G4VisAttributes::Invisible);
 
-	// ESR reflective wrapping.
-	fWrapSkinSurface = new G4LogicalSkinSurface("Wrapping", assembly_logV, fEsrOpticalSurface); //Outside
-
     // Right side (+x)
     std::vector<G4TwoVector> ellipsePoints;
     ellipsePoints.push_back(G4TwoVector(bodyLength/2, -fDetectorWidth/2));
@@ -1010,7 +1007,7 @@ void nDetConstruction::buildEllipse(){
 	subRot->rotateY(90*deg);
 	subRot->rotateX(90*deg);
 
-	new G4PVPlacement(subRot, G4ThreeVector(0, 0, 0), ellipseBody_logV, "Scint", assembly_logV, true, 0, fCheckOverlaps);
+	G4PVPlacement *ellipseBody_physV = new G4PVPlacement(subRot, G4ThreeVector(0, 0, 0), ellipseBody_logV, "Scint", assembly_logV, true, 0, fCheckOverlaps);
 	
 	constructPSPmts(assembly_logV, fDetectorLength/2);
 
@@ -1018,7 +1015,11 @@ void nDetConstruction::buildEllipse(){
 	rot->rotateZ(90*deg);
 
     // Full detector physical volume
-    new G4PVPlacement(rot, G4ThreeVector(0,0,0), assembly_logV, "Assembly", expHall_logV, 0, 0, true);//fCheckOverlaps);
+    assembly_physV = new G4PVPlacement(rot, G4ThreeVector(0,0,0), assembly_logV, "Assembly", expHall_logV, 0, 0, true);//fCheckOverlaps);
+
+    // Reflective wrapping.
+    new G4LogicalBorderSurface("Wrapping", ellipseBody_physV, assembly_physV, fMylarOpticalSurface);
+    new G4LogicalBorderSurface("Wrapping", ellipseBody_physV, expHall_physV, fMylarOpticalSurface);
 }
 
 void nDetConstruction::buildPlate(){
@@ -1030,9 +1031,6 @@ void nDetConstruction::buildPlate(){
     assembly_logV = new G4LogicalVolume(assembly, fAir, "assembly_logV");
     assembly_logV->SetVisAttributes(G4VisAttributes::Invisible);
 
-	// ESR reflective wrapping.
-	fWrapSkinSurface = new G4LogicalSkinSurface("Wrapping", assembly_logV, fEsrOpticalSurface); //Outside
-
     G4Box *plateBody = new G4Box("", fDetectorWidth/2, fDetectorThickness/2, fDetectorLength/2);
     G4LogicalVolume *plateBody_logV = new G4LogicalVolume(plateBody, fEJ200, "plateBody_logV");
 
@@ -1040,7 +1038,7 @@ void nDetConstruction::buildPlate(){
     ej200_VisAtt->SetVisibility(true);
     plateBody_logV->SetVisAttributes(ej200_VisAtt);
 
-	new G4PVPlacement(0, G4ThreeVector(0, 0, 0), plateBody_logV, "Scint", assembly_logV, true, 0, fCheckOverlaps);
+	G4PVPlacement *plateBody_physV = new G4PVPlacement(0, G4ThreeVector(0, 0, 0), plateBody_logV, "Scint", assembly_logV, true, 0, fCheckOverlaps);
 	
 	constructPSPmts(assembly_logV, fDetectorLength/2);
 
@@ -1048,7 +1046,11 @@ void nDetConstruction::buildPlate(){
 	rot->rotateZ(90*deg);
 
     // Full detector physical volume
-    new G4PVPlacement(rot, G4ThreeVector(0,0,0), assembly_logV, "Assembly", expHall_logV, 0, 0, true);//fCheckOverlaps);
+    assembly_physV = new G4PVPlacement(rot, G4ThreeVector(0,0,0), assembly_logV, "Assembly", expHall_logV, 0, 0, true);//fCheckOverlaps);
+    
+    // Reflective wrapping.
+    new G4LogicalBorderSurface("Wrapping", plateBody_physV, assembly_physV, fMylarOpticalSurface);
+    new G4LogicalBorderSurface("Wrapping", plateBody_physV, expHall_physV, fMylarOpticalSurface);
 }
 
 void nDetConstruction::buildTestAssembly(){
