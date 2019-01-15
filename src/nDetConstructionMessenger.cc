@@ -71,6 +71,10 @@ nDetConstructionMessenger::nDetConstructionMessenger(nDetConstruction* detector)
 	
 	addCommand(new G4UIcmdWith3Vector("/nDet/detector/setGDMLrotation", this));
 	addGuidance("Defines the default rotation of the loaded GDML model in degrees");
+	
+	addCommand(new G4UIcmdWithAString("/nDet/detector/setWrapping", this));
+	addGuidance("Set the material to use for reflective wrapping");	
+	addCandidates("teflon silicon mylar esr");
 }
 
 void nDetConstructionMessenger::SetNewValue(G4UIcommand* command, G4String newValue){
@@ -143,5 +147,8 @@ void nDetConstructionMessenger::SetNewValue(G4UIcommand* command, G4String newVa
 	else if(index == 17){
 		G4ThreeVector val = command->ConvertTo3Vector(newValue);
 		fDetector->SetGdmlDefaultRotation(val);
+	}
+	else if(index == 18){
+		fDetector->SetWrappingMaterial(newValue);
 	}
 }

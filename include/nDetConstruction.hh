@@ -181,6 +181,8 @@ class nDetConstruction : public G4VUserDetectorConstruction
 
 	void SetGdmlDefaultRotation(const G4ThreeVector &rotation){ gdmlRotation = rotation; }
 
+	void SetWrappingMaterial(const std::string &material){ wrappingMaterial = material; }
+
 	G4double GetDetectorLength() const { return fDetectorLength; }
 	
 	G4double GetDetectorWidth() const { return fDetectorWidth; }
@@ -332,6 +334,7 @@ private:
     G4LogicalBorderSurface* fMylarSurface;
 
 	std::string gdmlFilename; // GDML model filename to load.
+	std::string wrappingMaterial;
 
 	G4ThreeVector gdmlRotation; // Default rotation of GDML model.
 
@@ -349,6 +352,10 @@ private:
     void DefineMaterials();
 
     void constructPSPmts(G4LogicalVolume *assembly, const G4double &offset);
+    
+    G4Material *getUserSurfaceMaterial();
+    
+    G4OpticalSurface *getUserOpticalSurface();
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

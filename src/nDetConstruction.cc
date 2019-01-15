@@ -267,6 +267,7 @@ nDetConstruction::nDetConstruction(const G4double &scale/*=1*/){
     fDetectorMessenger=new nDetConstructionMessenger(this);
 
     fGeometry="rectangle";
+	wrappingMaterial="mylar";
 
     fCheckOverlaps = false;
     fTeflonThickness = 0.11*mm;
@@ -1005,22 +1006,25 @@ void nDetConstruction::buildEllipse(){
     ej200_VisAtt->SetVisibility(true);
     scint_logV->SetVisAttributes(ej200_VisAtt);
 
-	// Build the wrapping.
-	G4UnionSolid *wrappingBody1 = new G4UnionSolid("", outerBody, outerTrapezoid, 0, G4ThreeVector(0, 0, +bodyLength/2+fTrapezoidLength/2));
-	G4UnionSolid *wrappingBody2 = new G4UnionSolid("", wrappingBody1, outerTrapezoid, trapRot, G4ThreeVector(0, 0, -bodyLength/2-fTrapezoidLength/2));
-	G4SubtractionSolid *wrappingBody3 = new G4SubtractionSolid("wrapping", wrappingBody2, scintBody2);
-	G4LogicalVolume *wrapping_logV = new G4LogicalVolume(wrappingBody3, fMylar, "wrapping_logV");		
-
-    G4VisAttributes *mylar_VisAtt = new G4VisAttributes();
-    mylar_VisAtt->SetColor(1, 0, 1, 0.5); // Alpha=50%
-    mylar_VisAtt->SetForceSolid(true);
-	wrapping_logV->SetVisAttributes(mylar_VisAtt);
-
 	// Place the scintillator inside the assembly.
 	G4PVPlacement *ellipseBody_physV = new G4PVPlacement(0, G4ThreeVector(0, 0, 0), scint_logV, "Scint", assembly_logV, true, 0, fCheckOverlaps);
 
-	// Place the wrapping around the scintillator.
-	G4PVPlacement *ellipseWrapping_physV = new G4PVPlacement(0, G4ThreeVector(0, 0, 0), wrapping_logV, "Wrapping", assembly_logV, true, 0, fCheckOverlaps);	
+	// Build the wrapping.
+	G4PVPlacement *ellipseWrapping_physV = NULL;
+	if(fMylarThickness > 0){
+		G4UnionSolid *wrappingBody1 = new G4UnionSolid("", outerBody, outerTrapezoid, 0, G4ThreeVector(0, 0, +bodyLength/2+fTrapezoidLength/2));
+		G4UnionSolid *wrappingBody2 = new G4UnionSolid("", wrappingBody1, outerTrapezoid, trapRot, G4ThreeVector(0, 0, -bodyLength/2-fTrapezoidLength/2));
+		G4SubtractionSolid *wrappingBody3 = new G4SubtractionSolid("wrapping", wrappingBody2, scintBody2);
+		G4LogicalVolume *wrapping_logV = new G4LogicalVolume(wrappingBody3, getUserSurfaceMaterial(), "wrapping_logV");		
+
+		G4VisAttributes *mylar_VisAtt = new G4VisAttributes();
+		mylar_VisAtt->SetColor(1, 0, 1, 0.5); // Alpha=50%
+		mylar_VisAtt->SetForceSolid(true);
+		wrapping_logV->SetVisAttributes(mylar_VisAtt);
+
+		// Place the wrapping around the scintillator.
+		ellipseWrapping_physV = new G4PVPlacement(0, G4ThreeVector(0, 0, 0), wrapping_logV, "Wrapping", assembly_logV, true, 0, fCheckOverlaps);	
+	}
 
 	// Attach PMTs.
 	constructPSPmts(assembly_logV, fDetectorLength/2);
@@ -1031,7 +1035,8 @@ void nDetConstruction::buildEllipse(){
     assembly_physV = new G4PVPlacement(fullRot, G4ThreeVector(0,0,0), assembly_logV, "Assembly", expHall_logV, 0, 0, true);//fCheckOverlaps);
 
     // Reflective wrapping.
-    new G4LogicalBorderSurface("Wrapping", ellipseBody_physV, ellipseWrapping_physV, fMylarOpticalSurface);
+    if(fMylarThickness > 0)
+	    new G4LogicalBorderSurface("Wrapping", ellipseBody_physV, ellipseWrapping_physV, getUserOpticalSurface());
 }
 
 void nDetConstruction::buildPlate(){
@@ -1050,24 +1055,28 @@ void nDetConstruction::buildPlate(){
     ej200_VisAtt->SetVisibility(true);
     plateBody_logV->SetVisAttributes(ej200_VisAtt);
 
-    G4Box *plateWrappingBox = new G4Box("", fDetectorWidth/2 + fMylarThickness, fDetectorThickness/2 + fMylarThickness, fDetectorLength/2 + fMylarThickness);
-    G4Box *pmtBoundingBox = new G4Box("", SiPM_dimension, SiPM_dimension, assemblyLength/2);
-    G4UnionSolid *cookieCutter = new G4UnionSolid("", plateBody, pmtBoundingBox);
-    
-    G4SubtractionSolid *plateWrapping = new G4SubtractionSolid("", plateWrappingBox, cookieCutter);
-    G4LogicalVolume *plateWrapping_logV = new G4LogicalVolume(plateWrapping, fMylar, "plateWrapping_logV");
-
-    G4VisAttributes *mylar_VisAtt = new G4VisAttributes();
-    mylar_VisAtt->SetColor(1, 0, 1, 0.5); // Alpha=50%
-    mylar_VisAtt->SetForceSolid(true);
-	plateWrapping_logV->SetVisAttributes(mylar_VisAtt);
-
 	// Place the scintillator inside the assembly.
 	G4PVPlacement *plateBody_physV = new G4PVPlacement(0, G4ThreeVector(0, 0, 0), plateBody_logV, "Scint", assembly_logV, true, 0, fCheckOverlaps);
-	
-	// Place the wrapping around the scintillator.
-	G4PVPlacement *plateWrapping_physV = new G4PVPlacement(0, G4ThreeVector(0, 0, 0), plateWrapping_logV, "Wrapping", assembly_logV, true, 0, fCheckOverlaps);
-	
+
+	// Build the wrapping.
+	G4PVPlacement *plateWrapping_physV = NULL;
+	if(fMylarThickness > 0){
+		G4Box *plateWrappingBox = new G4Box("", fDetectorWidth/2 + fMylarThickness, fDetectorThickness/2 + fMylarThickness, fDetectorLength/2 + fMylarThickness);
+		G4Box *pmtBoundingBox = new G4Box("", SiPM_dimension, SiPM_dimension, assemblyLength/2);
+		G4UnionSolid *cookieCutter = new G4UnionSolid("", plateBody, pmtBoundingBox);
+		
+		G4SubtractionSolid *plateWrapping = new G4SubtractionSolid("", plateWrappingBox, cookieCutter);
+		G4LogicalVolume *plateWrapping_logV = new G4LogicalVolume(plateWrapping, getUserSurfaceMaterial(), "plateWrapping_logV");
+
+		G4VisAttributes *mylar_VisAtt = new G4VisAttributes();
+		mylar_VisAtt->SetColor(1, 0, 1, 0.5); // Alpha=50%
+		mylar_VisAtt->SetForceSolid(true);
+		plateWrapping_logV->SetVisAttributes(mylar_VisAtt);
+		
+		// Place the wrapping around the scintillator.
+		plateWrapping_physV = new G4PVPlacement(0, G4ThreeVector(0, 0, 0), plateWrapping_logV, "Wrapping", assembly_logV, true, 0, fCheckOverlaps);		
+	}
+
 	// Attach PMTs.
 	constructPSPmts(assembly_logV, fDetectorLength/2);
 
@@ -1078,7 +1087,8 @@ void nDetConstruction::buildPlate(){
     assembly_physV = new G4PVPlacement(rot, G4ThreeVector(0,0,0), assembly_logV, "Assembly", expHall_logV, 0, 0, true);//fCheckOverlaps);
     
     // Reflective wrapping.
-    new G4LogicalBorderSurface("Wrapping", plateBody_physV, plateWrapping_physV, fMylarOpticalSurface);
+    if(fMylarThickness > 0)
+	    new G4LogicalBorderSurface("Wrapping", plateBody_physV, plateWrapping_physV, getUserOpticalSurface());
 }
 
 void nDetConstruction::buildTestAssembly(){
@@ -1144,3 +1154,30 @@ void nDetConstruction::constructPSPmts(G4LogicalVolume *assembly, const G4double
     new G4PVPlacement(0, G4ThreeVector(0, 0, sensitiveZ), sensitive_logV, name, assembly, true, 0, fCheckOverlaps);
     new G4PVPlacement(0, G4ThreeVector(0, 0, -sensitiveZ), sensitive_logV, name, assembly, true, 0, fCheckOverlaps);
 }
+
+G4Material *nDetConstruction::getUserSurfaceMaterial(){
+    if(wrappingMaterial == "mylar")
+    	return fMylar;
+    else if(wrappingMaterial == "teflon")
+    	return fTeflon;
+    //else if(wrappingMaterial == "esr")
+    	//return fEsr;
+    else if(wrappingMaterial == "silicon")
+    	return fSil;
+    
+    return fMylar; // default
+}
+
+G4OpticalSurface *nDetConstruction::getUserOpticalSurface(){
+    if(wrappingMaterial == "mylar")
+    	return fMylarOpticalSurface;
+    else if(wrappingMaterial == "teflon")
+    	return fTeflonOpticalSurface;
+    else if(wrappingMaterial == "esr")
+    	return fEsrOpticalSurface;
+    else if(wrappingMaterial == "silicon")
+    	return fSiliconPMOpticalSurface;
+    
+    return fMylarOpticalSurface; // default
+}
+    
