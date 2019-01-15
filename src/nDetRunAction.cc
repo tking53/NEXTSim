@@ -280,8 +280,7 @@ bool nDetRunAction::openRootFile(const G4Run* aRun)
 	fTree->Branch("barTOF", &barTOF);
 	fTree->Branch("barQDC", &barQDC);
 	fTree->Branch("barMaxADC", &barMaxADC);
-	if(outputBadEvents)
-		fTree->Branch("goodEvent", &goodEvent);
+	fTree->Branch("goodEvent", &goodEvent);
 	fTree->Branch("pulsePhase[2]", pulsePhase);
 	fTree->Branch("photonComX[2]", photonDetCenterOfMassX);
 	fTree->Branch("photonComY[2]", photonDetCenterOfMassY);
@@ -348,7 +347,7 @@ bool nDetRunAction::fillBranch()
 		photonDetEfficiency = -1;
 
 	// Check for valid bar detection
-	if(nPhotonsDet[0]*nPhotonsDet[1] > 0)
+	if(nPhotonsDet[0] > 0 && nPhotonsDet[1] > 0)
 		goodEvent = true;
 
 	// Get the photon center-of-mass positions
@@ -431,7 +430,7 @@ bool nDetRunAction::fillBranch()
 	// Clear all photon statistics from the detector.
 	detector->Clear();
 
-	if(outputBadEvents || goodEvent)
+	if(outputBadEvents || goodEvent || (nPhotonsDet[0] > 0 || nPhotonsDet[1] > 0))
 		fTree->Fill(); // Fill the tree
 
 	return true;
