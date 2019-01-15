@@ -17,6 +17,8 @@
 #include "G4LogicalBorderSurface.hh"
 #include "G4VPhysicalVolume.hh"
 #include "G4AssemblyVolume.hh"
+#include "G4SubtractionSolid.hh"
+#include "G4UnionSolid.hh"
 //#include "G4VSolid.hh"
 
 #include "G4GDMLParser.hh"
@@ -269,8 +271,8 @@ nDetConstruction::nDetConstruction(const G4double &scale/*=1*/){
     fCheckOverlaps = false;
     fTeflonThickness = 0.11*mm;
     fMylarThickness = 0;
-    fGreaseThickness = 1*mm;
-    fWindowThickness = 1*mm;
+    fGreaseThickness = 0.1*mm;
+    fWindowThickness = 0.1*mm;
     fSensitiveThickness = 1*mm;
     fDetectorLength = 3.94*inch;
     fDetectorWidth = 6*mm;
@@ -969,63 +971,73 @@ void nDetConstruction::buildRectangle(){
 }
 
 void nDetConstruction::buildEllipse(){
+	const G4double angle = 60*deg;
+
 	// Width of the detector (defined by the trapezoid length and SiPM dimensions).
-	fDetectorWidth = 2*(SiPM_dimension+(fTrapezoidLength/std::tan(60*deg)))*mm;
+	fDetectorWidth = 2*(SiPM_dimension+(fTrapezoidLength/std::tan(angle)))*mm;
+	G4double deltaWidth = fMylarThickness/std::sin(angle);
 
 	// Length of the rectangular body.
 	G4double bodyLength = fDetectorLength - 2*fTrapezoidLength;
 
 	G4double assemblyLength = fDetectorLength + 2*(fGreaseThickness + fWindowThickness) + 2*mm;
-	G4double assemblyWidth = fDetectorWidth;
-	G4double assemblyThickness = fDetectorThickness;
+	G4double assemblyWidth = fDetectorWidth + 2*fMylarThickness;
+	G4double assemblyThickness = fDetectorThickness + 2*fMylarThickness;
 
 	G4Box *assembly = new G4Box("assembly", assemblyWidth/2, assemblyThickness/2, assemblyLength/2);
     assembly_logV = new G4LogicalVolume(assembly, fAir, "assembly_logV");
     assembly_logV->SetVisAttributes(G4VisAttributes::Invisible);
 
-    // Right side (+x)
-    std::vector<G4TwoVector> ellipsePoints;
-    ellipsePoints.push_back(G4TwoVector(bodyLength/2, -fDetectorWidth/2));
-    ellipsePoints.push_back(G4TwoVector(bodyLength/2+fTrapezoidLength, -SiPM_dimension));
-    ellipsePoints.push_back(G4TwoVector(bodyLength/2+fTrapezoidLength, +SiPM_dimension));
-    ellipsePoints.push_back(G4TwoVector(bodyLength/2, +fDetectorWidth/2));
+	// Create the geometry.
+	G4Trd *innerTrapezoid = new G4Trd("innerTrapezoid", fDetectorWidth/2, SiPM_dimension, fDetectorThickness/2, SiPM_dimension, fTrapezoidLength/2);
+	G4Trd *outerTrapezoid = new G4Trd("outerTrapezoid", fDetectorWidth/2+deltaWidth, SiPM_dimension+deltaWidth, fDetectorThickness/2+deltaWidth, SiPM_dimension+deltaWidth, fTrapezoidLength/2);
+	G4Box *innerBody = new G4Box("innerBody", fDetectorWidth/2, fDetectorThickness/2, bodyLength/2);
+	G4Box *outerBody = new G4Box("outerBody", fDetectorWidth/2+deltaWidth, fDetectorThickness/2+deltaWidth, bodyLength/2);
 
-	// Left side (-x)
-    ellipsePoints.push_back(G4TwoVector(-bodyLength/2, +fDetectorWidth/2));
-    ellipsePoints.push_back(G4TwoVector(-bodyLength/2-fTrapezoidLength, +SiPM_dimension));
-    ellipsePoints.push_back(G4TwoVector(-bodyLength/2-fTrapezoidLength, -SiPM_dimension));
-    ellipsePoints.push_back(G4TwoVector(-bodyLength/2, -fDetectorWidth/2));	
-
-    G4ExtrudedSolid *ellipseBody = new G4ExtrudedSolid("", ellipsePoints, fDetectorThickness/2, G4TwoVector(0, 0), 1, G4TwoVector(0, 0), 1);
-    G4LogicalVolume *ellipseBody_logV = new G4LogicalVolume(ellipseBody, fEJ200, "ellipseBody_logV");
+	// Build the detector body using unions.
+	G4RotationMatrix *trapRot = new G4RotationMatrix;
+	trapRot->rotateY(180*deg);
+	G4UnionSolid *scintBody1 = new G4UnionSolid("", innerBody, innerTrapezoid, 0, G4ThreeVector(0, 0, +bodyLength/2+fTrapezoidLength/2));
+	G4UnionSolid *scintBody2 = new G4UnionSolid("scint", scintBody1, innerTrapezoid, trapRot, G4ThreeVector(0, 0, -bodyLength/2-fTrapezoidLength/2));
+	G4LogicalVolume *scint_logV = new G4LogicalVolume(scintBody2, fEJ200, "scint_logV");	
 
     G4VisAttributes* ej200_VisAtt = new G4VisAttributes(G4Colour(0.0, 0.0, 1.0)); //blue
     ej200_VisAtt->SetVisibility(true);
-    ellipseBody_logV->SetVisAttributes(ej200_VisAtt);
+    scint_logV->SetVisAttributes(ej200_VisAtt);
 
-	G4RotationMatrix *subRot = new G4RotationMatrix;
-	subRot->rotateY(90*deg);
-	subRot->rotateX(90*deg);
+	// Build the wrapping.
+	G4UnionSolid *wrappingBody1 = new G4UnionSolid("", outerBody, outerTrapezoid, 0, G4ThreeVector(0, 0, +bodyLength/2+fTrapezoidLength/2));
+	G4UnionSolid *wrappingBody2 = new G4UnionSolid("", wrappingBody1, outerTrapezoid, trapRot, G4ThreeVector(0, 0, -bodyLength/2-fTrapezoidLength/2));
+	G4SubtractionSolid *wrappingBody3 = new G4SubtractionSolid("wrapping", wrappingBody2, scintBody2);
+	G4LogicalVolume *wrapping_logV = new G4LogicalVolume(wrappingBody3, fMylar, "wrapping_logV");		
 
-	G4PVPlacement *ellipseBody_physV = new G4PVPlacement(subRot, G4ThreeVector(0, 0, 0), ellipseBody_logV, "Scint", assembly_logV, true, 0, fCheckOverlaps);
-	
+    G4VisAttributes *mylar_VisAtt = new G4VisAttributes();
+    mylar_VisAtt->SetColor(1, 0, 1, 0.5); // Alpha=50%
+    mylar_VisAtt->SetForceSolid(true);
+	wrapping_logV->SetVisAttributes(mylar_VisAtt);
+
+	// Place the scintillator inside the assembly.
+	G4PVPlacement *ellipseBody_physV = new G4PVPlacement(0, G4ThreeVector(0, 0, 0), scint_logV, "Scint", assembly_logV, true, 0, fCheckOverlaps);
+
+	// Place the wrapping around the scintillator.
+	G4PVPlacement *ellipseWrapping_physV = new G4PVPlacement(0, G4ThreeVector(0, 0, 0), wrapping_logV, "Wrapping", assembly_logV, true, 0, fCheckOverlaps);	
+
+	// Attach PMTs.
 	constructPSPmts(assembly_logV, fDetectorLength/2);
-
-	G4RotationMatrix *rot = new G4RotationMatrix;
-	rot->rotateZ(90*deg);
-
+	
     // Full detector physical volume
-    assembly_physV = new G4PVPlacement(rot, G4ThreeVector(0,0,0), assembly_logV, "Assembly", expHall_logV, 0, 0, true);//fCheckOverlaps);
+	G4RotationMatrix *fullRot = new G4RotationMatrix;
+	fullRot->rotateZ(90*deg);
+    assembly_physV = new G4PVPlacement(fullRot, G4ThreeVector(0,0,0), assembly_logV, "Assembly", expHall_logV, 0, 0, true);//fCheckOverlaps);
 
     // Reflective wrapping.
-    new G4LogicalBorderSurface("Wrapping", ellipseBody_physV, assembly_physV, fMylarOpticalSurface);
-    new G4LogicalBorderSurface("Wrapping", ellipseBody_physV, expHall_physV, fMylarOpticalSurface);
+    new G4LogicalBorderSurface("Wrapping", ellipseBody_physV, ellipseWrapping_physV, fMylarOpticalSurface);
 }
 
 void nDetConstruction::buildPlate(){
 	G4double assemblyLength = fDetectorLength + 2*(fGreaseThickness + fWindowThickness) + 2*mm;
-	G4double assemblyWidth = fDetectorWidth;
-	G4double assemblyThickness = fDetectorThickness;
+	G4double assemblyWidth = fDetectorWidth + 2*fMylarThickness;
+	G4double assemblyThickness = fDetectorThickness + 2*fMylarThickness;
 
 	G4Box *assembly = new G4Box("assembly", assemblyWidth/2, assemblyThickness/2, assemblyLength/2);
     assembly_logV = new G4LogicalVolume(assembly, fAir, "assembly_logV");
@@ -1038,8 +1050,25 @@ void nDetConstruction::buildPlate(){
     ej200_VisAtt->SetVisibility(true);
     plateBody_logV->SetVisAttributes(ej200_VisAtt);
 
+    G4Box *plateWrappingBox = new G4Box("", fDetectorWidth/2 + fMylarThickness, fDetectorThickness/2 + fMylarThickness, fDetectorLength/2 + fMylarThickness);
+    G4Box *pmtBoundingBox = new G4Box("", SiPM_dimension, SiPM_dimension, assemblyLength/2);
+    G4UnionSolid *cookieCutter = new G4UnionSolid("", plateBody, pmtBoundingBox);
+    
+    G4SubtractionSolid *plateWrapping = new G4SubtractionSolid("", plateWrappingBox, cookieCutter);
+    G4LogicalVolume *plateWrapping_logV = new G4LogicalVolume(plateWrapping, fMylar, "plateWrapping_logV");
+
+    G4VisAttributes *mylar_VisAtt = new G4VisAttributes();
+    mylar_VisAtt->SetColor(1, 0, 1, 0.5); // Alpha=50%
+    mylar_VisAtt->SetForceSolid(true);
+	plateWrapping_logV->SetVisAttributes(mylar_VisAtt);
+
+	// Place the scintillator inside the assembly.
 	G4PVPlacement *plateBody_physV = new G4PVPlacement(0, G4ThreeVector(0, 0, 0), plateBody_logV, "Scint", assembly_logV, true, 0, fCheckOverlaps);
 	
+	// Place the wrapping around the scintillator.
+	G4PVPlacement *plateWrapping_physV = new G4PVPlacement(0, G4ThreeVector(0, 0, 0), plateWrapping_logV, "Wrapping", assembly_logV, true, 0, fCheckOverlaps);
+	
+	// Attach PMTs.
 	constructPSPmts(assembly_logV, fDetectorLength/2);
 
 	G4RotationMatrix *rot = new G4RotationMatrix;
@@ -1049,8 +1078,7 @@ void nDetConstruction::buildPlate(){
     assembly_physV = new G4PVPlacement(rot, G4ThreeVector(0,0,0), assembly_logV, "Assembly", expHall_logV, 0, 0, true);//fCheckOverlaps);
     
     // Reflective wrapping.
-    new G4LogicalBorderSurface("Wrapping", plateBody_physV, assembly_physV, fMylarOpticalSurface);
-    new G4LogicalBorderSurface("Wrapping", plateBody_physV, expHall_physV, fMylarOpticalSurface);
+    new G4LogicalBorderSurface("Wrapping", plateBody_physV, plateWrapping_physV, fMylarOpticalSurface);
 }
 
 void nDetConstruction::buildTestAssembly(){
