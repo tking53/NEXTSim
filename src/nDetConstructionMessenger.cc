@@ -18,7 +18,7 @@ nDetConstructionMessenger::nDetConstructionMessenger(nDetConstruction* detector)
 
 	addCommand(new G4UIcmdWithAString("/nDet/detector/setGeometry", this));
 	addGuidance("Defines the Geometry of the detector");
-	addCandidates("rectangle ellipse plate test");
+	addCandidates("next module ellipse rectangle test");
 
 	addCommand(new G4UIcmdWithADouble("/nDet/detector/setSiPMdimensions", this));
 	addGuidance("Defines the size of the SiPMs in mm");

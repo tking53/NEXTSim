@@ -325,12 +325,12 @@ G4VPhysicalVolume* nDetConstruction::ConstructDetector(){
 	buildExpHall();
 
 	// Build the detector.
-	if(fGeometry == "rectangle")
-		buildRectangle();
+	if(fGeometry == "next" || fGeometry == "module")
+		buildModule();
 	else if(fGeometry == "ellipse")
 		buildEllipse();
-	else if(fGeometry == "plate")
-		buildPlate();
+	else if(fGeometry == "rectangle")
+		buildRectangle();
 	else if(fGeometry == "test")
 		buildTestAssembly();
 
@@ -695,7 +695,7 @@ G4LogicalVolume *nDetConstruction::LoadGDML(const G4String &fname, gdmlSolid &so
 	return retval;
 }
 
-void nDetConstruction::buildRectangle(){
+void nDetConstruction::buildModule(){
 	gdmlSolid solid;
     if(!gdmlFilename.empty()){ // Load the light-guide from a GDML file.
         LoadGDML(gdmlFilename, solid);
@@ -1039,7 +1039,7 @@ void nDetConstruction::buildEllipse(){
 	    new G4LogicalBorderSurface("Wrapping", ellipseBody_physV, ellipseWrapping_physV, getUserOpticalSurface());
 }
 
-void nDetConstruction::buildPlate(){
+void nDetConstruction::buildRectangle(){
 	G4double assemblyLength = fDetectorLength + 2*(fGreaseThickness + fWindowThickness) + 2*mm;
 	G4double assemblyWidth = fDetectorWidth + 2*fMylarThickness;
 	G4double assemblyThickness = fDetectorThickness + 2*fMylarThickness;

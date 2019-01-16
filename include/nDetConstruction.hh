@@ -341,11 +341,11 @@ private:
     // member functions
     void buildExpHall();
 
-    void buildRectangle();
+    void buildModule();
     
     void buildEllipse();
 
-	void buildPlate();
+	void buildRectangle();
     
     void buildTestAssembly();
     
