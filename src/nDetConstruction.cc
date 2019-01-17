@@ -792,9 +792,9 @@ void nDetConstruction::buildModule(){
 	}
 
 	// Place the scintillator segments into the assembly.
-	std::vector<G4PVPlacement*> cellScint_physV;
-	std::vector<G4PVPlacement*> mylarVertLayer_physV;
-	std::vector<G4PVPlacement*> mylarHorizLayer_physV;
+	std::vector<G4PVPlacement*> mylarVertLayer_physV(fNumColumns, NULL);
+	std::vector<std::vector<G4PVPlacement*> > mylarHorizLayer_physV(fNumColumns, std::vector<G4PVPlacement*>(fNumRows, NULL));
+	std::vector<std::vector<G4PVPlacement*> > cellScint_physV(fNumColumns, std::vector<G4PVPlacement*>(fNumRows, NULL));	
 	for(int col = 0; col < fNumColumns; col++){
 		for(int row = 0; row < fNumRows; row++){
 			//G4ThreeVector cellCenter(-fDetectorWidth/2 + (2*col+1)*fMylarThickness + (col+0.5)*cellWidth, -fDetectorThickness/2 + (2*row+1)*fMylarThickness + (row+0.5)*cellHeight, 0);
@@ -802,14 +802,18 @@ void nDetConstruction::buildModule(){
 
 			// Copy numbers (segment IDs), indexed from 1
 			std::stringstream stream; stream << "Scint-" << col << "," << row;
-			cellScint_physV.push_back(new G4PVPlacement(0, cellCenter, cellScint_logV, stream.str().c_str(), assembly_logV, 0, col*fNumRows+row+1, fCheckOverlaps)); 
+			cellScint_physV[col][row] = new G4PVPlacement(0, cellCenter, cellScint_logV, stream.str().c_str(), assembly_logV, 0, col*fNumRows+row+1, fCheckOverlaps); 
 		
 			// Place vertical and horizontal reflectors.
 			if(fMylarThickness > 0){ 
-				if(row == 0 && col != fNumColumns-1) // New vertical reflector layer.
-					mylarVertLayer_physV.push_back(new G4PVPlacement(0, G4ThreeVector(cellCenter.getX()+cellWidth/2+fMylarThickness/2, 0, 0), mylarVertLayer_logV, "Wrapping", assembly_logV, 0, 0, fCheckOverlaps));
-				if(row != fNumRows-1) // New horizontal reflector layer.
-					mylarHorizLayer_physV.push_back(new G4PVPlacement(0, G4ThreeVector(cellCenter.getX(), cellCenter.getY()+cellHeight/2+fMylarThickness/2, 0), mylarHorizLayer_logV, "Wrapping", assembly_logV, 0, 0, fCheckOverlaps));
+				if(row == 0 && col != fNumColumns-1){ // New vertical reflector layer.
+					std::stringstream stream2; stream << "Wrapping-" << col;
+					mylarVertLayer_physV[col] = new G4PVPlacement(0, G4ThreeVector(cellCenter.getX()+cellWidth/2+fMylarThickness/2, 0, 0), mylarVertLayer_logV, stream2.str().c_str(), assembly_logV, 0, 0, fCheckOverlaps);
+				}
+				if(row != fNumRows-1){ // New horizontal reflector layer.
+					std::stringstream stream2; stream << "Wrapping-" << col << "," << row;
+					mylarHorizLayer_physV[col][row] = new G4PVPlacement(0, G4ThreeVector(cellCenter.getX(), cellCenter.getY()+cellHeight/2+fMylarThickness/2, 0), mylarHorizLayer_logV, stream2.str().c_str(), assembly_logV, 0, 0, fCheckOverlaps);
+				}
 			}
 		}
 	}
@@ -818,17 +822,26 @@ void nDetConstruction::buildModule(){
 	if(fMylarThickness > 0){ 
 		for(int col = 0; col < fNumColumns; col++){
 			for(int row = 0; row < fNumRows; row++){
-				G4PVPlacement *cellPhysical = cellScint_physV.at(col*fNumRows+row);
-				if((col == 0 || row == 0) || (col == fNumColumns-1 || row == fNumRows-1)) // Border with the outer wrapping.
+				G4PVPlacement *cellPhysical = cellScint_physV[col][row];
+				
+				int leftCol = col-1;
+				int rightCol = col+1;
+				int downRow = row-1;
+				int upRow = row+1;
+					
+				// Border with the outer wrapping.
+				if((col == 0 || row == 0) || (col == fNumColumns-1 || row == fNumRows-1)) 
 					new G4LogicalBorderSurface("Wrapping", cellPhysical, wrapping_physV, getUserOpticalSurface());
-				if(col != 0) // Left side vertical layer.
+				
+				// Internal reflector layers.
+				if(leftCol >= 0 && leftCol < fNumColumns) // Left side vertical layer.
 					new G4LogicalBorderSurface("Wrapping", cellPhysical, mylarVertLayer_physV.at(col-1), getUserOpticalSurface());
-				if(col != fNumColumns-1) // Right side vertical layer.
+				if(rightCol >= 0 && rightCol < fNumColumns) // Right side vertical layer.
 					new G4LogicalBorderSurface("Wrapping", cellPhysical, mylarVertLayer_physV.at(col), getUserOpticalSurface());
-				if(row != 0) // Bottom side horizontal layer.
-					new G4LogicalBorderSurface("Wrapping", cellPhysical, mylarHorizLayer_physV.at(row-1), getUserOpticalSurface());
-				if(row != fNumRows-1) // Top side vertical layer.
-					new G4LogicalBorderSurface("Wrapping", cellPhysical, mylarHorizLayer_physV.at(row), getUserOpticalSurface());
+				if(downRow >= 0 && downRow < fNumRows) // Bottom side horizontal layer.
+					new G4LogicalBorderSurface("Wrapping", cellPhysical, mylarHorizLayer_physV.at(col).at(row-1), getUserOpticalSurface());
+				if(upRow >= 0 && upRow < fNumRows) // Top side vertical layer.
+					new G4LogicalBorderSurface("Wrapping", cellPhysical, mylarHorizLayer_physV.at(col).at(row), getUserOpticalSurface());
 			}
 		}
 	}
@@ -841,8 +854,6 @@ void nDetConstruction::buildModule(){
 
 	// Apply trapezoidal light-guides.
 	if(fTrapezoidLength > 0){
-		//applyGreaseLayer(fDetectorWidth, fDetectorThickness);
-		//applyLightGuide(fDetectorWidth, 2*SiPM_dimension, fDetectorThickness, 2*SiPM_dimension);
 		applyGreaseLayer();
 		applyLightGuide();
 	}
