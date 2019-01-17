@@ -32,6 +32,7 @@ class G4PVPlacement;
 class G4VSolid;
 class G4Box;
 class G4GDMLParser;
+class G4VisAttributes;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -110,6 +111,8 @@ class gdmlSolid{
 
 	void rotate(const double &x, const double &y, const double &z);
 
+	void clear();
+
   private:
 	std::string name;
   
@@ -177,7 +180,7 @@ class nDetConstruction : public G4VUserDetectorConstruction
 
 	bool setPmtGainMatrix(const char *fname);
 
-	void SetGdmlFilename(const std::string &fname){ gdmlFilename = fname; }
+	void SetGdmlFilename(const std::string &fname);
 
 	void SetGdmlDefaultRotation(const G4ThreeVector &rotation){ gdmlRotation = rotation; }
 
@@ -266,6 +269,10 @@ private:
     G4double fHexagonRadius;
     G4double fLightYieldScale;
 
+	G4double currentLayerSizeX;
+	G4double currentLayerSizeY;    
+	G4double currentOffsetZ;
+
     G4int fNdetectors;
 	G4int fNumColumns;
 	G4int fNumRows;
@@ -333,6 +340,17 @@ private:
     G4LogicalSkinSurface* fSiPMSkinSurface;
     G4LogicalBorderSurface* fMylarSurface;
 
+	// Visual attributes
+	G4VisAttributes *assembly_VisAtt;
+	G4VisAttributes *sensitive_VisAtt;
+	G4VisAttributes *window_VisAtt;
+	G4VisAttributes *grease_VisAtt;
+	G4VisAttributes *wrapping_VisAtt;
+	G4VisAttributes *scint_VisAtt;
+
+	// Loaded gdml solid.
+	gdmlSolid solid;
+
 	std::string gdmlFilename; // GDML model filename to load.
 	std::string wrappingMaterial;
 
@@ -351,7 +369,25 @@ private:
     
     void DefineMaterials();
 
-    void constructPSPmts(G4LogicalVolume *assembly, const G4double &offset);
+	G4ThreeVector constructAssembly();
+
+    void constructPSPmts();
+
+    void applyGreaseLayer();
+    
+    void applyGreaseLayer(const G4double &x, const G4double &y);
+
+    void applyDiffuserLayer();
+
+    void applyDiffuserLayer(const G4double &x, const G4double &y);
+
+    void applyLightGuide();
+
+    void applyLightGuide(const G4double &x2, const G4double &y2);
+    
+    void applyLightGuide(const G4double &x1, const G4double &x2, const G4double &y1, const G4double &y2);
+    
+    G4ThreeVector getPSPmtBoundingBox();
     
     G4Material *getUserSurfaceMaterial();
     
