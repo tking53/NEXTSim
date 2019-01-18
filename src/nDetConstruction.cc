@@ -938,9 +938,11 @@ void nDetConstruction::buildRectangle(){
 	// Build the wrapping.
 	G4PVPlacement *plateWrapping_physV = NULL;
 	if(fMylarThickness > 0){
+		G4ThreeVector pmtSize = getPSPmtBoundingBox();
+		G4Box *pmtBoundingBox = new G4Box("", pmtSize.getX()/2, pmtSize.getY()/2, pmtSize.getZ()/2);
 		G4Box *plateWrappingBox = new G4Box("", fDetectorWidth/2 + fMylarThickness, fDetectorThickness/2 + fMylarThickness, fDetectorLength/2 + fMylarThickness);
-		G4Box *pmtBoundingBox = new G4Box("", SiPM_dimension, SiPM_dimension, assemblyBoundingBox.getZ()/2);
-		G4UnionSolid *cookieCutter = new G4UnionSolid("", plateBody, pmtBoundingBox);
+		G4UnionSolid *cookieCutter = new G4UnionSolid("", plateBody, pmtBoundingBox, 0, G4ThreeVector(0, 0, fDetectorLength/2+pmtSize.getZ()/2));
+		cookieCutter = new G4UnionSolid("", cookieCutter, pmtBoundingBox, 0, G4ThreeVector(0, 0, -fDetectorLength/2-pmtSize.getZ()/2));
 		
 		G4SubtractionSolid *plateWrapping = new G4SubtractionSolid("", plateWrappingBox, cookieCutter);
 		G4LogicalVolume *plateWrapping_logV = new G4LogicalVolume(plateWrapping, getUserSurfaceMaterial(), "plateWrapping_logV");
