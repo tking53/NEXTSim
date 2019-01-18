@@ -20,6 +20,7 @@
 #include "G4UIcmdWith3Vector.hh"
 #include "G4UIcmdWithADouble.hh"
 #include "G4UIcmdWithAString.hh"
+#include "G4UIcmdWith3Vector.hh"
 
 const double coeff = 1.23984193E-3; // hc = Mev * nm
 
@@ -31,6 +32,23 @@ Source::~Source(){
 		delete[] intensity;
 		delete[] integral;
 	}
+}
+
+void Source::setEnergyLimits(const double &Elow_, const double &Ehigh_){ 
+	ElowLimit = Elow_; 
+	EhighLimit = Ehigh_;
+	this->setEnergyLimits();
+} 
+
+void Source::setEnergyLimits(){ 
+	if(ElowLimit > 0)
+		Ilow = this->integrate(ElowLimit);
+	else
+		Ilow = 0;
+	if(EhighLimit > 0)
+		Ihigh = this->integrate(EhighLimit);
+	else
+		Ihigh = totalIntegral;
 }
 
 void Source::addLevel(const double &E_, const double &I_){
@@ -46,8 +64,9 @@ double Source::sample() const {
 	return E;
 }
 
-void Source::initializeDistribution(const size_t &size_, const double &stepSize){
+void Source::initializeDistribution(const size_t &size_, const double &stepSize_){
 	size = size_;
+	stepSize = stepSize_;
 	energy = new double[size_+1];
 	intensity = new double[size_+1];
 	integral = new double[size_+1];
@@ -57,9 +76,10 @@ void Source::initializeDistribution(const size_t &size_, const double &stepSize)
 	}
 	integral[0] = 0;
 	for(size_t i = 1; i < size+1; i++){
-		integral[i] = integral[i-1] + 0.5*(intensity[i-1]+intensity[i])*0.1;
+		integral[i] = integral[i-1] + 0.5*(intensity[i-1]+intensity[i])*stepSize;
 	}
 	totalIntegral = integral[size];
+	this->setEnergyLimits();
 }
 
 double Source::sampleLevels() const {
@@ -72,7 +92,7 @@ double Source::sampleLevels() const {
 }
 
 double Source::sampleDistribution() const {
-	double sampleIntegral = G4UniformRand()*totalIntegral;
+	double sampleIntegral = G4UniformRand()*(Ihigh-Ilow) + Ilow;
 	size_t indexUp = size/2;
 	size_t indexDn = 0;
 	size_t iter = 4;
@@ -82,7 +102,7 @@ double Source::sampleDistribution() const {
 		}
 		else if(indexUp == indexDn+1){
 			if(integral[indexDn] < sampleIntegral && integral[indexUp] >= sampleIntegral){
-				return (energy[indexDn] + 0.1*(sampleIntegral-integral[indexDn])/(integral[indexUp]-integral[indexDn]));
+				return (energy[indexDn] + stepSize*(sampleIntegral-integral[indexDn])/(integral[indexUp]-integral[indexDn]));
 			}
 			indexDn++;
 			indexUp++;
@@ -104,11 +124,21 @@ double Source::sampleDistribution() const {
 	
 	/*for(size_t i = 1; i < size+1; i++){
 		if(integral[i-1] < sampleIntegral && integral[i] >= sampleIntegral){
-			return (energy[i-1] + 0.1*(sampleIntegral-integral[i-1])/(integral[i]-integral[i-1]));
+			return (energy[i-1] + stepSize*(sampleIntegral-integral[i-1])/(integral[i]-integral[i-1]));
 		}
 	}*/
 	
 	return intensity[size];
+}
+
+double Source::integrate(const double &E_) const {
+	for(size_t i = 1; i < size+1; i++){
+		if(energy[i-1] < E_ && energy[i] >= E_){
+			double tempIntensity = intensity[i-1]+(E_-energy[i-1])*(intensity[i]-intensity[i-1])/(energy[i]-energy[i-1]);
+			return (integral[i-1] + 0.5*(intensity[i-1]+tempIntensity)*(E_-energy[i-1]));
+		}
+	}
+	return totalIntegral;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -362,6 +392,11 @@ void ParticleSource::SetIsotropicMode(bool state_/*=true*/){
 	psource->setIsIsotropic(state_);
 }
 
+void ParticleSource::SetEnergyLimits(const double &Elow_, const double &Ehigh_){
+	std::cout << " ParticleSource: Setting energy distribution sampling in the range " << Elow_ << " MeV to " << Ehigh_ << " MeV.\n";
+	psource->setEnergyLimits(Elow_, Ehigh_);
+}
+
 Source *ParticleSource::GetNewSource(const double &E_/*=-1*/){
 	if(psource) delete psource;
 	if(E_ > 0)
@@ -395,6 +430,9 @@ ParticleSourceMessenger::ParticleSourceMessenger(ParticleSource* Gun) : fAction(
 
 	addCommand(new G4UIcommand("/nDet/source/iso", this));
 	addGuidance("Set the source to psuedo-isotropic mode");
+	
+	addCommand(new G4UIcmdWith3Vector("/nDet/source/range", this));
+	addGuidance("Set the energy range of a continuous distribution source");
 }
 
 void ParticleSourceMessenger::SetNewValue(G4UIcommand* command, G4String newValue){ 
@@ -414,4 +452,8 @@ void ParticleSourceMessenger::SetNewValue(G4UIcommand* command, G4String newValu
 		fAction->SetBeamspotRadius(G4UIcommand::ConvertToDouble(newValue));
 	else if(index == 6)
 		fAction->SetIsotropicMode(true);
+	else if(index == 7){
+		G4ThreeVector vec = G4UIcommand::ConvertTo3Vector(newValue);
+		fAction->SetEnergyLimits(vec.getX(), vec.getY());
+	}
 }

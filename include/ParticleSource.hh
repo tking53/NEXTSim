@@ -43,9 +43,9 @@ class EnergyLevel{
 
 class Source{
   public:
-	Source() : iso(true), E(-1), totalIntegral(0), size(0), energy(NULL), intensity(NULL), integral(NULL) { }
+	Source() : iso(true), E(-1), totalIntegral(0), stepSize(0.1), size(0), energy(NULL), intensity(NULL), integral(NULL), ElowLimit(0), EhighLimit(-1), Ilow(0), Ihigh(-1) { }
 	
-	Source(const double &E_) : iso(false), E(E_), totalIntegral(0), size(0), energy(NULL), intensity(NULL), integral(NULL) { }
+	Source(const double &E_) : iso(false), E(E_), totalIntegral(0), stepSize(0.1), size(0), energy(NULL), intensity(NULL), integral(NULL), ElowLimit(0), EhighLimit(-1), Ilow(0), Ihigh(-1) { }
 	
 	virtual ~Source();
 	
@@ -65,6 +65,8 @@ class Source{
 
 	double setEnergy(const double &E_){ return (E=E_); }
 	
+	void setEnergyLimits(const double &Elow_, const double &Ehigh_);
+	
 	void addLevel(const double &E_, const double &I_);
 	
 	double sample() const ;
@@ -76,26 +78,38 @@ class Source{
 	double E;
 
 	double totalIntegral;
+	double stepSize;
 	
 	size_t size;
 	double *energy;
 	double *intensity;
 	double *integral;
+	
+	double ElowLimit;
+	double EhighLimit;
+
+	double Ilow;
+	double Ihigh;
 
 	std::vector<EnergyLevel> gammas;
   
-	void initializeDistribution(const size_t &size_, const double &stepSize);
+	void initializeDistribution(const size_t &size_, const double &stepSize_);
   
 	double sampleLevels() const ;
 	
 	double sampleDistribution() const ;
+	
+  private:
+	double integrate(const double &E_) const ;
+	
+	void setEnergyLimits();
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 class Californium252 : public Source {
   public:
-	Californium252() : Source() { this->initializeDistribution(100, 0.1); }
+	Californium252() : Source() { this->initializeDistribution(150, 0.1); }
 	
 	~Californium252(){ }
 	
@@ -156,6 +170,8 @@ class ParticleSource : public G4VUserPrimaryGeneratorAction {
 	void SetElectronBeam(const double &energy_);
 	
 	void SetIsotropicMode(bool state_=true);
+	
+	void SetEnergyLimits(const double &Elow_, const double &Ehigh_);
 
   private:    
 	ParticleSourceMessenger *fGunMessenger;
