@@ -1,0 +1,97 @@
+#
+# create empty scene
+#
+
+/nDet/detector/setGeometry module
+
+# Set the size of the PSPmt
+/nDet/detector/setSiPMdimensions 48.5
+
+# Mylar and optical grease thickness.
+/nDet/detector/setMylarThickness 0.025
+/nDet/detector/setGreaseThickness 0.1
+
+# Light diffuser.
+#/nDet/detector/setDiffuserLength 0.5
+
+# PMT segmentation.
+/nDet/detector/setPmtColumns 8
+/nDet/detector/setPmtRows 8
+
+##################
+# DETECTOR SETUP #
+##################
+
+# NEXT 2x2x10 in^3
+/nDet/detector/setDetectorLength 25.4
+/nDet/detector/setDetectorWidth 5.08
+/nDet/detector/setDetectorThickness 50.8
+/nDet/detector/setNumColumns 8
+/nDet/detector/setNumRows 4
+
+# Set the wrapping.
+/nDet/detector/setWrapping mylar
+
+# Update the detector.
+/nDet/detector/update
+
+# Load PSPMT gain matrix 
+# NOTE: This MUST be done AFTER calling '/nDet/detector/update' otherwise it will fail
+/nDet/detector/setGainMatrix gains/hamamatsuH12700A_LA0967.dat
+
+# Load PSPMT spectral response function
+/nDet/detector/setSpectralResponse spectral/hamamatsuH12700A.root
+
+################
+# OUTPUT SETUP #
+################
+
+# Set the output filename prefix
+/nDet/output/filename next2x2_252Cf_465mm.root
+/nDet/output/title 2x2x10" NExT with isotropic 252Cf source at 465.1 mm from center (mylar, no Cf energy restriction)
+/nDet/output/debug true
+
+# Setup information about the PMT response
+/nDet/output/trace/setRisetime 2
+/nDet/output/trace/setFalltime 20
+/nDet/output/trace/setTimeSpread 0.35
+/nDet/output/trace/setGain 1E4
+/nDet/output/trace/setBaseline 7.5
+/nDet/output/trace/setJitter 0.15
+
+# Setup the PMT light pulse output
+#/nDet/output/trace/enabled true
+/nDet/output/trace/setTraceDelay 60
+/nDet/output/trace/setTraceLength 500
+/nDet/output/trace/setBitRange 16
+
+/nDet/output/trace/setCfdFraction 0.5
+/nDet/output/trace/setIntegralLow 5
+/nDet/output/trace/setIntegralHigh 10
+
+################
+# SOURCE SETUP #
+################
+
+# Beam is along the +X axis by default.
+/nDet/source/position 465.1 0 0 mm
+
+# Rotate the beam by 180 degrees about the y-axis so it points at the detector.
+#  The beam of particles will now point in the -X direction.
+/nDet/source/direction 0 180 0 
+
+# Available source types: 137Cs 60Co 133Ba 241Am 90Sr 252Cf
+/nDet/source/type 252Cf
+
+# Force isotropic source
+/nDet/source/iso
+
+# Set the energy distribution sampling range (in MeV)
+#/nDet/source/range 1.175 1.225 0
+
+###############
+# RUN CONTROL #
+###############
+
+/run/beamOn 10000
+

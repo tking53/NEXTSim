@@ -1,0 +1,79 @@
+#
+# create empty scene
+#
+
+/nDet/detector/setGeometry rectangle
+
+/nDet/detector/setSiPMdimensions 6
+
+# Mylar and optical grease thickness.
+/nDet/detector/setMylarThickness 0.025
+/nDet/detector/setGreaseThickness 0.1
+
+##################
+# DETECTOR SETUP #
+##################
+
+# Bar prototype
+/nDet/detector/setDetectorLength 10
+/nDet/detector/setDetectorWidth 0.6
+#/nDet/detector/setDetectorThickness 6
+#/nDet/detector/setDetectorThickness 3
+#/nDet/detector/setDetectorThickness 1
+#/nDet/detector/setDetectorThickness 12
+#/nDet/detector/setDetectorThickness 18
+/nDet/detector/setDetectorThickness 6
+/nDet/detector/setWrapping mylar
+
+# Update the detector.
+/nDet/detector/update
+
+################
+# OUTPUT SETUP #
+################
+
+# Set the output filename prefix
+/nDet/output/filename bar.root
+/nDet/output/title 6x6x100 mm^3 bar prototype w/ 6x6 mm^2 SiPMs and 1 MeV neutron pencil beam at 1 m (wrapped with mylar)
+/nDet/output/debug true
+
+# Setup information about the PMT response
+/nDet/output/trace/setRisetime 2
+/nDet/output/trace/setFalltime 20
+/nDet/output/trace/setTimeSpread 0.35
+/nDet/output/trace/setGain 2E4
+/nDet/output/trace/setBaseline 7.5
+/nDet/output/trace/setJitter 0.15
+
+# Setup the PMT light pulse output
+/nDet/output/trace/setTraceDelay 60
+/nDet/output/trace/setTraceLength 500
+/nDet/output/trace/setBitRange 16
+
+/nDet/output/trace/setCfdFraction 0.5
+/nDet/output/trace/setIntegralLow 5
+/nDet/output/trace/setIntegralHigh 10
+
+################
+# SOURCE SETUP #
+################
+
+# Beam is along the +X axis by default.
+/nDet/source/position 100 0 0 cm
+
+# Rotate the beam by 180 degrees about the y-axis so it points at the detector.
+#  The beam of particles will now point in the -Z direction.
+/nDet/source/direction 0 180 0 
+
+# Available source types: 137Cs 60Co 133Ba 241Am 90Sr 252Cf
+#/nDet/source/type 60Co
+#/nDet/source/iso
+/nDet/source/beam neutron 1
+#/nDet/source/spot 20
+
+###############
+# RUN CONTROL #
+###############
+
+/run/beamOn 10000
+

@@ -1,0 +1,94 @@
+#
+# create empty scene
+#
+
+/nDet/detector/setGeometry rectangle
+
+# Mylar and optical grease thickness.
+/nDet/detector/setMylarThickness 0.025
+/nDet/detector/setGreaseThickness 1
+
+##################
+# DETECTOR SETUP #
+##################
+
+# Small VANDLE (3x3x60 cm^3)
+#/nDet/detector/setDetectorLength 60.0
+#/nDet/detector/setDetectorWidth 3.0
+#/nDet/detector/setDetectorThickness 30.0
+#/nDet/detector/setSiPMdimensions 30.0
+
+/nDet/detector/setDetectorLength 10.0
+/nDet/detector/setDetectorWidth 5.08
+/nDet/detector/setDetectorThickness 50.8
+/nDet/detector/setSiPMdimensions 50.8
+
+# Medium VANDLE (5x3x120 cm^3)
+#/nDet/detector/setDetectorLength 120.0
+#/nDet/detector/setDetectorWidth 3.0
+#/nDet/detector/setDetectorThickness 50.0
+#/nDet/detector/setSiPMdimensions 30.0
+
+# Large VANDLE (5x5x200 cm^3)
+#/nDet/detector/setDetectorLength 200.0
+#/nDet/detector/setDetectorWidth 5.0
+#/nDet/detector/setDetectorThickness 50.0
+#/nDet/detector/setSiPMdimensions 50.0
+
+# Update the detector.
+/nDet/detector/update
+
+################
+# OUTPUT SETUP #
+################
+
+# Set the output filename prefix
+/nDet/output/filename vandle.root
+/nDet/output/title 5.08x5.08x10 cm^3 (non-segmented) NExT with 1 MeV neutron pencil beam at 1 m (mylar)
+/nDet/output/debug true
+
+# Setup information about the PMT response
+/nDet/output/trace/setRisetime 2
+/nDet/output/trace/setFalltime 20
+/nDet/output/trace/setTimeSpread 0.35
+/nDet/output/trace/setGain 2E4
+/nDet/output/trace/setBaseline 7.5
+/nDet/output/trace/setJitter 0.15
+
+# Setup the PMT light pulse output
+/nDet/output/trace/setTraceDelay 60
+/nDet/output/trace/setTraceLength 500
+/nDet/output/trace/setBitRange 16
+
+/nDet/output/trace/setCfdFraction 0.5
+/nDet/output/trace/setIntegralLow 5
+/nDet/output/trace/setIntegralHigh 10
+
+################
+# SOURCE SETUP #
+################
+
+# Beam is along the +X axis by default.
+/nDet/source/position 100 0 0 cm
+
+# Rotate the beam by 180 degrees about the y-axis so it points at the detector.
+#  The beam of particles will now point in the -X direction.
+/nDet/source/direction 0 180 0 
+
+# Available source types: 137Cs 60Co 133Ba 241Am 90Sr 252Cf
+#/nDet/source/type 252Cf
+
+/nDet/source/beam neutron 1.00
+#/nDet/source/beam 60Co
+#/nDet/source/beam gamma 0.03
+
+#/nDet/source/spot 25
+#/nDet/source/spot 15
+#/nDet/source/iso
+
+###############
+# RUN CONTROL #
+###############
+
+/run/beamOn 50000
+
