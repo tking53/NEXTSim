@@ -1,10 +1,2 @@
-*~
-.svn
-.*DS_Store
-.idea/
-cmake-build-debug/
 install/
 build/
-build_*
-ROOT_Output
-*.root
