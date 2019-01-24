@@ -1,3 +1,5 @@
+#include "G4VisAttributes.hh"
+#include "G4NistManager.hh"
 #include "G4SystemOfUnits.hh"
 
 #ifdef USE_GDML

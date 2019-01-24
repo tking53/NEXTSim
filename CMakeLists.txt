@@ -52,6 +52,7 @@ set(GEANT4_INSTALL_DIR "" CACHE PATH "Install Prefix" FORCE)
 #Install options
 #option(BUILD_SHARED "Build and install shared libraries." OFF)
 option(BUILD_TOOLS "Build and install tool programs." OFF)
+option(GEANT4_GDML "Enable support for G4GDMLParser." OFF)
 option(GEANT4_UIVIS "Build example with Geant4 UI and Vis drivers" ON)
 
 #------------------------------------------------------------------------------

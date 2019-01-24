@@ -1,3 +1,8 @@
+#Enable support for GDML.
+if(GEANT4_GDML)
+	add_definitions(-DUSE_GDML)
+endif(GEANT4_GDML)
+
 #Set the scan sources that we will make a lib out of.
 set(NextSimSources centerOfMass.cc nDetConstruction.cc nDetEventAction.cc nDetRunActionMessenger.cc 
                    nDetSteppingAction.cc ParticleSource.cc pmtResponse.cc messengerHandler.cc  
