@@ -1,71 +1,90 @@
-      # (1)
-      cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
+cmake_minimum_required (VERSION 2.8)
 
-      project(NextMultipleScattering)
+project (nextSim)
 
-      # (2)
-      option(WITH_GEANT4_UIVIS "Build example with Geant4 UI and Vis drivers" ON)
-      if(WITH_GEANT4_UIVIS)
-        find_package(Geant4 REQUIRED ui_all vis_all)
-      else()
-        find_package(Geant4 REQUIRED)
-      endif()
+#Compile with c++11 or c++0x depending on the compiler version
+if (CMAKE_COMPILER_IS_GNUCXX)
+	if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER "4.3" AND
+            ${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS "4.7")
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+    elseif(${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER "4.6")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+    else()
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+    endif(${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER "4.3" AND
+            ${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS "4.7")
 
-      set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake/modules/)
-      find_package(ROOT REQUIRED)
-      set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
-      
-      # (3)      
-      include(${Geant4_USE_FILE})
-      include_directories(${PROJECT_SOURCE_DIR}/include)
-      include_directories(${ROOT_INCLUDE_DIR})
-      message(status ${ROOT_INCLUDE_DIR})
+    #Make compiler messages nice with colored tags.
+	if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER "4.9")
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fdiagnostics-color=auto")
+	endif()
 
-     # (4)      
-      file(GLOB sources ${PROJECT_SOURCE_DIR}/src/*.cc)
-      file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -fPIC")
+endif()
 
-      #if user does not specify prefix we assign it to the exec directory
-      if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-            message(STATUS "Install Prefix not specified.")
-            file(MAKE_DIRECTORY install)
-            get_filename_component(INSTALL_DIR ${CMAKE_SOURCE_DIR}/install REALPATH)
-            set(CMAKE_INSTALL_PREFIX ${INSTALL_DIR} CACHE PATH "Install Prefix" FORCE)
-      endif()
-      message(STATUS "Installing to ${CMAKE_INSTALL_PREFIX}")
+#if user does not specify prefix we assign it to the exec directory
+if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+   message(STATUS "Install Prefix not specified.")
+   file(MAKE_DIRECTORY install)
+   get_filename_component(INSTALL_DIR ${CMAKE_SOURCE_DIR}/install REALPATH)
+   set(CMAKE_INSTALL_PREFIX ${INSTALL_DIR} CACHE PATH "Install Prefix" FORCE)
+endif()
+message(STATUS "Installing to ${CMAKE_INSTALL_PREFIX}")
 
-      # (5)
-      add_executable(neutronDetectorDesign neutronDetectorDesign.cc ${sources} )
-      target_link_libraries(neutronDetectorDesign ${Geant4_LIBRARIES} ${ROOT_LIBRARIES})
-      install(TARGETS neutronDetectorDesign DESTINATION bin)
+#Define the default build type to be Release
+if(NOT CMAKE_BUILD_TYPE)
+   set(CMAKE_BUILD_TYPE Release CACHE STRING
+      "Build type, options are: None Debug Release RelWithDebInfo MinSizeRel."
+      FORCE)
+   message(STATUS "Build type not defined, using default: ${CMAKE_BUILD_TYPE}")
+endif(NOT CMAKE_BUILD_TYPE)
+message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 
-      # (6)
+#Add additional CXX flags if we use the Debug option
+if(CMAKE_BUILD_TYPE MATCHES "Debug")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg")
+endif(CMAKE_BUILD_TYPE MATCHES "Debug")
 
+set(GEANT4_INSTALL_DIR "" CACHE PATH "Install Prefix" FORCE)
 
-      # (7) Left out since it will only be executed locally where built
+#------------------------------------------------------------------------------
 
+#Install options
+#option(BUILD_SHARED "Build and install shared libraries." OFF)
+option(BUILD_TOOLS "Build and install tool programs." OFF)
+option(GEANT4_UIVIS "Build example with Geant4 UI and Vis drivers" ON)
 
-      # (8) DPL
-      #---------------------------------------------------------------------------
-      # Create the directory for the Output files
-      #
-      #file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/output")
+#------------------------------------------------------------------------------
 
-      # (9)
-      #---------------------------------------------------------------------------
-      #Copy all scripts to the build directory, i.e. the directory in which we
-      # build NEXTSim. This is so that we can run the executable directly because it
-      # relies on these scripts being in the current working directory.
-      #
-#	set(NEXTSIM_SCRIPTS
-#      	mac/run.mac
-#      	mac/vis.mac
-#        )
+#Find required packages.
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules/")
 
-#      foreach(_script ${NEXTSIM_SCRIPTS})
-#       configure_file(
-#          ${PROJECT_SOURCE_DIR}/${_script}
-#          ${PROJECT_BINARY_DIR}/${_script}
-#          COPYONLY
-#          )
-#      endforeach()
+#Find ROOT install.
+find_package (ROOT REQUIRED)
+mark_as_advanced(FORCE GENREFLEX_EXECUTABLE ROOTCINT_EXECUTABLE ROOT_CONFIG_EXECUTABLE)
+include_directories(${ROOT_INCLUDE_DIR})
+link_directories(${ROOT_LIBRARY_DIR})
+
+#Find Geant install.
+if(GEANT4_UIVIS)
+	find_package(Geant4 REQUIRED ui_all vis_all)
+else()
+	find_package(Geant4 REQUIRED)
+endif()
+
+set(TOP_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
+
+#Add the include directories.
+include(${Geant4_USE_FILE})
+include_directories(include)
+
+#Add the source directories.
+add_subdirectory(source)
+
+if(BUILD_TOOLS)
+	option(BUILD_TOOLS_NISTLIST "Build NIST library list program." OFF)
+	add_subdirectory(tools)
+endif()
+
+#Build/install the miscellaneous stuff
+add_subdirectory(share)

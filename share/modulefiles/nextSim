@@ -1,0 +1,19 @@
+#%Module1.0
+##
+## modules nextSim
+##
+## modulefiles/nextSim
+##
+proc ModulesHelp {} {
+	global version modroot
+
+	puts stderr "nextSim - NExT detector simulation program using Geant4"
+}
+module-whatis "NExT detector simulation program using Geant4"
+
+set topdir 	@CMAKE_INSTALL_PREFIX@
+
+prepend-path PATH	$topdir/bin
+prepend-path LD_LIBRARY_PATH	$topdir/lib
+prepend-path CPLUS_INCLUDE_PATH	$topdir/include
+prepend-path LIBRARY_PATH	$topdir/lib
