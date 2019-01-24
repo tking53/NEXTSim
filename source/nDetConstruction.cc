@@ -152,7 +152,8 @@ G4LogicalVolume *gdmlSolid::read(const char *fname, G4OpticalSurface *surface/*=
 		nDaughters++;
 	}
 
-    G4NistManager* manNist = G4NistManager::Instance();
+	// Get an instance of the NIST
+    G4NistManager *manNist = G4NistManager::Instance();
 
 	// Define the parent object.
 	parent_physV = new G4Box("assembly", size[0], size[1], size[2]);
@@ -335,6 +336,8 @@ nDetConstruction::nDetConstruction(const G4double &scale/*=1*/){
     wrapping_VisAtt->SetForceSolid(true);
 	
 	scint_VisAtt = new G4VisAttributes(G4Colour(0.0, 0.0, 1.0)); //blue
+	
+	manNist = G4NistManager::Instance();
 } // end of construction function.
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -428,26 +431,29 @@ void nDetConstruction::buildExpHall()
 
 void nDetConstruction::DefineMaterials() {
     G4cout<<"nDetConstruction::DefineMaterials()"<<G4endl;
-    //Elements
-    G4double z;
-    G4double a;
 
-    fH=new G4Element("Hydrogen", "H", z=1., a=1.00794*g/mole);
+	// Elements
+	fH = findNistElement("H");
+	fC = findNistElement("C");
+	fO = findNistElement("O");
+	fF = findNistElement("F");
+	fSi = findNistElement("Si");
+	fAl = findNistElement("Al");
+
+    /*fH=new G4Element("Hydrogen", "H", z=1., a=1.00794*g/mole);
     fC=new G4Element("Carbon", "C", z=6., a=12.01*g/mole);
     fO=new G4Element("Oxygen", "O", z=8., a=16.00*g/mole);
     fF=new G4Element("Fluorine", "F", z=9., a=18.9984*g/mole);
     fSi=new G4Element("Aluminium","Si",z=14.,a=28.09*g/mole);
-    fAl=new G4Element("Aluminium","Al",z=13.,a=26.9815*g/mole);
-
-    //Materials & Properties
-    G4NistManager* manNist = G4NistManager::Instance();
+    fAl=new G4Element("Aluminium","Al",z=13.,a=26.9815*g/mole);*/
 
 	// Air
-    fAir=manNist->FindOrBuildMaterial("G4_AIR");
+    fAir = findNistMaterial("G4_AIR");
 
 	// Lab vacuum
-	fVacuum = new G4Material("G4_VACUUM", 1E-5*g/cm3, 1, kStateGas, STP_Temperature, 2E-2*bar);
-	fVacuum->AddMaterial(fAir, 1.0);
+	fVacuum = findNistMaterial("G4_VACUUM");
+	//new G4Material("G4_VACUUM", 1E-5*g/cm3, 1, kStateGas, STP_Temperature, 2E-2*bar);
+	//fVacuum->AddMaterial(fAir, 1.0);
 
     G4double density;
     int natoms;
@@ -572,7 +578,8 @@ void nDetConstruction::DefineMaterials() {
 
     fGrease->SetMaterialPropertiesTable(fGreaseMPT);
 
-    fSiO2 = manNist->FindOrBuildMaterial("G4_SILICON_DIOXIDE");
+    fSiO2 = findNistMaterial("G4_SILICON_DIOXIDE");
+    //manNist->FindOrBuildMaterial("G4_SILICON_DIOXIDE");
 
     //optical properties of SiO2 - fused silica or fused quartz
     G4double PhotonEnergy[5] = { 2.484*eV, 2.615*eV, 2.760*eV, 2.922*eV, 3.105*eV };
@@ -584,7 +591,8 @@ void nDetConstruction::DefineMaterials() {
     fSiO2MPT->AddProperty("ABSLENGTH", PhotonEnergy, Absorption_SiO2, 5);
     fSiO2->SetMaterialPropertiesTable(fSiO2MPT);
 
-    fSil=manNist->FindOrBuildMaterial("G4_Si");
+    fSil = findNistMaterial("G4_Si");
+    //manNist->FindOrBuildMaterial("G4_Si");
 
     // optical properties,    
     fSilMPT = new G4MaterialPropertiesTable();
@@ -1332,4 +1340,41 @@ G4OpticalSurface *nDetConstruction::getUserOpticalSurface(){
     
     return fMylarOpticalSurface; // default
 }
-    
+
+void nDetConstruction::printNistElements(){
+	manNist = G4NistManager::Instance();
+	std::vector<G4String> names = manNist->GetNistElementNames();
+	std::cout << "nDetConstruction: Found " << names.size() << " elements in NIST database.\n";
+	for(size_t i = 0; i < names.size(); i++){
+		std::cout << " " << i << "\t" << names.at(i) << std::endl;
+	}
+}
+
+void nDetConstruction::printNistMaterials(){
+	manNist = G4NistManager::Instance();
+	std::vector<G4String> matNames = manNist->GetNistMaterialNames();
+	std::cout << "nDetConstruction: Found " << matNames.size() << " materials in NIST database.\n";
+	for(size_t i = 0; i < matNames.size(); i++){
+		std::cout << " " << i << "\t" << matNames.at(i) << std::endl;
+	}
+}
+
+G4Element *nDetConstruction::findNistElement(const std::string &name){
+	manNist = G4NistManager::Instance();
+	G4Element *retval = manNist->FindOrBuildElement(name);
+	if(!retval)
+		std::cout << " nDetConstruction: ERROR! Failed to find element named \"" << name << "\" in NIST database.\n";
+	else
+		std::cout << " nDetConstruction: Successfully found element named \"" << name << "\" in NIST database.\n";
+	return retval;
+}
+
+G4Material *nDetConstruction::findNistMaterial(const std::string &name){
+	manNist = G4NistManager::Instance();
+	G4Material *retval = manNist->FindOrBuildMaterial(name);
+	if(!retval)
+		std::cout << " nDetConstruction: ERROR! Failed to find material named \"" << name << "\" in NIST database.\n";
+	else
+		std::cout << " nDetConstruction: Successfully found material named \"" << name << "\" in NIST database.\n";
+	return retval;
+}
