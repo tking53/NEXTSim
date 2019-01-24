@@ -14,6 +14,7 @@
 
 #include "centerOfMass.hh"
 #include "gdmlSolid.hh"
+#include "nistDatabase.hh"
 
 // Class declarations
 class nDetConstructionMessenger;
@@ -33,7 +34,6 @@ class G4PVPlacement;
 class G4VSolid;
 class G4Box;
 class G4VisAttributes;
-class G4NistManager;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -206,8 +206,6 @@ private:
     nDetSD *fScintSD;
 
     //Materials and elements
-	G4NistManager* manNist;
-
     G4Element* fH;
     G4Element* fC;
     G4Element* fO;
@@ -258,6 +256,9 @@ private:
 	// Loaded gdml solid.
 	gdmlSolid solid;
 
+	// Database of elements and materials.
+	nistDatabase nist;
+
 	std::string gdmlFilename; // GDML model filename to load.
 	std::string wrappingMaterial;
 
@@ -299,14 +300,6 @@ private:
     G4Material *getUserSurfaceMaterial();
     
     G4OpticalSurface *getUserOpticalSurface();
-    
-    void printNistElements();
-    
-    void printNistMaterials();
-    
-	G4Element *findNistElement(const std::string &name);
-	
-	G4Material *findNistMaterial(const std::string &name);
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
