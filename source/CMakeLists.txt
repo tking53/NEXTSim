@@ -2,7 +2,7 @@
 set(NextSimSources centerOfMass.cc nDetConstruction.cc nDetEventAction.cc nDetRunActionMessenger.cc 
                    nDetSteppingAction.cc ParticleSource.cc pmtResponse.cc messengerHandler.cc  
                    nDetConstructionMessenger.cc nDetRunAction.cc nDetStackingAction.cc 
-                   nDetTrackingAction.cc optionHandler.cc photonCounter.cc)
+                   nDetTrackingAction.cc optionHandler.cc photonCounter.cc gdmlSolid.cc)
 
 #Add the sources to the library.
 add_library(NextSimObjects OBJECT ${NextSimSources})
