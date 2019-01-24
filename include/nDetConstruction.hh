@@ -91,6 +91,12 @@ class nDetConstruction : public G4VUserDetectorConstruction
 
 	void SetWrappingMaterial(const std::string &material){ wrappingMaterial = material; }
 
+	void SetShadowBarSize(const G4ThreeVector &size);
+	
+	void SetShadowBarPosition(const G4ThreeVector &pos);
+
+	bool SetShadowBarMaterial(const G4String &material);
+
 	G4double GetDetectorLength() const { return fDetectorLength; }
 	
 	G4double GetDetectorWidth() const { return fDetectorWidth; }
@@ -194,7 +200,7 @@ private:
     G4LogicalVolume* assembly_logV;
 
     G4LogicalVolume* ej200_logV; // ej200 scintillator
-    G4LogicalVolume *mylar_logV;
+    G4LogicalVolume* mylar_logV;
     G4LogicalVolume* grease_logV;
     G4LogicalVolume* qwSiPM_logV;
     G4LogicalVolume* psSiPM_logV;
@@ -252,6 +258,7 @@ private:
 	G4VisAttributes *grease_VisAtt;
 	G4VisAttributes *wrapping_VisAtt;
 	G4VisAttributes *scint_VisAtt;
+	G4VisAttributes *shadow_VisAtt;
 
 	// Loaded gdml solid.
 	gdmlSolid solid;
@@ -263,6 +270,11 @@ private:
 	std::string wrappingMaterial;
 
 	G4ThreeVector gdmlRotation; // Default rotation of GDML model.
+
+	// Shadow bar
+	G4ThreeVector shadowBarSize;
+	G4ThreeVector shadowBarPos;
+	G4Material *shadowBarMaterial;
 
     // member functions
     void buildExpHall();

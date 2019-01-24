@@ -127,7 +127,13 @@ nDetConstruction::nDetConstruction(const G4double &scale/*=1*/){
     wrapping_VisAtt->SetColor(1, 0, 1, 0.5); // Alpha=50%
     wrapping_VisAtt->SetForceSolid(true);
 	
-	scint_VisAtt = new G4VisAttributes(G4Colour(0.0, 0.0, 1.0)); //blue
+	scint_VisAtt = new G4VisAttributes(G4Colour(0.0, 0.0, 1.0)); // blue
+	
+	shadow_VisAtt = new G4VisAttributes();
+    shadow_VisAtt->SetColor(0, 1, 0, 0.5); // green, Alpha=50%
+    shadow_VisAtt->SetForceSolid(true);	
+	
+	shadowBarMaterial = NULL;
 } // end of construction function.
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -166,6 +172,14 @@ G4VPhysicalVolume* nDetConstruction::ConstructDetector(){
 	else if(fGeometry == "test")
 		buildTestAssembly();
 
+	// Build the shadow bar.
+	if(shadowBarMaterial){
+		G4Box *shadowBox = new G4Box("shadowBox", shadowBarSize.getX()/2, shadowBarSize.getY()/2, shadowBarSize.getZ()/2);
+		G4LogicalVolume *shadowBox_logV = new G4LogicalVolume(shadowBox, shadowBarMaterial, "shadowBox_logV", 0, 0, 0);
+		shadowBox_logV->SetVisAttributes(shadow_VisAtt);
+		new G4PVPlacement(0, shadowBarPos, shadowBox_logV, "ShadowBar", expHall_logV, true, 0, fCheckOverlaps);
+	}
+
 	return expHall_physV;
 }
 
@@ -200,6 +214,21 @@ void nDetConstruction::SetGdmlFilename(const std::string &fname){
 	// Load the light-guide from a GDML file.
 	LoadGDML(gdmlFilename, solid);
 	fTrapezoidLength = solid.getLength()*mm;
+}
+
+void nDetConstruction::SetShadowBarSize(const G4ThreeVector &size){
+	shadowBarSize = size;
+}
+
+void nDetConstruction::SetShadowBarPosition(const G4ThreeVector &pos){
+	shadowBarPos = pos;		
+}
+
+bool nDetConstruction::SetShadowBarMaterial(const G4String &material){
+	shadowBarMaterial = nist.searchForMaterial(material);
+	if(!shadowBarMaterial)
+		return false;
+	return true;
 }
 
 void nDetConstruction::buildExpHall()

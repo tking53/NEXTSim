@@ -9,6 +9,7 @@
 #include "G4UIcmdWithAString.hh"
 #include "G4UIdirectory.hh"
 #include "G4UIcmdWith3Vector.hh"
+#include "G4UIcmdWith3VectorAndUnit.hh"
 #include "G4UIcmdWithADouble.hh"
 #include "G4UIcmdWithAnInteger.hh"
 #include "G4SystemOfUnits.hh"
@@ -75,6 +76,15 @@ nDetConstructionMessenger::nDetConstructionMessenger(nDetConstruction* detector)
 	addCommand(new G4UIcmdWithAString("/nDet/detector/setWrapping", this));
 	addGuidance("Set the material to use for reflective wrapping");	
 	addCandidates("teflon silicon mylar esr");
+
+	addCommand(new G4UIcmdWith3VectorAndUnit("/nDet/detector/setShadowBarSize", this));
+	addGuidance("Set the size of a shadow-bar.");
+
+	addCommand(new G4UIcmdWith3VectorAndUnit("/nDet/detector/setShadowBarPos", this));
+	addGuidance("Set the position of the shadow-bar.");
+	
+	addCommand(new G4UIcmdWithAString("/nDet/detector/setShadowBarMaterial", this));
+	addGuidance("Set the shadow-bar material to use.");	
 }
 
 void nDetConstructionMessenger::SetNewValue(G4UIcommand* command, G4String newValue){
@@ -150,5 +160,16 @@ void nDetConstructionMessenger::SetNewValue(G4UIcommand* command, G4String newVa
 	}
 	else if(index == 18){
 		fDetector->SetWrappingMaterial(newValue);
+	}
+	else if(index == 19){
+		G4ThreeVector val = command->ConvertToDimensioned3Vector(newValue);
+		fDetector->SetShadowBarSize(val);
+	}
+	else if(index == 20){
+		G4ThreeVector val = command->ConvertToDimensioned3Vector(newValue);
+		fDetector->SetShadowBarPosition(val);
+	}
+	else if(index == 21){
+		fDetector->SetShadowBarMaterial(newValue);
 	}
 }
