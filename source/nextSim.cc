@@ -88,21 +88,18 @@ int main(int argc, char** argv)
 
   //make random number seeds different in different runs in Geant4 simulation
   //////////////////////////////////////
+  
   //choose the Random engine
   CLHEP::HepRandom::setTheEngine(new CLHEP::RanecuEngine());
+  
   //set random seed with system time
   G4long seed = time(NULL);
   CLHEP::HepRandom::setTheSeed(seed);
+  
   //////////////////////////////////////
 
-
   // Construct the default run manager
-#ifdef G4MULTITHREADED
-  G4MTRunManager* runManager = new G4MTRunManager;
-  runManager->SetNumberOfThreads(G4Threading::G4GetNumberOfCores());
-#else
   G4RunManager* runManager = new G4RunManager;
-#endif
 
   // set mandatory initialization classes
   // Initialize the detector
@@ -115,23 +112,6 @@ int main(int argc, char** argv)
     detector = new nDetConstruction(yieldMult);
   }
   runManager->SetUserInitialization( detector );
-
-/*  // Initialize the physics lists
-  // The LBE modular physics list is used in this program
-  // For details about this physics list, please reference source code
-  // 
-  G4VModularPhysicsList* physics = new LBE();
-  runManager->SetUserInitialization( physics );
-  */
- 
-/*// Using the VANDLE (Sergei) physics list.
-  LENSLongPhysicsList* physicsList = new LENSLongPhysicsList;
-  runManager->SetUserInitialization( physicsList );
-that didn't work... this is horribly deprecated*/
-
-
-//Using "high precision" neutron scattering model.  Warning: this will be slow.
-
 
   G4VModularPhysicsList* physics = new QGSP_BERT_HP();
 
@@ -171,10 +151,6 @@ that didn't work... this is horribly deprecated*/
   runManager->SetUserAction(trackingAction);
 
   runAction->setActions(eventAction, stackingAction, trackingAction, steppingAction);
-
-//So we do this instead K Schmitt 6/16/16
-//  runManager->SetUserInitialization(new nDetActionInitialization());
-//end of Kyle's changes
 
   // Initialize G4 kernel
   runManager->Initialize();
