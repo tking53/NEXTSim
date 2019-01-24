@@ -84,8 +84,16 @@ add_subdirectory(source)
 
 if(BUILD_TOOLS)
 	option(BUILD_TOOLS_NISTLIST "Build NIST library list program." OFF)
+	option(BUILD_TOOLS_CONVERTER "Build nextSim to simpleScan output converter." OFF)
 	add_subdirectory(tools)
 endif()
+
+if(BUILD_TOOLS_CONVERTER)
+	#Find simpleScan install.
+	find_package (SimpleScan REQUIRED)
+	include_directories(${SimpleScan_INCLUDE_DIR})
+	mark_as_advanced(SimpleScan_SCAN_LIB SimpleScan_OPT_LIB SimpleScan_DICTIONARY)
+endif(BUILD_TOOLS_CONVERTER)
 
 #Build/install the miscellaneous stuff
 add_subdirectory(share)
