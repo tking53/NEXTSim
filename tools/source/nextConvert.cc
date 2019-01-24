@@ -7,7 +7,7 @@
 #include "TTree.h"
 #include "TBranch.h"
 
-#include "/opt/simpleScan/install/include/Structures.hpp"
+#include "Structures.hpp"
 
 // Units (referenced to cm)
 const double in = 2.54;
@@ -80,7 +80,7 @@ class dataPack{
 
 	bool checkEnergy() const ;
 
-	virtual void print(const size_t &index) const { }
+	virtual void print(const size_t &) const { }
 
   protected:
 	bool goodEvent;  
@@ -100,7 +100,7 @@ class dataPack{
 
 	bool setSingleBranch(TTree *tree, const std::string &name, void *ptr);
 
-	virtual void setChildAddresses(TTree *tree){ }
+	virtual void setChildAddresses(TTree *){ }
 };
 
 dataPack::dataPack(const size_t &num) : goodEvent(false), numBranches(0), currBranch(0), nInitEnergy(0), energyLimitLow(0), energyLimitHigh(-1), branches(NULL) {
