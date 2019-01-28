@@ -33,24 +33,12 @@ double dotProduct(const G4ThreeVector &v1, const G4ThreeVector &v2){
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 primaryTrackInfo::primaryTrackInfo(const G4Step *step){
-	G4Track *track = step->GetTrack();
-	pos = track->GetPosition();
-	dir = track->GetMomentumDirection();
-	kE = track->GetKineticEnergy();
+	this->setValues(step->GetTrack());
 	dkE = -1*step->GetDeltaEnergy();
-	gtime = track->GetGlobalTime();
-	plength = track->GetTrackLength();
-	part = track->GetParticleDefinition();
 }
 
 primaryTrackInfo::primaryTrackInfo(const G4Track *track){
-	pos = track->GetPosition();
-	dir = track->GetMomentumDirection();
-	kE = track->GetKineticEnergy();
-	dkE = -1;
-	gtime = track->GetGlobalTime();
-	plength = track->GetTrackLength();
-	part = track->GetParticleDefinition();
+	this->setValues(track);
 }
 
 bool primaryTrackInfo::compare(const G4Track *rhs){
@@ -77,6 +65,20 @@ double primaryTrackInfo::getPathLength(const G4ThreeVector &rhs){
 
 void primaryTrackInfo::print(){
 	std::cout << "name=" << part->GetParticleName() << ", kE=" << kE << ", dkE=" << dkE << ", pos=(" << pos.getX() << ", " << pos.getY() << ", " << pos.getZ() << "), dir=(" << dir.getX() << ", " << dir.getY() << ", " << dir.getZ() << ")\n";
+}
+
+void primaryTrackInfo::setValues(const G4Track *track){
+	pos = track->GetPosition();
+	dir = track->GetMomentumDirection();
+	kE = track->GetKineticEnergy();
+	dkE = -1;
+	gtime = track->GetGlobalTime();
+	plength = track->GetTrackLength();
+	part = track->GetParticleDefinition();
+	
+	copyNum = track->GetTouchable()->GetCopyNumber();
+	trackID = track->GetTrackID();
+	atomicMass = part->GetAtomicMass();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -436,6 +438,11 @@ bool nDetRunAction::fillBranch()
 	return true;
 }
 
+void nDetRunAction::process(){
+	while(this->scatterEvent()){
+	}
+}
+
 void nDetRunAction::vectorClear(){
 	nScatters = 0;
 	nPhotonsTot = 0;
@@ -499,22 +506,12 @@ void nDetRunAction::setActions(nDetEventAction *event_, nDetStackingAction *stac
 	counter = stacking->GetCounter();
 }
 
-void nDetRunAction::scatterEvent(const G4Track *track){
-	if(primaryTracks.empty()){
-		if(verbose) 
-			std::cout << " Warning: primaryTracks is empty!\n";
-		return;
-	}
+bool nDetRunAction::scatterEvent(){
+	if(primaryTracks.size() <= 1)
+		return false;
 
 	// Get a primary particle step off the stack.
 	primaryTrackInfo *priTrack = &primaryTracks.back();
-
-	if(!priTrack->compare(track)){
-		G4ThreeVector vec = track->GetPosition();
-		if(verbose) 
-			std::cout << " Warning: Scatter pos=(" << priTrack->pos.getX() << ", " << priTrack->pos.getY() << ", " << priTrack->pos.getZ() << ") does not match recoil pos=(" << vec.getX() << ", " << vec.getY() << ", " << vec.getZ() << "), primaryTracks.size()=" << primaryTracks.size() << std::endl;
-		return;
-	}
 
 	if(nScatters++ == 0){ // First scatter event (CAREFUL! These are in reverse order).
 		if(primaryTracks.size() < 2){
@@ -522,14 +519,14 @@ void nDetRunAction::scatterEvent(const G4Track *track){
 				std::cout << " Warning: Expected at least two events in primaryTracks, but primaryTracks.size()=" << primaryTracks.size() << std::endl;
 				priTrack->print();
 			}
-			return;
+			return false;
 		}
 		if(outputDebug){
 			G4ThreeVector firstScatter = primaryTracks.at(0).pos + primaryTracks.at(1).pos;
 			nTimeToFirstScatter = primaryTracks.at(1).gtime;
 			nLengthToFirstScatter = firstScatter.mag();
 		}
-		counter->push_back(track->GetTrackID());
+		counter->push_back(priTrack->trackID);
 	}
 	
 	// Add the deposited energy to the total.
@@ -538,10 +535,9 @@ void nDetRunAction::scatterEvent(const G4Track *track){
 	G4ThreeVector vertex = priTrack->pos;
 
 	if(verbose){
-		primaryTrackInfo pizza(track);
-		std::cout << " id=" << track->GetTrackID() << " "; pizza.print();	
+		std::cout << " id=" << priTrack->trackID << " "; priTrack->print();	
 		std::cout << "	pos=(" << vertex.getX() << ", " << vertex.getY() << ", " << vertex.getZ() << ")\n";
-		std::cout << "	dE=" << priTrack->dkE << ", dE2=" << track->GetKineticEnergy() << ", size=" << primaryTracks.size() << std::endl;
+		std::cout << "	dE=" << priTrack->dkE << ", dE2=" << priTrack->kE << ", size=" << primaryTracks.size() << std::endl;
 	}
 
 	if(outputDebug){
@@ -559,23 +555,26 @@ void nDetRunAction::scatterEvent(const G4Track *track){
 
 		nPathLength.push_back(priTrack->plength);
 		scatterTime.push_back(priTrack->gtime - incidentTime);
-		recoilMass.push_back(track->GetParticleDefinition()->GetAtomicMass()); 
+		recoilMass.push_back(priTrack->atomicMass); 
 
 		G4int segCol, segRow;
-		detector->GetSegmentFromCopyNum(track->GetTouchable()->GetCopyNumber(), segCol, segRow);
+		detector->GetSegmentFromCopyNum(priTrack->copyNum, segCol, segRow);
 		segmentCol.push_back(segCol);
 		segmentRow.push_back(segRow);
 	}
 	
 	primaryTracks.pop_back();
+	
+	return true;
 }
 
 void nDetRunAction::initializeNeutron(const G4Step *step){
+	initEnergy = step->GetPreStepPoint()->GetKineticEnergy();
 	if(outputDebug){
 		incidentTime = step->GetTrack()->GetGlobalTime();
-		neutronIncidentPositionX = step->GetPostStepPoint()->GetPosition().getX();
-		neutronIncidentPositionY = step->GetPostStepPoint()->GetPosition().getY();
-		neutronIncidentPositionZ = step->GetPostStepPoint()->GetPosition().getZ();
+		neutronIncidentPositionX = step->GetPreStepPoint()->GetPosition().getX();
+		neutronIncidentPositionY = step->GetPreStepPoint()->GetPosition().getY();
+		neutronIncidentPositionZ = step->GetPreStepPoint()->GetPosition().getZ();
 		timeInMaterial = 0;
 		neutronExitPositionX = 0;
 		neutronExitPositionY = 0;
@@ -618,9 +617,9 @@ void nDetRunAction::finalizeNeutron(const G4Step *step){
 	G4Track *track = step->GetTrack();
 	if(outputDebug){
 		timeInMaterial = track->GetGlobalTime() - incidentTime;
-		neutronExitPositionX = track->GetPosition().getX();
-		neutronExitPositionY = track->GetPosition().getY();
-		neutronExitPositionZ = track->GetPosition().getZ();
+		neutronExitPositionX = step->GetPreStepPoint()->GetPosition().getX();
+		neutronExitPositionY = step->GetPreStepPoint()->GetPosition().getY();
+		neutronExitPositionZ = step->GetPreStepPoint()->GetPosition().getZ();
 	}
 	if(verbose) 
 		std::cout << "OT: final kE=" << track->GetKineticEnergy() << std::endl;

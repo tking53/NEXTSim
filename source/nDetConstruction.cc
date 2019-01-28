@@ -623,11 +623,11 @@ void nDetConstruction::buildModule(){
 			// Place vertical and horizontal reflectors.
 			if(fMylarThickness > 0){ 
 				if(row == 0 && col != fNumColumns-1){ // New vertical reflector layer.
-					std::stringstream stream2; stream << "Wrapping-" << col;
+					std::stringstream stream2; stream2 << "Wrapping-" << col;
 					mylarVertLayer_physV[col] = new G4PVPlacement(0, G4ThreeVector(cellCenter.getX()+cellWidth/2+fMylarThickness/2, 0, 0), mylarVertLayer_logV, stream2.str().c_str(), assembly_logV, 0, 0, fCheckOverlaps);
 				}
 				if(row != fNumRows-1){ // New horizontal reflector layer.
-					std::stringstream stream2; stream << "Wrapping-" << col << "," << row;
+					std::stringstream stream2; stream2 << "Wrapping-" << col << "," << row;
 					mylarHorizLayer_physV[col][row] = new G4PVPlacement(0, G4ThreeVector(cellCenter.getX(), cellCenter.getY()+cellHeight/2+fMylarThickness/2, 0), mylarHorizLayer_logV, stream2.str().c_str(), assembly_logV, 0, 0, fCheckOverlaps);
 				}
 			}

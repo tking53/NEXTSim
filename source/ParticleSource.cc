@@ -177,7 +177,6 @@ void ParticleSource::GeneratePrimaries(G4Event* anEvent)
 {
 	double energy = psource->sample();
 	particleGun->SetParticleEnergy(energy);
-	runAction->initEnergy = energy;
 	if(psource->getIsIsotropic()){ // Generate particles psuedo-isotropically
 		// We don't really use a true isotropic source because that would be really slow.
 		// Generate a random point inside the volume of the detector in the frame of the detector.

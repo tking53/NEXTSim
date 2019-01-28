@@ -18,12 +18,4 @@ nDetTrackingAction::nDetTrackingAction(nDetRunAction *run) : runAction(run) {
 nDetTrackingAction::~nDetTrackingAction(){}
 
 void nDetTrackingAction::PreUserTrackingAction(const G4Track* aTrack){
-  if (aTrack->GetDefinition() == G4OpticalPhoton::OpticalPhotonDefinition()) { // Photon track
-  }
-  else if(aTrack->GetParentID() == 1){ // Scatter event
-    if(aTrack->GetTrackID() != prevTrackID){ // Skip cascades. We're only concerned with primary scattering
-      runAction->scatterEvent(aTrack);
-      prevTrackID = aTrack->GetTrackID();
-    }
-  }
 }

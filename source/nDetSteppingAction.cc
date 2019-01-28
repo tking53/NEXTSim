@@ -34,9 +34,9 @@
 
 nDetSteppingAction::nDetSteppingAction(nDetConstruction* det, nDetRunAction* runAct, nDetEventAction* evtAct) : detector(det), runAction(runAct), evtAction(evtAct)
 {
-  neutronTrack = false;
-  eventID = -1;
-  stepID = 0;
+	neutronTrack = false;
+	eventID = -1;
+	stepID = 0;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -48,36 +48,43 @@ nDetSteppingAction::~nDetSteppingAction()
 
 void nDetSteppingAction::UserSteppingAction(const G4Step* aStep)
 {
-  G4Track *track = aStep->GetTrack();
+	G4Track *track = aStep->GetTrack();
 
-  if(neutronTrack){
-    if(track->GetTrackID() != 1) 
-      neutronTrack = false;
-    else if(aStep->GetPreStepPoint()->GetMaterial()->GetName() == "G4_AIR"){ // Escape
-      runAction->finalizeNeutron(aStep);
-      neutronTrack = false;
-    }
-    else // Normal scatter
-      runAction->scatterNeutron(aStep);
-  }
-  else if(track->GetTrackID() == 1){ // Enter the material.
-    runAction->initializeNeutron(aStep);
-    neutronTrack = true;
-  }
-
-  // Simplifying this process to try and alleviate problems (CRT)
-  if(track->GetDefinition() == G4OpticalPhoton::OpticalPhotonDefinition()){
-    if (aStep->GetPostStepPoint()->GetStepStatus() == fGeomBoundary) {
-      G4String vName = aStep->GetPostStepPoint()->GetPhysicalVolume()->GetName();
-      if(vName.find("psSiPM") != std::string::npos){
-        detector->AddDetectedPhoton(aStep);
-      }
-    }
-  }
+	if(aStep->GetPostStepPoint()->GetStepStatus() == fGeomBoundary){ // Check if the particle is at a geometry boundary.
+		G4String vName = aStep->GetPostStepPoint()->GetPhysicalVolume()->GetName();
+		if(track->GetDefinition() == G4OpticalPhoton::OpticalPhotonDefinition()){
+			if(vName.find("psSiPM") != std::string::npos){
+				detector->AddDetectedPhoton(aStep);
+			}
+		}
+		else{
+			if(neutronTrack){
+				if(track->GetTrackID() != 1)
+					neutronTrack = false;
+				else if(vName == "expHall_physV"){ // Exiting the detector.
+					runAction->finalizeNeutron(aStep);
+					neutronTrack = false;
+				}
+				// Else do nothing (the particle is probably traversing the inner wrapping layers).
+			}
+			else if(track->GetTrackID() == 1 && aStep->GetPreStepPoint()->GetPhysicalVolume()->GetName().find("Scint") != std::string::npos){ // Enter the material.
+				runAction->initializeNeutron(aStep);
+				neutronTrack = true;
+			}
+		}
+	}
+	else{ // Normal scattering event.
+		if(neutronTrack){
+			if(track->GetTrackID() != 1)
+				neutronTrack = false;
+			else
+				runAction->scatterNeutron(aStep);
+		}
+	}
 }
 
 void nDetSteppingAction::Reset(){
-  neutronTrack = false;
+	neutronTrack = false;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

@@ -63,13 +63,16 @@ void nDetEventAction::BeginOfEventAction(const G4Event* evt){
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
  
 void nDetEventAction::EndOfEventAction(const G4Event*){
+  // Process primary scatters. 
+  runAct->process();
+
   // Fill branches
   runAct->fillBranch();
 
   // Update photon statistics.
   numPhotons += runAct->nPhotonsTot;
   numPhotonsDet += runAct->nPhotonsDet[0]+runAct->nPhotonsDet[1];
-        
+  
   // Clear vector for next event
   runAct->vectorClear();
 }

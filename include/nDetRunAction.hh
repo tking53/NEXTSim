@@ -43,7 +43,11 @@ class primaryTrackInfo{
     G4double kE, dkE;
     G4double gtime, plength;
     G4double angle;
-    
+
+	G4int copyNum;
+	G4int trackID;
+	G4int atomicMass;
+
     const G4ParticleDefinition *part;
     
     primaryTrackInfo(const G4Step *step);
@@ -59,6 +63,9 @@ class primaryTrackInfo{
 	double getPathLength(const G4ThreeVector &rhs);
 
     void print();
+    
+  private:
+	void setValues(const G4Track *track);
 };
 
 class nDetRunAction : public G4UserRunAction
@@ -190,7 +197,7 @@ class nDetRunAction : public G4UserRunAction
 
     bool toggleVerboseMode(){ return (verbose = !verbose); }
 
-    void scatterEvent(const G4Track *track);
+	void process();
 
     void initializeNeutron(const G4Step *step);
 
@@ -199,6 +206,8 @@ class nDetRunAction : public G4UserRunAction
     void finalizeNeutron(const G4Step *step);
 
   private:  // function member
+    bool scatterEvent();
+
     bool openRootFile(const G4Run* aRun);
     
     bool closeRootFile();
