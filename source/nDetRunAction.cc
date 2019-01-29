@@ -96,6 +96,7 @@ nDetRunAction::nDetRunAction(nDetConstruction *det){
 	
 	fFile = NULL;
 	eventAction = NULL;
+	counter = NULL;
 	stacking = NULL;
 	tracking = NULL;
 	stepping = NULL;
@@ -118,6 +119,9 @@ nDetRunAction::nDetRunAction(nDetConstruction *det){
 	runIndex = 1;
 	
 	overwriteExistingFile = false;
+	
+	// Initialize all variables to zero.
+	this->vectorClear();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -329,9 +333,10 @@ bool nDetRunAction::fillBranch()
 {
 	if(!outputEnabled) return false;
 
-	// The first recoil particle ID is equal to 2
-	for(short i = nScatters+1; i >= 2; i--)
-		Nphotons.push_back(counter->getPhotonCount(i));
+	if(counter){ 
+		for(short i = nScatters+1; i >= 2; i--) // The first recoil particle ID is equal to 2
+			Nphotons.push_back(counter->getPhotonCount(i));
+	}
 
 	centerOfMass *cmL = detector->GetCenterOfMassPositiveSide();
 	centerOfMass *cmR = detector->GetCenterOfMassNegativeSide();
@@ -475,9 +480,12 @@ void nDetRunAction::vectorClear(){
 	lightPulseL.clear();
 	lightPulseR.clear();
 
-	stacking->Reset();
-	tracking->Reset();
-	stepping->Reset();
+	if(stacking)
+		stacking->Reset();
+	if(tracking)
+		tracking->Reset();
+	if(stepping)
+		stepping->Reset();
 }
 
 void nDetRunAction::setOutputFilename(const std::string &fname){
@@ -526,7 +534,6 @@ bool nDetRunAction::scatterEvent(){
 			nTimeToFirstScatter = primaryTracks.at(1).gtime;
 			nLengthToFirstScatter = firstScatter.mag();
 		}
-		counter->push_back(priTrack->trackID);
 	}
 	
 	// Add the deposited energy to the total.

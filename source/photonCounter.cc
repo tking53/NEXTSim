@@ -11,7 +11,8 @@ void photonCounter::push_back(const int &id){
 }
 
 void photonCounter::addPhoton(const int &id){
-	if(id >= size) return;
+	if(id >= size)
+		this->push_back(id);
 	Ntotal++;
 	Nphotons.at(id)++;
 }
