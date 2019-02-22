@@ -5,8 +5,8 @@ endif(GEANT4_GDML)
 
 #Set the scan sources that we will make a lib out of.
 set(NextSimSources centerOfMass.cc nDetConstruction.cc nDetEventAction.cc nDetRunActionMessenger.cc 
-                   nDetSteppingAction.cc ParticleSource.cc pmtResponse.cc messengerHandler.cc  
-                   nDetConstructionMessenger.cc nDetRunAction.cc nDetStackingAction.cc 
+                   nDetSteppingAction.cc ParticleSource.cc ParticleSourceMessenger.cc pmtResponse.cc 
+                   messengerHandler.cc nDetConstructionMessenger.cc nDetRunAction.cc nDetStackingAction.cc 
                    nDetTrackingAction.cc optionHandler.cc photonCounter.cc gdmlSolid.cc nistDatabase.cc)
 
 #Add the sources to the library.

@@ -10,13 +10,12 @@
 #include "G4RotationMatrix.hh"
 #include "globals.hh"
 
-#include "messengerHandler.hh"
-
 class G4ParticleGun;
 class G4Event;
 
 class ParticleSource;
 class nDetRunAction;
+class reaction;
 
 class G4UIdirectory;
 class G4UIcmdWithoutParameter;
@@ -112,7 +111,8 @@ class Californium252 : public Source {
 	Californium252() : Source() { this->initializeDistribution(150, 0.1); }
 	
 	~Californium252(){ }
-	
+
+  private:
 	double func(const double &E_) const ;
 };
 
@@ -200,18 +200,6 @@ class ParticleSource : public G4VUserPrimaryGeneratorAction {
     void InitFunction(){ }
     
     Source *GetNewSource(const double &E_=-1);
-};
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-class ParticleSourceMessenger: public messengerHandler {
-  public:
-    ParticleSourceMessenger(ParticleSource* Gun);
-    
-    void SetNewValue(G4UIcommand* command, G4String newValue);
-    
-  private:
-    ParticleSource* fAction;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

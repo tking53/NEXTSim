@@ -17,6 +17,7 @@
 #include "nDetSteppingAction.hh"
 #include "nDetConstruction.hh"
 #include "ParticleSource.hh"
+#include "ParticleSourceMessenger.hh"
 
 #include "nDetConstructionMessenger.hh"
 #include "nDetRunActionMessenger.hh"
