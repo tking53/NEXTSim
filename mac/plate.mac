@@ -20,6 +20,10 @@
 /nDet/detector/setDetectorThickness 6
 /nDet/detector/setWrapping teflon
 
+# Set the position and rotation of the detector in the lab frame.
+/nDet/detector/setPosition 100 0 0 cm
+/nDet/detector/setRotation 0 0 0
+
 # Update the detector.
 /nDet/detector/update
 
@@ -53,16 +57,9 @@
 # SOURCE SETUP #
 ################
 
-# Beam is along the +X axis by default.
-/nDet/source/position 100 0 0 cm
-
-# Rotate the beam by 180 degrees about the y-axis so it points at the detector.
-#  The beam of particles will now point in the -Z direction.
-/nDet/source/direction 0 180 0 
-
 # Available source types: 137Cs 60Co 133Ba 241Am 90Sr 252Cf
 #/nDet/source/type 60Co
-#/nDet/source/iso
+#/nDet/source/iso true
 /nDet/source/beam neutron 1
 #/nDet/source/spot 20
 

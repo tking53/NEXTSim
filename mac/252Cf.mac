@@ -32,6 +32,10 @@
 # Set the wrapping.
 /nDet/detector/setWrapping mylar
 
+# Set the position and rotation of the detector in the lab frame.
+/nDet/detector/setPosition 100 0 0 cm
+/nDet/detector/setRotation 0 0 0
+
 # Update the detector.
 /nDet/detector/update
 
@@ -47,8 +51,8 @@
 ################
 
 # Set the output filename prefix
-/nDet/output/filename next2x2_252Cf_465mm.root
-/nDet/output/title 2x2x10" NExT with isotropic 252Cf source at 465.1 mm from center (mylar, no Cf energy restriction)
+/nDet/output/filename next2x2_252Cf_100cm.root
+/nDet/output/title 2x2x10" NExT module 100 cm away from isotropic 252Cf source (mylar, no Cf energy restriction)
 /nDet/output/debug true
 
 # Setup information about the PMT response
@@ -73,18 +77,11 @@
 # SOURCE SETUP #
 ################
 
-# Beam is along the +X axis by default.
-/nDet/source/position 465.1 0 0 mm
-
-# Rotate the beam by 180 degrees about the y-axis so it points at the detector.
-#  The beam of particles will now point in the -X direction.
-/nDet/source/direction 0 180 0 
-
 # Available source types: 137Cs 60Co 133Ba 241Am 90Sr 252Cf
 /nDet/source/type 252Cf
 
 # Force isotropic source
-/nDet/source/iso
+/nDet/source/iso true
 
 # Set the energy distribution sampling range (in MeV)
 #/nDet/source/range 1.175 1.225 0
@@ -93,5 +90,5 @@
 # RUN CONTROL #
 ###############
 
-/run/beamOn 10000
+#/run/beamOn 10000
 
