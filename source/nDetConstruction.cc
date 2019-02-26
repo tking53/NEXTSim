@@ -755,6 +755,12 @@ void nDetConstruction::buildEllipse(){
 		ellipseWrapping_physV = new G4PVPlacement(0, G4ThreeVector(0, 0, 0), wrapping_logV, "Wrapping", assembly_logV, true, 0, fCheckOverlaps);	
 	}
 
+	// Account for the trapezoids.
+	currentOffsetZ += fTrapezoidLength;
+	
+	// Directly modify the size of the grease layer.
+	currentLayerSizeX = 2*SiPM_dimension;
+
 	// Attach PMTs.
 	constructPSPmts();
 	
