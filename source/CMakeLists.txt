@@ -7,7 +7,7 @@ endif(GEANT4_GDML)
 set(NextSimSources centerOfMass.cc nDetConstruction.cc nDetEventAction.cc nDetRunActionMessenger.cc 
                    nDetSteppingAction.cc ParticleSource.cc ParticleSourceMessenger.cc pmtResponse.cc 
                    messengerHandler.cc nDetConstructionMessenger.cc nDetRunAction.cc nDetStackingAction.cc 
-                   nDetTrackingAction.cc optionHandler.cc photonCounter.cc gdmlSolid.cc nistDatabase.cc)
+                   cmcalc.cc nDetTrackingAction.cc optionHandler.cc photonCounter.cc gdmlSolid.cc nistDatabase.cc)
 
 #Add the sources to the library.
 add_library(NextSimObjects OBJECT ${NextSimSources})

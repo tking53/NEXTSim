@@ -58,6 +58,10 @@ double Source::sample() const {
 	return E;
 }
 
+double Source::sample(const double &){
+	return this->sample();
+}
+
 void Source::initializeDistribution(const size_t &size_, const double &stepSize_){
 	size = size_;
 	stepSize = stepSize_;
@@ -148,14 +152,17 @@ double Californium252::func(const double &E_) const {
 
 ParticleSource::ParticleSource(nDetRunAction *run, const nDetConstruction *det/*=NULL*/) : G4VUserPrimaryGeneratorAction(), fGunMessenger(0), psource(), pos(0, 0, 0),
 												                               dir(0, 0, 0), detPos(0, 0, 0), detSize(0, 0, 0), type("iso"), beamspot(0),
-												                               unitX(1, 0, 0), unitY(0, 1, 0), unitZ(0, 0, 1)
-{
+												                               unitX(1, 0, 0), unitY(0, 1, 0), unitZ(0, 0, 1), useReaction(false) {
 	runAction = run;
 
+	// Set the default particle gun.
 	particleGun = new G4ParticleGun(1);
 	particleGun->SetParticlePosition(this->pos);
 	particleGun->SetParticleMomentumDirection(this->dir);
 	this->SetNeutronBeam(1.0); // Set a 1 MeV neutron beam by default
+
+	// Set the default particle reaction.
+	particleRxn = new Reaction();
 
 	if(det)
 		this->SetDetector(det);
@@ -164,14 +171,14 @@ ParticleSource::ParticleSource(nDetRunAction *run, const nDetConstruction *det/*
 	fGunMessenger = new ParticleSourceMessenger(this); 
 }
 
-ParticleSource::~ParticleSource()
-{ }
+ParticleSource::~ParticleSource(){ 
+	delete particleGun;
+	delete particleRxn;
+	if(psource) delete psource;
+}
 
-void ParticleSource::GeneratePrimaries(G4Event* anEvent)
-{
-	double energy = psource->sample();
-	particleGun->SetParticleEnergy(energy);
-	if(psource->getIsIsotropic()){ // Generate particles psuedo-isotropically
+void ParticleSource::GeneratePrimaries(G4Event* anEvent){
+	if(useReaction || psource->getIsIsotropic()){ // Generate particles psuedo-isotropically
 		// We don't really use a true isotropic source because that would be really slow.
 		// Generate a random point inside the volume of the detector in the frame of the detector.
 		G4double x = (detSize.getX()/2)*(2*G4UniformRand()-1);
@@ -180,6 +187,15 @@ void ParticleSource::GeneratePrimaries(G4Event* anEvent)
 		G4ThreeVector dirPrime = vSourceDet + G4ThreeVector(x, y, z); // Now in the lab frame
 		dirPrime *= (1/dirPrime.mag());
 		particleGun->SetParticleMomentumDirection(dirPrime); // along the y-axis direction
+		if(useReaction){
+			double theta = std::acos(dir.dot(dirPrime));
+			double energy = particleRxn->sample(theta);
+			particleGun->SetParticleEnergy(energy);
+			//std::cout << " theta=" << theta*180/pi << ", energy=" << energy << " MeV\n";
+		}
+		else{
+			particleGun->SetParticleEnergy(psource->sample());
+		}
 	}
 	else if(beamspot > 0){ // Generate particles in a pencil-beam
 		// Uniformly sample the circular profile
@@ -195,6 +211,10 @@ void ParticleSource::GeneratePrimaries(G4Event* anEvent)
 		
 		rpoint *= rot;
 		particleGun->SetParticlePosition(pos+rpoint);
+		particleGun->SetParticleEnergy(psource->sample());
+	}
+	else{
+		particleGun->SetParticleEnergy(psource->sample());
 	}
 	particleGun->GeneratePrimaryVertex(anEvent);
 }
@@ -388,6 +408,36 @@ void ParticleSource::SetIsotropicMode(bool state_/*=true*/){
 void ParticleSource::SetEnergyLimits(const double &Elow_, const double &Ehigh_){
 	std::cout << " ParticleSource: Setting energy distribution sampling in the range " << Elow_ << " MeV to " << Ehigh_ << " MeV.\n";
 	psource->setEnergyLimits(Elow_, Ehigh_);
+}
+
+bool ParticleSource::LoadReactionFile(const G4String &fname){
+	std::cout << " ParticleSource: Loading reaction parameters from file \"" << fname << "\"... ";
+	bool retval = particleRxn->Read(fname.c_str());
+	std::cout << (retval ? "SUCCESS" : "FAILED") << std::endl;
+	if(retval){
+		useReaction = true;
+		
+	}
+	else{
+		useReaction = false;
+	}
+	return retval;
+}
+
+double ParticleSource::Sample(bool verbose/*=false*/){
+	double retval;
+	if(!useReaction){
+		retval = psource->sample();
+		std::cout << " energy=" << retval << " MeV\n";
+	}
+	else{
+		double theta = G4UniformRand()*180;
+		retval = particleRxn->sample(theta);
+		if(verbose){
+			std::cout << " theta=" << theta << ", energy=" << retval << " MeV\n";
+		}
+	}
+	return retval;
 }
 
 Source *ParticleSource::GetNewSource(const double &E_/*=-1*/){

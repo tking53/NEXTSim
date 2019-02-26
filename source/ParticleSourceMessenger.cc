@@ -30,18 +30,22 @@ ParticleSourceMessenger::ParticleSourceMessenger(ParticleSource* Gun) : fAction(
 	addCommand(new G4UIcmdWithADouble("/nDet/source/spot", this)); // beamspot radius (mm)
 	addGuidance("Set the radius of the beam (in mm)");
 
-	addCommand(new G4UIcommand("/nDet/source/iso", this));
+	addCommand(new G4UIcmdWithAString("/nDet/source/iso", this));
 	addGuidance("Set the source to psuedo-isotropic mode");
+	addCandidates("true false");
 	
 	addCommand(new G4UIcmdWith3Vector("/nDet/source/range", this));
 	addGuidance("Set the energy range of a continuous distribution source");
+	
+	addCommand(new G4UIcmdWithAString("/nDet/source/reaction", this));
+	addGuidance("Load a reaction file");
 }
 
 void ParticleSourceMessenger::SetNewValue(G4UIcommand* command, G4String newValue){ 
 	size_t index;
 	if(!findCommand(command, newValue, index)) return;
 	if(index == 0)
-		std::cout << " energy=" << fAction->GetParticleSource()->sample() << " MeV\n";
+		fAction->Sample(true);
 	else if(index == 1)
 		fAction->SetPosition(G4UIcommand::ConvertToDimensioned3Vector(newValue));
 	else if(index == 2)
@@ -53,9 +57,12 @@ void ParticleSourceMessenger::SetNewValue(G4UIcommand* command, G4String newValu
 	else if(index == 5)
 		fAction->SetBeamspotRadius(G4UIcommand::ConvertToDouble(newValue));
 	else if(index == 6)
-		fAction->SetIsotropicMode(true);
+		fAction->SetIsotropicMode((newValue == "true") ? true : false);
 	else if(index == 7){
 		G4ThreeVector vec = G4UIcommand::ConvertTo3Vector(newValue);
 		fAction->SetEnergyLimits(vec.getX(), vec.getY());
+	}
+	else if(index == 8){
+		fAction->LoadReactionFile(newValue);
 	}
 }

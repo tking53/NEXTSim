@@ -15,7 +15,7 @@ class G4Event;
 
 class ParticleSource;
 class nDetRunAction;
-class reaction;
+class Reaction;
 
 class G4UIdirectory;
 class G4UIcmdWithoutParameter;
@@ -69,6 +69,8 @@ class Source{
 	void addLevel(const double &E_, const double &I_);
 	
 	double sample() const ;
+	
+	virtual double sample(const double &);
 	
 	virtual double func(const double &E_) const { return E_; }
 	
@@ -172,6 +174,10 @@ class ParticleSource : public G4VUserPrimaryGeneratorAction {
 	void SetIsotropicMode(bool state_=true);
 	
 	void SetEnergyLimits(const double &Elow_, const double &Ehigh_);
+	
+	bool LoadReactionFile(const G4String &fname);
+
+	double Sample(bool verbose=false);
 
   private:    
 	ParticleSourceMessenger *fGunMessenger;
@@ -191,7 +197,11 @@ class ParticleSource : public G4VUserPrimaryGeneratorAction {
 	G4ThreeVector unitY;
 	G4ThreeVector unitZ;
 
+	bool useReaction;
+
 	nDetRunAction *runAction;
+
+	Reaction *particleRxn;
 
 	G4ParticleGun *particleGun;
 	
