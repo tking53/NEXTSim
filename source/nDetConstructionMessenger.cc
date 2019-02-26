@@ -85,6 +85,18 @@ nDetConstructionMessenger::nDetConstructionMessenger(nDetConstruction* detector)
 	
 	addCommand(new G4UIcmdWithAString("/nDet/detector/setShadowBarMaterial", this));
 	addGuidance("Set the shadow-bar material to use.");	
+	
+	addCommand(new G4UIcmdWith3VectorAndUnit("/nDet/detector/setPosition", this)); // position of source in cartesian coordinates (x, y, z).
+	addGuidance("Set the position of the detector in cartesian coordinates (x, y, z)");
+
+	addCommand(new G4UIcmdWith3Vector("/nDet/detector/setCylindrical", this)); // position of source in cylindrical coordinates (r, theta, y).
+	addGuidance("Set the position of the detector in cylindrical coordinates (r, theta, y) where r and y are in cm and theta is in degrees");
+
+	addCommand(new G4UIcmdWith3Vector("/nDet/detector/setSpherical", this)); // position of source in spherical coordinates (r, theta, phi).
+	addGuidance("Set the position of the detector in spherical coordinates (r, theta, phi) where r is in cm and theta and phi are in degrees");
+	
+	addCommand(new G4UIcmdWith3Vector("/nDet/detector/setRotation", this)); // rotation of detector.
+	addGuidance("Set the rotation of the detector by specifying angles about the x, y, and z axes (in deg)");
 }
 
 void nDetConstructionMessenger::SetNewValue(G4UIcommand* command, G4String newValue){
@@ -171,5 +183,21 @@ void nDetConstructionMessenger::SetNewValue(G4UIcommand* command, G4String newVa
 	}
 	else if(index == 21){
 		fDetector->SetShadowBarMaterial(newValue);
+	}
+	else if(index == 22){
+		G4ThreeVector val = command->ConvertToDimensioned3Vector(newValue);
+		fDetector->SetPosition(val);
+	}
+	else if(index == 23){
+		G4ThreeVector val = command->ConvertTo3Vector(newValue);
+		fDetector->SetPositionCylindrical(val);
+	}
+	else if(index == 24){
+		G4ThreeVector val = command->ConvertTo3Vector(newValue);
+		fDetector->SetPositionSpherical(val);
+	}
+	else if(index == 25){
+		G4ThreeVector val = command->ConvertTo3Vector(newValue);
+		fDetector->SetRotation(val);
 	}
 }

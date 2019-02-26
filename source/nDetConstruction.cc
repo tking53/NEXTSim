@@ -216,6 +216,25 @@ void nDetConstruction::SetGdmlFilename(const std::string &fname){
 	fTrapezoidLength = solid.getLength()*mm;
 }
 
+void nDetConstruction::SetPositionCylindrical(const G4ThreeVector &position){ 
+	double x = position.getX()*std::cos(position.getY()*deg);
+	double z = position.getX()*std::sin(position.getY()*deg);
+	detectorPosition = G4ThreeVector(x*cm, position.getZ()*cm, z*cm);
+}
+
+void nDetConstruction::SetPositionSpherical(const G4ThreeVector &position){ 
+	double x = position.getX()*std::sin(position.getY()*deg)*std::cos(position.getZ()*deg); 
+	double y = position.getX()*std::sin(position.getY()*deg)*std::sin(position.getZ()*deg); 
+	double z = position.getX()*std::cos(position.getY()*deg);
+	detectorPosition = G4ThreeVector(x*cm, y*cm, z*cm);
+}
+
+void nDetConstruction::SetRotation(const G4ThreeVector &rotation){
+	detectorRotation.rotateX(rotation.getX()*deg);
+	detectorRotation.rotateY(rotation.getY()*deg); 
+	detectorRotation.rotateZ(rotation.getZ()*deg);  
+}
+
 void nDetConstruction::SetShadowBarSize(const G4ThreeVector &size){
 	shadowBarSize = size;
 }
@@ -684,7 +703,7 @@ void nDetConstruction::buildModule(){
 	constructPSPmts();
 	
     // Full detector physical volume
-    new G4PVPlacement(0, G4ThreeVector(0,0,0), assembly_logV, "Assembly", expHall_logV, 0, 0, true);//fCheckOverlaps);
+    assembly_physV = new G4PVPlacement(&detectorRotation, detectorPosition, assembly_logV, "Assembly", expHall_logV, 0, 0, true);//fCheckOverlaps);
 }
 
 void nDetConstruction::buildEllipse(){
@@ -731,9 +750,7 @@ void nDetConstruction::buildEllipse(){
 	constructPSPmts();
 	
     // Full detector physical volume
-	G4RotationMatrix *fullRot = new G4RotationMatrix;
-	fullRot->rotateZ(90*deg);
-    assembly_physV = new G4PVPlacement(fullRot, G4ThreeVector(0,0,0), assembly_logV, "Assembly", expHall_logV, 0, 0, true);//fCheckOverlaps);
+    assembly_physV = new G4PVPlacement(&detectorRotation, detectorPosition, assembly_logV, "Assembly", expHall_logV, 0, 0, true);//fCheckOverlaps);
 
     // Reflective wrapping.
     if(fMylarThickness > 0)
@@ -771,11 +788,8 @@ void nDetConstruction::buildRectangle(){
 	// Attach PMTs.
 	constructPSPmts();
 
-	G4RotationMatrix *rot = new G4RotationMatrix;
-	rot->rotateZ(90*deg);
-
     // Full detector physical volume
-    assembly_physV = new G4PVPlacement(rot, G4ThreeVector(0,0,0), assembly_logV, "Assembly", expHall_logV, 0, 0, true);//fCheckOverlaps);
+    assembly_physV = new G4PVPlacement(&detectorRotation, detectorPosition, assembly_logV, "Assembly", expHall_logV, 0, 0, true);//fCheckOverlaps);
     
     // Reflective wrapping.
     if(fMylarThickness > 0)

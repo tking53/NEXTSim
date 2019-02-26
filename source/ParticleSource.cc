@@ -155,6 +155,9 @@ ParticleSource::ParticleSource(nDetRunAction *run, const nDetConstruction *det/*
 												                               unitX(1, 0, 0), unitY(0, 1, 0), unitZ(0, 0, 1), useReaction(false) {
 	runAction = run;
 
+	// By default, the particles traverse along the +x axis.
+	dir = G4ThreeVector(1, 0, 0);
+
 	// Set the default particle gun.
 	particleGun = new G4ParticleGun(1);
 	particleGun->SetParticlePosition(this->pos);
@@ -167,7 +170,7 @@ ParticleSource::ParticleSource(nDetRunAction *run, const nDetConstruction *det/*
 	if(det)
 		this->SetDetector(det);
 	
-	//create a messenger for this class
+	// Create a messenger for this class
 	fGunMessenger = new ParticleSourceMessenger(this); 
 }
 
@@ -191,7 +194,6 @@ void ParticleSource::GeneratePrimaries(G4Event* anEvent){
 			double theta = std::acos(dir.dot(dirPrime));
 			double energy = particleRxn->sample(theta);
 			particleGun->SetParticleEnergy(energy);
-			//std::cout << " theta=" << theta*180/pi << ", energy=" << energy << " MeV\n";
 		}
 		else{
 			particleGun->SetParticleEnergy(psource->sample());

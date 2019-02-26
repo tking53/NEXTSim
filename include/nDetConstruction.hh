@@ -89,6 +89,14 @@ class nDetConstruction : public G4VUserDetectorConstruction
 
 	void SetGdmlDefaultRotation(const G4ThreeVector &rotation){ gdmlRotation = rotation; }
 
+	void SetPosition(const G4ThreeVector &position){ detectorPosition = position; }	
+
+	void SetPositionCylindrical(const G4ThreeVector &position);
+	
+	void SetPositionSpherical(const G4ThreeVector &position);
+
+	void SetRotation(const G4ThreeVector &rotation);
+
 	void SetWrappingMaterial(const std::string &material){ wrappingMaterial = material; }
 
 	void SetShadowBarSize(const G4ThreeVector &size);
@@ -111,7 +119,7 @@ class nDetConstruction : public G4VUserDetectorConstruction
 
 	G4double GetDetectorPosZ() const { return 0; }
 	
-	G4ThreeVector GetDetectorPos() const { return G4ThreeVector(0, 0, 0); }
+	G4ThreeVector GetDetectorPos() const { return detectorPosition; }
 
     G4String GetGeometry(){ return fGeometry; }
 
@@ -270,6 +278,9 @@ private:
 	std::string wrappingMaterial;
 
 	G4ThreeVector gdmlRotation; // Default rotation of GDML model.
+
+	G4ThreeVector detectorPosition; // Position of detector in lab frame.
+	G4RotationMatrix detectorRotation; // Rotation of detector.
 
 	// Shadow bar
 	G4ThreeVector shadowBarSize;
