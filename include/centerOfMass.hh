@@ -77,7 +77,7 @@ class centerOfMass{
 	
 	void clear();
 	
-	bool addPoint(const G4Step *step, const double &mass=1);
+	bool addPoint(const double &energy, const double &time, const G4ThreeVector &position, const double &mass=1);
   
 	void print();
   

@@ -536,12 +536,21 @@ void nDetConstruction::GetSegmentFromCopyNum(const G4int &copyNum, G4int &col, G
 }
 
 bool nDetConstruction::AddDetectedPhoton(const G4Step *step, const double &mass/*=1*/){
-    if(step->GetPostStepPoint()->GetPosition().z() > 0){
-        if(center[0].addPoint(step, mass))
+	if(!step->GetPostStepPoint()){
+		std::cout << " nDetConstruction: WARNING! INVALID POST POINT!\n";
+		return false;
+	}
+	
+	double energy = step->GetTrack()->GetTotalEnergy();
+	double time = step->GetPostStepPoint()->GetGlobalTime();
+	G4ThreeVector position = detectorRotation*(step->GetPostStepPoint()->GetPosition()-detectorPosition);
+	
+    if(position.z() > 0){
+        if(center[0].addPoint(energy, time, position, mass))
             return true;
     }
-    if(step->GetPostStepPoint()->GetPosition().z() < 0){
-        if(center[1].addPoint(step, mass))
+    if(position.z() < 0){
+        if(center[1].addPoint(energy, time, position, mass))
             return true;
     }
     return false;

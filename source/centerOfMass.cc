@@ -35,6 +35,8 @@ bool centerOfMass::getCenterSegment(G4ThreeVector &pos, short &col, short &row) 
 	double xpos = (pos.getX()+activeWidth/2)/pixelWidth;
 	double ypos = (pos.getY()+activeHeight/2)/pixelHeight;
 	
+	//std::cout << "post: " << pos.getX() << "\t" << pos.getY() << std::endl;
+	
 	pos.setX(xpos*(activeWidth/Ncol)-activeWidth/2);
 	pos.setY(ypos*(activeHeight/Nrow)-activeHeight/2);
 	
@@ -142,17 +144,10 @@ void centerOfMass::clear(){
 	}
 }
 
-bool centerOfMass::addPoint(const G4Step *step, const double &mass/*=1*/){
-	if(!step->GetPostStepPoint()){
-		std::cout << " WARNING! INVALID POST POINT!\n";
-		return false;
-	}
-
-	double wavelength = coeff/step->GetTrack()->GetTotalEnergy(); // in nm
-	double time = step->GetPostStepPoint()->GetGlobalTime(); // in ns
-
+bool centerOfMass::addPoint(const double &energy, const double &time, const G4ThreeVector &position, const double &mass/*=1*/){
+	double wavelength = coeff/energy; // in nm
 	if(Ncol < 0 && Nrow < 0){ // Default behavior
-		center += mass*step->GetPostStepPoint()->GetPosition();	
+		center += mass*position;	
 		
 		// Add the PMT response to the "digitized" trace
 		response.addPhoton(time, wavelength);
@@ -162,7 +157,8 @@ bool centerOfMass::addPoint(const G4Step *step, const double &mass/*=1*/){
 	}
 	else{ // Segmented PMT behavior
 		short xpos, ypos;
-		G4ThreeVector pos = step->GetPostStepPoint()->GetPosition();
+		G4ThreeVector pos = position;
+		//std::cout << "pre: " << pos.getX() << "\t" << pos.getY() << std::endl;
 		if(this->getCenterSegment(pos, xpos, ypos)){
 			// Get the gain of this anode.
 			double gain = getGain(xpos, ypos);
