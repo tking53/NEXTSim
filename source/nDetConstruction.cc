@@ -263,7 +263,7 @@ void nDetConstruction::DefineMaterials() {
     fAir = nist.searchForMaterial("G4_AIR");
 
 	// Lab vacuum
-	//fVacuum = nist.searchForMaterial("G4_VACUUM"); // Not defined in NIST
+	fVacuum = nist.searchForMaterial("G4_Galactic");
 
     G4double density;
     int natoms;
