@@ -18,10 +18,11 @@ const double cm = 1;
 const double mm = 0.1;
 const double um = 1E4;
 const double nm = 1E7;
+const double deg = 3.14159265359/180;
 
 const double cvac = 29.9792458; // cm/ns
 
-double sourcePos[3] = {0, 0, 0};
+double detectorPos[3] = {0, 0, 0};
 
 /**Split a string on the delimiter character populating the vector args with 
  * any substrings formed. Returns the number of substrings found.
@@ -399,15 +400,30 @@ int main(int argc, char *argv[]){
 	std::cout << "Processing input file \"" << inputFilename << "\"\n";
 	std::cout << " Title: \"" << f->GetTitle() << "\"\n"; 
 	
-	// Get the position of the source.
-	TNamed *named = (TNamed*)f->Get("setup/position"); // x y z unit
-	std::string sourcePosStr(named->GetTitle());
+	// Get the position of the detector (assume the user has not moved the source).
+	int positionType;
+	TNamed *named = NULL;
+	if((named = (TNamed*)f->Get("setup/setPosition"))) // x y z unit
+		positionType = 0;
+	else if((named = (TNamed*)f->Get("setup/setCylindrical"))) // r theta y (cm, deg, cm)
+		positionType = 1;
+	else if((named = (TNamed*)f->Get("setup/setSpherical"))) // r theta phi (cm, deg, deg)
+		positionType = 2;
+	else{
+		f->Close();
+		return 1;
+	}
+	std::string detectorPosStr(named->GetTitle());
 
 	std::vector<std::string> args;
-	if(split_str(sourcePosStr, args) >= 5){
-		sourcePos[0] = strtod(args[1].c_str(), NULL);
-		sourcePos[1] = strtod(args[2].c_str(), NULL);
-		sourcePos[2] = strtod(args[3].c_str(), NULL);
+	unsigned int nArgs = split_str(detectorPosStr, args);
+	if((positionType == 0 && nArgs < 5) || ((positionType == 1 || positionType == 2) && nArgs < 4)){
+		std::cout << " Warning! Invalid source position specification (" << detectorPosStr << ")!\n";
+	}
+	else if(positionType == 0){ // Cartesian coordinates.
+		detectorPos[0] = strtod(args[1].c_str(), NULL);
+		detectorPos[1] = strtod(args[2].c_str(), NULL);
+		detectorPos[2] = strtod(args[3].c_str(), NULL);
 
 		std::string unitStr = args[4];
 		
@@ -420,9 +436,9 @@ int main(int argc, char *argv[]){
 				std::cout << " Note: Input source position specified in units of \"" << unitNames[i] << "\".\n";
 				if(unitNames[i] != "cm"){
 					double multiplier = validUnits[i]/cm;
-					sourcePos[0] *= multiplier;
-					sourcePos[1] *= multiplier;
-					sourcePos[2] *= multiplier;
+					detectorPos[0] *= multiplier;
+					detectorPos[1] *= multiplier;
+					detectorPos[2] *= multiplier;
 					std::cout << " Note: Used unit conversion of " << multiplier << " cm/" << unitNames[i] << ".\n";
 				}
 				foundValidUnit = true;
@@ -435,14 +451,26 @@ int main(int argc, char *argv[]){
 			return 1;
 		}
 	}
-	else{
-		std::cout << " Warning! Invalid source position specification (" << sourcePosStr << ")!\n";
+	else if(positionType == 1){ // Cylindrical coordinates.
+		double r0 = strtod(args[1].c_str(), NULL)*cm;
+		double theta = strtod(args[2].c_str(), NULL)*deg;
+		detectorPos[0] = r0*std::cos(theta);
+		detectorPos[1] = strtod(args[3].c_str(), NULL)*cm;
+		detectorPos[2] = r0*std::sin(theta);
+	}
+	else if(positionType == 2){
+		double r0 = strtod(args[1].c_str(), NULL)*cm;
+		double theta = strtod(args[2].c_str(), NULL)*deg;
+		double phi = strtod(args[3].c_str(), NULL)*deg;
+		detectorPos[0] = r0*std::sin(theta)*std::cos(phi);
+		detectorPos[1] = r0*std::sin(theta)*std::sin(phi);
+		detectorPos[2] = r0*std::cos(theta);
 	}
 
 	// Compute the gamma flash offset. This will counter-act barifier and pspmt analyzer gamma shifts.
-	const double t0 = -std::sqrt(sourcePos[0]*sourcePos[0]+sourcePos[1]*sourcePos[1]+sourcePos[2]*sourcePos[2])/cvac; // ns
+	const double t0 = -std::sqrt(detectorPos[0]*detectorPos[0]+detectorPos[1]*detectorPos[1]+detectorPos[2]*detectorPos[2])/cvac; // ns
 	
-	std::cout << " Using source position of (x=" << sourcePos[0] << " cm, y=" << sourcePos[1] << " cm, z=" << sourcePos[2] << " cm)\n";
+	std::cout << " Using detector position of (x=" << detectorPos[0] << " cm, y=" << detectorPos[1] << " cm, z=" << detectorPos[2] << " cm)\n";
 	std::cout << "  * Corresponding gamma-flash time offset is " << t0 << " ns\n";	
 	
 	TTree *t = (TTree*)f->Get("data");
