@@ -179,6 +179,14 @@ pmtResponse *nDetRunAction::getPmtResponseRight(){
 	return detector->GetCenterOfMassNegativeSide()->getPmtResponse();
 }
 
+pmtResponse *nDetRunAction::getAnodeResponseLeft(){
+	return detector->GetCenterOfMassPositiveSide()->getAnodeResponse();
+}
+
+pmtResponse *nDetRunAction::getAnodeResponseRight(){
+	return detector->GetCenterOfMassNegativeSide()->getAnodeResponse();
+}
+
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 bool nDetRunAction::openRootFile(const G4Run* aRun)
@@ -303,7 +311,7 @@ bool nDetRunAction::openRootFile(const G4Run* aRun)
 		fTree->Branch("pulseQDC[2]", pulseQDC);
 		fTree->Branch("pulseMax[2]", pulseMax);
 		fTree->Branch("detSpdLight", &detSpeedLight);
-		fTree->Branch("anode", anodeCurrent, "anode[2][4]/D");
+		fTree->Branch("anodePhase", anodePhase, "anodePhase[2][4]/F");
 	}
 
 	if(outputTraces){ // Add the lilght pulses to the output tree.
@@ -399,7 +407,32 @@ bool nDetRunAction::fillBranch()
 	pulseQDC[1] = pmtR->integratePulseFromMaximum(pulseIntegralLow, pulseIntegralHigh);
 	pulseMax[1] = pmtR->getMaximum();
 
+	// Get the digitizer response of the anodes.
+	pmtResponse *anodeResponseL = getAnodeResponseLeft();
+	pmtResponse *anodeResponseR = getAnodeResponseRight();
+
+	// Digitize anode waveforms and integrate.
+	float anodeQDC[2][4];
+	for(size_t i = 0; i < 4; i++){
+		anodeResponseL[i].digitize(baselineFraction, baselineJitterFraction);
+		anodeResponseR[i].digitize(baselineFraction, baselineJitterFraction);
+		anodeQDC[0][i] = anodeResponseL[i].integratePulseFromMaximum(pulseIntegralLow, pulseIntegralHigh);
+		anodeQDC[1][i] = anodeResponseR[i].integratePulseFromMaximum(pulseIntegralLow, pulseIntegralHigh);
+	}
+
+	// Compute the anode positions.
+	for(size_t i = 0; i < 2; i++){
+		reconstructedCenterX[i] = -((anodeQDC[i][0]+anodeQDC[i][1])-(anodeQDC[i][2]+anodeQDC[i][3]))/(anodeQDC[i][0]+anodeQDC[i][1]+anodeQDC[i][2]+anodeQDC[i][3]);
+		reconstructedCenterY[i] = ((anodeQDC[i][1]+anodeQDC[i][2])-(anodeQDC[i][3]+anodeQDC[i][0]))/(anodeQDC[i][0]+anodeQDC[i][1]+anodeQDC[i][2]+anodeQDC[i][3]);
+	}
+
 	if(outputDebug){
+		// Perform CFD on digitized anode waveforms.
+		for(size_t i = 0; i < 4; i++){
+			anodePhase[0][i] = anodeResponseL[i].analyzePolyCFD(polyCfdFraction); // left
+			anodePhase[1][i] = anodeResponseR[i].analyzePolyCFD(polyCfdFraction); // right
+		}
+
 		// Compute the bar speed-of-light.
 		double barTimeDiff = pulsePhase[1] - pulsePhase[0];
 		detSpeedLight = 2*neutronCenterOfMass[2]/barTimeDiff;
@@ -420,20 +453,9 @@ bool nDetRunAction::fillBranch()
 	barQDC = std::sqrt(pulseQDC[0]*pulseQDC[1]);
 	barMaxADC = std::sqrt(pulseMax[0]*pulseMax[1]);
 
-	// Retrieve the reconstructed center of mass position.
-	reconstructedCenterX[0] = -cmL->getReconstructedX();
-	reconstructedCenterY[0] = cmL->getReconstructedY();
-	reconstructedCenterX[1] = -cmR->getReconstructedX();
-	reconstructedCenterY[1] = cmR->getReconstructedY();
-
 	// Get the segment of the detector where the photon CoM occurs.
 	cmL->getCenterSegment(centerOfMassColumn[0], centerOfMassRow[0]);
 	cmR->getCenterSegment(centerOfMassColumn[1], centerOfMassRow[1]);
-	
-	if(outputDebug){ // Retrieve the anode currents.
-		cmL->getAnodeCurrents(anodeCurrent[0]);
-		cmR->getAnodeCurrents(anodeCurrent[1]);
-	}
 	
 	// Clear all photon statistics from the detector.
 	detector->Clear();

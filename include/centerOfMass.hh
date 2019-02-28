@@ -55,6 +55,8 @@ class centerOfMass{
 	
 	pmtResponse *getPmtResponse(){ return &response; }
 	
+	pmtResponse *getAnodeResponse(){ return anodeResponse; }
+	
 	void getAnodeCurrents(double *array) const ;
 	
 	double getReconstructedX() const ;
@@ -103,7 +105,9 @@ class centerOfMass{
 	
 	G4ThreeVector center;
 	
-	pmtResponse response;
+	pmtResponse response; // Dynode response.
+	
+	pmtResponse anodeResponse[4]; // Anode responses.
 	
 	std::vector<std::vector<double> > gainMatrix;
 	

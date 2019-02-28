@@ -118,6 +118,7 @@ class nDetRunAction : public G4UserRunAction
     float barQDC;    
     float barMaxADC;
 	float pulsePhase[2];
+	float anodePhase[2][4];
 
 	double photonDetCenterOfMassX[2];
 	double photonDetCenterOfMassY[2];
@@ -139,8 +140,6 @@ class nDetRunAction : public G4UserRunAction
     float pulseMax[2];
     float pulseQDC[2];
     
-    double anodeCurrent[2][4];
-    
 	double neutronCenterOfMass[3];
 	double neutronWeight;
 	double detSpeedLight;
@@ -156,6 +155,10 @@ class nDetRunAction : public G4UserRunAction
 	pmtResponse *getPmtResponseLeft();
 
 	pmtResponse *getPmtResponseRight();
+
+	pmtResponse *getAnodeResponseLeft();
+
+	pmtResponse *getAnodeResponseRight();
 	
 	ParticleSource *getSource(){ return source; }
 
