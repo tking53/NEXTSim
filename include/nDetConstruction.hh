@@ -85,10 +85,6 @@ class nDetConstruction : public G4VUserDetectorConstruction
 
 	bool setPmtGainMatrix(const char *fname);
 
-	void SetGdmlFilename(const std::string &fname);
-
-	void SetGdmlDefaultRotation(const G4ThreeVector &rotation){ gdmlRotation = rotation; }
-
 	void SetPosition(const G4ThreeVector &position){ detectorPosition = position; }	
 
 	void SetPositionCylindrical(const G4ThreeVector &position);
@@ -145,7 +141,13 @@ class nDetConstruction : public G4VUserDetectorConstruction
     
     void UpdateGeometry();
     
-    G4LogicalVolume *LoadGDML(const G4String &fname, gdmlSolid &solid, G4OpticalSurface *surface=NULL);
+    void AddGDML(const G4String &input){ gdmlStrings.push_back(input); }
+    
+    G4LogicalVolume *LoadGDML(const G4String &input);
+    
+	G4LogicalVolume *LoadGDML(const G4String &fname, const G4ThreeVector &position, const G4ThreeVector &rotation, const G4String &material);
+
+	G4LogicalVolume *LoadLightGuide(const G4String &fname, const G4ThreeVector &position, const G4ThreeVector &rotation, const G4String &material, G4OpticalSurface *surface);
 
 private:
     nDetConstructionMessenger *fDetectorMessenger;
@@ -268,8 +270,9 @@ private:
 	G4VisAttributes *scint_VisAtt;
 	G4VisAttributes *shadow_VisAtt;
 
-	// Loaded gdml solid.
-	gdmlSolid solid;
+	// Loaded gdml solids.
+	std::vector<gdmlSolid> solids;
+	std::vector<G4String> gdmlStrings;
 
 	// Database of elements and materials.
 	nistDatabase nist;

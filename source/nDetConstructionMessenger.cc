@@ -65,13 +65,10 @@ nDetConstructionMessenger::nDetConstructionMessenger(nDetConstruction* detector)
 	addGuidance("Load segmented PMT anode gain matrix file");
 	
 	addCommand(new G4UIcmdWithAString("/nDet/detector/loadGDML", this));
-	addGuidance("Load a GDML geometry file for testing");
+	addGuidance("Load a GDML geometry file for testing. SYNTAX: loadGDML <filename> <posX> <posY> <posZ> <rotX> <rotY> <rotZ> <matString>");
 	
 	addCommand(new G4UIcmdWithADouble("/nDet/detector/setDiffuserLength", this));
 	addGuidance("Defines the length of the straight light diffuser in cm");
-	
-	addCommand(new G4UIcmdWith3Vector("/nDet/detector/setGDMLrotation", this));
-	addGuidance("Defines the default rotation of the loaded GDML model in degrees");
 	
 	addCommand(new G4UIcmdWithAString("/nDet/detector/setWrapping", this));
 	addGuidance("Set the material to use for reflective wrapping");	
@@ -160,43 +157,39 @@ void nDetConstructionMessenger::SetNewValue(G4UIcommand* command, G4String newVa
 		fDetector->setPmtGainMatrix(newValue.c_str());
 	}
 	else if(index == 15){
-		fDetector->SetGdmlFilename(newValue.c_str());
+		fDetector->AddGDML(newValue);
 	}
 	else if(index == 16){
 		G4double val = command->ConvertToDouble(newValue);
 		fDetector->SetDiffuserLength(val*cm);
 	}
 	else if(index == 17){
-		G4ThreeVector val = command->ConvertTo3Vector(newValue);
-		fDetector->SetGdmlDefaultRotation(val);
-	}
-	else if(index == 18){
 		fDetector->SetWrappingMaterial(newValue);
 	}
-	else if(index == 19){
+	else if(index == 18){
 		G4ThreeVector val = command->ConvertToDimensioned3Vector(newValue);
 		fDetector->SetShadowBarSize(val);
 	}
-	else if(index == 20){
+	else if(index == 19){
 		G4ThreeVector val = command->ConvertToDimensioned3Vector(newValue);
 		fDetector->SetShadowBarPosition(val);
 	}
-	else if(index == 21){
+	else if(index == 20){
 		fDetector->SetShadowBarMaterial(newValue);
 	}
-	else if(index == 22){
+	else if(index == 21){
 		G4ThreeVector val = command->ConvertToDimensioned3Vector(newValue);
 		fDetector->SetPosition(val);
 	}
-	else if(index == 23){
+	else if(index == 22){
 		G4ThreeVector val = command->ConvertTo3Vector(newValue);
 		fDetector->SetPositionCylindrical(val);
 	}
-	else if(index == 24){
+	else if(index == 23){
 		G4ThreeVector val = command->ConvertTo3Vector(newValue);
 		fDetector->SetPositionSpherical(val);
 	}
-	else if(index == 25){
+	else if(index == 24){
 		G4ThreeVector val = command->ConvertTo3Vector(newValue);
 		fDetector->SetRotation(val);
 	}

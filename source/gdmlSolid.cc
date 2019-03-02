@@ -87,11 +87,11 @@ G4ThreeVector gdmlSegment::transform(const G4ThreeVector &vec) const {
 // class gdmlSolid
 ///////////////////////////////////////////////////////////////////////////////
 
-gdmlSolid::gdmlSolid(const char *fname){
-	this->read(fname);
+gdmlSolid::gdmlSolid(const char *fname, const G4String &materialName){
+	this->read(fname, materialName);
 }
 
-G4LogicalVolume *gdmlSolid::read(const char *fname, G4OpticalSurface *surface/*=NULL*/, const bool &checkOverlaps/*=false*/){
+G4LogicalVolume *gdmlSolid::read(const char *fname, const G4String &materialName, const bool &checkOverlaps/*=false*/){
 #ifdef USE_GDML
 	G4GDMLParser parser;
 	
@@ -122,25 +122,25 @@ G4LogicalVolume *gdmlSolid::read(const char *fname, G4OpticalSurface *surface/*=
 	G4NistManager* manNist = G4NistManager::Instance();
 
 	// Define the parent object.
-	parent_physV = new G4Box("assembly", size[0], size[1], size[2]);
-	parent_logV = new G4LogicalVolume(parent_physV, manNist->FindOrBuildMaterial("G4_AIR"), "assembly_logV");
-	parent_logV->SetVisAttributes(G4VisAttributes::Invisible);
+	parent = new G4Box("assembly", size[0], size[1], size[2]);
+	parent_logV = new G4LogicalVolume(parent, manNist->FindOrBuildMaterial("G4_AIR"), "assembly_logV");
+	//parent_logV->SetVisAttributes(G4VisAttributes::Invisible);
 	
 	for(std::vector<gdmlSegment>::iterator iter = daughters.begin(); iter != daughters.end(); iter++){ // Place the daughters within the parent.
 		G4RotationMatrix *r = iter->getRotationMatrix();
 		G4LogicalVolume *log = iter->getLogicalVolume();
-		log->SetMaterial(manNist->FindOrBuildMaterial("G4_SILICON_DIOXIDE"));
+		log->SetMaterial(manNist->FindOrBuildMaterial(materialName));
 		placements.push_back(new G4PVPlacement(r, G4ThreeVector(0, 0, 0), log, log->GetName(), parent_logV, true, 0, checkOverlaps));
 	}
 
-	if(surface){ // Define logical border surfaces.
+	/*if(surface){ // Define logical border surfaces.
 		for(std::vector<G4PVPlacement*>::iterator iter1 = placements.begin(); iter1 != placements.end(); iter1++){ 
 			for(std::vector<G4PVPlacement*>::iterator iter2 = placements.begin(); iter2 != placements.end(); iter2++){
 				if(iter1 == iter2) continue; // No border with itself.
 				borders.push_back(new G4LogicalBorderSurface("Surface", (*iter1), (*iter2), surface));
 			}
 		}
-	}
+	}*/
 	
 	return parent_logV;
 #else
@@ -148,11 +148,19 @@ G4LogicalVolume *gdmlSolid::read(const char *fname, G4OpticalSurface *surface/*=
 #endif
 }
 
-void gdmlSolid::placeSolid(G4RotationMatrix *rotation, const G4ThreeVector &position, G4LogicalVolume *parent, std::vector<G4PVPlacement*> &volumes, const bool &checkOverlaps/*=false*/){
+G4PVPlacement *gdmlSolid::placeSolid(G4LogicalVolume *parent_, const bool &checkOverlaps/*=false*/){
+	return (new G4PVPlacement(&rotation, position, parent_logV, name, parent_, true, 0, checkOverlaps));
+}
+
+void gdmlSolid::placeSolid(G4RotationMatrix *rot, const G4ThreeVector &pos, G4LogicalVolume *parent_, std::vector<G4PVPlacement*> &volumes, const bool &checkOverlaps/*=false*/){
 	for(std::vector<gdmlSegment>::iterator iter = daughters.begin(); iter != daughters.end(); iter++){ // Place the daughters within the parent.
 		G4LogicalVolume *log = iter->getLogicalVolume();
-		volumes.push_back(new G4PVPlacement(rotation, position, log, log->GetName(), parent, true, 0, checkOverlaps));
+		volumes.push_back(new G4PVPlacement(rot, pos, log, log->GetName(), parent_, true, 0, checkOverlaps));
 	}
+}
+
+void gdmlSolid::setLogicalBorders(const G4String &borderName, G4OpticalSurface *surface){
+	setLogicalBorders(borderName, surface, placements, placements);
 }
 
 void gdmlSolid::setLogicalBorders(const G4String &borderName, G4OpticalSurface *surface, G4PVPlacement *phys){
@@ -183,6 +191,13 @@ void gdmlSolid::setLogicalBorders(const G4String &borderName, G4OpticalSurface *
 			new G4LogicalBorderSurface(borderName, (*iter1), (*iter2), surface);
 		}
 	}
+}
+
+void gdmlSolid::setRotation(const G4ThreeVector &rot_){
+	rotation = G4RotationMatrix();
+	rotation.rotateX(rot_.getX());
+	rotation.rotateY(rot_.getY());
+	rotation.rotateZ(rot_.getZ());
 }
 
 void gdmlSolid::rotate(const double &x, const double &y, const double &z){

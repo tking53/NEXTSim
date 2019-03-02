@@ -10,6 +10,20 @@ class G4UIcommand;
 class G4UIdirectory;
 class TDirectory;
 
+/**Split a string on the delimiter character populating the vector args with 
+ * any substrings formed. Returns the number of substrings found.
+ *	
+ * \param[in] str The string to be parsed.
+ * \param[out] args The vector to populate with substrings.
+ * \param[in] delimiter The character to split the string on.
+ * \return The number of substrings found.
+ */
+unsigned int split_str(std::string str, std::vector<std::string> &args, char delimiter=' ');
+
+///////////////////////////////////////////////////////////////////////////////
+// class messengerHandler
+///////////////////////////////////////////////////////////////////////////////
+
 class messengerHandler : public G4UImessenger {
   public:
 	messengerHandler() : G4UImessenger(), size(0) { }

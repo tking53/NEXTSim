@@ -56,9 +56,9 @@ class gdmlSegment{
 
 class gdmlSolid{
   public:
-	gdmlSolid() : name(), parent_physV(NULL), parent_logV(NULL), nDaughters(0) { }
+	gdmlSolid() : name(), parent(NULL), parent_logV(NULL), parent_physV(NULL), world(NULL), worldLogV(NULL), nDaughters(0) { }
 	
-	gdmlSolid(const char *fname);
+	gdmlSolid(const char *fname, const G4String &materialName);
 
 	std::string getName() const { return name; }
 
@@ -72,15 +72,25 @@ class gdmlSolid{
 	
 	double getLength() const { return 2*size[2]; }
 
-	G4Box *getBoundingBox(){ return parent_physV; }
+	G4ThreeVector *getPosition(){ return &position; }
+	
+	G4RotationMatrix *getRotation(){ return &rotation; }
+
+	G4Box *getBoundingBox(){ return parent; }
 	
 	G4LogicalVolume *getLogicalVolume(){ return parent_logV; }
+	
+	G4PVPlacement *getPhysicalVolume(){ return parent_physV; }
 
 	G4LogicalVolume *getWorldLogicalVolume(){ return worldLogV; }
 
-	G4LogicalVolume *read(const char *fname, G4OpticalSurface *surface=NULL, const bool &checkOverlaps=false);
+	G4LogicalVolume *read(const char *fname, const G4String &materialName, const bool &checkOverlaps=false);
 
-	void placeSolid(G4RotationMatrix *rotation, const G4ThreeVector &position, G4LogicalVolume *parent, std::vector<G4PVPlacement*> &volumes, const bool &checkOverlaps=false);
+	G4PVPlacement *placeSolid(G4LogicalVolume *parent_, const bool &checkOverlaps=false);
+
+	void placeSolid(G4RotationMatrix *rot, const G4ThreeVector &pos, G4LogicalVolume *parent_, std::vector<G4PVPlacement*> &volumes, const bool &checkOverlaps=false);
+
+	void setLogicalBorders(const G4String &borderName, G4OpticalSurface *surface);
 
 	void setLogicalBorders(const G4String &borderName, G4OpticalSurface *surface, G4PVPlacement *phys);
 
@@ -90,6 +100,10 @@ class gdmlSolid{
 
 	static void setLogicalBorders(const G4String &borderName, G4OpticalSurface *surface, const std::vector<G4PVPlacement*> &p1, const std::vector<G4PVPlacement*> &p2);
 
+	void setPosition(const G4ThreeVector &pos_){ position = pos_; }
+	
+	void setRotation(const G4ThreeVector &rot_);
+
 	void rotate(const double &x, const double &y, const double &z);
 
 	void clear();
@@ -97,8 +111,9 @@ class gdmlSolid{
   private:
 	std::string name;
   
-	G4Box *parent_physV;
+	G4Box *parent;
 	G4LogicalVolume *parent_logV;
+	G4PVPlacement *parent_physV;
   
 	G4VPhysicalVolume *world;
 	G4LogicalVolume *worldLogV;
@@ -109,6 +124,9 @@ class gdmlSolid{
 	std::vector<gdmlSegment> daughters;
 	
 	size_t nDaughters;
+	
+	G4ThreeVector position;
+	G4RotationMatrix rotation;
 	
 	double size[3];
 };
