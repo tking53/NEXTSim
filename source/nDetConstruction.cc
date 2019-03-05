@@ -181,16 +181,18 @@ G4VPhysicalVolume* nDetConstruction::ConstructDetector(){
 		new G4PVPlacement(0, shadowBarPos, shadowBox_logV, "ShadowBar", expHall_logV, true, 0, fCheckOverlaps);
 	}
 
-	// Load input GDML models.
-	for(std::vector<G4String>::iterator iter = gdmlStrings.begin(); iter != gdmlStrings.end(); iter++){
-		LoadGDML((*iter));
-	}
+	// Load all user-defined layers.
+	/*while(!userLayers.empty()){
+		userLayers.front().execute(this);
+		userLayers.pop_front();
+	}*/
+	// Load all user-defined layers.
+	for(std::deque<userAddLayer>::iterator iter = userLayers.begin(); iter != userLayers.end(); iter++){
+		iter->execute(this);
+	}	
 
-	// Place loaded models into the assembly.
-	for(std::vector<gdmlSolid>::iterator iter = solids.begin(); iter != solids.end(); iter++){
-		if(iter->isLoaded())
-			iter->placeSolid(expHall_logV, fCheckOverlaps);
-	}
+	// Attach PMTs.
+	constructPSPmts();
 
     // Full detector physical volume
     assembly_physV = new G4PVPlacement(&detectorRotation, detectorPosition, assembly_logV, "Assembly", expHall_logV, 0, 0, fCheckOverlaps);
@@ -570,7 +572,7 @@ void nDetConstruction::GetDetectedPhotons(size_t &numLeft, size_t &numRight){
 void nDetConstruction::Clear(){
 	// Clean up loaded solids.
 	solids.clear();
-	gdmlStrings.clear();
+	userLayers.clear();
 
     center[0].clear();
     center[1].clear();
@@ -591,37 +593,98 @@ void nDetConstruction::UpdateGeometry(){
       setSegmentedPmt(fNumColumnsPmt, fNumRowsPmt, SiPM_dimension*2, SiPM_dimension*2);
 }
 
-G4LogicalVolume *nDetConstruction::LoadGDML(const G4String &input){
+void nDetConstruction::loadGDML(const G4String &input){
 	// Expects a space-delimited string of the form:
 	//  "filename posX(cm) posY(cm) posZ(cm) rotX(deg) rotY(deg) rotZ(deg) material"
 	std::vector<std::string> args;
 	unsigned int Nargs = split_str(input, args);
 	if(Nargs < 8){
-		std::cout << " nDetConstruction: Invalid number of arguments given to ::LoadGDML(). Expected 8, received " << Nargs << ".\n";
+		std::cout << " nDetConstruction: Invalid number of arguments given to ::loadGDML(). Expected 8, received " << Nargs << ".\n";
 		std::cout << " nDetConstruction:  SYNTAX: loadGDML <filename> <posX> <posY> <posZ> <rotX> <rotY> <rotZ> <matString>\n";
-		return NULL;
+		return;
 	}
 	G4ThreeVector position(strtod(args.at(1).c_str(), NULL)*cm, strtod(args.at(2).c_str(), NULL)*cm, strtod(args.at(3).c_str(), NULL)*cm);
 	G4ThreeVector rotation(strtod(args.at(4).c_str(), NULL)*deg, strtod(args.at(5).c_str(), NULL)*deg, strtod(args.at(6).c_str(), NULL)*deg);
-	return LoadGDML(args.at(0), position, rotation, args.at(7));
+	loadGDML(args.at(0), position, rotation, args.at(7));
 }
 
-G4LogicalVolume *nDetConstruction::LoadGDML(const G4String &fname, const G4ThreeVector &position, const G4ThreeVector &rotation, const G4String &material){
+G4LogicalVolume *nDetConstruction::loadGDML(const G4String &fname, const G4ThreeVector &position, const G4ThreeVector &rotation, const G4String &material){
 	solids.push_back(gdmlSolid());
 	gdmlSolid *currentSolid = &solids.back();
 	currentSolid->read(fname, material, fCheckOverlaps);
-	std::cout << " nDetConstruction: Loaded GDML model (name=" << currentSolid->getName() << ") with size x=" << currentSolid->getWidth() << " mm, y=" << currentSolid->getThickness() << " mm, z=" << currentSolid->getLength() << " mm\n";
 	currentSolid->setRotation(rotation);
 	currentSolid->setPosition(position);
+	std::cout << " nDetConstruction: Loaded GDML model (name=" << currentSolid->getName() << ") with size x=" << currentSolid->getWidth() << " mm, y=" << currentSolid->getThickness() << " mm, z=" << currentSolid->getLength() << " mm\n";
+	
+	// Place loaded model into the assembly.
+	if(currentSolid->isLoaded())
+		currentSolid->placeSolid(assembly_logV, fCheckOverlaps);
+	
 	return currentSolid->getLogicalVolume();
 }
 
-G4LogicalVolume *nDetConstruction::LoadLightGuide(const G4String &fname, const G4ThreeVector &position, const G4ThreeVector &rotation, const G4String &material, G4OpticalSurface *surface){
-	G4LogicalVolume *retval = LoadGDML(fname, position, rotation, material);
+void nDetConstruction::loadLightGuide(const G4String &input){
+	// Expects a space-delimited string of the form:
+	//  "filename rotX(deg) rotY(deg) rotZ(deg) material"
+	std::vector<std::string> args;
+	unsigned int Nargs = split_str(input, args);
+	if(Nargs < 5){
+		std::cout << " nDetConstruction: Invalid number of arguments given to ::loadGDML(). Expected 5, received " << Nargs << ".\n";
+		std::cout << " nDetConstruction:  SYNTAX: loadGDML <filename> <rotX> <rotY> <rotZ> <matString>\n";
+		return;
+	}
+	G4ThreeVector rotation(strtod(args.at(1).c_str(), NULL)*deg, strtod(args.at(2).c_str(), NULL)*deg, strtod(args.at(3).c_str(), NULL)*deg);
+	loadLightGuide(args.at(0), rotation, args.at(4), fMylarOpticalSurface);
+}
+
+G4LogicalVolume *nDetConstruction::loadLightGuide(const G4String &fname, const G4ThreeVector &rotation, const G4String &material, G4OpticalSurface *surface){
+	solids.push_back(gdmlSolid());
 	gdmlSolid *currentSolid = &solids.back();
+	currentSolid->read(fname, material, fCheckOverlaps);
 	currentSolid->setLogicalBorders("InnerWrapping", surface);
+	currentSolid->setRotation(rotation);
+
+	G4double trapezoidZ = currentOffsetZ + currentSolid->getLength()/2;
+	std::cout << " nDetConstruction: Loaded GDML model (name=" << currentSolid->getName() << ") with size x=" << currentSolid->getWidth() << " mm, y=" << currentSolid->getThickness() << " mm, z=" << currentSolid->getLength() << " mm\n";
+
+	// Place loaded model into the assembly.
+	if(currentSolid->isLoaded()){
+		// Place the light-guide on the positive z side.
+		currentSolid->setPosition(G4ThreeVector(0, 0, trapezoidZ));
+		currentSolid->placeSolid(assembly_logV, fCheckOverlaps);
+		
+		// And on the negative z side.
+		G4RotationMatrix *trapRot = new G4RotationMatrix();
+		trapRot->rotateX(rotation.getX()-pi);
+		currentSolid->placeSolid(trapRot, G4ThreeVector(0, 0, -trapezoidZ), assembly_logV, fCheckOverlaps);
+	}
+
+	currentLayerSizeX = currentSolid->getWidth();
+	currentLayerSizeY = currentSolid->getThickness();
+	currentOffsetZ += currentSolid->getLength();
 	fTrapezoidLength = currentSolid->getLength()*mm;
-	return retval;
+
+	return currentSolid->getLogicalVolume();
+}
+
+void nDetConstruction::AddGDML(const G4String &input){
+	userLayers.push_back(userAddLayer(input, &nDetConstruction::loadGDML));
+}
+
+void nDetConstruction::AddLightGuideGDML(const G4String &input){
+	userLayers.push_back(userAddLayer(input, &nDetConstruction::loadLightGuide));
+}
+
+void nDetConstruction::AddGrease(const G4String &input){
+	userLayers.push_back(userAddLayer(input, &nDetConstruction::applyGreaseLayer));
+}
+
+void nDetConstruction::AddDiffuser(const G4String &input){
+	userLayers.push_back(userAddLayer(input, &nDetConstruction::applyDiffuserLayer));
+}
+
+void nDetConstruction::AddLightGuide(const G4String &input){
+	userLayers.push_back(userAddLayer(input, &nDetConstruction::applyLightGuide));
 }
 
 void nDetConstruction::buildModule(){
@@ -726,27 +789,6 @@ void nDetConstruction::buildModule(){
 			}
 		}
 	}
-
-	// Place light diffusers (BEFORE LIGHT-GUIDE).
-	/*if(fDiffuserLength > 0){
-		applyGreaseLayer();
-		applyDiffuserLayer();
-	}*/
-
-	// Apply trapezoidal light-guides.
-	if(fTrapezoidLength > 0){
-		applyGreaseLayer();
-		applyLightGuide();
-	}
-
-	// Place light diffusers (AFTER LIGHT-GUIDE).
-	if(fDiffuserLength > 0){
-		applyGreaseLayer();
-		applyDiffuserLayer();
-	}
-
-	// Build the two PSPmts
-	constructPSPmts();
 }
 
 void nDetConstruction::buildEllipse(){
@@ -794,9 +836,6 @@ void nDetConstruction::buildEllipse(){
 	
 	// Directly modify the size of the grease layer.
 	currentLayerSizeX = 2*SiPM_dimension;
-
-	// Attach PMTs.
-	constructPSPmts();
 
     // Reflective wrapping.
     if(fMylarThickness > 0)
@@ -848,31 +887,12 @@ void nDetConstruction::buildRectangle(){
 		plateWrapping_physV = new G4PVPlacement(0, G4ThreeVector(0, 0, 0), plateWrapping_logV, "Wrapping", assembly_logV, true, 0, fCheckOverlaps);		
 	}
 
-	// Attach PMTs.
-	constructPSPmts();
-
     // Reflective wrapping.
     if(fMylarThickness > 0)
 	    new G4LogicalBorderSurface("Wrapping", plateBody_physV, plateWrapping_physV, getUserOpticalSurface());
 }
 
 void nDetConstruction::buildTestAssembly(){
-	if(gdmlFilename.empty()) return;
-
-	// Load the testSolid.
-    gdmlSolid testSolid;
-    LoadGDML(gdmlFilename, G4ThreeVector(0,0,0), G4ThreeVector(0,0,0), "");
-    
-	G4RotationMatrix *trapRot = new G4RotationMatrix;
-    trapRot->rotateX(gdmlRotation.getX()*deg);
-    trapRot->rotateY(gdmlRotation.getY()*deg);
-    trapRot->rotateZ(gdmlRotation.getZ()*deg);
-    
-    // Place the model at the origin.
-	std::vector<G4PVPlacement*> trapPhysical;
-    testSolid.placeSolid(trapRot, G4ThreeVector(0, 0, 0), expHall_logV, trapPhysical);
-
-    testSolid.setLogicalBorders("ESR", fEsrOpticalSurface, trapPhysical); // This works as expected.
 }
 
 G4ThreeVector nDetConstruction::constructAssembly(){
@@ -936,96 +956,149 @@ void nDetConstruction::applyGreaseLayer(){
 	this->applyGreaseLayer(currentLayerSizeX, currentLayerSizeY);
 }
 
-void nDetConstruction::applyGreaseLayer(const G4double &x, const G4double &y){
-    if(fGreaseThickness > 0){
-	    G4Box *grease_solidV = new G4Box("grease", x/2, y/2, fGreaseThickness/2);
+void nDetConstruction::applyGreaseLayer(const G4String &input){
+	// Expects a space-delimited string of the form:
+	//  "addGreaseLayer width(mm) height(mm) thickness(mm)"
+	std::vector<std::string> args;
+	unsigned int Nargs = split_str(input, args);
+	if(Nargs < 2){
+		std::cout << " nDetConstruction: Invalid number of arguments given to ::applyGreaseLayer(). Expected 2, received " << Nargs << ".\n";
+		std::cout << " nDetConstruction:  SYNTAX: addGreaseLayer <width> <height> [thickness]\n";
+		return;
+	}
+	double width = strtod(args.at(0).c_str(), NULL);
+	double height = strtod(args.at(1).c_str(), NULL);
+	if(Nargs >= 3)
+		this->applyGreaseLayer(width, height, strtod(args.at(2).c_str(), NULL));
+	else
+		this->applyGreaseLayer(width, height);
+}
+
+void nDetConstruction::applyGreaseLayer(const G4double &x, const G4double &y, double thickness/*=0*/){
+	if(thickness <= 0)
+		thickness = fGreaseThickness;
+    if(thickness > 0){
+	    G4Box *grease_solidV = new G4Box("grease", x/2, y/2, thickness/2);
 	    grease_logV = new G4LogicalVolume(grease_solidV, fGrease, "grease_logV");
 	    grease_logV->SetVisAttributes(grease_VisAtt);
 	
-	    new G4PVPlacement(0, G4ThreeVector(0, 0, currentOffsetZ+fGreaseThickness/2), grease_logV, "Grease", assembly_logV, true, 0, fCheckOverlaps);
-	    new G4PVPlacement(0, G4ThreeVector(0, 0, -currentOffsetZ-fGreaseThickness/2), grease_logV, "Grease", assembly_logV, true, 0, fCheckOverlaps);
+	    new G4PVPlacement(0, G4ThreeVector(0, 0, currentOffsetZ+thickness/2), grease_logV, "Grease", assembly_logV, true, 0, fCheckOverlaps);
+	    new G4PVPlacement(0, G4ThreeVector(0, 0, -currentOffsetZ-thickness/2), grease_logV, "Grease", assembly_logV, true, 0, fCheckOverlaps);
 		currentLayerSizeX = x;
 		currentLayerSizeY = y;
-		currentOffsetZ += fGreaseThickness;
+		currentOffsetZ += thickness;
 	}
 }
 
 void nDetConstruction::applyDiffuserLayer(){
-	this->applyDiffuserLayer(currentLayerSizeX, currentLayerSizeY);
+	this->applyDiffuserLayer(currentLayerSizeX, currentLayerSizeY, fDiffuserLength);
 }
 
-void nDetConstruction::applyDiffuserLayer(const G4double &x, const G4double &y){
-    if(fDiffuserLength > 0){ // Build the light diffusers (if needed)
-        G4Box *lightDiffuser = new G4Box("lightDiffuser", x/2, y/2, fDiffuserLength/2);
+void nDetConstruction::applyDiffuserLayer(const G4String &input){
+	// Expects a space-delimited string of the form:
+	//  "addDiffuserLayer width(mm) height(mm) thickness(mm) material"
+	std::vector<std::string> args;
+	unsigned int Nargs = split_str(input, args);
+	if(Nargs < 3){
+		std::cout << " nDetConstruction: Invalid number of arguments given to ::applyDiffuserLayer(). Expected 3, received " << Nargs << ".\n";
+		std::cout << " nDetConstruction:  SYNTAX: addDiffuserLayer <width> <height> <thickness> [material=G4_SILICON_DIOXIDE]\n";
+		return;
+	}
+	double width = strtod(args.at(0).c_str(), NULL);
+	double height = strtod(args.at(1).c_str(), NULL);
+	double thickness = strtod(args.at(2).c_str(), NULL);
+	this->applyDiffuserLayer(width, height, thickness);
+}
+
+void nDetConstruction::applyDiffuserLayer(const G4double &x, const G4double &y, const double &thickness){
+    if(thickness > 0){ // Build the light diffusers (if needed)
+        G4Box *lightDiffuser = new G4Box("lightDiffuser", x/2, y/2, thickness/2);
         G4LogicalVolume *lightDiffuserLog = new G4LogicalVolume(lightDiffuser, fSiO2, "lightDiffuser_logV");
 
-        new G4PVPlacement(0, G4ThreeVector(0, 0, currentOffsetZ+fDiffuserLength/2), lightDiffuserLog, "Diffuser", assembly_logV, true, 0, fCheckOverlaps);
-        new G4PVPlacement(0, G4ThreeVector(0, 0, -currentOffsetZ-fDiffuserLength/2), lightDiffuserLog, "Diffuser", assembly_logV, true, 0, fCheckOverlaps);
+        new G4PVPlacement(0, G4ThreeVector(0, 0, currentOffsetZ+thickness/2), lightDiffuserLog, "Diffuser", assembly_logV, true, 0, fCheckOverlaps);
+        new G4PVPlacement(0, G4ThreeVector(0, 0, -currentOffsetZ-thickness/2), lightDiffuserLog, "Diffuser", assembly_logV, true, 0, fCheckOverlaps);
         
     	// Offset the other layers to account for the light-diffuser and another layer of grease.
 		currentLayerSizeX = x;
 		currentLayerSizeY = y;
-    	currentOffsetZ += fDiffuserLength;
+    	currentOffsetZ += thickness;
     }
 }
 
 void nDetConstruction::applyLightGuide(){
-	this->applyLightGuide(currentLayerSizeX, 2*SiPM_dimension, currentLayerSizeY, 2*SiPM_dimension);
+	this->applyLightGuide(currentLayerSizeX, 2*SiPM_dimension, currentLayerSizeY, 2*SiPM_dimension, fTrapezoidLength);
 }
 
 void nDetConstruction::applyLightGuide(const G4double &x2, const G4double &y2){
-	this->applyLightGuide(currentLayerSizeX, x2, currentLayerSizeY, y2);
+	this->applyLightGuide(currentLayerSizeX, x2, currentLayerSizeY, y2, fTrapezoidLength);
 }
 
-void nDetConstruction::applyLightGuide(const G4double &x1, const G4double &x2, const G4double &y1, const G4double &y2){
-    if(fTrapezoidLength > 0){ // Build the light guides (if needed)
-        const G4double trapAngleXZ = std::atan2(2*fTrapezoidLength, x1-x2);
-        const G4double trapAngleYZ = std::atan2(2*fTrapezoidLength, y1-y2);
+void nDetConstruction::applyLightGuide(const G4String &input){
+	// Expects a space-delimited string of the form:
+	//  "addLightGuide width1(mm) width2(mm) height1(mm) height2(mm) thickness(mm) material"
+	std::vector<std::string> args;
+	unsigned int Nargs = split_str(input, args);
+	if(Nargs < 5){
+		std::cout << " nDetConstruction: Invalid number of arguments given to ::applyLightGuide(). Expected 5, received " << Nargs << ".\n";
+		std::cout << " nDetConstruction:  SYNTAX: addLightGuide <width1> <width2> <height1> <height2> <thickness> [material=G4_SILICON_DIOXIDE]\n";
+		return;
+	}
+	double width1 = strtod(args.at(0).c_str(), NULL);
+	double width2 = strtod(args.at(1).c_str(), NULL);
+	double height1 = strtod(args.at(2).c_str(), NULL);
+	double height2 = strtod(args.at(3).c_str(), NULL);
+	double thickness = strtod(args.at(4).c_str(), NULL);
+	this->applyLightGuide(width1, width2, height1, height2, thickness);	
+}
+
+void nDetConstruction::applyLightGuide(const G4double &x1, const G4double &x2, const G4double &y1, const G4double &y2, const double &thickness){
+    if(thickness > 0){ // Build the light guides (if needed)
+        const G4double trapAngleXZ = std::atan2(2*thickness, x1-x2);
+        const G4double trapAngleYZ = std::atan2(2*thickness, y1-y2);
         
         const G4double deltaX = fMylarThickness/std::sin(trapAngleXZ);
         const G4double deltaY = fMylarThickness/std::sin(trapAngleYZ);
         
-        G4double trapezoidZ = currentOffsetZ + fTrapezoidLength/2;
+        G4double trapezoidZ = currentOffsetZ + thickness/2;
         
         std::string trapName = "Acrylic";
         
         G4RotationMatrix *trapRot[2] = {new G4RotationMatrix, new G4RotationMatrix};
         
         // Build the light-guide.
-        if(solids.empty() || !solids.back().isLoaded()){ // Use a standard G4Trd as the light-guide (default).
-		    G4Trd *lightGuide = new G4Trd("lightGuide", x1/2, x2/2, y1/2, y2/2, fTrapezoidLength/2);
-		    G4LogicalVolume *lightGuideLog = new G4LogicalVolume(lightGuide, fSiO2, "lightGuide_logV");	
+	    G4Trd *lightGuide = new G4Trd("lightGuide", x1/2, x2/2, y1/2, y2/2, thickness/2);
+	    G4LogicalVolume *lightGuideLog = new G4LogicalVolume(lightGuide, fSiO2, "lightGuide_logV");	
 
-			trapRot[1]->rotateY(180*deg);
+		trapRot[1]->rotateY(180*deg);
 
-			// Place the light guides.
-			G4PVPlacement *trapPhysicalL = new G4PVPlacement(trapRot[0], G4ThreeVector(0, 0, trapezoidZ), lightGuideLog, trapName, assembly_logV, true, 0, fCheckOverlaps);
-			G4PVPlacement *trapPhysicalR = new G4PVPlacement(trapRot[1], G4ThreeVector(0, 0, -trapezoidZ), lightGuideLog, trapName, assembly_logV, true, 0, fCheckOverlaps);
+		// Place the light guides.
+		G4PVPlacement *trapPhysicalL = new G4PVPlacement(trapRot[0], G4ThreeVector(0, 0, trapezoidZ), lightGuideLog, trapName, assembly_logV, true, 0, fCheckOverlaps);
+		G4PVPlacement *trapPhysicalR = new G4PVPlacement(trapRot[1], G4ThreeVector(0, 0, -trapezoidZ), lightGuideLog, trapName, assembly_logV, true, 0, fCheckOverlaps);
 
-			// Build the wrapping.
-			if(fMylarThickness > 0){
-				G4Trd *wrappingSolid = new G4Trd("wrapping", x1/2+deltaX, x2/2+deltaY, y1/2+deltaX, y2/2+deltaY, fTrapezoidLength/2);
-				G4SubtractionSolid *wrapping = new G4SubtractionSolid("wrapping", wrappingSolid, lightGuide);
-				G4LogicalVolume *wrapping_logV = new G4LogicalVolume(wrapping, getUserSurfaceMaterial(), "wrapping_logV");		
-				wrapping_logV->SetVisAttributes(wrapping_VisAtt);
+		// Build the wrapping.
+		if(fMylarThickness > 0){
+			G4Trd *wrappingSolid = new G4Trd("wrapping", x1/2+deltaX, x2/2+deltaY, y1/2+deltaX, y2/2+deltaY, thickness/2);
+			G4SubtractionSolid *wrapping = new G4SubtractionSolid("wrapping", wrappingSolid, lightGuide);
+			G4LogicalVolume *wrapping_logV = new G4LogicalVolume(wrapping, getUserSurfaceMaterial(), "wrapping_logV");		
+			wrapping_logV->SetVisAttributes(wrapping_VisAtt);
 
-				// Place the wrapping around the light guides.
-				G4PVPlacement *trapWrappingL = new G4PVPlacement(trapRot[0], G4ThreeVector(0, 0, trapezoidZ), wrapping_logV, "Wrapping", assembly_logV, true, 0, fCheckOverlaps);
-				G4PVPlacement *trapWrappingR = new G4PVPlacement(trapRot[1], G4ThreeVector(0, 0, -trapezoidZ), wrapping_logV, "Wrapping", assembly_logV, true, 0, fCheckOverlaps);
-			
-				// Reflective wrapping.
-				new G4LogicalBorderSurface("Wrapping", trapPhysicalL, trapWrappingL, getUserOpticalSurface());
-				new G4LogicalBorderSurface("Wrapping", trapPhysicalR, trapWrappingR, getUserOpticalSurface());
-			}
-        }
-        else{ // Load the light-guide from a GDML file.
+			// Place the wrapping around the light guides.
+			G4PVPlacement *trapWrappingL = new G4PVPlacement(trapRot[0], G4ThreeVector(0, 0, trapezoidZ), wrapping_logV, "Wrapping", assembly_logV, true, 0, fCheckOverlaps);
+			G4PVPlacement *trapWrappingR = new G4PVPlacement(trapRot[1], G4ThreeVector(0, 0, -trapezoidZ), wrapping_logV, "Wrapping", assembly_logV, true, 0, fCheckOverlaps);
+		
+			// Reflective wrapping.
+			new G4LogicalBorderSurface("Wrapping", trapPhysicalL, trapWrappingL, getUserOpticalSurface());
+			new G4LogicalBorderSurface("Wrapping", trapPhysicalR, trapWrappingR, getUserOpticalSurface());
+		}
+		
+        /*else{ // Load the light-guide from a GDML file.
         	gdmlSolid *currentSolid = &solids.back();
         
 	    	//G4LogicalVolume *lightGuideLog = currentSolid->getLogicalVolume();
 			trapName = currentSolid->getName();
 
 			// Set the dimensions of the light-guide.
-		    G4Trd *lightGuide = new G4Trd("lightGuide", currentSolid->getWidth()/2, x2/2, currentSolid->getThickness()/2, y2/2, fTrapezoidLength/2);
+		    G4Trd *lightGuide = new G4Trd("lightGuide", currentSolid->getWidth()/2, x2/2, currentSolid->getThickness()/2, y2/2, thickness/2);
 
 			trapRot[0]->rotateX(gdmlRotation.getX()*deg);
 			trapRot[0]->rotateY(gdmlRotation.getY()*deg);
@@ -1044,7 +1117,7 @@ void nDetConstruction::applyLightGuide(const G4double &x1, const G4double &x2, c
 
 			// Build the wrapping.
 			if(fMylarThickness > 0){
-				G4Trd *wrappingSolid = new G4Trd("wrapping", currentSolid->getWidth()/2+deltaX, x2/2+deltaY, currentSolid->getThickness()/2+deltaX, y2/2+deltaY, fTrapezoidLength/2);
+				G4Trd *wrappingSolid = new G4Trd("wrapping", currentSolid->getWidth()/2+deltaX, x2/2+deltaY, currentSolid->getThickness()/2+deltaX, y2/2+deltaY, thickness/2);
 				G4SubtractionSolid *wrapping = new G4SubtractionSolid("wrapping", wrappingSolid, lightGuide);
 				G4LogicalVolume *wrapping_logV = new G4LogicalVolume(wrapping, getUserSurfaceMaterial(), "wrapping_logV");		
 				wrapping_logV->SetVisAttributes(wrapping_VisAtt);
@@ -1061,123 +1134,11 @@ void nDetConstruction::applyLightGuide(const G4double &x1, const G4double &x2, c
 	    			new G4LogicalBorderSurface("Wrapping", (*iter), trapWrappingR, getUserOpticalSurface());
 	    		}
 			}
-	    }
-
-        /*G4double trapezoidZ = fDetectorLength/2 + fGreaseThickness + fTrapezoidLength/2;
-        if(fDiffuserLength > 0)
-			trapezoidZ += fGreaseThickness + fDiffuserLength;
-        
-        std::vector<G4PVPlacement*> trapPhysicalL;
-		std::vector<G4PVPlacement*> trapPhysicalR;
-        
-        if(!solid.isLoaded()){
-    		trapPhysicalL.push_back(new G4PVPlacement(trapRot[0], G4ThreeVector(0, 0, trapezoidZ), lightGuideLog, trapName, assembly_logV, true, 0, fCheckOverlaps));
-    		trapPhysicalR.push_back(new G4PVPlacement(trapRot[1], G4ThreeVector(0, 0, -trapezoidZ), lightGuideLog, trapName, assembly_logV, true, 0, fCheckOverlaps));
-    	}
-    	else{
-	    	solid.placeSolid(trapRot[0], G4ThreeVector(0, 0, trapezoidZ), assembly_logV, trapPhysicalL);
-	    	solid.placeSolid(trapRot[1], G4ThreeVector(0, 0, -trapezoidZ), assembly_logV, trapPhysicalR);
-			solid.setLogicalBorders("ESR", fEsrOpticalSurface, trapPhysicalL);
-			solid.setLogicalBorders("ESR", fEsrOpticalSurface, trapPhysicalR);	    	
 	    }*/
-    	
-    	/*if(fMylarThickness > 0){ // Construct the mylar cover flaps
-    		
-    	
-    	    G4double topFlapOffset = trapezoidW2/2-SiPM_dimension;
-    	    G4double sideFlapOffset = trapezoidW1/2-SiPM_dimension;
-    	
-    	    // Top and bottom
-    	    G4double zprime = std::sqrt(std::pow(topFlapOffset, 2.0) + std::pow(fTrapezoidLength, 2.0));
-    	    std::vector<G4TwoVector> trapCoverPoints;
-    	    trapCoverPoints.push_back(G4TwoVector(-trapezoidW2/2, zprime/2));
-    	    trapCoverPoints.push_back(G4TwoVector(trapezoidW2/2, zprime/2));
-    	    trapCoverPoints.push_back(G4TwoVector(SiPM_dimension, -zprime/2));
-    	    trapCoverPoints.push_back(G4TwoVector(-SiPM_dimension, -zprime/2));
 
-    	    G4ExtrudedSolid *trapMylarCover = new G4ExtrudedSolid("", trapCoverPoints, fMylarThickness/2, G4TwoVector(0, 0), 1, G4TwoVector(0, 0), 1);
-    	    G4LogicalVolume *trapMylarCover_logV = new G4LogicalVolume(trapMylarCover, fMylar, "trapMylarCover_logV");
-    	    trapMylarCover_logV->SetVisAttributes(wrapping_VisAtt);
-
-    	    // Sides
-	        zprime = std::sqrt(std::pow(sideFlapOffset, 2.0) + std::pow(fTrapezoidLength, 2.0));
-    	    std::vector<G4TwoVector> sideTrapCoverPoints;
-    	    sideTrapCoverPoints.push_back(G4TwoVector(-trapezoidW2/2, zprime/2));
-    	    sideTrapCoverPoints.push_back(G4TwoVector(trapezoidW2/2, zprime/2));
-    	    sideTrapCoverPoints.push_back(G4TwoVector(SiPM_dimension, -zprime/2));
-    	    sideTrapCoverPoints.push_back(G4TwoVector(-SiPM_dimension, -zprime/2));
-    	    
-    	    G4ExtrudedSolid *sideTrapMylarCover = new G4ExtrudedSolid("", sideTrapCoverPoints, fMylarThickness/2, G4TwoVector(0, 0), 1, G4TwoVector(0, 0), 1);
-    	    G4LogicalVolume *sideTrapMylarCover_logV = new G4LogicalVolume(sideTrapMylarCover, fMylar, "sideTrapMylarCover_logV");
-    	    sideTrapMylarCover_logV->SetVisAttributes(wrapping_VisAtt);
-    	    
-    	    // Handle polygon rotation
-    	    G4RotationMatrix *trapCoverRotL[4] = {new G4RotationMatrix(), new G4RotationMatrix(), new G4RotationMatrix(), new G4RotationMatrix()};
-            G4RotationMatrix *trapCoverRotR[4] = {new G4RotationMatrix(), new G4RotationMatrix(), new G4RotationMatrix(), new G4RotationMatrix()};	       	    
-    	    
-    	    G4double trapAngle = std::atan2(fTrapezoidLength, topFlapOffset);
-
-            trapCoverRotL[0]->rotateX(trapAngle);
-            
-            trapCoverRotR[0]->rotateY(pi);
-            trapCoverRotR[0]->rotateX(trapAngle);
-            
-            trapCoverRotL[1]->rotateX(pi-trapAngle);
-            
-            trapCoverRotR[1]->rotateY(pi);
-            trapCoverRotR[1]->rotateX(pi-trapAngle);
-            
-            trapAngle = std::atan2(fTrapezoidLength, sideFlapOffset);
-            
-            trapCoverRotL[2]->rotateY(trapAngle);
-            trapCoverRotL[2]->rotateZ(270*deg);
-            
-            trapCoverRotR[2]->rotateX(pi);
-            trapCoverRotR[2]->rotateY(trapAngle);
-            trapCoverRotR[2]->rotateZ(270*deg);
-            
-            trapCoverRotL[3]->rotateY(pi-trapAngle);
-            trapCoverRotL[3]->rotateZ(270*deg);
-
-            trapCoverRotR[3]->rotateX(pi);
-            trapCoverRotR[3]->rotateY(pi-trapAngle);
-            trapCoverRotR[3]->rotateZ(270*deg);
-    	    
-    	    // Place the mylar covers
-    	    zprime = 0.5*fMylarThickness/std::sqrt(1+std::pow(std::tan(trapAngle), 2.0));
-    	    G4double hprime = zprime*std::tan(trapAngle);
-    	    
-    	    G4double verticalOffset = 0.5*(topFlapOffset) + SiPM_dimension + hprime;
-    	    G4double horizontalOffset = 0.5*(sideFlapOffset) + SiPM_dimension + hprime;
-    	    trapezoidZ += zprime;
-    	    
-    	    G4PVPlacement *cellMylarWrap[4];
-    	    
-    	    cellMylarWrap[0] = new G4PVPlacement(trapCoverRotL[0], G4ThreeVector(0, verticalOffset, trapezoidZ), trapMylarCover_logV, "Mylar", assembly_logV, true, 0, fCheckOverlaps);
-    	    cellMylarWrap[1] = new G4PVPlacement(trapCoverRotL[1], G4ThreeVector(0, -verticalOffset, trapezoidZ), trapMylarCover_logV, "Mylar", assembly_logV, true, 0, fCheckOverlaps);
-    	    cellMylarWrap[2] = new G4PVPlacement(trapCoverRotL[2], G4ThreeVector(-horizontalOffset, 0, trapezoidZ), sideTrapMylarCover_logV, "Mylar", assembly_logV, true, 0, fCheckOverlaps);
-    	    cellMylarWrap[3] = new G4PVPlacement(trapCoverRotL[3], G4ThreeVector(horizontalOffset, 0, trapezoidZ), sideTrapMylarCover_logV, "Mylar", assembly_logV, true, 0, fCheckOverlaps);
-    	    for(size_t i = 0; i < 4; i++){
-    	    	for(std::vector<G4PVPlacement*>::iterator iter = trapPhysicalL.begin(); iter != trapPhysicalL.end(); iter++){
-    	    		new G4LogicalBorderSurface("Mylar", (*iter), cellMylarWrap[i], fMylarOpticalSurface);
-    	    	}
-    	    }
-
-            // Now for the other side
-    	    cellMylarWrap[0] = new G4PVPlacement(trapCoverRotR[0], G4ThreeVector(0, verticalOffset, -trapezoidZ), trapMylarCover_logV, "Mylar", assembly_logV, true, 0, fCheckOverlaps);
-    	    cellMylarWrap[1] = new G4PVPlacement(trapCoverRotR[1], G4ThreeVector(0, -verticalOffset, -trapezoidZ), trapMylarCover_logV, "Mylar", assembly_logV, true, 0, fCheckOverlaps);
-    	    cellMylarWrap[2] = new G4PVPlacement(trapCoverRotR[2], G4ThreeVector(-horizontalOffset, 0, -trapezoidZ), sideTrapMylarCover_logV, "Mylar", assembly_logV, true, 0, fCheckOverlaps);
-    	    cellMylarWrap[3] = new G4PVPlacement(trapCoverRotR[3], G4ThreeVector(horizontalOffset, 0, -trapezoidZ), sideTrapMylarCover_logV, "Mylar", assembly_logV, true, 0, fCheckOverlaps);
-    	    for(size_t i = 0; i < 4; i++){
-    	    	for(std::vector<G4PVPlacement*>::iterator iter = trapPhysicalR.begin(); iter != trapPhysicalR.end(); iter++){
-    	    		new G4LogicalBorderSurface("Mylar", (*iter), cellMylarWrap[i], fMylarOpticalSurface);
-    	    	}
-    	    }
-    	}*/
-    	
 		currentLayerSizeX = x2;
 		currentLayerSizeY = y2;
-    	currentOffsetZ += fTrapezoidLength;
+    	currentOffsetZ += thickness;
 	}
 }
 
@@ -1190,11 +1151,6 @@ G4ThreeVector nDetConstruction::getPSPmtBoundingBox(){
 	    boundingZ += fDiffuserLength + fGreaseThickness;
 	if(fTrapezoidLength > 0) // Account for light guides
 	    boundingZ += fTrapezoidLength + fGreaseThickness;
-
-	/*if(solid.isLoaded()){
-		boundingX = std::max(boundingX, solid.getWidth());
-		boundingY = std::max(boundingY, solid.getThickness());
-	}*/
 
 	return G4ThreeVector(boundingX, boundingY, boundingZ);
 }

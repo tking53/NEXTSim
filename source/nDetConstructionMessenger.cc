@@ -80,7 +80,7 @@ nDetConstructionMessenger::nDetConstructionMessenger(nDetConstruction* detector)
 	addCommand(new G4UIcmdWith3VectorAndUnit("/nDet/detector/setShadowBarPos", this));
 	addGuidance("Set the position of the shadow-bar.");
 	
-	addCommand(new G4UIcmdWithAString("/nDet/detector/setShadowBarMaterial", this));
+	addCommand(new G4UIcmdWithAString("/nDet/detector/addShadowBar", this));
 	addGuidance("Set the shadow-bar material to use.");	
 	
 	addCommand(new G4UIcmdWith3VectorAndUnit("/nDet/detector/setPosition", this)); // position of source in cartesian coordinates (x, y, z).
@@ -94,6 +94,18 @@ nDetConstructionMessenger::nDetConstructionMessenger(nDetConstruction* detector)
 	
 	addCommand(new G4UIcmdWith3Vector("/nDet/detector/setRotation", this)); // rotation of detector.
 	addGuidance("Set the rotation of the detector by specifying angles about the x, y, and z axes (in deg)");
+
+	addCommand(new G4UIcmdWithAString("/nDet/detector/addGreaseLayer", this));
+	addGuidance("Add a layer of optical grease (all units in mm). SYNTAX: addGreaseLayer <width> <height> [thickness]");	
+
+	addCommand(new G4UIcmdWithAString("/nDet/detector/addDiffuserLayer", this));
+	addGuidance("Add a straight diffuser to the assembly (all units in mm). SYNTAX: addDiffuserLayer <width> <height> <thickness> [material=G4_SILICON_DIOXIDE]");	
+
+	addCommand(new G4UIcmdWithAString("/nDet/detector/addLightGuide", this));
+	addGuidance("Add a trapezoidal light-guide to the assembly (all units in mm). SYNTAX: addLightGuide <width1> <width2> <height1> <height2> <thickness> [material=G4_SILICON_DIOXIDE]");	
+
+	addCommand(new G4UIcmdWithAString("/nDet/detector/loadLightGuide", this));
+	addGuidance("Load a light-guide from a GDML geometry file. SYNTAX: loadGDML <filename> <rotX> <rotY> <rotZ> <matString>");
 }
 
 void nDetConstructionMessenger::SetNewValue(G4UIcommand* command, G4String newValue){
@@ -192,5 +204,17 @@ void nDetConstructionMessenger::SetNewValue(G4UIcommand* command, G4String newVa
 	else if(index == 24){
 		G4ThreeVector val = command->ConvertTo3Vector(newValue);
 		fDetector->SetRotation(val);
+	}
+	else if(index == 25){
+		fDetector->AddGrease(newValue);
+	}
+	else if(index == 26){
+		fDetector->AddDiffuser(newValue);
+	}
+	else if(index == 27){
+		fDetector->AddLightGuide(newValue);
+	}
+	else if(index == 28){
+		fDetector->AddLightGuideGDML(newValue);
 	}
 }

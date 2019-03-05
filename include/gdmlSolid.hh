@@ -66,11 +66,17 @@ class gdmlSolid{
 
 	bool isLoaded() const { return (nDaughters > 0); }
 
-	double getWidth() const { return 2*size[0]; }
+	double getWidth() const ;
 	
-	double getThickness() const { return 2*size[1]; }
+	double getThickness() const ;
 	
-	double getLength() const { return 2*size[2]; }
+	double getLength() const ;
+
+	double getSizeX() const { return 2*size.getX(); }
+	
+	double getSizeY() const { return 2*size.getY(); }
+	
+	double getSizeZ() const { return 2*size.getZ(); }	
 
 	G4ThreeVector *getPosition(){ return &position; }
 	
@@ -87,7 +93,9 @@ class gdmlSolid{
 	G4LogicalVolume *read(const char *fname, const G4String &materialName, const bool &checkOverlaps=false);
 
 	G4PVPlacement *placeSolid(G4LogicalVolume *parent_, const bool &checkOverlaps=false);
-
+	
+	G4PVPlacement *placeSolid(G4RotationMatrix *rot, const G4ThreeVector &pos, G4LogicalVolume *parent_, const bool &checkOverlaps=false);
+	
 	void placeSolid(G4RotationMatrix *rot, const G4ThreeVector &pos, G4LogicalVolume *parent_, std::vector<G4PVPlacement*> &volumes, const bool &checkOverlaps=false);
 
 	void setLogicalBorders(const G4String &borderName, G4OpticalSurface *surface);
@@ -128,5 +136,5 @@ class gdmlSolid{
 	G4ThreeVector position;
 	G4RotationMatrix rotation;
 	
-	double size[3];
+	G4ThreeVector size;
 };

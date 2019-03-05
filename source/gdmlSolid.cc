@@ -91,6 +91,21 @@ gdmlSolid::gdmlSolid(const char *fname, const G4String &materialName){
 	this->read(fname, materialName);
 }
 
+double gdmlSolid::getWidth() const { 
+	G4ThreeVector tempVec = rotation * size;
+	return std::fabs(2*tempVec.getX());
+}
+
+double gdmlSolid::getThickness() const { 
+	G4ThreeVector tempVec = rotation * size;
+	return std::fabs(2*tempVec.getY());
+}
+
+double gdmlSolid::getLength() const { 
+	G4ThreeVector tempVec = rotation * size;
+	return std::fabs(2*tempVec.getZ());
+}
+
 G4LogicalVolume *gdmlSolid::read(const char *fname, const G4String &materialName, const bool &checkOverlaps/*=false*/){
 #ifdef USE_GDML
 	G4GDMLParser parser;
@@ -124,7 +139,7 @@ G4LogicalVolume *gdmlSolid::read(const char *fname, const G4String &materialName
 	// Define the parent object.
 	parent = new G4Box("assembly", size[0], size[1], size[2]);
 	parent_logV = new G4LogicalVolume(parent, manNist->FindOrBuildMaterial("G4_AIR"), "assembly_logV");
-	//parent_logV->SetVisAttributes(G4VisAttributes::Invisible);
+	parent_logV->SetVisAttributes(G4VisAttributes::Invisible);
 	
 	for(std::vector<gdmlSegment>::iterator iter = daughters.begin(); iter != daughters.end(); iter++){ // Place the daughters within the parent.
 		G4RotationMatrix *r = iter->getRotationMatrix();
@@ -150,6 +165,10 @@ G4LogicalVolume *gdmlSolid::read(const char *fname, const G4String &materialName
 
 G4PVPlacement *gdmlSolid::placeSolid(G4LogicalVolume *parent_, const bool &checkOverlaps/*=false*/){
 	return (new G4PVPlacement(&rotation, position, parent_logV, name, parent_, true, 0, checkOverlaps));
+}
+
+G4PVPlacement *gdmlSolid::placeSolid(G4RotationMatrix *rot, const G4ThreeVector &pos, G4LogicalVolume *parent_, const bool &checkOverlaps/*=false*/){
+	return (new G4PVPlacement(rot, pos, parent_logV, name, parent_, true, 0, checkOverlaps));
 }
 
 void gdmlSolid::placeSolid(G4RotationMatrix *rot, const G4ThreeVector &pos, G4LogicalVolume *parent_, std::vector<G4PVPlacement*> &volumes, const bool &checkOverlaps/*=false*/){

@@ -1,12 +1,8 @@
-//
-// $Id: nDetConstruction.hh,v 1.0 Sept., 2015 $
-//  Written by Dr. Xiaodong Zhang
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+#ifndef NDETCONSTRUCTION_HH
+#define NDETCONSTRUCTION_HH
 
-#ifndef nDetConstruction_h
-#define nDetConstruction_h 1
+#include <vector>
+#include <deque>
 
 #include "G4VUserDetectorConstruction.hh"
 #include "G4RotationMatrix.hh"
@@ -35,7 +31,11 @@ class G4VSolid;
 class G4Box;
 class G4VisAttributes;
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+class userAddLayer;
+
+///////////////////////////////////////////////////////////////////////////////
+// class nDetConstruction
+///////////////////////////////////////////////////////////////////////////////
 
 class nDetConstruction : public G4VUserDetectorConstruction
 {
@@ -140,14 +140,16 @@ class nDetConstruction : public G4VUserDetectorConstruction
 	void Clear();
     
     void UpdateGeometry();
-    
-    void AddGDML(const G4String &input){ gdmlStrings.push_back(input); }
-    
-    G4LogicalVolume *LoadGDML(const G4String &input);
-    
-	G4LogicalVolume *LoadGDML(const G4String &fname, const G4ThreeVector &position, const G4ThreeVector &rotation, const G4String &material);
 
-	G4LogicalVolume *LoadLightGuide(const G4String &fname, const G4ThreeVector &position, const G4ThreeVector &rotation, const G4String &material, G4OpticalSurface *surface);
+    void AddGDML(const G4String &input);
+
+	void AddLightGuideGDML(const G4String &input);
+
+	void AddGrease(const G4String &input);
+
+	void AddDiffuser(const G4String &input);
+
+	void AddLightGuide(const G4String &input);
 
 private:
     nDetConstructionMessenger *fDetectorMessenger;
@@ -272,15 +274,11 @@ private:
 
 	// Loaded gdml solids.
 	std::vector<gdmlSolid> solids;
-	std::vector<G4String> gdmlStrings;
 
 	// Database of elements and materials.
 	nistDatabase nist;
 
-	std::string gdmlFilename; // GDML model filename to load.
 	std::string wrappingMaterial;
-
-	G4ThreeVector gdmlRotation; // Default rotation of GDML model.
 
 	G4ThreeVector detectorPosition; // Position of detector in lab frame.
 	G4RotationMatrix detectorRotation; // Rotation of detector.
@@ -289,6 +287,9 @@ private:
 	G4ThreeVector shadowBarSize;
 	G4ThreeVector shadowBarPos;
 	G4Material *shadowBarMaterial;
+
+	// Deque of layers added by the user.
+	std::deque<userAddLayer> userLayers;
 
     // member functions
     void buildExpHall();
@@ -307,19 +308,33 @@ private:
 
     void constructPSPmts();
 
+	void applyGreaseLayer(const G4String &input);
+
     void applyGreaseLayer();
-    
-    void applyGreaseLayer(const G4double &x, const G4double &y);
+
+	void applyGreaseLayer(const G4double &x, const G4double &y, double thickness=0);
 
     void applyDiffuserLayer();
 
-    void applyDiffuserLayer(const G4double &x, const G4double &y);
+	void applyDiffuserLayer(const G4String &input);
+
+    void applyDiffuserLayer(const G4double &x, const G4double &y, const double &thickness);
 
     void applyLightGuide();
 
+	void applyLightGuide(const G4String &input);
+
     void applyLightGuide(const G4double &x2, const G4double &y2);
+
+    void applyLightGuide(const G4double &x1, const G4double &x2, const G4double &y1, const G4double &y2, const double &thickness);
     
-    void applyLightGuide(const G4double &x1, const G4double &x2, const G4double &y1, const G4double &y2);
+	void loadGDML(const G4String &input);
+    
+	G4LogicalVolume *loadGDML(const G4String &fname, const G4ThreeVector &position, const G4ThreeVector &rotation, const G4String &material);
+
+	void loadLightGuide(const G4String &input);
+
+	G4LogicalVolume *loadLightGuide(const G4String &fname, const G4ThreeVector &rotation, const G4String &material, G4OpticalSurface *surface);
     
     G4ThreeVector getPSPmtBoundingBox();
     
@@ -328,6 +343,24 @@ private:
     G4OpticalSurface *getUserOpticalSurface();
 };
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+///////////////////////////////////////////////////////////////////////////////
+// class userAddLayer
+///////////////////////////////////////////////////////////////////////////////
 
-#endif /*nDetConstruction_h*/
+class userAddLayer{
+  public:
+	userAddLayer() : argStr(), ptr(NULL) { }
+	
+	userAddLayer(const G4String &arg_, void (nDetConstruction::* ptr_)(const G4String &)) : argStr(arg_), ptr(ptr_) { }
+
+	void execute(nDetConstruction *obj){ (obj->*ptr)(argStr); }
+
+	G4String dump() const { return argStr; }
+
+  private:
+	G4String argStr;
+
+	void (nDetConstruction::* ptr)(const G4String &);
+};
+
+#endif
