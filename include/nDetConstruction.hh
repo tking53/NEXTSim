@@ -117,6 +117,8 @@ class nDetConstruction : public G4VUserDetectorConstruction
 	
 	G4ThreeVector GetDetectorPos() const { return detectorPosition; }
 
+	G4RotationMatrix *GetDetectorRot(){ return &detectorRotation; }
+
     G4String GetGeometry(){ return fGeometry; }
 
 	G4int GetNumPmtColumns() const { return fNumColumnsPmt; }

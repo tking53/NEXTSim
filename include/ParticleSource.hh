@@ -125,7 +125,7 @@ class nDetConstruction;
 
 class ParticleSource : public G4VUserPrimaryGeneratorAction {
   public:
-    ParticleSource(nDetRunAction *run, const nDetConstruction *det=NULL);
+    ParticleSource(nDetRunAction *run, nDetConstruction *det=NULL);
      
    ~ParticleSource();
 
@@ -149,7 +149,7 @@ class ParticleSource : public G4VUserPrimaryGeneratorAction {
 	
 	void SetBeamspotRadius(const G4double &radius){ beamspot = radius*mm; }
 
-	void SetDetector(const nDetConstruction *det);
+	void SetDetector(nDetConstruction *det);
 
 	void Set137Cs();
 	
@@ -192,6 +192,9 @@ class ParticleSource : public G4VUserPrimaryGeneratorAction {
 	G4String type;
 
 	double beamspot;
+	double targThickness; // mm
+	double targEnergyLoss; // MeV/mm
+	double beamE0; // MeV
 
 	G4ThreeVector unitX;
 	G4ThreeVector unitY;
@@ -204,6 +207,8 @@ class ParticleSource : public G4VUserPrimaryGeneratorAction {
 	Reaction *particleRxn;
 
 	G4ParticleGun *particleGun;
+	
+	nDetConstruction *detector;
 	
 	G4RotationMatrix rot;
 	

@@ -150,9 +150,9 @@ double Californium252::func(const double &E_) const {
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-ParticleSource::ParticleSource(nDetRunAction *run, const nDetConstruction *det/*=NULL*/) : G4VUserPrimaryGeneratorAction(), fGunMessenger(0), psource(), pos(0, 0, 0),
-												                               dir(0, 0, 0), detPos(0, 0, 0), detSize(0, 0, 0), type("iso"), beamspot(0),
-												                               unitX(1, 0, 0), unitY(0, 1, 0), unitZ(0, 0, 1), useReaction(false) {
+ParticleSource::ParticleSource(nDetRunAction *run, nDetConstruction *det/*=NULL*/) : G4VUserPrimaryGeneratorAction(), fGunMessenger(0), psource(), pos(0, 0, 0),
+												                                     dir(0, 0, 0), detPos(0, 0, 0), detSize(0, 0, 0), type("iso"), beamspot(0), targThickness(0),
+												                                     targEnergyLoss(0), beamE0(0), unitX(1, 0, 0), unitY(0, 1, 0), unitZ(0, 0, 1), useReaction(false) {
 	runAction = run;
 
 	// By default, the particles traverse along the +x axis.
@@ -184,12 +184,28 @@ void ParticleSource::GeneratePrimaries(G4Event* anEvent){
 	if(useReaction || psource->getIsIsotropic()){ // Generate particles psuedo-isotropically
 		// We don't really use a true isotropic source because that would be really slow.
 		// Generate a random point inside the volume of the detector in the frame of the detector.
-		G4double x = (detSize.getX()/2)*(2*G4UniformRand()-1);
-		G4double y = (detSize.getY()/2)*(2*G4UniformRand()-1);
-		G4double z = (detSize.getZ()/2)*(2*G4UniformRand()-1);
-		G4ThreeVector dirPrime = vSourceDet + G4ThreeVector(x, y, z); // Now in the lab frame
+		G4ThreeVector vRxnDet;
+		if(useReaction && targThickness > 0){ // Use psuedo-realistic target energy loss.
+			double reactionDepth = targThickness*G4UniformRand();
+			G4ThreeVector reactionPoint = pos + (-targThickness/2+reactionDepth)*dir;
+			vRxnDet = detPos - reactionPoint;
+			particleGun->SetParticlePosition(reactionPoint); // Set the reaction point inside the target.
+			particleRxn->SetEbeam(beamE0-targEnergyLoss*reactionDepth); // Set the energy of the projectile at the time of the reaction.
+		}
+		else{
+			vRxnDet = vSourceDet;
+		}
+		
+		// Get the vector from the center of the detector to a uniformly sampled point inside its volume.
+		G4ThreeVector insideDet((detSize.getX()/2)*(2*G4UniformRand()-1), (detSize.getY()/2)*(2*G4UniformRand()-1), (detSize.getZ()/2)*(2*G4UniformRand()-1));
+		insideDet = (*detector->GetDetectorRot())*insideDet; // Now in the lab frame.
+
+		// Compute the direction of the particle emitted from the source.
+		G4ThreeVector dirPrime = vRxnDet + insideDet;
 		dirPrime *= (1/dirPrime.mag());
 		particleGun->SetParticleMomentumDirection(dirPrime); // along the y-axis direction
+		
+		// Compute the particle energy.
 		if(useReaction){
 			double theta = std::acos(dir.dot(dirPrime));
 			double energy = particleRxn->sample(theta);
@@ -304,7 +320,8 @@ bool ParticleSource::SetBeamType(const G4String &str){
 	return true;
 }
 
-void ParticleSource::SetDetector(const nDetConstruction *det){
+void ParticleSource::SetDetector(nDetConstruction *det){
+	detector = det;
 	detPos = det->GetDetectorPos();
 	detSize = det->GetDetectorSize();
 	vSourceDet = detPos - pos;
@@ -412,17 +429,40 @@ void ParticleSource::SetEnergyLimits(const double &Elow_, const double &Ehigh_){
 	psource->setEnergyLimits(Elow_, Ehigh_);
 }
 
-bool ParticleSource::LoadReactionFile(const G4String &fname){
+bool ParticleSource::LoadReactionFile(const G4String &input){
+	std::vector<std::string> args;
+	unsigned int Nargs = split_str(input, args);
+
+	std::string fname = input;
+	if(Nargs > 1){
+		if(Nargs < 3){
+			std::cout << " ParticleSource: Invalid number of parameters given to ::LoadReactionFile(). Expected 3, received " << Nargs << ".\n";
+			return false;
+		}
+		fname = args.front();
+		targThickness = strtod(args.at(1).c_str(), NULL)*mm;
+		targEnergyLoss = strtod(args.at(2).c_str(), NULL)*MeV/mm;
+	}
+	else{
+		beamE0 = 0;
+		targThickness = 0;
+		targEnergyLoss = 0;
+	}
+
 	std::cout << " ParticleSource: Loading reaction parameters from file \"" << fname << "\"... ";
 	bool retval = particleRxn->Read(fname.c_str());
 	std::cout << (retval ? "SUCCESS" : "FAILED") << std::endl;
 	if(retval){
 		useReaction = true;
-		
+		if(Nargs > 1){
+			beamE0 = particleRxn->GetBeamEnergy();
+			std::cout << " ParticleSource: Set target thickness to " << targThickness << " mm and projectile (dE/dx) to " << targEnergyLoss << " MeV/mm.\n";
+		}
 	}
 	else{
 		useReaction = false;
 	}
+	
 	return retval;
 }
 
