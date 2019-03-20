@@ -198,7 +198,6 @@ void ParticleSource::GeneratePrimaries(G4Event* anEvent){
 		
 		// Get the vector from the center of the detector to a uniformly sampled point inside its volume.
 		G4ThreeVector insideDet((detSize.getX()/2)*(2*G4UniformRand()-1), (detSize.getY()/2)*(2*G4UniformRand()-1), (detSize.getZ()/2)*(2*G4UniformRand()-1));
-		insideDet = (*detector->GetDetectorRot())*insideDet; // Now in the lab frame.
 
 		// Compute the direction of the particle emitted from the source.
 		G4ThreeVector dirPrime = vRxnDet + insideDet;
