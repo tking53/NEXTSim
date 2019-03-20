@@ -109,11 +109,11 @@ class nDetConstruction : public G4VUserDetectorConstruction
 	
 	G4ThreeVector GetDetectorSize() const { return G4ThreeVector(fDetectorWidth, fDetectorThickness, fDetectorLength); }
 
-	G4double GetDetectorPosX() const { return 0; }
+	G4double GetDetectorPosX() const { return detectorPosition.getX(); }
 	
-	G4double GetDetectorPosY() const { return 0; }
+	G4double GetDetectorPosY() const { return detectorPosition.getY(); }
 
-	G4double GetDetectorPosZ() const { return 0; }
+	G4double GetDetectorPosZ() const { return detectorPosition.getZ(); }
 	
 	G4ThreeVector GetDetectorPos() const { return detectorPosition; }
 

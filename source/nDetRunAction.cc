@@ -436,11 +436,35 @@ bool nDetRunAction::fillBranch()
 		// Compute the bar speed-of-light.
 		double barTimeDiff = pulsePhase[1] - pulsePhase[0];
 		detSpeedLight = 2*neutronCenterOfMass[2]/barTimeDiff;
-	
-		// Compute the neutron scatter center-of-mass.
-		neutronCenterOfMass[0] = neutronCenterOfMass[0]/neutronWeight;
-		neutronCenterOfMass[1] = neutronCenterOfMass[1]/neutronWeight;
-		neutronCenterOfMass[2] = neutronCenterOfMass[2]/neutronWeight;
+
+		G4ThreeVector detPos = detector->GetDetectorPos();
+		G4ThreeVector nCenterMass(neutronCenterOfMass[0], neutronCenterOfMass[1], neutronCenterOfMass[2]);
+		G4ThreeVector nIncidentPos(neutronIncidentPositionX, neutronIncidentPositionY, neutronIncidentPositionZ);
+		G4ThreeVector nExitPos(neutronExitPositionX, neutronExitPositionY, neutronExitPositionZ);
+
+		// Compute the neutron scatter center-of-mass (in the frame of the detector).
+		nCenterMass = (1/neutronWeight)*nCenterMass - detPos;
+		
+		// Convert the neutron incident/exit positions to the frame of the detector.
+		nIncidentPos = nIncidentPos - detPos;
+		nExitPos = nExitPos - detPos;
+
+		// Transform all the neutron vectors to the rotation frame of the detector.
+		G4RotationMatrix *matrix = detector->GetDetectorRot();
+		nCenterMass = (*matrix)*nCenterMass;
+		nIncidentPos = (*matrix)*nIncidentPos;
+		nExitPos = (*matrix)*nExitPos;
+		
+		// Now in the rotated frame of the detector.
+		neutronCenterOfMass[0] = nCenterMass.getX();
+		neutronCenterOfMass[1] = nCenterMass.getY();
+		neutronCenterOfMass[2] = nCenterMass.getZ();
+		neutronIncidentPositionX = nIncidentPos.getX();
+		neutronIncidentPositionY = nIncidentPos.getY();
+		neutronIncidentPositionZ = nIncidentPos.getZ();
+		neutronExitPositionX = nExitPos.getX();
+		neutronExitPositionY = nExitPos.getY();
+		neutronExitPositionZ = nExitPos.getZ();
 	}
 
 	// Compute the light balance (Z).
