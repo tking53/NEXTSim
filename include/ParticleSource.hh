@@ -139,6 +139,8 @@ class ParticleSource : public G4VUserPrimaryGeneratorAction {
 
     G4double InverseCumul() const { return 0; }
 
+	double GetTargetTimeOffset() const { return targTimeOffset; }
+
 	void SetPosition(const G4ThreeVector &p);
 	
 	void SetDirection(const G4ThreeVector &d);
@@ -194,6 +196,8 @@ class ParticleSource : public G4VUserPrimaryGeneratorAction {
 	double beamspot;
 	double targThickness; // mm
 	double targEnergyLoss; // MeV/mm
+	double targTimeSlope; // ns/mm
+	double targTimeOffset; // ns
 	double beamE0; // MeV
 
 	G4ThreeVector unitX;

@@ -398,12 +398,14 @@ bool nDetRunAction::fillBranch()
 		pmtR->copyTrace(lightPulseR);
 	}
 
+	double targetTimeOffset = source->GetTargetTimeOffset();
+
 	// Do some light pulse analysis
-	pulsePhase[0] = pmtL->analyzePolyCFD(polyCfdFraction);
+	pulsePhase[0] = pmtL->analyzePolyCFD(polyCfdFraction) + targetTimeOffset;
 	pulseQDC[0] = pmtL->integratePulseFromMaximum(pulseIntegralLow, pulseIntegralHigh);
 	pulseMax[0] = pmtL->getMaximum();
 
-	pulsePhase[1] = pmtR->analyzePolyCFD(polyCfdFraction);
+	pulsePhase[1] = pmtR->analyzePolyCFD(polyCfdFraction) + targetTimeOffset;
 	pulseQDC[1] = pmtR->integratePulseFromMaximum(pulseIntegralLow, pulseIntegralHigh);
 	pulseMax[1] = pmtR->getMaximum();
 
@@ -429,8 +431,8 @@ bool nDetRunAction::fillBranch()
 	if(outputDebug){
 		// Perform CFD on digitized anode waveforms.
 		for(size_t i = 0; i < 4; i++){
-			anodePhase[0][i] = anodeResponseL[i].analyzePolyCFD(polyCfdFraction); // left
-			anodePhase[1][i] = anodeResponseR[i].analyzePolyCFD(polyCfdFraction); // right
+			anodePhase[0][i] = anodeResponseL[i].analyzePolyCFD(polyCfdFraction) + targetTimeOffset; // left
+			anodePhase[1][i] = anodeResponseR[i].analyzePolyCFD(polyCfdFraction) + targetTimeOffset; // right
 		}
 
 		// Compute the bar speed-of-light.
