@@ -324,12 +324,12 @@ void nDetConstruction::DefineMaterials() {
     fTeflon->SetMaterialPropertiesTable(fTeflonMPT);
 
 	/////////////////////////////////////////////////////////////////
-	// EJ200 (C9H10)n
+	// EJ200 N(H)=52.4%, N(C)=47.6%
 	/////////////////////////////////////////////////////////////////
 
     fEJ200 = new G4Material("EJ200", 1.023*g/cm3, 2);
-    fEJ200->AddElement(fH, 10);
-    fEJ200->AddElement(fC, 9);
+    fEJ200->AddElement(fH, 0.08457);
+    fEJ200->AddElement(fC, 0.91543);
 
 	G4double photonEnergy_Ej200[44] = {2.004*eV, 2.058*eV, 2.112*eV, 2.166*eV, 2.220*eV, 2.274*eV, 2.328*eV, 2.382*eV, 2.436*eV, 2.490*eV, 
 		                               2.517*eV, 2.552*eV, 2.585*eV, 2.613*eV, 2.635*eV, 2.656*eV, 2.686*eV, 2.720*eV, 2.749*eV, 2.772*eV, 
@@ -391,6 +391,53 @@ void nDetConstruction::DefineMaterials() {
     fEJ200MPT->AddProperty("IONSCINTILLATIONYIELD", particleEnergy, ionYield, 36)->SetSpline(true);
 
     fEJ200->SetMaterialPropertiesTable(fEJ200MPT);
+
+	/////////////////////////////////////////////////////////////////
+	// EJ276 N(H)=48.1%, N(C)=51.9%
+	/////////////////////////////////////////////////////////////////
+
+    fEJ276 = new G4Material("EJ276", 1.096*g/cm3, 2);
+    fEJ276->AddElement(fH, 0.07216);
+    fEJ276->AddElement(fC, 0.92784);
+
+	G4double photonEnergy_Ej276[36] = {3.131*eV, 3.087*eV, 3.060*eV, 3.044*eV, 3.029*eV, 3.017*eV, 3.010*eV, 3.001*eV, 2.993*eV, 2.984*eV, 
+		                               2.976*eV, 2.967*eV, 2.959*eV, 2.950*eV, 2.941*eV, 2.910*eV, 2.857*eV, 2.838*eV, 2.821*eV, 2.802*eV, 
+		                               2.784*eV, 2.764*eV, 2.739*eV, 2.705*eV, 2.671*eV, 2.646*eV, 2.625*eV, 2.599*eV, 2.567*eV, 2.533*eV, 
+		                               2.500*eV, 2.468*eV, 2.437*eV, 2.406*eV, 2.377*eV, 2.350*eV};
+
+	G4double ScintilFast_EJ276[36] = {0.000, 0.010, 0.088, 0.157, 0.225, 0.293, 0.354, 0.415, 0.492, 0.570, 
+	                                  0.649, 0.730, 0.807, 0.882, 0.934, 1.000, 0.890, 0.826, 0.761, 0.692, 
+	                                  0.629, 0.569, 0.509, 0.445, 0.388, 0.326, 0.263, 0.200, 0.144, 0.100, 
+	                                  0.068, 0.038, 0.024, 0.012, 0.002, 0.000};
+
+    fEJ276MPT = new G4MaterialPropertiesTable();
+    fEJ276MPT->AddProperty("RINDEX", photonEnergy_Ej200_2, RefIndex_EJ200, 2);
+    fEJ276MPT->AddProperty("ABSLENGTH", photonEnergy_Ej200_2, Absorption_EJ200, 2);
+    fEJ276MPT->AddProperty("FASTCOMPONENT", photonEnergy_Ej276, ScintilFast_EJ276, 36);
+
+    fEJ276MPT->AddConstProperty("SCINTILLATIONYIELD", 8600/MeV); // Scintillation efficiency as per Eljen specs
+    fEJ276MPT->AddConstProperty("RESOLUTIONSCALE", 1.0); // Intrinsic resolution
+
+    fEJ276MPT->AddConstProperty("FASTSCINTILLATIONRISETIME", 0.9*ns);
+    fEJ276MPT->AddConstProperty("FASTTIMECONSTANT", 2.1*ns);
+    fEJ276MPT->AddConstProperty("YIELDRATIO",1);// the strength of the fast component as a function of total scintillation yield
+
+	G4double electronYield_EJ276[36];
+	G4double protonYield_EJ276[36];
+	G4double ionYield_EJ276[36];
+
+	// Produce the scaled light-yield for EJ276 (scaled down from EJ200 by 14%).
+	for(size_t i = 0; i < 36; i++){
+		electronYield_EJ276[i] = 0.86 * electronYield[i];
+		protonYield_EJ276[i] = 0.86 * protonYield[i];
+		ionYield_EJ276[i] = 0.86 * ionYield[i];
+	}
+
+    fEJ276MPT->AddProperty("ELECTRONSCINTILLATIONYIELD", particleEnergy, electronYield_EJ276, 36)->SetSpline(true);
+    fEJ276MPT->AddProperty("PROTONSCINTILLATIONYIELD", particleEnergy, protonYield_EJ276, 36)->SetSpline(true);
+    fEJ276MPT->AddProperty("IONSCINTILLATIONYIELD", particleEnergy, ionYield_EJ276, 36)->SetSpline(true);
+
+	fEJ276->SetMaterialPropertiesTable(fEJ276MPT);
 
 	/////////////////////////////////////////////////////////////////
 	// Silicone Optical Grease (C2H6OSi)n
@@ -698,7 +745,7 @@ void nDetConstruction::buildModule(){
 
     // Construct the scintillator cell
     G4Box *cellScint = new G4Box("scintillator", cellWidth/2, cellHeight/2, fDetectorLength/2);
-    G4LogicalVolume *cellScint_logV = new G4LogicalVolume(cellScint, fEJ200, "scint_log");
+    G4LogicalVolume *cellScint_logV = new G4LogicalVolume(cellScint, getUserDetectorMaterial(), "scint_log");
     cellScint_logV->SetVisAttributes(scint_VisAtt);
 
 	G4Box *mylarVertLayer = NULL;
@@ -812,7 +859,7 @@ void nDetConstruction::buildEllipse(){
 	trapRot->rotateY(180*deg);
 	G4UnionSolid *scintBody1 = new G4UnionSolid("", innerBody, innerTrapezoid, 0, G4ThreeVector(0, 0, +fDetectorLength/2+fTrapezoidLength/2));
 	G4UnionSolid *scintBody2 = new G4UnionSolid("scint", scintBody1, innerTrapezoid, trapRot, G4ThreeVector(0, 0, -fDetectorLength/2-fTrapezoidLength/2));
-	G4LogicalVolume *scint_logV = new G4LogicalVolume(scintBody2, fEJ200, "scint_logV");	
+	G4LogicalVolume *scint_logV = new G4LogicalVolume(scintBody2, getUserDetectorMaterial(), "scint_logV");	
     scint_logV->SetVisAttributes(scint_VisAtt);
 
 	// Place the scintillator inside the assembly.
@@ -847,7 +894,7 @@ void nDetConstruction::buildRectangle(){
 	G4ThreeVector assemblyBoundingBox = constructAssembly();
 
     G4Box *plateBody = new G4Box("", fDetectorWidth/2, fDetectorThickness/2, fDetectorLength/2);
-    G4LogicalVolume *plateBody_logV = new G4LogicalVolume(plateBody, fEJ200, "plateBody_logV");
+    G4LogicalVolume *plateBody_logV = new G4LogicalVolume(plateBody, getUserDetectorMaterial(), "plateBody_logV");
     plateBody_logV->SetVisAttributes(scint_VisAtt);
 
 	// Add some bubbles (for testing).
@@ -864,7 +911,7 @@ void nDetConstruction::buildRectangle(){
 		else
 			bubblePlate = new G4SubtractionSolid("", plateBody, bubble, 0, G4ThreeVector(x, y, z));
 	}
-	G4LogicalVolume *bubble_logV = new G4LogicalVolume(bubblePlate, fEJ200, "bubble_logV");
+	G4LogicalVolume *bubble_logV = new G4LogicalVolume(bubblePlate, getUserDetectorMaterial(), "bubble_logV");
 
 	// Place the scintillator inside the assembly.
 	//G4PVPlacement *plateBody_physV = new G4PVPlacement(0, G4ThreeVector(0, 0, 0), plateBody_logV, "Scint", assembly_logV, true, 0, fCheckOverlaps);
@@ -1048,7 +1095,7 @@ void nDetConstruction::applyLightGuide(const G4String &input){
 	double height1 = strtod(args.at(2).c_str(), NULL);
 	double height2 = strtod(args.at(3).c_str(), NULL);
 	double thickness = strtod(args.at(4).c_str(), NULL);
-	this->applyLightGuide(width1, width2, height1, height2, thickness);	
+	this->applyLightGuide(width1, width2, height1, height2, thickness);
 }
 
 void nDetConstruction::applyLightGuide(const G4double &x1, const G4double &x2, const G4double &y1, const G4double &y2, const double &thickness){
@@ -1153,6 +1200,15 @@ G4ThreeVector nDetConstruction::getPSPmtBoundingBox(){
 	    boundingZ += fTrapezoidLength + fGreaseThickness;
 
 	return G4ThreeVector(boundingX, boundingY, boundingZ);
+}
+
+G4Material *nDetConstruction::getUserDetectorMaterial(){
+	if(detectorMaterial == "ej200")
+		return fEJ200;
+	else if(detectorMaterial == "ej276")
+		return fEJ276;
+	
+	return fEJ200; // default
 }
 
 G4Material *nDetConstruction::getUserSurfaceMaterial(){

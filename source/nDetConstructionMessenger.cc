@@ -106,6 +106,10 @@ nDetConstructionMessenger::nDetConstructionMessenger(nDetConstruction* detector)
 
 	addCommand(new G4UIcmdWithAString("/nDet/detector/loadLightGuide", this));
 	addGuidance("Load a light-guide from a GDML geometry file. SYNTAX: loadGDML <filename> <rotX> <rotY> <rotZ> <matString>");
+
+	addCommand(new G4UIcmdWithAString("/nDet/detector/setMaterial", this));
+	addGuidance("Set the material to use for detector construction.");
+	addCandidates("ej200 ej276");
 }
 
 void nDetConstructionMessenger::SetNewValue(G4UIcommand* command, G4String newValue){
@@ -216,5 +220,8 @@ void nDetConstructionMessenger::SetNewValue(G4UIcommand* command, G4String newVa
 	}
 	else if(index == 28){
 		fDetector->AddLightGuideGDML(newValue);
+	}
+	else if(index == 29){
+		fDetector->SetDetectorMaterial(newValue);
 	}
 }

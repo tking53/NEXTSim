@@ -52,7 +52,7 @@ class nDetConstruction : public G4VUserDetectorConstruction
     virtual void ConstructSDandField();
     
     void SetGeometry(G4String geom){ fGeometry = geom; }
-    
+
     void SetSiPM_dimension(G4double dim){ SiPM_dimension = dim; }
     
     void SetDetectorLength(G4double val){ fDetectorLength = val; }
@@ -93,7 +93,9 @@ class nDetConstruction : public G4VUserDetectorConstruction
 
 	void SetRotation(const G4ThreeVector &rotation);
 
-	void SetWrappingMaterial(const std::string &material){ wrappingMaterial = material; }
+	void SetDetectorMaterial(const G4String &material){ detectorMaterial = material; }
+
+	void SetWrappingMaterial(const G4String &material){ wrappingMaterial = material; }
 
 	void SetShadowBarSize(const G4ThreeVector &size);
 	
@@ -237,7 +239,7 @@ private:
     G4Material* fVacuum;
     G4Material* fTeflon;
     G4Material* fEJ200;
-    G4Material* fEJ299;
+    G4Material* fEJ276;
     G4Material* fGrease;
     G4Material* fSiO2;
     G4Material* fSil;
@@ -248,7 +250,7 @@ private:
     G4MaterialPropertiesTable* fAirMPT;
     G4MaterialPropertiesTable* fTeflonMPT;
     G4MaterialPropertiesTable* fEJ200MPT;
-    G4MaterialPropertiesTable* fEJ299MPT;
+    G4MaterialPropertiesTable* fEJ276MPT;
     G4MaterialPropertiesTable* fGreaseMPT;
     G4MaterialPropertiesTable* fSiO2MPT;
     G4MaterialPropertiesTable* fSilMPT;
@@ -280,7 +282,8 @@ private:
 	// Database of elements and materials.
 	nistDatabase nist;
 
-	std::string wrappingMaterial;
+	G4String detectorMaterial;
+	G4String wrappingMaterial;
 
 	G4ThreeVector detectorPosition; // Position of detector in lab frame.
 	G4RotationMatrix detectorRotation; // Rotation of detector.
@@ -339,6 +342,8 @@ private:
 	G4LogicalVolume *loadLightGuide(const G4String &fname, const G4ThreeVector &rotation, const G4String &material, G4OpticalSurface *surface);
     
     G4ThreeVector getPSPmtBoundingBox();
+    
+    G4Material *getUserDetectorMaterial();
     
     G4Material *getUserSurfaceMaterial();
     
