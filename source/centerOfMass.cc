@@ -100,7 +100,7 @@ void centerOfMass::setSegmentedPmt(const short &col_, const short &row_, const d
 	// Setup the anode gain matrix.
 	gainMatrix.clear();
 	for(short i = 0; i < Ncol; i++){
-		gainMatrix.push_back(std::vector<double>(Nrow, 1));
+		gainMatrix.push_back(std::vector<double>(Nrow, 100));
 	}
 }
 
