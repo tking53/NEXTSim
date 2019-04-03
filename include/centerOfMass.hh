@@ -80,8 +80,10 @@ class centerOfMass{
 	void clear();
 	
 	bool addPoint(const double &energy, const double &time, const G4ThreeVector &position, const double &mass=1);
-  
-	void print();
+
+	void printCounts() const ;
+
+	void print() const ;
   
   private:
 	short Ncol;
@@ -110,6 +112,9 @@ class centerOfMass{
 	pmtResponse anodeResponse[4]; // Anode responses.
 	
 	std::vector<std::vector<double> > gainMatrix;
+	std::vector<std::vector<double> > countMatrix;
+	
+	void increment(const int &x, const int &y);
 	
 	double getGain(const int &x, const int &y);
 	

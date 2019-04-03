@@ -35,13 +35,15 @@ bool centerOfMass::getCenterSegment(G4ThreeVector &pos, short &col, short &row) 
 	double xpos = (pos.getX()+activeWidth/2)/pixelWidth;
 	double ypos = (pos.getY()+activeHeight/2)/pixelHeight;
 	
-	//std::cout << "post: " << pos.getX() << "\t" << pos.getY() << std::endl;
-	
 	pos.setX(xpos*(activeWidth/Ncol)-activeWidth/2);
 	pos.setY(ypos*(activeHeight/Nrow)-activeHeight/2);
 	
 	col = (short)floor(xpos);
 	row = (short)floor(ypos);
+	
+	//std::cout << " activeWidth=" << activeWidth << ", activeHeight=" << activeHeight << std::endl;
+	//std::cout << " pixelWidth=" << pixelWidth << ", pixelHeight=" << pixelHeight << std::endl;
+	//std::cout << " x=" << xpos << ", y=" << ypos << ", col=" << col << ", row=" << row << std::endl;
 	
 	return ((col >= 0 && col < Ncol) && (row >= 0 && row < Nrow));
 }
@@ -99,8 +101,10 @@ void centerOfMass::setSegmentedPmt(const short &col_, const short &row_, const d
 	
 	// Setup the anode gain matrix.
 	gainMatrix.clear();
+	countMatrix.clear();
 	for(short i = 0; i < Ncol; i++){
 		gainMatrix.push_back(std::vector<double>(Nrow, 100));
+		countMatrix.push_back(std::vector<double>(Nrow, 0));
 	}
 }
 
@@ -143,6 +147,11 @@ void centerOfMass::clear(){
 		anodeCurrent[i] = 0;
 		anodeResponse[i].clear();
 	}
+	for(short i = 0; i < Ncol; i++){
+		for(short j = 0; j < Nrow; j++){
+			countMatrix[i][j] = 0;
+		}
+	}
 }
 
 bool centerOfMass::addPoint(const double &energy, const double &time, const G4ThreeVector &position, const double &mass/*=1*/){
@@ -163,6 +172,7 @@ bool centerOfMass::addPoint(const double &energy, const double &time, const G4Th
 		if(this->getCenterSegment(pos, xpos, ypos)){
 			// Get the gain of this anode.
 			double gain = getGain(xpos, ypos);
+			increment(xpos, ypos);
 
 			// Add the anger logic currents to the anode outputs.
 			double totalCurrent = 0;
@@ -210,12 +220,27 @@ bool centerOfMass::addPoint(const double &energy, const double &time, const G4Th
 	return true;
 }
 
-void centerOfMass::print(){
+void centerOfMass::printCounts() const {
+	for(short i = Nrow-1; i >= 0; i--){
+		for(short j = 0; j < Ncol; j++){
+			std::cout << countMatrix[j][i] << "\t";
+		}
+		std::cout << std::endl;
+	}		
+}
+
+void centerOfMass::print() const {
 	if(!empty()){
 		std::cout << "M=" << totalMass << ", c=(" << getCenterX() << ", " << getCenterY() << ", " << getCenterZ() << ")\n";
 		std::cout << " t0=" << t0 << ", tAvg=" << tSum/Npts << std::endl;
 	}
 }
+
+void centerOfMass::increment(const int &x, const int &y){
+	if((x < 0 || x >= Ncol) || (y < 0 || y >= Nrow)) return;
+	countMatrix[x][y]++;
+}
+
 
 double centerOfMass::getGain(const int &x, const int &y){
 	if((x < 0 || x >= Ncol) || (y < 0 || y >= Nrow)) return 0;
