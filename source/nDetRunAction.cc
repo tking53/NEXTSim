@@ -310,6 +310,8 @@ bool nDetRunAction::openRootFile(const G4Run* aRun)
 		fTree->Branch("photonAvgTime[2]", photonAvgArrivalTime);		
 		fTree->Branch("pulseQDC[2]", pulseQDC);
 		fTree->Branch("pulseMax[2]", pulseMax);
+		fTree->Branch("pulseMaxTime[2]", pulseMaxTime);
+		fTree->Branch("pulseArrival[2]", pulseWeightedArrival);
 		fTree->Branch("detSpdLight", &detSpeedLight);
 		fTree->Branch("anodePhase", anodePhase, "anodePhase[2][4]/F");
 	}
@@ -404,10 +406,14 @@ bool nDetRunAction::fillBranch()
 	pulsePhase[0] = pmtL->analyzePolyCFD(polyCfdFraction) + targetTimeOffset;
 	pulseQDC[0] = pmtL->integratePulseFromMaximum(pulseIntegralLow, pulseIntegralHigh);
 	pulseMax[0] = pmtL->getMaximum();
+	pulseMaxTime[0] = pmtL->getMaximumTime();
+	pulseWeightedArrival[0] = pmtL->getWeightedPhotonArrivalTime();
 
 	pulsePhase[1] = pmtR->analyzePolyCFD(polyCfdFraction) + targetTimeOffset;
 	pulseQDC[1] = pmtR->integratePulseFromMaximum(pulseIntegralLow, pulseIntegralHigh);
 	pulseMax[1] = pmtR->getMaximum();
+	pulseMaxTime[1] = pmtR->getMaximumTime();
+	pulseWeightedArrival[1] = pmtR->getWeightedPhotonArrivalTime();
 
 	// Get the digitizer response of the anodes.
 	pmtResponse *anodeResponseL = getAnodeResponseLeft();

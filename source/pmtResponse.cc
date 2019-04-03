@@ -89,15 +89,15 @@ void spectralResponse::close(){
 ///////////////////////////////////////////////////////////////////////////////
 
 pmtResponse::pmtResponse() : risetime(4.0), falltime(20.0), timeSpread(0), amplitude(0), peakOffset(0), peakMaximum(0), traceDelay(50), gain(1E4),
-                             maximum(-9999), baseline(-9999), maxIndex(0), adcBins(4096), pulseLength(100), isDigitized(false), 
-                             useSpectralResponse(false), pulseIsSaturated(false), rawPulse(NULL), pulseArray(NULL), spec() {
+                             maximum(-9999), baseline(-9999), maxIndex(0), adcBins(4096), pulseLength(100), isDigitized(false), useSpectralResponse(false), 
+                             pulseIsSaturated(false), rawPulse(NULL), pulseArray(NULL), spec(), minimumArrivalTime(0) {
 	this->update();
 	this->setPulseLength(pulseLength);
 }
 
 pmtResponse::pmtResponse(const double &risetime_, const double &falltime_) : risetime(risetime_), falltime(falltime_), timeSpread(0), amplitude(0), peakOffset(0), peakMaximum(0), traceDelay(50), gain(1E4),
-                                                                             maximum(-9999), baseline(-9999), maxIndex(0), adcBins(4096), pulseLength(100), isDigitized(false), 
-                                                                             useSpectralResponse(false), pulseIsSaturated(false), rawPulse(NULL), pulseArray(NULL), spec() {
+                                                                             maximum(-9999), baseline(-9999), maxIndex(0), adcBins(4096), pulseLength(100), isDigitized(false), useSpectralResponse(false), 
+                                                                             pulseIsSaturated(false), rawPulse(NULL), pulseArray(NULL), spec(), minimumArrivalTime(0) {
 	this->update();
 	this->setPulseLength(pulseLength);
 }
@@ -107,6 +107,18 @@ pmtResponse::~pmtResponse(){
 		delete[] rawPulse;
 		delete[] pulseArray;
 	}
+}
+
+/// Return the gain-weighted arrival time of the photon pulse.
+double pmtResponse::getWeightedPhotonArrivalTime() const {
+	double weightedAverage = 0;
+	double totalWeight = 0;
+	std::vector<double>::const_iterator iter1, iter2;
+	for(iter1 = arrivalTimes.begin(), iter2 = photonWeights.begin(); iter1 != arrivalTimes.end() && iter2 != photonWeights.end(); iter1++, iter2++){
+		weightedAverage += (*iter2)*(*iter1);
+		totalWeight += (*iter2);
+	}
+	return weightedAverage/totalWeight;
 }
 
 void pmtResponse::setRisetime(const double &risetime_){ 
@@ -156,6 +168,12 @@ void pmtResponse::addPhoton(const double &arrival, const double &wavelength/*=0*
 		efficiency = spec.eval(wavelength)/100;
 	}
 
+	arrivalTimes.push_back(arrival);
+	photonWeights.push_back(gain_);
+
+	if(arrival < minimumArrivalTime)
+		minimumArrivalTime = arrival;
+
 	//double dt = arrival - peakOffset + traceDelay; // Arrival time is the peak of the pulse.
 	double dt = arrival + traceDelay; // Arrival time is the leading edge of the pulse.
 	if(timeSpread > 0){ // Smear the time offset based on the photo-electron transit time spread.
@@ -201,14 +219,14 @@ void pmtResponse::digitize(const double &baseline_/*=0*/, const double &jitter_/
 }
 
 /// Integrate the baseline corrected trace for QDC in the range [start_, stop_] and return the result.
-float pmtResponse::integratePulse(const size_t &start_/*=0*/, const size_t &stop_/*=0*/){
+double pmtResponse::integratePulse(const size_t &start_/*=0*/, const size_t &stop_/*=0*/){
 	if(pulseLength == 0 || !pulseArray) return -9999;
 	size_t stop = (stop_ == 0?pulseLength:stop_);
 
 	// Check for start index greater than stop index.
 	if(start_+1 >= stop) return -9999;
 
-	float qdc = 0.0;
+	double qdc = 0.0;
 	for(size_t i = start_+1; i < stop; i++){ // Integrate using trapezoidal rule.
 		qdc += 0.5*(pulseArray[i-1] + pulseArray[i]) - baseline;
 	}
@@ -217,20 +235,20 @@ float pmtResponse::integratePulse(const size_t &start_/*=0*/, const size_t &stop
 }
 
 /// Integrate the baseline corrected trace for QDC in the range [maxIndex-start_, maxIndex+stop_] and return the result.
-float pmtResponse::integratePulseFromMaximum(const short &start_/*=5*/, const short &stop_/*=10*/){
+double pmtResponse::integratePulseFromMaximum(const short &start_/*=5*/, const short &stop_/*=10*/){
 	if(maximum <= 0 && findMaximum() <= 0) return -9999;
 	size_t low = (maxIndex > start_ ? maxIndex-start_ : 0);
 	return this->integratePulse(low, maxIndex+stop_);
 }
 
 /// Perform traditional CFD analysis on the waveform.
-float pmtResponse::analyzeCFD(const float &F_/*=0.5*/, const size_t &D_/*=1*/, const size_t &L_/*=1*/){
+double pmtResponse::analyzeCFD(const double &F_/*=0.5*/, const size_t &D_/*=1*/, const size_t &L_/*=1*/){
 	if(pulseLength == 0 || !pulseArray) return -9999;
-	float cfdMinimum = 9999;
+	double cfdMinimum = 9999;
 	size_t cfdMinIndex = 0;
 	
-	float phase = -9999;
-	float *cfdvals = new float[pulseLength];
+	double phase = -9999;
+	double *cfdvals = new double[pulseLength];
 
 	// Compute the cfd waveform.
 	for(size_t cfdIndex = 0; cfdIndex < pulseLength; ++cfdIndex){
@@ -263,13 +281,13 @@ float pmtResponse::analyzeCFD(const float &F_/*=0.5*/, const size_t &D_/*=1*/, c
 
 
 /// Perform polynomial CFD analysis on the waveform.
-float pmtResponse::analyzePolyCFD(const float &F_/*=0.5*/){
+double pmtResponse::analyzePolyCFD(const double &F_/*=0.5*/){
 	if(pulseLength == 0 || !pulseArray) return -9999;
 	if(maximum <= 0 && findMaximum() <= 0) return -9999;
 
 	double threshold = F_*maximum + baseline;
 
-	float phase = -9999;
+	double phase = -9999;
 	for(unsigned short cfdIndex = maxIndex; cfdIndex > 0; cfdIndex--){
 		if(pulseArray[cfdIndex-1] < threshold && pulseArray[cfdIndex] >= threshold){
 			calculateP2(cfdIndex-1, &pulseArray[cfdIndex-1], &cfdPar[4]);
@@ -309,8 +327,14 @@ void pmtResponse::clear(){
 		cfdPar[i] = 0;
 	}
 
+	maximumTime = -9999;
 	maximum = -9999;
 	baseline = -9999;
+
+	minimumArrivalTime = 1E6;
+
+	arrivalTimes.clear();
+	photonWeights.clear();
 
 	maxIndex = 0;
 	
@@ -367,7 +391,7 @@ double pmtResponse::calculateP2(const short &x0, unsigned short *y, double *p){
   * \param[out] p  - Pointer to the array of doubles for storing the three polynomial parameters.
   * \return The local maximum/minimum of the polynomial.
   */
-double pmtResponse::calculateP3(const short &x, unsigned short *y, double *p){
+double pmtResponse::calculateP3(const short &x, unsigned short *y, double *p, double &xmax){
 	double x1[4], x2[4], x3[4];
 	for(size_t i = 0; i < 4; i++){
 		x1[i] = (x+i);
@@ -392,9 +416,11 @@ double pmtResponse::calculateP3(const short &x, unsigned short *y, double *p){
 	double xmax2 = (-2*p[2]-std::sqrt(4*p[2]*p[2]-12*p[3]*p[1]))/(6*p[3]);
 
 	if((2*p[2]+6*p[3]*xmax1) < 0) // The second derivative is negative (i.e. this is a maximum).
-		return (p[0] + p[1]*xmax1 + p[2]*xmax1*xmax1 + p[3]*xmax1*xmax1*xmax1);
-
-	return (p[0] + p[1]*xmax2 + p[2]*xmax2*xmax2 + p[3]*xmax2*xmax2*xmax2);
+		xmax = xmax1;
+	else
+		xmax = xmax2;
+	
+	return (p[0] + p[1]*xmax + p[2]*xmax*xmax + p[3]*xmax*xmax*xmax);
 }
 
 void pmtResponse::update(){
@@ -408,7 +434,7 @@ double pmtResponse::eval(const double &t, const double &dt/*=0*/){
 	return gain*amplitude*(std::exp(-(t-dt)/falltime)-std::exp(-(t-dt)/risetime));
 }
 
-float pmtResponse::findMaximum(){
+double pmtResponse::findMaximum(){
 	if(pulseLength == 0 || !pulseArray) return -9999;
 
 	// Find the baseline.
@@ -419,7 +445,7 @@ float pmtResponse::findMaximum(){
 		tempbaseline += pulseArray[i];
 	}
 	tempbaseline = tempbaseline/sample_size;
-	baseline = float(tempbaseline);
+	baseline = double(tempbaseline);
 
 	// Find the maximum ADC value and the maximum bin.
 	unsigned short maxADC = 0;
@@ -432,9 +458,9 @@ float pmtResponse::findMaximum(){
 
 	// Find the pulse maximum by fitting with a third order polynomial.
 	if(pulseArray[maxIndex-1] >= pulseArray[maxIndex+1]) // Favor the left side of the pulse.
-		maximum = calculateP3(maxIndex-2, &pulseArray[maxIndex-2], cfdPar) - baseline;
+		maximum = calculateP3(maxIndex-2, &pulseArray[maxIndex-2], cfdPar, maximumTime) - baseline;
 	else // Favor the right side of the pulse.
-		maximum = calculateP3(maxIndex-1, &pulseArray[maxIndex-1], cfdPar) - baseline;
+		maximum = calculateP3(maxIndex-1, &pulseArray[maxIndex-1], cfdPar, maximumTime) - baseline;
 
 	return maximum;
 }

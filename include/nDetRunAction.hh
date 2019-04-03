@@ -136,7 +136,9 @@ class nDetRunAction : public G4UserRunAction
     double photonDetCenterOfMassZ[2];
     double photonMinArrivalTime[2];
     double photonAvgArrivalTime[2];
+    double pulseWeightedArrival[2];
 
+	float pulseMaxTime[2];
     float pulseMax[2];
     float pulseQDC[2];
     
