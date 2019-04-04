@@ -72,7 +72,7 @@ nDetConstructionMessenger::nDetConstructionMessenger(nDetConstruction* detector)
 	
 	addCommand(new G4UIcmdWithAString("/nDet/detector/setWrapping", this));
 	addGuidance("Set the material to use for reflective wrapping");	
-	addCandidates("teflon silicon mylar esr");
+	addCandidates("teflon silicon mylar esr perfect");
 
 	addCommand(new G4UIcmdWith3VectorAndUnit("/nDet/detector/setShadowBarSize", this));
 	addGuidance("Set the size of a shadow-bar.");

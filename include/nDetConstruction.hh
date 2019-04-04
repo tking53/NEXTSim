@@ -245,6 +245,7 @@ private:
     G4Material* fSil;
     G4Material* fMylar;
     G4Material* fAcrylic;
+	G4Material* fAluminum;
 
     //Material table properties
     G4MaterialPropertiesTable* fAirMPT;
@@ -254,13 +255,16 @@ private:
     G4MaterialPropertiesTable* fGreaseMPT;
     G4MaterialPropertiesTable* fSiO2MPT;
     G4MaterialPropertiesTable* fSilMPT;
-    G4MaterialPropertiesTable* fMylarMPT;
+	G4MaterialPropertiesTable* fMylarMPT;
+	G4MaterialPropertiesTable* fPerfectMPT;
+	G4MaterialPropertiesTable* fAluminumMPT;
 
     //Optical Surfaces
     G4OpticalSurface* fTeflonOpticalSurface;
     G4OpticalSurface* fSiliconPMOpticalSurface;
     G4OpticalSurface* fMylarOpticalSurface;
     G4OpticalSurface* fEsrOpticalSurface;
+	G4OpticalSurface* fPerfectOpticalSurface;
 
     //Logical Skins
     G4LogicalSkinSurface* fWrapSkinSurface;

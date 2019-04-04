@@ -531,6 +531,22 @@ void nDetConstruction::DefineMaterials() {
 	fAcrylic->SetMaterialPropertiesTable(MPT_Acrylic);
 
 	/////////////////////////////////////////////////////////////////
+	// Natural Aluminum
+	/////////////////////////////////////////////////////////////////
+
+	fAluminum = new G4Material("Aluminum", 2.7*g/cm3, 1);
+	fAluminum->AddElement(fAl, 1);
+
+	double AlEnergies[3] = {2.0*eV, 3.0*eV, 4.0*eV};	                       
+	/*double rIndex[3] = { 0.86, 0.50, 0.28 };
+	double absLength[3] = { 1*mm, 1*mm, 1*mm};
+
+	fAluminumMPT = new G4MaterialPropertiesTable();
+	fAluminumMPT->AddProperty("RINDEX", AlEnergies, rIndex, 3);
+	fAluminumMPT->AddProperty("ABSLENGTH", AlEnergies, absLength, 3);
+	fAluminum->SetMaterialPropertiesTable(fAluminumMPT);*/
+
+	/////////////////////////////////////////////////////////////////
 	// Optical Surfaces
 	/////////////////////////////////////////////////////////////////
 
@@ -553,18 +569,22 @@ void nDetConstruction::DefineMaterials() {
     G4Material *Al = nist.searchForMaterial("G4_Al");
     G4Material *Mylar = nist.searchForMaterial("G4_MYLAR");
 
-    fMylar=new G4Material("AluninizedMylar",density=1.39*g/cm3,ncomponents=2);
+    fMylar=new G4Material("AluminizedMylar",density=1.39*g/cm3,ncomponents=2);
     fMylar->AddMaterial(Mylar,0.8);
     fMylar->AddMaterial(Al,0.2);
 
     G4double RefractiveReal_Mylar[5] = {0.81257,0.72122,0.63324,0.55571,0.48787};
     G4double RefractiveImg_Mylar[5] = {6.0481,5.7556,5.4544,5.1464,4.8355};
 
-    fMylarMPT=new G4MaterialPropertiesTable();
-    fMylarMPT->AddProperty("REALRINDEX", PhotonEnergy, RefractiveReal_Mylar, 5);
-    fMylarMPT->AddProperty("IMAGINARYRINDEX", PhotonEnergy, RefractiveImg_Mylar, 5);
+	fMylarMPT = new G4MaterialPropertiesTable();
+	fMylarMPT->AddProperty("REALRINDEX", PhotonEnergy, RefractiveReal_Mylar, 5);
+	fMylarMPT->AddProperty("IMAGINARYRINDEX", PhotonEnergy, RefractiveImg_Mylar, 5);
 
-    fMylarOpticalSurface=new G4OpticalSurface("MylarSurface",glisur,polished,dielectric_metal,1.0);
+    fMylarOpticalSurface = new G4OpticalSurface("MylarSurface");
+	fMylarOpticalSurface->SetType(dielectric_metal);
+	fMylarOpticalSurface->SetFinish(polished);
+	fMylarOpticalSurface->SetModel(glisur);
+	fMylarOpticalSurface->SetMaterialPropertiesTable(fMylarMPT);
     
     // ESR film (built in look-up-table)
     fEsrOpticalSurface = new G4OpticalSurface("EsrSurface");
@@ -572,6 +592,22 @@ void nDetConstruction::DefineMaterials() {
     fEsrOpticalSurface->SetModel(LUT);    
     //fEsrOpticalSurface->SetFinish(polishedvm2000air);
     fEsrOpticalSurface->SetFinish(polishedvm2000glue);
+
+	//100% reflectivity
+	double perfectEfficiency[3] = {0.0, 0.0, 0.0};
+	double perfectReflectivity[3] = {1.0, 1.0, 1.0};
+	double perfectSpecularSpike[3] = {1.0, 1.0, 1.0};
+
+	fPerfectMPT = new G4MaterialPropertiesTable();
+	fPerfectMPT->AddProperty("EFFICIENCY", AlEnergies, perfectEfficiency, 3);
+	fPerfectMPT->AddProperty("REFLECTIVITY", AlEnergies, perfectReflectivity, 3);
+	fPerfectMPT->AddProperty("SPECULARSPIKECONSTANT", AlEnergies, perfectSpecularSpike, 3);
+
+	fPerfectOpticalSurface = new G4OpticalSurface("PerfectReflector");
+	fPerfectOpticalSurface->SetType(dielectric_metal);
+	fPerfectOpticalSurface->SetFinish(polished);
+	fPerfectOpticalSurface->SetModel(unified);
+	fPerfectOpticalSurface->SetMaterialPropertiesTable(fPerfectMPT);
 
     return;
 }
@@ -618,8 +654,8 @@ void nDetConstruction::GetDetectedPhotons(size_t &numLeft, size_t &numRight){
 
 void nDetConstruction::Clear(){
 	// Clean up loaded solids.
-	solids.clear();
-	userLayers.clear();
+	//solids.clear(); // Why are these here? CRT
+	//userLayers.clear(); // Why are these here? CRT
 
     center[0].clear();
     center[1].clear();
@@ -990,8 +1026,22 @@ void nDetConstruction::constructPSPmts(){
     // Logical skin surface.
     new G4LogicalSkinSurface(name, sensitive_logV, fSiliconPMOpticalSurface);    
     
-    new G4PVPlacement(0, G4ThreeVector(0, 0, sensitiveZ), sensitive_logV, name, assembly_logV, true, 0, fCheckOverlaps);
-    new G4PVPlacement(0, G4ThreeVector(0, 0, -sensitiveZ), sensitive_logV, name, assembly_logV, true, 0, fCheckOverlaps);
+	new G4PVPlacement(0, G4ThreeVector(0, 0, sensitiveZ), sensitive_logV, name, assembly_logV, true, 0, fCheckOverlaps);
+	new G4PVPlacement(0, G4ThreeVector(0, 0, -sensitiveZ), sensitive_logV, name, assembly_logV, true, 0, fCheckOverlaps);
+
+	/*// Physically segmented PMT.
+ 	for(int col = 0; col < fNumColumns; col++){
+		for(int row = 0; row < fNumRows; row++){
+			//G4ThreeVector cellCenter(-fDetectorWidth/2 + (2*col+1)*fMylarThickness + (col+0.5)*cellWidth, -fDetectorThickness/2 + (2*row+1)*fMylarThickness + (row+0.5)*cellHeight, 0);
+			G4ThreeVector cellCenterL(-fDetectorWidth/2 + col*fMylarThickness + (col+0.5)*cellWidth, -fDetectorThickness/2 + row*fMylarThickness + (row+0.5)*cellHeight, sensitiveZ);
+			G4ThreeVector cellCenterR(-fDetectorWidth/2 + col*fMylarThickness + (col+0.5)*cellWidth, -fDetectorThickness/2 + row*fMylarThickness + (row+0.5)*cellHeight, -sensitiveZ);
+
+			// Copy numbers (segment IDs), indexed from 1
+			std::stringstream stream; stream << name << "-" << col << "," << row;
+			new G4PVPlacement(0, cellCenterL, sensitive_logV, stream.str().c_str(), assembly_logV, 0, col*fNumRows+row+1, fCheckOverlaps); 
+			new G4PVPlacement(0, cellCenterR, sensitive_logV, stream.str().c_str(), assembly_logV, 0, col*fNumRows+row+1, fCheckOverlaps);
+		}
+	}*/
     
     // Move the current offset past the PMT
 	currentLayerSizeX = 2*SiPM_dimension;
@@ -1220,6 +1270,8 @@ G4Material *nDetConstruction::getUserSurfaceMaterial(){
     	return fMylar; //fEsr; CRT!!!
     else if(wrappingMaterial == "silicon")
     	return fSil;
+    else if(wrappingMaterial == "perfect")
+    	return fAluminum;
     
     return fMylar; // default
 }
@@ -1233,6 +1285,8 @@ G4OpticalSurface *nDetConstruction::getUserOpticalSurface(){
     	return fEsrOpticalSurface;
     else if(wrappingMaterial == "silicon")
     	return fSiliconPMOpticalSurface;
+    else if(wrappingMaterial == "perfect")
+    	return fPerfectOpticalSurface;
     
     return fMylarOpticalSurface; // default
 }
