@@ -151,6 +151,8 @@ class ParticleSource : public G4VUserPrimaryGeneratorAction {
 	
 	void SetBeamspotRadius(const G4double &radius){ beamspot = radius*mm; }
 
+	void SetBeamspotType(const G4String &str);
+
 	void SetDetector(nDetConstruction *det);
 
 	void Set137Cs();
@@ -193,7 +195,9 @@ class ParticleSource : public G4VUserPrimaryGeneratorAction {
 	G4ThreeVector vSourceDet;
 	G4String type;
 
-	double beamspot;
+	int beamspotType;
+
+	double beamspot; // mm
 	double targThickness; // mm
 	double targEnergyLoss; // MeV/mm
 	double targTimeSlope; // ns/mm

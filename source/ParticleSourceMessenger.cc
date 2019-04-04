@@ -30,6 +30,10 @@ ParticleSourceMessenger::ParticleSourceMessenger(ParticleSource* Gun) : fAction(
 	addCommand(new G4UIcmdWithADouble("/nDet/source/spot", this)); // beamspot radius (mm)
 	addGuidance("Set the radius of the beam (in mm)");
 
+	addCommand(new G4UIcmdWithAString("/nDet/source/shape", this)); // beamspot shape type
+	addGuidance("Set the shape of the beamspot");
+	addCandidates("circle square vertical horizontal");
+
 	addCommand(new G4UIcmdWithAString("/nDet/source/iso", this));
 	addGuidance("Set the source to psuedo-isotropic mode");
 	addCandidates("true false");
@@ -57,12 +61,14 @@ void ParticleSourceMessenger::SetNewValue(G4UIcommand* command, G4String newValu
 	else if(index == 5)
 		fAction->SetBeamspotRadius(G4UIcommand::ConvertToDouble(newValue));
 	else if(index == 6)
+		fAction->SetBeamspotType(newValue);
+	else if(index == 7)
 		fAction->SetIsotropicMode((newValue == "true") ? true : false);
-	else if(index == 7){
+	else if(index == 8){
 		G4ThreeVector vec = G4UIcommand::ConvertTo3Vector(newValue);
 		fAction->SetEnergyLimits(vec.getX(), vec.getY());
 	}
-	else if(index == 8){
+	else if(index == 9){
 		fAction->LoadReactionFile(newValue);
 	}
 }

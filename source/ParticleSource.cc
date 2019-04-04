@@ -151,8 +151,8 @@ double Californium252::func(const double &E_) const {
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-ParticleSource::ParticleSource(nDetRunAction *run, nDetConstruction *det/*=NULL*/) : G4VUserPrimaryGeneratorAction(), fGunMessenger(0), psource(), pos(0, 0, 0),
-												                                     dir(0, 0, 0), detPos(0, 0, 0), detSize(0, 0, 0), type("iso"), beamspot(0), targThickness(0), targEnergyLoss(0), 
+ParticleSource::ParticleSource(nDetRunAction *run, nDetConstruction *det/*=NULL*/) : G4VUserPrimaryGeneratorAction(), fGunMessenger(0), psource(), pos(0, 0, 0), dir(0, 0, 0), detPos(0, 0, 0), 
+                                                                                     detSize(0, 0, 0), type("iso"), beamspotType(0), beamspot(0), targThickness(0), targEnergyLoss(0), 
 												                                     targTimeSlope(0), targTimeOffset(0), beamE0(0), unitX(1, 0, 0), unitY(0, 1, 0), unitZ(0, 0, 1), useReaction(false) {
 	runAction = run;
 
@@ -217,16 +217,27 @@ void ParticleSource::GeneratePrimaries(G4Event* anEvent){
 		}
 	}
 	else if(beamspot > 0){ // Generate particles in a pencil-beam
-		// Uniformly sample the circular profile
-		double ranT = 2*pi*G4UniformRand();
-		double ranU = G4UniformRand() + G4UniformRand();
-		double ranR;
+		G4ThreeVector rpoint;
+		if(beamspotType == 0){ // Uniformly sample a circular profile.
+			double ranT = 2*pi*G4UniformRand();
+			double ranU = G4UniformRand() + G4UniformRand();
+			double ranR;
 	
-		if(ranU > 1){ ranR = 2 - ranU; }
-		else{ ranR = ranU; }
-		ranR *= beamspot;
+			if(ranU > 1){ ranR = 2 - ranU; }
+			else{ ranR = ranU; }
+			ranR *= beamspot;
 		
-		G4ThreeVector rpoint(0, ranR*std::sin(ranT), ranR*std::cos(ranT));
+			rpoint = G4ThreeVector(0, ranR*std::sin(ranT), ranR*std::cos(ranT));
+		}
+		else if(beamspotType == 1){ // Uniformly sample a square profile.
+			rpoint = G4ThreeVector(2*(G4UniformRand()-0.5)*beamspot, 2*(G4UniformRand()-0.5)*beamspot, 0);
+		}
+		else if(beamspotType == 2){ // Uniformly sample a vertical line.
+			rpoint = G4ThreeVector(0, 2*(G4UniformRand()-0.5)*beamspot, 0);
+		}
+		else if(beamspotType == 3){ // Uniformly sample a horizontal line.
+			rpoint = G4ThreeVector(2*(G4UniformRand()-0.5)*beamspot, 0, 0);
+		}
 		
 		rpoint *= rot;
 		particleGun->SetParticlePosition(pos+rpoint);
@@ -319,6 +330,21 @@ bool ParticleSource::SetBeamType(const G4String &str){
 	type = "beam";
 	std::cout << " ParticleSource: Setting " << beamType << " beam with energy of " << beamEnergy << " MeV.\n";
 	return true;
+}
+
+void ParticleSource::SetBeamspotType(const G4String &str){
+	if(str == "circle")
+		beamspotType = 0;
+	else if(str == "square")
+		beamspotType = 1;
+	else if(str == "vertical")
+		beamspotType = 2;
+	else if(str == "horizontal")
+		beamspotType = 3;
+	else{
+		std::cout << " ParticleSource: Unknown beamspot type \"" << str << "\"\n";
+		beamspotType = 0;
+	}
 }
 
 void ParticleSource::SetDetector(nDetConstruction *det){
