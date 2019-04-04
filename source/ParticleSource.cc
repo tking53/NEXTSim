@@ -16,6 +16,8 @@
 #include "G4Electron.hh"
 #include "Randomize.hh"
 
+const double fwhm2stddev = 1/(2*std::sqrt(2*std::log(2)));
+
 const double coeff = 1.23984193E-3; // hc = Mev * nm
 const double cvac = 299.792458; // mm/ns
 
@@ -230,13 +232,18 @@ void ParticleSource::GeneratePrimaries(G4Event* anEvent){
 			rpoint = G4ThreeVector(0, ranR*std::sin(ranT), ranR*std::cos(ranT));
 		}
 		else if(beamspotType == 1){ // Uniformly sample a square profile.
-			rpoint = G4ThreeVector(2*(G4UniformRand()-0.5)*beamspot, 2*(G4UniformRand()-0.5)*beamspot, 0);
+			rpoint = G4ThreeVector(0, 2*(G4UniformRand()-0.5)*beamspot, 2*(G4UniformRand()-0.5)*beamspot);
 		}
 		else if(beamspotType == 2){ // Uniformly sample a vertical line.
 			rpoint = G4ThreeVector(0, 2*(G4UniformRand()-0.5)*beamspot, 0);
 		}
 		else if(beamspotType == 3){ // Uniformly sample a horizontal line.
-			rpoint = G4ThreeVector(2*(G4UniformRand()-0.5)*beamspot, 0, 0);
+			rpoint = G4ThreeVector(0, 0, 2*(G4UniformRand()-0.5)*beamspot);
+		}
+		else if(beamspotType == 4){ // Uniformly sample a 2d gaussian (beamspot=FWHM).
+			double valX = G4RandGauss::shoot(0, beamspot*fwhm2stddev);
+			double valY = G4RandGauss::shoot(0, beamspot*fwhm2stddev);
+			rpoint = G4ThreeVector(0, valY, valX);
 		}
 		
 		rpoint *= rot;
@@ -341,6 +348,8 @@ void ParticleSource::SetBeamspotType(const G4String &str){
 		beamspotType = 2;
 	else if(str == "horizontal")
 		beamspotType = 3;
+	else if(str == "gauss")
+		beamspotType = 4;
 	else{
 		std::cout << " ParticleSource: Unknown beamspot type \"" << str << "\"\n";
 		beamspotType = 0;

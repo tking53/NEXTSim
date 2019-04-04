@@ -32,7 +32,7 @@ ParticleSourceMessenger::ParticleSourceMessenger(ParticleSource* Gun) : fAction(
 
 	addCommand(new G4UIcmdWithAString("/nDet/source/shape", this)); // beamspot shape type
 	addGuidance("Set the shape of the beamspot");
-	addCandidates("circle square vertical horizontal");
+	addCandidates("circle square vertical horizontal gauss");
 
 	addCommand(new G4UIcmdWithAString("/nDet/source/iso", this));
 	addGuidance("Set the source to psuedo-isotropic mode");
