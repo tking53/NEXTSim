@@ -1005,8 +1005,9 @@ void nDetConstruction::constructPSPmts(){
 	G4double windowZ = currentOffsetZ + fGreaseThickness + fWindowThickness/2;
 	G4double sensitiveZ = currentOffsetZ + fGreaseThickness + fWindowThickness + fSensitiveThickness/2;
 	
-	// The optical grease layers.
-	applyGreaseLayer(); 
+	// The optical grease layer.
+	if(fGreaseThickness > 0)
+		applyGreaseLayer(2*SiPM_dimension, 2*SiPM_dimension); 
 
 	if(fWindowThickness > 0){ // The quartz window
 		G4Box* window_solidV = new G4Box("window_solidV", SiPM_dimension, SiPM_dimension, fWindowThickness/2);

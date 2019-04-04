@@ -71,6 +71,8 @@ class nDetConstruction : public G4VUserDetectorConstruction
     
     void SetGreaseThickness(G4double val){ fGreaseThickness = val; }
     
+	void SetWindowThickness(G4double val){ fWindowThickness = val; }
+    
 	void SetNumColumns(const G4int &val){ fNumColumns = val; }
 	
 	void SetNumRows(const G4int &val){ fNumRows = val; }

@@ -110,6 +110,9 @@ nDetConstructionMessenger::nDetConstructionMessenger(nDetConstruction* detector)
 	addCommand(new G4UIcmdWithAString("/nDet/detector/setMaterial", this));
 	addGuidance("Set the material to use for detector construction.");
 	addCandidates("ej200 ej276");
+	
+	addCommand(new G4UIcmdWithADouble("/nDet/detector/setWindowThickness", this));
+	addGuidance("Defines the thickness of the pspmt quartz window in mm (0 for no window)");
 }
 
 void nDetConstructionMessenger::SetNewValue(G4UIcommand* command, G4String newValue){
@@ -223,5 +226,9 @@ void nDetConstructionMessenger::SetNewValue(G4UIcommand* command, G4String newVa
 	}
 	else if(index == 29){
 		fDetector->SetDetectorMaterial(newValue);
+	}
+	else if(index == 30) {
+		G4double val = command->ConvertToDouble(newValue);
+		fDetector->SetWindowThickness(val*mm);
 	}
 }
