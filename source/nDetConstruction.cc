@@ -59,9 +59,6 @@ nDetConstruction::nDetConstruction(const G4double &scale/*=1*/){
     ej200Y = 50*mm;
     ej200Z = 1.5*mm;
     
-    // 100 micron thick grease on both ends of EJ200 bar
-    grease_logV = NULL;
-    
     // 1 mm thick SiPM window
     qwSiPM_logV = NULL;
     qwSiPMx = 1.5*mm;
@@ -445,28 +442,50 @@ void nDetConstruction::DefineMaterials() {
     fGrease->AddElement(fO, natoms=1);
     fGrease->AddElement(fSi, natoms=1);
 
-    const G4int nEntries_Grease = 5;
+    /*const G4int nEntries_Grease = 5;
     G4double Photon_Energy[nEntries_Grease] = { 2.757*eV, 3.102*eV, 3.312*eV, 3.545*eV, 4.136*eV };
     G4double RefractiveIndex_grease[nEntries_Grease] = {1.468, 1.473, 1.477, 1.482, 1.496};
     G4double Absorption_grease[nEntries_Grease] = { 195*mm,  195*mm, 195*mm, 195*mm, 195*mm };
     fGreaseMPT=new G4MaterialPropertiesTable();
 
     fGreaseMPT->AddProperty("RINDEX", Photon_Energy, RefractiveIndex_grease, nEntries_Grease);
-    fGreaseMPT->AddProperty("ABSLENGTH", Photon_Energy, Absorption_grease, nEntries_Grease);
+    fGreaseMPT->AddProperty("ABSLENGTH", Photon_Energy, Absorption_grease, nEntries_Grease);*/
 
+    G4double greasePhotonEnergy[3] = { 2*eV, 3*eV, 4*eV};
+    G4double refIndexGrease[3] = {1.465, 1.465, 1.465};
+    G4double absorptionGrease[3] = {195*mm, 195*mm, 195*mm};
+
+    fGreaseMPT = new G4MaterialPropertiesTable();
+    fGreaseMPT->AddProperty("RINDEX", greasePhotonEnergy, refIndexGrease, 3);
+    fGreaseMPT->AddProperty("ABSLENGTH", greasePhotonEnergy, absorptionGrease, 3);
     fGrease->SetMaterialPropertiesTable(fGreaseMPT);
+
+	/////////////////////////////////////////////////////////////////
+	// Quartz (SiO2)
+	/////////////////////////////////////////////////////////////////
 
     fSiO2 = nist.searchForMaterial("G4_SILICON_DIOXIDE");
 
     //optical properties of SiO2 - fused silica or fused quartz
     G4double PhotonEnergy[5] = { 2.484*eV, 2.615*eV, 2.760*eV, 2.922*eV, 3.105*eV };
-    G4double RefractiveIndex_SiO2[5] = { 1.54, 1.54, 1.54, 1.54, 1.54 };
+    /*G4double RefractiveIndex_SiO2[5] = { 1.54, 1.54, 1.54, 1.54, 1.54 };
     G4double Absorption_SiO2[5] = {125.*cm, 123.5*cm, 122.*cm, 121.*cm, 120.*cm};
 
     fSiO2MPT = new G4MaterialPropertiesTable();
     fSiO2MPT->AddProperty("RINDEX", PhotonEnergy, RefractiveIndex_SiO2, 5);
-    fSiO2MPT->AddProperty("ABSLENGTH", PhotonEnergy, Absorption_SiO2, 5);
+    fSiO2MPT->AddProperty("ABSLENGTH", PhotonEnergy, Absorption_SiO2, 5);*/
+    
+    G4double refIndexSiO2[3] = {1.458, 1.458, 1.458};
+    G4double absorptionSiO2[3] = {125*cm, 125*cm, 125*cm};
+
+    fSiO2MPT = new G4MaterialPropertiesTable();
+    fSiO2MPT->AddProperty("RINDEX", greasePhotonEnergy, refIndexSiO2, 3);
+    fSiO2MPT->AddProperty("ABSLENGTH", greasePhotonEnergy, absorptionSiO2, 3);   
     fSiO2->SetMaterialPropertiesTable(fSiO2MPT);
+
+	/////////////////////////////////////////////////////////////////
+	// Silicon (Si)
+	/////////////////////////////////////////////////////////////////
 
     fSil = nist.searchForMaterial("G4_Si");
 
@@ -616,6 +635,12 @@ void nDetConstruction::DefineMaterials() {
 	fPerfectOpticalSurface->SetModel(glisur);
 	fPerfectOpticalSurface->SetMaterialPropertiesTable(fPerfectMPT);
 
+	fGreaseOpticalSurface = new G4OpticalSurface("GreaseSurface");
+	fGreaseOpticalSurface->SetType(dielectric_dielectric);
+	fGreaseOpticalSurface->SetFinish(ground);
+	fGreaseOpticalSurface->SetModel(unified); // Defaults to Lambertian reflection (i.e. rough surface) --CRT
+	fGreaseOpticalSurface->SetMaterialPropertiesTable(fGreaseMPT);	
+
     return;
 }
 
@@ -663,6 +688,9 @@ void nDetConstruction::Clear(){
 	// Clean up loaded solids.
 	//solids.clear(); // Why are these here? CRT
 	//userLayers.clear(); // Why are these here? CRT
+
+	// Clear all scintillator placements.
+	scintBody_physV.clear();
 
     center[0].clear();
     center[1].clear();
@@ -837,6 +865,7 @@ void nDetConstruction::buildModule(){
 			// Copy numbers (segment IDs), indexed from 1
 			std::stringstream stream; stream << "Scint-" << col << "," << row;
 			cellScint_physV[col][row] = new G4PVPlacement(0, cellCenter, cellScint_logV, stream.str().c_str(), assembly_logV, 0, col*fNumRows+row+1, fCheckOverlaps); 
+			scintBody_physV.push_back(cellScint_physV[col][row]);
 		
 			// Place vertical and horizontal reflectors.
 			if(fMylarThickness > 0){ 
@@ -908,6 +937,8 @@ void nDetConstruction::buildEllipse(){
 	// Place the scintillator inside the assembly.
 	G4PVPlacement *ellipseBody_physV = new G4PVPlacement(0, G4ThreeVector(0, 0, 0), scint_logV, "Scint", assembly_logV, true, 0, fCheckOverlaps);
 
+	scintBody_physV.push_back(ellipseBody_physV);
+
 	// Build the wrapping.
 	G4PVPlacement *ellipseWrapping_physV = NULL;
 	if(fMylarThickness > 0){
@@ -960,16 +991,15 @@ void nDetConstruction::buildRectangle(){
 	G4PVPlacement *plateBody_physV = new G4PVPlacement(0, G4ThreeVector(0, 0, 0), plateBody_logV, "Scint", assembly_logV, true, 0, fCheckOverlaps);
 	//G4PVPlacement *plateBody_physV = new G4PVPlacement(0, G4ThreeVector(0, 0, 0), bubble_logV, "Scint", assembly_logV, true, 0, fCheckOverlaps);
 
+	scintBody_physV.push_back(plateBody_physV);
+
 	// Build the wrapping.
 	G4PVPlacement *plateWrapping_physV = NULL;
 	if(fMylarThickness > 0){
-		G4ThreeVector pmtSize = getPSPmtBoundingBox();
-		G4Box *pmtBoundingBox = new G4Box("", pmtSize.getX()/2, pmtSize.getY()/2, pmtSize.getZ()/2);
-		G4Box *plateWrappingBox = new G4Box("", fDetectorWidth/2 + fMylarThickness, fDetectorThickness/2 + fMylarThickness, fDetectorLength/2 + fMylarThickness);
-		G4UnionSolid *cookieCutter = new G4UnionSolid("", plateBody, pmtBoundingBox, 0, G4ThreeVector(0, 0, fDetectorLength/2+pmtSize.getZ()/2));
-		cookieCutter = new G4UnionSolid("", cookieCutter, pmtBoundingBox, 0, G4ThreeVector(0, 0, -fDetectorLength/2-pmtSize.getZ()/2));
-		
-		G4SubtractionSolid *plateWrapping = new G4SubtractionSolid("", plateWrappingBox, cookieCutter);
+		G4Box *plateBoundingBox = new G4Box("", fDetectorWidth/2, fDetectorThickness/2, fDetectorLength/2);
+		G4Box *plateWrappingBox = new G4Box("", fDetectorWidth/2 + fMylarThickness, fDetectorThickness/2 + fMylarThickness, fDetectorLength/2);
+
+		G4SubtractionSolid *plateWrapping = new G4SubtractionSolid("", plateWrappingBox, plateBoundingBox);
 		G4LogicalVolume *plateWrapping_logV = new G4LogicalVolume(plateWrapping, getUserSurfaceMaterial(), "plateWrapping_logV");
 		plateWrapping_logV->SetVisAttributes(wrapping_VisAtt);
 		
@@ -1009,21 +1039,65 @@ void nDetConstruction::constructPSPmts(){
 	// Build the sensitive PMT surfaces.
 	const G4String name = "psSiPM";
 
-	G4double windowZ = currentOffsetZ + fGreaseThickness + fWindowThickness/2;
 	G4double sensitiveZ = currentOffsetZ + fGreaseThickness + fWindowThickness + fSensitiveThickness/2;
+	G4double wrappingThickness = fGreaseThickness + fWindowThickness;
 	
 	// The optical grease layer.
-	if(fGreaseThickness > 0)
-		applyGreaseLayer(2*SiPM_dimension, 2*SiPM_dimension); 
+	G4PVPlacement *grease_physV[2] = {NULL, NULL};
+	if(fGreaseThickness > 0){
+		G4double greaseZ = currentOffsetZ + fGreaseThickness/2;
+	
+		G4Box* grease_solidV = new G4Box("window_solidV", SiPM_dimension, SiPM_dimension, fGreaseThickness/2);
+		G4LogicalVolume *grease_logV = new G4LogicalVolume(grease_solidV, fGrease, "grease_logV");
+		
+		grease_logV->SetVisAttributes(grease_VisAtt);
+	
+		grease_physV[0] = new G4PVPlacement(0, G4ThreeVector(0, 0, greaseZ), grease_logV, "Grease", assembly_logV, true, 0, fCheckOverlaps);
+		grease_physV[1] = new G4PVPlacement(0, G4ThreeVector(0, 0, -greaseZ), grease_logV, "Grease", assembly_logV, true, 0, fCheckOverlaps);
+		
+		for(std::vector<G4PVPlacement*>::iterator iter = scintBody_physV.begin(); iter != scintBody_physV.end(); iter++){
+			new G4LogicalBorderSurface("GreaseInterface", (*iter), grease_physV[0], fGreaseOpticalSurface);
+			new G4LogicalBorderSurface("GreaseInterface", (*iter), grease_physV[1], fGreaseOpticalSurface);
+		}
+	}
 
+	G4PVPlacement *window_physV[2] = {NULL, NULL};
 	if(fWindowThickness > 0){ // The quartz window
+		G4double windowZ = currentOffsetZ + fGreaseThickness + fWindowThickness/2;
+	
 		G4Box* window_solidV = new G4Box("window_solidV", SiPM_dimension, SiPM_dimension, fWindowThickness/2);
 		G4LogicalVolume *window_logV = new G4LogicalVolume(window_solidV, fSiO2, "window_logV");
 		
 		window_logV->SetVisAttributes(window_VisAtt);
 	
-		new G4PVPlacement(0, G4ThreeVector(0, 0, windowZ), window_logV, "Quartz", assembly_logV, true, 0, fCheckOverlaps);
-		new G4PVPlacement(0, G4ThreeVector(0, 0, -windowZ), window_logV, "Quartz", assembly_logV, true, 0, fCheckOverlaps);
+		window_physV[0] = new G4PVPlacement(0, G4ThreeVector(0, 0, windowZ), window_logV, "Quartz", assembly_logV, true, 0, fCheckOverlaps);
+		window_physV[1] = new G4PVPlacement(0, G4ThreeVector(0, 0, -windowZ), window_logV, "Quartz", assembly_logV, true, 0, fCheckOverlaps);
+	}
+
+	// Build the wrapping.
+	if(fMylarThickness > 0 && wrappingThickness > 0){
+		G4Box *boundingBox = new G4Box("", SiPM_dimension, SiPM_dimension, wrappingThickness/2);
+		G4Box *wrappingBox = new G4Box("", SiPM_dimension + fMylarThickness, SiPM_dimension + fMylarThickness, wrappingThickness/2);
+		
+		G4SubtractionSolid *greaseWrapping = new G4SubtractionSolid("", wrappingBox, boundingBox);
+		G4LogicalVolume *greaseWrapping_logV = new G4LogicalVolume(greaseWrapping, getUserSurfaceMaterial(), "greaseWrapping_logV");
+		greaseWrapping_logV->SetVisAttributes(wrapping_VisAtt);
+		
+		G4double wrappingZ = currentOffsetZ + fGreaseThickness;
+		
+		// Place the wrapping around the scintillator.
+		G4PVPlacement *greaseWrapping_physV[2];
+		greaseWrapping_physV[0] = new G4PVPlacement(0, G4ThreeVector(0, 0, wrappingZ), greaseWrapping_logV, "Wrapping", assembly_logV, true, 0, fCheckOverlaps);		
+		greaseWrapping_physV[1] = new G4PVPlacement(0, G4ThreeVector(0, 0, -wrappingZ), greaseWrapping_logV, "Wrapping", assembly_logV, true, 0, fCheckOverlaps);
+		
+		if(grease_physV[0] && grease_physV[1]){
+			new G4LogicalBorderSurface("Wrapping", grease_physV[0], greaseWrapping_physV[0], getUserOpticalSurface());
+			new G4LogicalBorderSurface("Wrapping", grease_physV[1], greaseWrapping_physV[1], getUserOpticalSurface());
+		}
+		if(window_physV[0] && window_physV[1]){
+			new G4LogicalBorderSurface("Wrapping", window_physV[0], greaseWrapping_physV[0], getUserOpticalSurface());
+			new G4LogicalBorderSurface("Wrapping", window_physV[1], greaseWrapping_physV[1], getUserOpticalSurface());
+		}
 	}
 	
     // The photon sensitive surface
@@ -1084,7 +1158,7 @@ void nDetConstruction::applyGreaseLayer(const G4double &x, const G4double &y, do
 		thickness = fGreaseThickness;
     if(thickness > 0){
 	    G4Box *grease_solidV = new G4Box("grease", x/2, y/2, thickness/2);
-	    grease_logV = new G4LogicalVolume(grease_solidV, fGrease, "grease_logV");
+	    G4LogicalVolume *grease_logV = new G4LogicalVolume(grease_solidV, fGrease, "grease_logV");
 	    grease_logV->SetVisAttributes(grease_VisAtt);
 	
 	    new G4PVPlacement(0, G4ThreeVector(0, 0, currentOffsetZ+thickness/2), grease_logV, "Grease", assembly_logV, true, 0, fCheckOverlaps);

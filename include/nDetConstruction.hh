@@ -219,7 +219,6 @@ private:
 
     G4LogicalVolume* ej200_logV; // ej200 scintillator
     G4LogicalVolume* mylar_logV;
-    G4LogicalVolume* grease_logV;
     G4LogicalVolume* qwSiPM_logV;
     G4LogicalVolume* psSiPM_logV;
 
@@ -268,6 +267,7 @@ private:
     G4OpticalSurface* fMylarOpticalSurface;
     G4OpticalSurface* fEsrOpticalSurface;
 	G4OpticalSurface* fPerfectOpticalSurface;
+	G4OpticalSurface* fGreaseOpticalSurface;
 
     //Logical Skins
     G4LogicalSkinSurface* fWrapSkinSurface;
@@ -299,6 +299,9 @@ private:
 	G4ThreeVector shadowBarSize;
 	G4ThreeVector shadowBarPos;
 	G4Material *shadowBarMaterial;
+
+	// Optical grease placement.
+	std::vector<G4PVPlacement*> scintBody_physV;
 
 	// Deque of layers added by the user.
 	std::deque<userAddLayer> userLayers;
