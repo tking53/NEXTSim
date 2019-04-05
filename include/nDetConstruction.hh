@@ -260,6 +260,7 @@ private:
 	G4MaterialPropertiesTable* fMylarMPT;
 	G4MaterialPropertiesTable* fPerfectMPT;
 	G4MaterialPropertiesTable* fAluminumMPT;
+	G4MaterialPropertiesTable* fEsrMPT;
 
     //Optical Surfaces
     G4OpticalSurface* fTeflonOpticalSurface;

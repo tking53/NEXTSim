@@ -587,9 +587,20 @@ void nDetConstruction::DefineMaterials() {
 
     fMylarOpticalSurface = new G4OpticalSurface("MylarSurface");
 	fMylarOpticalSurface->SetType(dielectric_metal);
-	fMylarOpticalSurface->SetFinish(polishedfrontpainted);
+	fMylarOpticalSurface->SetFinish(polished); // dielectric_metal only allows polished or ground. Polished dielectric_metal uses only reflectivity or absorption.
 	fMylarOpticalSurface->SetModel(glisur);
 	fMylarOpticalSurface->SetMaterialPropertiesTable(fAluminumMPT);
+
+	// 100% reflectivity
+	double perfectEfficiency[3] = {0.0, 0.0, 0.0};
+	double perfectReflectivity[3] = {1.0, 1.0, 1.0};
+	
+	// ESR (98% reflectivity)
+	double esrReflectivity[3] = {0.98, 0.98, 0.98};
+    
+    fEsrMPT = new G4MaterialPropertiesTable();
+	fEsrMPT->AddProperty("EFFICIENCY", AlEnergies, perfectEfficiency, 3);
+	fEsrMPT->AddProperty("REFLECTIVITY", AlEnergies, esrReflectivity, 3);    
     
     // ESR film (built in look-up-table)
     fEsrOpticalSurface = new G4OpticalSurface("EsrSurface");
@@ -597,20 +608,15 @@ void nDetConstruction::DefineMaterials() {
     fEsrOpticalSurface->SetModel(LUT);    
     //fEsrOpticalSurface->SetFinish(polishedvm2000air);
     fEsrOpticalSurface->SetFinish(polishedvm2000glue);
-
-	//100% reflectivity
-	double perfectEfficiency[3] = {0.0, 0.0, 0.0};
-	double perfectReflectivity[3] = {1.0, 1.0, 1.0};
-	double perfectSpecularSpike[3] = {1.0, 1.0, 1.0};
+    fEsrOpticalSurface->SetMaterialPropertiesTable(fEsrMPT);
 
 	fPerfectMPT = new G4MaterialPropertiesTable();
 	fPerfectMPT->AddProperty("EFFICIENCY", AlEnergies, perfectEfficiency, 3);
 	fPerfectMPT->AddProperty("REFLECTIVITY", AlEnergies, perfectReflectivity, 3);
-	fPerfectMPT->AddProperty("SPECULARSPIKECONSTANT", AlEnergies, perfectSpecularSpike, 3);
 
 	fPerfectOpticalSurface = new G4OpticalSurface("PerfectReflector");
 	fPerfectOpticalSurface->SetType(dielectric_metal);
-	fPerfectOpticalSurface->SetFinish(polished);
+	fPerfectOpticalSurface->SetFinish(polished); // Polished dielectric_metal always uses specular spike reflection.
 	fPerfectOpticalSurface->SetModel(unified);
 	fPerfectOpticalSurface->SetMaterialPropertiesTable(fPerfectMPT);
 
