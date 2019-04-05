@@ -304,23 +304,17 @@ void nDetConstruction::DefineMaterials() {
     fTeflon->AddElement(fC,natoms=2);
     fTeflon->AddElement(fF,natoms=4);
 
+    G4double photonEnergy_teflon[9] = {1.607*eV, 1.743*eV, 1.908*eV, 2.108*eV, 2.354*eV, 2.664*eV, 3.070*eV, 3.621*eV, 4.413*eV};
+    G4double reflectivity_teflon[9] = {0.514, 0.583, 0.656, 0.727, 0.789, 0.836, 0.868, 0.887, 0.892}; // https://www.osti.gov/servlets/purl/1184400 (1 layer)
+    G4double efficiency_teflon[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+    G4double absorption_teflon[9] =  {0.333*cm, 0.333*cm, 0.333*cm, 0.333*cm, 0.333*cm, 0.333*cm, 0.333*cm, 0.333*cm, 0.333*cm};
+    G4double refIndex_teflon[9] = {1.315, 1.315, 1.315, 1.315, 1.315, 1.315, 1.315, 1.315, 1.315};
+    
     fTeflonMPT = new G4MaterialPropertiesTable();
-
-    const G4int nEntries_Teflon = 2;
-
-    G4double photonEnergy_teflon[nEntries_Teflon] = {2.*eV, 3.47*eV};
-    G4double refl_teflon[nEntries_Teflon] = {0.99, 0.99};
-    //G4double refl_teflon[nEntries_Teflon] = {0.5, 0.5};
-    G4double effi_teflon[nEntries_Teflon] = {0, 0};
-    G4double Absorption_Teflon[nEntries_Teflon] =  { 0.333 * cm ,0.333 * cm  };
-    G4double refractiveIndex_teflon[nEntries_Teflon] = {1.315, 1.315};
-    fTeflonMPT->AddProperty("REFLECTIVITY", photonEnergy_teflon, refl_teflon, nEntries_Teflon);
-    fTeflonMPT->AddProperty("EFFICIENCY", photonEnergy_teflon, effi_teflon, nEntries_Teflon);
-    fTeflonMPT->AddProperty("RINDEX", photonEnergy_teflon,refractiveIndex_teflon,nEntries_Teflon);
-    fTeflonMPT->AddProperty("ABSLENGTH", photonEnergy_teflon,Absorption_Teflon,nEntries_Teflon);
-
-    fTeflonMPT->DumpTable();
-
+    fTeflonMPT->AddProperty("REFLECTIVITY", photonEnergy_teflon, reflectivity_teflon, 9);
+    fTeflonMPT->AddProperty("EFFICIENCY", photonEnergy_teflon, efficiency_teflon, 9);
+    fTeflonMPT->AddProperty("RINDEX", photonEnergy_teflon, refIndex_teflon, 9);
+    fTeflonMPT->AddProperty("ABSLENGTH", photonEnergy_teflon, absorption_teflon, 9);
     fTeflon->SetMaterialPropertiesTable(fTeflonMPT);
 
 	/////////////////////////////////////////////////////////////////
@@ -594,6 +588,7 @@ void nDetConstruction::DefineMaterials() {
 	// 100% reflectivity
 	double perfectEfficiency[3] = {0.0, 0.0, 0.0};
 	double perfectReflectivity[3] = {1.0, 1.0, 1.0};
+	double perfectSpecularSpike[3] = {1.0, 1.0, 1.0};
 	
 	// ESR (98% reflectivity)
 	double esrReflectivity[3] = {0.98, 0.98, 0.98};
@@ -613,11 +608,12 @@ void nDetConstruction::DefineMaterials() {
 	fPerfectMPT = new G4MaterialPropertiesTable();
 	fPerfectMPT->AddProperty("EFFICIENCY", AlEnergies, perfectEfficiency, 3);
 	fPerfectMPT->AddProperty("REFLECTIVITY", AlEnergies, perfectReflectivity, 3);
+	fPerfectMPT->AddProperty("SPECULARSPIKECONSTANT", AlEnergies, perfectSpecularSpike, 3);
 
 	fPerfectOpticalSurface = new G4OpticalSurface("PerfectReflector");
 	fPerfectOpticalSurface->SetType(dielectric_metal);
-	fPerfectOpticalSurface->SetFinish(polished); // Polished dielectric_metal always uses specular spike reflection.
-	fPerfectOpticalSurface->SetModel(unified);
+	fPerfectOpticalSurface->SetFinish(polished);
+	fPerfectOpticalSurface->SetModel(glisur);
 	fPerfectOpticalSurface->SetMaterialPropertiesTable(fPerfectMPT);
 
     return;
@@ -1283,7 +1279,7 @@ G4Material *nDetConstruction::getUserSurfaceMaterial(){
     else if(wrappingMaterial == "silicon")
     	return fSil;
     else if(wrappingMaterial == "perfect")
-    	return fAluminum;
+    	return fMylar;
     
     return fMylar; // default
 }
