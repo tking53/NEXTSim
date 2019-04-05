@@ -538,13 +538,18 @@ void nDetConstruction::DefineMaterials() {
 	fAluminum->AddElement(fAl, 1);
 
 	double AlEnergies[3] = {2.0*eV, 3.0*eV, 4.0*eV};	                       
-	/*double rIndex[3] = { 0.86, 0.50, 0.28 };
-	double absLength[3] = { 1*mm, 1*mm, 1*mm};
+	double AlRefIndex[3] = {0.86, 0.50, 0.28};
+	double AlAbsLength[3] = {1*mm, 1*mm, 1*mm};
+
+	// H. EHRENREICH et al. Phys. Rev. 132, 5 (1963)
+	double aluminumEnergy[8] = {0.000*eV, 0.697*eV, 1.172*eV, 1.350*eV, 1.504*eV, 2.305*eV, 3.174*eV, 4.000*eV};
+	double aluminumReflectivity[8] = {1.000, 0.977, 0.950, 0.911, 0.869, 0.914, 0.921, 0.922};
 
 	fAluminumMPT = new G4MaterialPropertiesTable();
-	fAluminumMPT->AddProperty("RINDEX", AlEnergies, rIndex, 3);
-	fAluminumMPT->AddProperty("ABSLENGTH", AlEnergies, absLength, 3);
-	fAluminum->SetMaterialPropertiesTable(fAluminumMPT);*/
+	fAluminumMPT->AddProperty("RINDEX", AlEnergies, AlRefIndex, 3);
+	fAluminumMPT->AddProperty("ABSLENGTH", AlEnergies, AlAbsLength, 3);
+	fAluminumMPT->AddProperty("REFLECTIVITY", aluminumEnergy, aluminumReflectivity, 8);
+	fAluminum->SetMaterialPropertiesTable(fAluminumMPT);
 
 	/////////////////////////////////////////////////////////////////
 	// Optical Surfaces
@@ -569,22 +574,22 @@ void nDetConstruction::DefineMaterials() {
     G4Material *Al = nist.searchForMaterial("G4_Al");
     G4Material *Mylar = nist.searchForMaterial("G4_MYLAR");
 
-    fMylar=new G4Material("AluminizedMylar",density=1.39*g/cm3,ncomponents=2);
-    fMylar->AddMaterial(Mylar,0.8);
-    fMylar->AddMaterial(Al,0.2);
+    fMylar = new G4Material("AluminizedMylar",density=1.39*g/cm3,ncomponents=2);
+    fMylar->AddMaterial(Mylar, 0.8);
+    fMylar->AddMaterial(Al, 0.2);
 
-    G4double RefractiveReal_Mylar[5] = {0.81257,0.72122,0.63324,0.55571,0.48787};
-    G4double RefractiveImg_Mylar[5] = {6.0481,5.7556,5.4544,5.1464,4.8355};
+    //G4double RefractiveReal_Mylar[5] = {0.81257,0.72122,0.63324,0.55571,0.48787};
+    //G4double RefractiveImg_Mylar[5] = {6.0481,5.7556,5.4544,5.1464,4.8355};
 
-	fMylarMPT = new G4MaterialPropertiesTable();
-	fMylarMPT->AddProperty("REALRINDEX", PhotonEnergy, RefractiveReal_Mylar, 5);
-	fMylarMPT->AddProperty("IMAGINARYRINDEX", PhotonEnergy, RefractiveImg_Mylar, 5);
+	//fMylarMPT = new G4MaterialPropertiesTable();
+	//fMylarMPT->AddProperty("REALRINDEX", PhotonEnergy, RefractiveReal_Mylar, 5);
+	//fMylarMPT->AddProperty("IMAGINARYRINDEX", PhotonEnergy, RefractiveImg_Mylar, 5);
 
     fMylarOpticalSurface = new G4OpticalSurface("MylarSurface");
 	fMylarOpticalSurface->SetType(dielectric_metal);
-	fMylarOpticalSurface->SetFinish(polished);
+	fMylarOpticalSurface->SetFinish(polishedfrontpainted);
 	fMylarOpticalSurface->SetModel(glisur);
-	fMylarOpticalSurface->SetMaterialPropertiesTable(fMylarMPT);
+	fMylarOpticalSurface->SetMaterialPropertiesTable(fAluminumMPT);
     
     // ESR film (built in look-up-table)
     fEsrOpticalSurface = new G4OpticalSurface("EsrSurface");
@@ -933,7 +938,7 @@ void nDetConstruction::buildRectangle(){
     G4LogicalVolume *plateBody_logV = new G4LogicalVolume(plateBody, getUserDetectorMaterial(), "plateBody_logV");
     plateBody_logV->SetVisAttributes(scint_VisAtt);
 
-	// Add some bubbles (for testing).
+	/*// Add some bubbles (for testing).
 	G4Sphere *bubble = new G4Sphere("", 0, 1.5*mm, 0, 360*deg, 0, 360*deg);
 	
 	//G4SubtractionSolid *bubblePlate = new G4SubtractionSolid("", plateBody, bubble);
@@ -947,11 +952,11 @@ void nDetConstruction::buildRectangle(){
 		else
 			bubblePlate = new G4SubtractionSolid("", plateBody, bubble, 0, G4ThreeVector(x, y, z));
 	}
-	G4LogicalVolume *bubble_logV = new G4LogicalVolume(bubblePlate, getUserDetectorMaterial(), "bubble_logV");
+	G4LogicalVolume *bubble_logV = new G4LogicalVolume(bubblePlate, getUserDetectorMaterial(), "bubble_logV");*/
 
 	// Place the scintillator inside the assembly.
-	//G4PVPlacement *plateBody_physV = new G4PVPlacement(0, G4ThreeVector(0, 0, 0), plateBody_logV, "Scint", assembly_logV, true, 0, fCheckOverlaps);
-	G4PVPlacement *plateBody_physV = new G4PVPlacement(0, G4ThreeVector(0, 0, 0), bubble_logV, "Scint", assembly_logV, true, 0, fCheckOverlaps);
+	G4PVPlacement *plateBody_physV = new G4PVPlacement(0, G4ThreeVector(0, 0, 0), plateBody_logV, "Scint", assembly_logV, true, 0, fCheckOverlaps);
+	//G4PVPlacement *plateBody_physV = new G4PVPlacement(0, G4ThreeVector(0, 0, 0), bubble_logV, "Scint", assembly_logV, true, 0, fCheckOverlaps);
 
 	// Build the wrapping.
 	G4PVPlacement *plateWrapping_physV = NULL;
