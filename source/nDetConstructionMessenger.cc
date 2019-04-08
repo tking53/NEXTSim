@@ -113,6 +113,10 @@ void nDetConstructionMessenger::addAllCommands(){
 	
 	addCommand(new G4UIcmdWithADouble("/nDet/detector/setWindowThickness", this));
 	addGuidance("Defines the thickness of the pspmt quartz window in mm (0 for no window)");
+
+	addCommand(new G4UIcmdWithAString("/nDet/detector/setPolished", this));
+	addGuidance("Enable or disable polished optical grease faces (disabled by default)");
+	addCandidates("true false");
 }
 
 void nDetConstructionMessenger::SetNewValue(G4UIcommand* command, G4String newValue){
@@ -230,5 +234,8 @@ void nDetConstructionMessenger::SetNewValue(G4UIcommand* command, G4String newVa
 	else if(index == 30) {
 		G4double val = command->ConvertToDouble(newValue);
 		fDetector->SetWindowThickness(val*mm);
+	}
+	else if(index == 31){
+		fDetector->SetPolishedInterface((newValue == "true") ? true : false);
 	}
 }

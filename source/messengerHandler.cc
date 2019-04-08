@@ -71,7 +71,7 @@ void messengerHandler::write(TDirectory *dir){
 	dir->cd();
 	for(size_t i = 0; i < size; i++){
 		if(fCmdCalled[i]){ // Write the command to the output file.
-			std::string output = fCmd[i]->GetCommandPath() + fCmdArg[i];
+			std::string output = fCmd[i]->GetCommandPath() + " " + fCmdArg[i];
 			std::string cmd = fCmd[i]->GetCommandPath();
 			size_t index = cmd.find_last_of('/');
 			if(index != std::string::npos){

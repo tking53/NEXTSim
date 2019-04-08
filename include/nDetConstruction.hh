@@ -104,6 +104,8 @@ class nDetConstruction : public G4VUserDetectorConstruction
 	void SetShadowBarPosition(const G4ThreeVector &pos);
 
 	bool SetShadowBarMaterial(const G4String &material);
+	
+	void SetPolishedInterface(const bool &state){ fPolishedInterface = state; }
 
 	G4double GetDetectorLength() const { return fDetectorLength; }
 	
@@ -210,6 +212,7 @@ private:
 
     centerOfMass center[2];
 
+	G4bool fPolishedInterface;
     G4bool fCheckOverlaps;
     G4String fGeometry;
 

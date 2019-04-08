@@ -85,6 +85,7 @@ nDetConstruction::nDetConstruction(const G4double &scale/*=1*/){
 	wrappingMaterial="mylar";
 
     fCheckOverlaps = false;
+    fPolishedInterface = true;
     fTeflonThickness = 0.11*mm;
     fMylarThickness = 0;
     fGreaseThickness = 0.1*mm;
@@ -689,9 +690,6 @@ void nDetConstruction::Clear(){
 	//solids.clear(); // Why are these here? CRT
 	//userLayers.clear(); // Why are these here? CRT
 
-	// Clear all scintillator placements.
-	scintBody_physV.clear();
-
     center[0].clear();
     center[1].clear();
 }
@@ -1055,10 +1053,15 @@ void nDetConstruction::constructPSPmts(){
 		grease_physV[0] = new G4PVPlacement(0, G4ThreeVector(0, 0, greaseZ), grease_logV, "Grease", assembly_logV, true, 0, fCheckOverlaps);
 		grease_physV[1] = new G4PVPlacement(0, G4ThreeVector(0, 0, -greaseZ), grease_logV, "Grease", assembly_logV, true, 0, fCheckOverlaps);
 		
-		for(std::vector<G4PVPlacement*>::iterator iter = scintBody_physV.begin(); iter != scintBody_physV.end(); iter++){
-			new G4LogicalBorderSurface("GreaseInterface", (*iter), grease_physV[0], fGreaseOpticalSurface);
-			new G4LogicalBorderSurface("GreaseInterface", (*iter), grease_physV[1], fGreaseOpticalSurface);
+		if(!fPolishedInterface){
+			for(std::vector<G4PVPlacement*>::iterator iter = scintBody_physV.begin(); iter != scintBody_physV.end(); iter++){
+				new G4LogicalBorderSurface("GreaseInterface", (*iter), grease_physV[0], fGreaseOpticalSurface);
+				new G4LogicalBorderSurface("GreaseInterface", (*iter), grease_physV[1], fGreaseOpticalSurface);
+			}
 		}
+		
+		// Clear all scintillator placements.
+		scintBody_physV.clear();
 	}
 
 	G4PVPlacement *window_physV[2] = {NULL, NULL};
