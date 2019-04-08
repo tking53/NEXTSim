@@ -83,30 +83,36 @@ void messengerHandler::write(TDirectory *dir){
 	}		
 }
 
-bool messengerHandler::searchForString(const std::string &str, std::vector<std::string> &matches, bool color/*=false*/) const {
+bool messengerHandler::searchForString(const std::string &str, std::vector<cmdSearchPair> &matches) const {
 	bool retval = false;
 	for(size_t i = 0; i < size; i++){
 		std::string path = fCmd[i]->GetCommandPath();
 		if(path.find(str) != std::string::npos){
-			if(color){
-				size_t findIndex = path.find(str);
-				if(findIndex != std::string::npos)
-					path.replace(findIndex, str.length(), (ansiColorGreen+str+ansiColorReset));
-			}
-			/*bool matchInList = false;
-			for(std::vector<std::string>::iterator iter = matches.begin(); iter != matches.end(); iter++){
-				if((*iter) == path){
+			size_t findIndex = path.find(str);
+			if(findIndex != std::string::npos)
+				path.replace(findIndex, str.length(), (ansiColorGreen+str+ansiColorReset));
+			bool matchInList = false;
+			cmdSearchPair currMatch(fCmd[i], fCmd[i]->GetCommandPath(), path);
+			for(std::vector<cmdSearchPair>::iterator iter = matches.begin(); iter != matches.end(); iter++){ // Check for duplicates.
+				if((*iter) == currMatch){
 					matchInList = true;
 					break;
 				}
 			}
-			if(!matchInList)*/
-				matches.push_back(path);
+			if(!matchInList)
+				matches.push_back(currMatch);
 			retval = true;
 		}
 	}
 	
 	return retval;
+}
+
+void messengerHandler::getAllCommands(std::vector<cmdSearchPair> &commands) const {
+	commands.clear();
+	for(size_t i = 0; i < size; i++){
+		commands.push_back(cmdSearchPair(fCmd[i], fCmd[i]->GetCommandPath(), ""));
+	}	
 }
 
 void messengerHandler::printAllCommands() const {

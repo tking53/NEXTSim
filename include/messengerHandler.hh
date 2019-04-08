@@ -25,6 +25,23 @@ unsigned int split_str(std::string str, std::vector<std::string> &args, char del
 // class messengerHandler
 ///////////////////////////////////////////////////////////////////////////////
 
+class cmdSearchPair{
+  public:
+	G4UIcommand *command;
+	std::string unformatted;
+	std::string formatted;
+  
+	cmdSearchPair() : command(NULL) { }
+	
+	cmdSearchPair(G4UIcommand *cmd, const std::string &str1, const std::string &str2) : command(cmd), unformatted(str1), formatted(str2) { }
+	
+	bool operator == (const cmdSearchPair &other) const { return (this->command == other.command); }
+};
+
+///////////////////////////////////////////////////////////////////////////////
+// class messengerHandler
+///////////////////////////////////////////////////////////////////////////////
+
 class messengerHandler : public G4UImessenger {
   public:
 	messengerHandler();
@@ -41,7 +58,9 @@ class messengerHandler : public G4UImessenger {
 	
 	std::string getName() const { return name; }
     
-	bool searchForString(const std::string &str, std::vector<std::string> &matches, bool color=false) const ;
+	bool searchForString(const std::string &str, std::vector<cmdSearchPair> &matches) const ;
+	
+	void getAllCommands(std::vector<cmdSearchPair> &commands) const ;
 	
 	void printAllCommands() const ;
 
