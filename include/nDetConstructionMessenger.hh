@@ -1,7 +1,3 @@
-//
-// Created by David Pérez Loureiro on 1/31/17.
-//
-
 #ifndef NDETCONSTRUCTIONMESSENGER_HH
 #define NDETCONSTRUCTIONMESSENGER_HH
 
@@ -14,13 +10,16 @@ class nDetConstruction;
 
 class nDetConstructionMessenger : public messengerHandler {
   public:
-	//Constructor
-	nDetConstructionMessenger(nDetConstruction* detector);
+	nDetConstructionMessenger() : messengerHandler("nDetConstructionMessenger"), fDetector(NULL) { addAllCommands(); }
 	
-	void SetNewValue(G4UIcommand* command, G4String newValue);
+	nDetConstructionMessenger(nDetConstruction* detector) : messengerHandler("nDetConstructionMessenger"), fDetector(detector) { addAllCommands(); }
+	
+	virtual void SetNewValue(G4UIcommand* command, G4String newValue);
 
   private:
-    nDetConstruction *fDetector;
+	nDetConstruction *fDetector;
+	
+	void addAllCommands();
 };
 
 #endif //NDETCONSTRUCTIONMESSENGER_HH

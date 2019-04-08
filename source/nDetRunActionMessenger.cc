@@ -12,7 +12,7 @@
 #include "G4UIdirectory.hh"
 #include "G4UIcommand.hh"
 
-nDetRunActionMessenger::nDetRunActionMessenger(nDetRunAction *action) : messengerHandler(), fAction(action) {
+void nDetRunActionMessenger::addAllCommands(){
 	addDirectory("/nDet/output/", "Output file control");
 	addDirectory("/nDet/output/trace/", "Output light pulse parameters");
 

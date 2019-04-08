@@ -6,6 +6,9 @@
 
 #include "messengerHandler.hh"
 
+const std::string ansiColorGreen = "\x1b[32m";
+const std::string ansiColorReset = "\x1b[0m";
+
 /**Split a string on the delimiter character populating the vector args with 
  * any substrings formed. Returns the number of substrings found.
  *	
@@ -49,6 +52,12 @@ unsigned int split_str(std::string str, std::vector<std::string> &args, char del
 // class messengerHandler
 ///////////////////////////////////////////////////////////////////////////////
 
+messengerHandler::messengerHandler() : G4UImessenger(), name(), size(0) { 
+}
+
+messengerHandler::messengerHandler(const std::string &name_) : G4UImessenger(), name(name_), size(0) { 
+}
+
 messengerHandler::~messengerHandler(){
 	for(std::vector<G4UIdirectory*>::iterator iter = fDir.begin(); iter != fDir.end(); iter++){
 		delete (*iter);
@@ -62,7 +71,7 @@ void messengerHandler::write(TDirectory *dir){
 	dir->cd();
 	for(size_t i = 0; i < size; i++){
 		if(fCmdCalled[i]){ // Write the command to the output file.
-			std::string output = fCmd[i]->GetCommandPath() + " " + fCmdString[i];
+			std::string output = fCmd[i]->GetCommandPath() + fCmdArg[i];
 			std::string cmd = fCmd[i]->GetCommandPath();
 			size_t index = cmd.find_last_of('/');
 			if(index != std::string::npos){
@@ -74,6 +83,38 @@ void messengerHandler::write(TDirectory *dir){
 	}		
 }
 
+bool messengerHandler::searchForString(const std::string &str, std::vector<std::string> &matches, bool color/*=false*/) const {
+	bool retval = false;
+	for(size_t i = 0; i < size; i++){
+		std::string path = fCmd[i]->GetCommandPath();
+		if(path.find(str) != std::string::npos){
+			if(color){
+				size_t findIndex = path.find(str);
+				if(findIndex != std::string::npos)
+					path.replace(findIndex, str.length(), (ansiColorGreen+str+ansiColorReset));
+			}
+			/*bool matchInList = false;
+			for(std::vector<std::string>::iterator iter = matches.begin(); iter != matches.end(); iter++){
+				if((*iter) == path){
+					matchInList = true;
+					break;
+				}
+			}
+			if(!matchInList)*/
+				matches.push_back(path);
+			retval = true;
+		}
+	}
+	
+	return retval;
+}
+
+void messengerHandler::printAllCommands() const {
+	for(size_t i = 0; i < size; i++){
+		std::cout << " " << fCmd[i]->GetCommandPath() << std::endl;
+	}
+}
+
 void messengerHandler::addDirectory(const std::string &str, const std::string &guidance/*=""*/){
 	fDir.push_back(new G4UIdirectory(str.c_str()));
 	if(!guidance.empty())
@@ -83,7 +124,7 @@ void messengerHandler::addDirectory(const std::string &str, const std::string &g
 void messengerHandler::addCommand(G4UIcommand* cmd){
 	fCmd.push_back(cmd);
 	fCmdCalled.push_back(false);
-	fCmdString.push_back(std::string());
+	fCmdArg.push_back("");
 	size++;
 }
 
@@ -100,9 +141,9 @@ bool messengerHandler::findCommand(G4UIcommand *cmd, const std::string &str, siz
 		if(cmd == fCmd[i]){
 			index = i;
 			fCmdCalled[i] = true;
-			fCmdString[i] = str;
+			fCmdArg[i] = str;
 			if(verbose)
-				std::cout << "User Command: " << fCmd[i]->GetCommandPath() << " \"" << fCmdString[i] << "\"\n";
+				std::cout << "User Command: " << fCmd[i]->GetCommandPath() << " \"" << str << "\"\n";
 			return true;
 		}
 	}	

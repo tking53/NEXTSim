@@ -85,6 +85,7 @@ add_subdirectory(source)
 if(BUILD_TOOLS)
 	option(BUILD_TOOLS_NISTLIST "Build NIST library list program." OFF)
 	option(BUILD_TOOLS_CONVERTER "Build nextSim to simpleScan output converter." OFF)
+	option(BUILD_TOOLS_CMDSEARCH "Build nextSim macro command search program." OFF)
 	add_subdirectory(tools)
 endif()
 

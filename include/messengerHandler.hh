@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include <iostream>
 
 #include "G4UImessenger.hh"
 
@@ -26,13 +27,23 @@ unsigned int split_str(std::string str, std::vector<std::string> &args, char del
 
 class messengerHandler : public G4UImessenger {
   public:
-	messengerHandler() : G4UImessenger(), size(0) { }
+	messengerHandler();
+
+	messengerHandler(const std::string &name_);
 	
 	virtual ~messengerHandler();
 	
 	virtual void write(TDirectory*);
 
     virtual void SetNewValue(G4UIcommand*, G4String){ }
+
+	size_t getSize() const { return size; }
+	
+	std::string getName() const { return name; }
+    
+	bool searchForString(const std::string &str, std::vector<std::string> &matches, bool color=false) const ;
+	
+	void printAllCommands() const ;
 
   protected:
 	/// Create a new directory.
@@ -60,7 +71,9 @@ class messengerHandler : public G4UImessenger {
 	
 	std::vector<bool> fCmdCalled;
 	
-	std::vector<std::string> fCmdString;
+	std::vector<std::string> fCmdArg;
+	
+	std::string name;
 	
 	size_t size;
 };

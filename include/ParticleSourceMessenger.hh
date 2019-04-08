@@ -6,12 +6,16 @@
 
 class ParticleSourceMessenger: public messengerHandler {
   public:
-    ParticleSourceMessenger(ParticleSource* Gun);
-    
-    void SetNewValue(G4UIcommand* command, G4String newValue);
-    
+	ParticleSourceMessenger() : messengerHandler("particleSourceMessenger"), fAction(NULL) { addAllCommands(); }
+
+	ParticleSourceMessenger(ParticleSource* Gun) : messengerHandler("particleSourceMessenger"), fAction(Gun) { addAllCommands(); }
+	
+	virtual void SetNewValue(G4UIcommand* command, G4String newValue);
+
   private:
-    ParticleSource* fAction;
+	ParticleSource* fAction;
+	
+	void addAllCommands();
 };
 
 #endif

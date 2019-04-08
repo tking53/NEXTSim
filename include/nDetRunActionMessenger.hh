@@ -1,7 +1,3 @@
-//
-// Created by David Pérez Loureiro on 3/31/17.
-//
-
 #ifndef NDETRUNACTIONMESSENGER_HH
 #define NDETRUNACTIONMESSENGER_HH
 
@@ -13,14 +9,18 @@
 class nDetRunAction;
 
 class nDetRunActionMessenger: public messengerHandler {
+  public:
+	nDetRunActionMessenger() : messengerHandler("nDetRunActionMessenger"), fAction(NULL) { addAllCommands(); }
 
-public:
-    nDetRunActionMessenger(nDetRunAction *action);
-    
-    virtual void SetNewValue(G4UIcommand *command, G4String newValue);
+	nDetRunActionMessenger(nDetRunAction *action) : messengerHandler("nDetRunActionMessenger"), fAction(action) { addAllCommands(); }
+	
+	virtual void SetNewValue(G4UIcommand *command, G4String newValue);
 
-private:
-    nDetRunAction *fAction;
+  private:
+	nDetRunAction *fAction;
+	
+	
+	void addAllCommands();
 };
 
 

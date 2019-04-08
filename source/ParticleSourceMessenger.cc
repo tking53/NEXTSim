@@ -8,7 +8,7 @@
 #include "G4UIcmdWithAString.hh"
 #include "G4UIcmdWith3Vector.hh"
 
-ParticleSourceMessenger::ParticleSourceMessenger(ParticleSource* Gun) : fAction(Gun){
+void ParticleSourceMessenger::addAllCommands(){
 	addDirectory("/nDet/source/", "Particle Source Control");
 	
 	addCommand(new G4UIcmdWithoutParameter("/nDet/source/sample", this)); // test function

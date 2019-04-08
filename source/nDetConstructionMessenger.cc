@@ -14,7 +14,7 @@
 #include "G4UIcmdWithAnInteger.hh"
 #include "G4SystemOfUnits.hh"
 
-nDetConstructionMessenger::nDetConstructionMessenger(nDetConstruction* detector) : messengerHandler(), fDetector(detector) {
+void nDetConstructionMessenger::addAllCommands(){
 	addDirectory("/nDet/detector/", "Detector geometry control");
 
 	addCommand(new G4UIcmdWithAString("/nDet/detector/setGeometry", this));
