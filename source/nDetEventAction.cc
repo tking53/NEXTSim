@@ -21,7 +21,7 @@
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
  
-nDetEventAction::nDetEventAction(nDetRunAction* run) : runAct(run), timer(new G4Timer), previousTime(0), totalTime(0), totalEvents(0), numPhotons(0), numPhotonsDet(0) { }
+nDetEventAction::nDetEventAction(nDetRunAction* run) : runAct(run), timer(new G4Timer), previousTime(0), totalTime(0), totalEvents(0), displayTimeInterval(10), numPhotons(0), numPhotonsDet(0) { }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
  
@@ -43,7 +43,7 @@ void nDetEventAction::BeginOfEventAction(const G4Event* evt){
   if(eventID != 0){
     timer->Stop();
     totalTime += timer->GetRealElapsed();
-    if(totalTime - previousTime >= 10){ // Display every 10 seconds.
+    if(displayTimeInterval > 0 && (totalTime - previousTime) >= displayTimeInterval){ // Display every 10 seconds.
       std::cout << "Event ID: " << eventID << ", TIME=" << totalTime << " s";
       avgTimePerEvent = totalTime/eventID;
       avgTimePerPhoton = totalTime/numPhotons;

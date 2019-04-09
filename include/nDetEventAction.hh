@@ -36,6 +36,8 @@ class nDetEventAction : public G4UserEventAction
     
     void SetTotalEvents(const G4long &events){ totalEvents = events; }
 
+	void SetDisplayTimeInterval(const int &interval){ displayTimeInterval = interval; }
+
     G4double GetTimeElapsed();
 
   private:
@@ -47,6 +49,8 @@ class nDetEventAction : public G4UserEventAction
     G4double totalTime;
     
     G4long totalEvents;
+    
+    int displayTimeInterval; // In seconds.
     
     unsigned long long numPhotons;
     unsigned long long numPhotonsDet;
