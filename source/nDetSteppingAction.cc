@@ -28,8 +28,6 @@
 #include "nDetRunAction.hh"
 #include "nDetEventAction.hh"
 
-#define DEBUG 0
-
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 nDetSteppingAction::nDetSteppingAction(nDetConstruction* det, nDetRunAction* runAct, nDetEventAction* evtAct) : detector(det), runAction(runAct), evtAction(evtAct)
@@ -64,8 +62,8 @@ void nDetSteppingAction::UserSteppingAction(const G4Step* aStep)
 		}
 		else
 			runAction->scatterNeutron(aStep);
-	}	
-	else if(track->GetTrackID() == 1 && aStep->GetPreStepPoint()->GetPhysicalVolume()->GetName().find("Scint") != std::string::npos){ // Enter the material.
+	}
+	else if(track->GetTrackID() == 1){ // This is a primary particle scatter event.
 		runAction->initializeNeutron(aStep);
 		neutronTrack = true;
 	}

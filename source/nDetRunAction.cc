@@ -35,6 +35,8 @@ double dotProduct(const G4ThreeVector &v1, const G4ThreeVector &v2){
 
 primaryTrackInfo::primaryTrackInfo(const G4Step *step){
 	this->setValues(step->GetTrack());
+	if(step->GetPreStepPoint()->GetPhysicalVolume()->GetName().find("Scint") != std::string::npos) // Scatter event occured inside a scintillator.
+		inScint = true;
 	dkE = -1*step->GetDeltaEnergy();
 }
 
@@ -80,6 +82,7 @@ void primaryTrackInfo::setValues(const G4Track *track){
 	copyNum = track->GetTouchable()->GetCopyNumber();
 	trackID = track->GetTrackID();
 	atomicMass = part->GetAtomicMass();
+	inScint = false;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -288,6 +291,7 @@ bool nDetRunAction::openRootFile(const G4Run* aRun)
 		fTree->Branch("segmentRow", &segmentRow);
 		fTree->Branch("photonsProd", &Nphotons);
 		fTree->Branch("recoilMass", &recoilMass);
+		fTree->Branch("nScatterScint", &nScatterScint);
 	}
 	
 	fTree->Branch("lightBalance", &photonLightBalance);
@@ -531,6 +535,7 @@ void nDetRunAction::vectorClear(){
 	segmentRow.clear();
 	Nphotons.clear();
 	recoilMass.clear();
+	nScatterScint.clear();
 
 	lightPulseL.clear();
 	lightPulseR.clear();
@@ -618,6 +623,7 @@ bool nDetRunAction::scatterEvent(){
 		nPathLength.push_back(priTrack->plength);
 		scatterTime.push_back(priTrack->gtime - incidentTime);
 		recoilMass.push_back(priTrack->atomicMass); 
+		nScatterScint.push_back(priTrack->inScint);
 
 		G4int segCol, segRow;
 		detector->GetSegmentFromCopyNum(priTrack->copyNum, segCol, segRow);

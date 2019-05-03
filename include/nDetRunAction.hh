@@ -47,6 +47,8 @@ class primaryTrackInfo{
 	G4int copyNum;
 	G4int trackID;
 	G4int atomicMass;
+	
+	G4bool inScint;
 
     const G4ParticleDefinition *part;
     
@@ -107,6 +109,7 @@ class nDetRunAction : public G4UserRunAction
     std::vector<short> segmentRow;
     std::vector<short> Nphotons;
     std::vector<short> recoilMass;
+	std::vector<bool> nScatterScint;
 
     // Normal photon output.
     double photonDetEfficiency;
@@ -145,7 +148,7 @@ class nDetRunAction : public G4UserRunAction
 	double neutronCenterOfMass[3];
 	double neutronWeight;
 	double detSpeedLight;
-    
+	
     nDetRunAction(nDetConstruction *det);
     
     virtual ~nDetRunAction();
