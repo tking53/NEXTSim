@@ -88,17 +88,15 @@ void spectralResponse::close(){
 // class pmtResponse
 ///////////////////////////////////////////////////////////////////////////////
 
-pmtResponse::pmtResponse() : risetime(4.0), falltime(20.0), timeSpread(0), amplitude(0), peakOffset(0), peakMaximum(0), traceDelay(50), gain(1E4),
+pmtResponse::pmtResponse() : risetime(4.0), falltime(20.0), timeSpread(0), traceDelay(50), gain(1E4),
                              maximum(-9999), baseline(-9999), maxIndex(0), adcBins(4096), pulseLength(100), isDigitized(false), useSpectralResponse(false), 
-                             pulseIsSaturated(false), rawPulse(NULL), pulseArray(NULL), spec(), minimumArrivalTime(0) {
-	this->update();
+                             pulseIsSaturated(false), rawPulse(NULL), pulseArray(NULL), spec(), minimumArrivalTime(0), functionType(0) {
 	this->setPulseLength(pulseLength);
 }
 
-pmtResponse::pmtResponse(const double &risetime_, const double &falltime_) : risetime(risetime_), falltime(falltime_), timeSpread(0), amplitude(0), peakOffset(0), peakMaximum(0), traceDelay(50), gain(1E4),
+pmtResponse::pmtResponse(const double &risetime_, const double &falltime_) : risetime(risetime_), falltime(falltime_), timeSpread(0), traceDelay(50), gain(1E4),
                                                                              maximum(-9999), baseline(-9999), maxIndex(0), adcBins(4096), pulseLength(100), isDigitized(false), useSpectralResponse(false), 
-                                                                             pulseIsSaturated(false), rawPulse(NULL), pulseArray(NULL), spec(), minimumArrivalTime(0) {
-	this->update();
+                                                                             pulseIsSaturated(false), rawPulse(NULL), pulseArray(NULL), spec(), minimumArrivalTime(0), functionType(0) {
 	this->setPulseLength(pulseLength);
 }
 
@@ -123,12 +121,10 @@ double pmtResponse::getWeightedPhotonArrivalTime() const {
 
 void pmtResponse::setRisetime(const double &risetime_){ 
 	risetime = risetime_; 
-	update();
 }
 
 void pmtResponse::setFalltime(const double &falltime_){ 
 	falltime = falltime_; 
-	update();
 }
 
 /// Set the length of the pulse in ADC bins.
@@ -350,9 +346,6 @@ void pmtResponse::print(){
 	std::cout << " pmtResponse-\n";
 	std::cout << "  risetime    " << risetime << " ns" << std::endl;
 	std::cout << "  falltime    " << falltime << " ns" <<  std::endl;
-	std::cout << "  amplitude   " << amplitude << std::endl;
-	std::cout << "  peakOffset  " << peakOffset << " ns" <<  std::endl;
-	std::cout << "  peakMaximum " << peakMaximum << std::endl;
 	std::cout << "  gain        " << gain << std::endl;
 }
 
@@ -423,15 +416,16 @@ double pmtResponse::calculateP3(const short &x, unsigned short *y, double *p, do
 	return (p[0] + p[1]*xmax + p[2]*xmax*xmax + p[3]*xmax*xmax*xmax);
 }
 
-void pmtResponse::update(){
-	amplitude = 1/(falltime-risetime);
-	peakOffset = std::log(risetime/falltime)/((1/falltime)-(1/risetime));
-	peakMaximum = eval(peakOffset);
-}
-
 double pmtResponse::eval(const double &t, const double &dt/*=0*/){
-	if(t-dt <= 0) return 0;
-	return gain*amplitude*(std::exp(-(t-dt)/falltime)-std::exp(-(t-dt)/risetime));
+	if(functionType == 0){ // Standard single photon response function.
+		if(t-dt <= 0) return 0;
+		return gain*(1/(falltime-risetime))*(std::exp(-(t-dt)/falltime)-std::exp(-(t-dt)/risetime));
+	}
+	else if(functionType == 1){ // "Vandle" function. The risetime is BETA and the decay time is GAMMA.
+		if(t-dt <= 0) return 0;
+		return (100*gain*std::exp((dt-t)*risetime)*(1 - std::exp(-std::pow((t-dt)*falltime,4))));
+	}
+	return 0;
 }
 
 double pmtResponse::findMaximum(){

@@ -97,6 +97,9 @@ class pmtResponse{
 	/// Set the dynamic bit range of the ADC.
 	void setBitRange(const size_t &len);
 
+	/// Set the single photon response function type.
+	void setFunctionType(const int &type){ functionType = type; }
+
 	/// Disable use of PMT spectral response function.
 	void disableSpectralResponse(){ useSpectralResponse = false; }
 
@@ -159,9 +162,6 @@ class pmtResponse{
 	double risetime;
 	double falltime;
 	double timeSpread;
-	double amplitude;
-	double peakOffset;
-	double peakMaximum;
 	double traceDelay;
 	double gain;
 
@@ -187,10 +187,10 @@ class pmtResponse{
 
 	double minimumArrivalTime;
 
+	int functionType;
+
 	std::vector<double> arrivalTimes;
 	std::vector<double> photonWeights;
-	
-	void update();
 	
 	double eval(const double &t, const double &dt=0);
 	

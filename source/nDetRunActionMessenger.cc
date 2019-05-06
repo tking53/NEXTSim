@@ -77,6 +77,9 @@ void nDetRunActionMessenger::addAllCommands(){
 	addCommand(new G4UIcmdWithAnInteger("/nDet/output/trace/setBitRange", this));
 	addGuidance("Set the ADC dynamic bit range");
 
+	addCommand(new G4UIcmdWithAnInteger("/nDet/output/trace/setFunction", this));
+	addGuidance("Set the single photon response function (default=0)");
+
 	addCommand(new G4UIcmdWithAString("/nDet/output/debug", this));
 	addGuidance("Enable or disable writing of detailed debug information to output file");
 	addCandidates("true false");
@@ -171,9 +174,14 @@ void nDetRunActionMessenger::SetNewValue(G4UIcommand *command, G4String newValue
 		prR->setBitRange(val);
 	}
 	else if(index == 19){
-		fAction->setOutputDebug((newValue == "true") ? true : false);
+		G4int val = command->ConvertToInt(newValue);
+		prL->setFunctionType(val);
+		prR->setFunctionType(val);
 	}
 	else if(index == 20){
+		fAction->setOutputDebug((newValue == "true") ? true : false);
+	}
+	else if(index == 21){
 		fAction->setOutputBadEvents((newValue == "true") ? true : false);
 	}
 }
