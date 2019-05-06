@@ -6,22 +6,9 @@
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-#include <vector>
-
 #include "G4Step.hh"
-#include "G4OpBoundaryProcess.hh"
-#include "G4OpAbsorption.hh"
-#include "G4ProcessManager.hh"
-#include "G4SDManager.hh"
-#include "G4UnitsTable.hh"
-#include "G4VUserPrimaryGeneratorAction.hh"
 #include "G4ParticleDefinition.hh"
-#include "G4Alpha.hh"
-#include "G4Electron.hh"
-#include "G4Gamma.hh"
-#include "G4Neutron.hh"
-#include "G4Triton.hh"
-#include "G4EventManager.hh"
+#include "G4OpticalPhoton.hh"
 
 #include "nDetSteppingAction.hh"
 #include "nDetConstruction.hh"
@@ -33,7 +20,6 @@
 nDetSteppingAction::nDetSteppingAction(nDetConstruction* det, nDetRunAction* runAct, nDetEventAction* evtAct) : detector(det), runAction(runAct), evtAction(evtAct)
 {
 	neutronTrack = false;
-	eventID = -1;
 	stepID = 0;
 }
 
