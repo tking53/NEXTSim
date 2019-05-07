@@ -92,6 +92,7 @@ nDetRunAction::nDetRunAction(nDetConstruction *det){
 	
 	persistentMode = false;
 	verbose = false;
+	printTrace = false;
 	
 	outputEnabled = true;
 	outputTraces = false;
@@ -418,6 +419,28 @@ bool nDetRunAction::fillBranch()
 	pulseMax[1] = pmtR->getMaximum();
 	pulseMaxTime[1] = pmtR->getMaximumTime();
 	pulseWeightedArrival[1] = pmtR->getWeightedPhotonArrivalTime();
+
+	// Print the digitized traces.
+	if(printTrace){
+		size_t traceLength = pmtL->getPulseLength();
+		unsigned short *traceL = pmtL->getDigitizedPulse();
+		unsigned short *traceR = pmtR->getDigitizedPulse();
+		std::cout << "***********************************************************\n";
+		std::cout << "* PhotonsTot     : " << nPhotonsTot << std::endl;
+		std::cout << "* PhotonsDet     : " << nPhotonsDet[0] << "\t" << nPhotonsDet[1] << std::endl;
+		std::cout << "* MaxIndex       : " << pmtL->getMaximumIndex() << "\t" << pmtR->getMaximumIndex() << std::endl;
+		std::cout << "* Baseline       : " << pmtL->getBaseline() << "\t" << pmtR->getBaseline() << std::endl;	
+		std::cout << "* Maximum        : " << pmtL->getMaximum() << "\t" << pmtR->getMaximum() << std::endl;
+		std::cout << "* MaxTime        : " << pmtL->getMaximumTime() << "\t" << pmtR->getMaximumTime() << std::endl;
+		std::cout << "* WeightedArrival: " << pmtL->getWeightedPhotonArrivalTime() << "\t" << pmtR->getWeightedPhotonArrivalTime() << std::endl;
+		std::cout << "* MinimumArrival : " << pmtL->getMinimumPhotonArrivalTime() << "\t" << pmtR->getMinimumPhotonArrivalTime() << std::endl;
+		std::cout << "***********************************************************\n";
+
+		int adcClockTick = pmtL->getAdcClockTick();
+		for(size_t i = 0; i < traceLength; i++){
+			std::cout << i*adcClockTick << "\t" << traceL[i] << "\t" << traceR[i] << std::endl;
+		}
+	}
 
 	// Get the digitizer response of the anodes.
 	pmtResponse *anodeResponseL = getAnodeResponseLeft();

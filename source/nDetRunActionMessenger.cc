@@ -80,6 +80,10 @@ void nDetRunActionMessenger::addAllCommands(){
 	addCommand(new G4UIcmdWithAnInteger("/nDet/output/trace/setFunction", this));
 	addGuidance("Set the single photon response function (default=0)");
 
+	addCommand(new G4UIcmdWithAString("/nDet/output/trace/print", this));
+	addGuidance("Print the digitized light pulse");
+	addCandidates("true false");
+
 	addCommand(new G4UIcmdWithAString("/nDet/output/debug", this));
 	addGuidance("Enable or disable writing of detailed debug information to output file");
 	addCandidates("true false");
@@ -179,9 +183,12 @@ void nDetRunActionMessenger::SetNewValue(G4UIcommand *command, G4String newValue
 		prR->setFunctionType(val);
 	}
 	else if(index == 20){
-		fAction->setOutputDebug((newValue == "true") ? true : false);
+		fAction->setPrintTrace((newValue == "true") ? true : false);
 	}
 	else if(index == 21){
+		fAction->setOutputDebug((newValue == "true") ? true : false);
+	}
+	else if(index == 22){
 		fAction->setOutputBadEvents((newValue == "true") ? true : false);
 	}
 }
