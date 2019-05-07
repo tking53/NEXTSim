@@ -188,6 +188,8 @@ class nDetRunAction : public G4UserRunAction
 	void setOutputDebug(const bool &enabled){ outputDebug = enabled; }
 	
 	void setOutputBadEvents(const bool &enabled){ outputBadEvents = enabled; }
+
+	void setPrintTrace(const bool &enabled){ printTrace = enabled; }
 	
 	void setOverwriteOutputFile(const bool &overwrite){ overwriteExistingFile = overwrite; }
 
@@ -236,6 +238,7 @@ class nDetRunAction : public G4UserRunAction
     bool defineRootBranch;
     bool persistentMode;
     bool verbose;
+	bool printTrace;
     
 	bool outputEnabled;
     bool outputTraces;

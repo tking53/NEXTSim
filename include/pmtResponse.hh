@@ -49,6 +49,9 @@ class pmtResponse{
 	/// Return the maximum value of the pulse.
 	double getMaximum() const { return maximum; }
 
+	/// Return the baseline of the pulse.
+	double getBaseline() const { return baseline; }
+
 	/// Return the pulse phase at the maximum.
 	double getMaximumTime() const { return maximumTime; }
 
@@ -138,6 +141,9 @@ class pmtResponse{
 
 	/// Print raw pulse.
 	void printRaw();
+
+	/// Return the period of the ADC clock in ns.
+	static int getAdcClockTick();
 
 	/** Calculate the parameters for a second order polynomial which passes through 3 points.
 	  * \param[in]  x0 - Initial x value. Sequential x values are assumed to be x0, x0+1, and x0+2.

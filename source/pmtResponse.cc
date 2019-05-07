@@ -355,6 +355,9 @@ void pmtResponse::printRaw(){
 	}
 }
 
+/// Return the period of the ADC clock in ns.
+int pmtResponse::getAdcClockTick(){ return ADC_CLOCK_TICK; }
+
 /** Calculate the parameters for a second order polynomial which passes through 3 points.
   * \param[in]  x0 - Initial x value. Sequential x values are assumed to be x0, x0+1, and x0+2.
   * \param[in]  y  - Pointer to the beginning of the array of unsigned shorts containing the three y values.
