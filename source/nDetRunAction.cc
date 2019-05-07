@@ -449,24 +449,17 @@ bool nDetRunAction::fillBranch()
 		double barTimeDiff = pulsePhase[1] - pulsePhase[0];
 		detSpeedLight = 2*neutronCenterOfMass[2]/barTimeDiff;
 
-		G4ThreeVector detPos = detector->GetDetectorPos();
 		G4ThreeVector nCenterMass(neutronCenterOfMass[0], neutronCenterOfMass[1], neutronCenterOfMass[2]);
 		G4ThreeVector nIncidentPos(neutronIncidentPositionX, neutronIncidentPositionY, neutronIncidentPositionZ);
 		G4ThreeVector nExitPos(neutronExitPositionX, neutronExitPositionY, neutronExitPositionZ);
 
-		// Compute the neutron scatter center-of-mass (in the frame of the detector).
-		nCenterMass = (1/neutronWeight)*nCenterMass - detPos;
+		// Compute the neutron scatter center-of-mass.
+		nCenterMass = (1/neutronWeight)*nCenterMass;
 		
 		// Convert the neutron incident/exit positions to the frame of the detector.
-		nIncidentPos = nIncidentPos - detPos;
-		nExitPos = nExitPos - detPos;
+		nIncidentPos = nIncidentPos;
+		nExitPos = nExitPos;
 
-		// Transform all the neutron vectors to the rotation frame of the detector.
-		G4RotationMatrix *matrix = detector->GetDetectorRot();
-		nCenterMass = (*matrix)*nCenterMass;
-		nIncidentPos = (*matrix)*nIncidentPos;
-		nExitPos = (*matrix)*nExitPos;
-		
 		// Now in the rotated frame of the detector.
 		neutronCenterOfMass[0] = nCenterMass.getX();
 		neutronCenterOfMass[1] = nCenterMass.getY();
@@ -640,9 +633,9 @@ void nDetRunAction::initializeNeutron(const G4Step *step){
 	initEnergy = step->GetPreStepPoint()->GetKineticEnergy();
 	if(outputDebug){
 		incidentTime = step->GetTrack()->GetGlobalTime();
-		neutronIncidentPositionX = step->GetPreStepPoint()->GetPosition().getX();
-		neutronIncidentPositionY = step->GetPreStepPoint()->GetPosition().getY();
-		neutronIncidentPositionZ = step->GetPreStepPoint()->GetPosition().getZ();
+		neutronIncidentPositionX = step->GetPostStepPoint()->GetPosition().getX();
+		neutronIncidentPositionY = step->GetPostStepPoint()->GetPosition().getY();
+		neutronIncidentPositionZ = step->GetPostStepPoint()->GetPosition().getZ();
 		timeInMaterial = 0;
 		neutronExitPositionX = 0;
 		neutronExitPositionY = 0;
