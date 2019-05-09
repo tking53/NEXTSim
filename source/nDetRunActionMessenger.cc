@@ -6,11 +6,21 @@
 #include "centerOfMass.hh"
 
 #include "nDetRunAction.hh"
+#include "nDetMasterOutputFile.hh"
 #include "G4UIcmdWithAString.hh"
 #include "G4UIcmdWithADouble.hh"
 #include "G4UIcmdWithAnInteger.hh"
 #include "G4UIdirectory.hh"
 #include "G4UIcommand.hh"
+
+nDetRunActionMessenger::nDetRunActionMessenger() : messengerHandler("nDetRunActionMessenger"), fAction(NULL), fOutputFile(NULL) { 
+	addAllCommands(); 
+}
+
+nDetRunActionMessenger::nDetRunActionMessenger(nDetRunAction *action) : messengerHandler("nDetRunActionMessenger"), fAction(action), fOutputFile(NULL) { 
+	fOutputFile = &nDetMasterOutputFile::getInstance();
+	addAllCommands(); 
+}
 
 void nDetRunActionMessenger::addAllCommands(){
 	addDirectory("/nDet/output/", "Output file control");
@@ -97,32 +107,32 @@ void nDetRunActionMessenger::SetNewValue(G4UIcommand *command, G4String newValue
 	size_t index;
 	if(!findCommand(command, newValue, index)) return;
 
-	pmtResponse *prL = fAction->getPmtResponseLeft();
-	pmtResponse *prR = fAction->getPmtResponseRight();
+	//pmtResponse *prL = fAction->getPmtResponseLeft();
+	//pmtResponse *prR = fAction->getPmtResponseRight();
 
 	if(index == 0){
-		fAction->setOutputFilename(newValue);
+		fOutputFile->setOutputFilename(newValue);
 	}
 	else if(index == 1){
-		fAction->setOutputFileTitle(newValue);
+		fOutputFile->setOutputFileTitle(newValue);
 	}
 	else if(index == 2){
-		fAction->setOverwriteOutputFile((newValue == "true") ? true : false);
+		fOutputFile->setOverwriteOutputFile((newValue == "true") ? true : false);
 	}
 	else if(index == 3){
-		fAction->setOutputEnabled((newValue == "true") ? true : false);
+		fOutputFile->setOutputEnabled((newValue == "true") ? true : false);
 	}
 	else if(index == 4){
-		fAction->setPersistentMode((newValue == "true") ? true : false);
+		fOutputFile->setPersistentMode((newValue == "true") ? true : false);
 	}
 	else if(index == 5){
-		fAction->setOutputTraces((newValue == "true") ? true : false);
+		fOutputFile->setOutputTraces((newValue == "true") ? true : false);
 	}
 	else if(index == 6){
 		G4int val = command->ConvertToInt(newValue);
-		fAction->setOutputFileIndex(val);
+		fOutputFile->setOutputFileIndex(val);
 	}
-	else if(index == 7){
+	/*else if(index == 7){
 		G4double val = command->ConvertToDouble(newValue);
 		prL->setRisetime(val);
 		prR->setRisetime(val);
@@ -181,14 +191,14 @@ void nDetRunActionMessenger::SetNewValue(G4UIcommand *command, G4String newValue
 		G4int val = command->ConvertToInt(newValue);
 		prL->setFunctionType(val);
 		prR->setFunctionType(val);
-	}
+	}*/
 	else if(index == 20){
-		fAction->setPrintTrace((newValue == "true") ? true : false);
+		fOutputFile->setPrintTrace((newValue == "true") ? true : false);
 	}
 	else if(index == 21){
-		fAction->setOutputDebug((newValue == "true") ? true : false);
+		fOutputFile->setOutputDebug((newValue == "true") ? true : false);
 	}
 	else if(index == 22){
-		fAction->setOutputBadEvents((newValue == "true") ? true : false);
+		fOutputFile->setOutputBadEvents((newValue == "true") ? true : false);
 	}
 }

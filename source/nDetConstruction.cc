@@ -199,27 +199,29 @@ G4VPhysicalVolume* nDetConstruction::ConstructDetector(){
 }
 
 void nDetConstruction::setSegmentedPmt(const short &col_, const short &row_, const double &width_, const double &height_){
-  center[0].setSegmentedPmt(col_, row_, width_, height_);
-  center[1].setSegmentedPmt(col_, row_, width_, height_);
+  //center[0].setSegmentedPmt(col_, row_, width_, height_);
+	// center[1].setSegmentedPmt(col_, row_, width_, height_);
   std::cout << " nDetConstruction: Setting segmented PMTs with WxH=(" << width_ << " x " << height_ << ") and " << col_ << " columns and " << row_ << " rows.\n";
 }
 
 bool nDetConstruction::setPmtSpectralResponse(const char *fname){
-  bool retval = (center[0].loadSpectralResponse(fname) && center[1].loadSpectralResponse(fname));
+  /*bool retval = (center[0].loadSpectralResponse(fname) && center[1].loadSpectralResponse(fname));
   if(retval)
     std::cout << " nDetConstruction: Successfully loaded PMT spectral response function\n";
   else
     std::cout << " nDetConstruction: ERROR! Failed to load PMT spectral response from \"" << fname << "\"!\n";
-  return retval;
+  return retval;*/
+  return false;
 }
 
 bool nDetConstruction::setPmtGainMatrix(const char *fname){
-  bool retval = (center[0].loadGainMatrix(fname) && center[1].loadGainMatrix(fname));
+  /*bool retval = (center[0].loadGainMatrix(fname) && center[1].loadGainMatrix(fname));
   if(retval)
     std::cout << " nDetConstruction: Successfully loaded PMT anode gain matrix\n";
   else
     std::cout << " nDetConstruction: ERROR! Failed to load PMT anode gain matrix from \"" << fname << "\"!\n";
-  return retval;
+  return retval;*/
+  return false;
 }
 
 void nDetConstruction::SetPositionCylindrical(const G4ThreeVector &position){ 
@@ -657,41 +659,6 @@ void nDetConstruction::GetSegmentFromCopyNum(const G4int &copyNum, G4int &col, G
 		col = 0;
 		row = 0;
 	}
-}
-
-bool nDetConstruction::AddDetectedPhoton(const G4Step *step, const double &mass/*=1*/){
-	if(!step->GetPostStepPoint()){
-		std::cout << " nDetConstruction: WARNING! INVALID POST POINT!\n";
-		return false;
-	}
-	
-	double energy = step->GetTrack()->GetTotalEnergy();
-	double time = step->GetPostStepPoint()->GetGlobalTime();
-	G4ThreeVector position = detectorRotation*(step->GetPostStepPoint()->GetPosition()-detectorPosition);
-	
-    if(position.z() > 0){
-        if(center[0].addPoint(energy, time, position, mass))
-            return true;
-    }
-    if(position.z() < 0){
-        if(center[1].addPoint(energy, time, position, mass))
-            return true;
-    }
-    return false;
-}
-
-void nDetConstruction::GetDetectedPhotons(size_t &numLeft, size_t &numRight){
-	numLeft = center[0].getNumDetected();
-	numRight = center[1].getNumDetected();
-}
-
-void nDetConstruction::Clear(){
-	// Clean up loaded solids.
-	//solids.clear(); // Why are these here? CRT
-	//userLayers.clear(); // Why are these here? CRT
-
-    center[0].clear();
-    center[1].clear();
 }
 
 void nDetConstruction::UpdateGeometry(){

@@ -1,10 +1,3 @@
-//
-// $Id: nDetRunAction.hh,v1.0 Sept., 2015 $
-//   Written by Dr. Xiaodong Zhang
-// 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
 #ifndef nDetRunAction_h
 #define nDetRunAction_h 1
 
@@ -14,13 +7,8 @@
 #include "G4ThreeVector.hh"
 #include "G4ParticleDefinition.hh"
 
-#include "TFile.h"
-#include "TTree.h"
-#include "TBranch.h"
-
-#include "TH1F.h"
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+#include "nDetDataPack.hh"
+#include "centerOfMass.hh"
 
 class G4Timer;
 class G4Run;
@@ -38,11 +26,11 @@ class ParticleSource;
 
 class primaryTrackInfo{
   public:
-    G4ThreeVector pos;
-    G4ThreeVector dir;
-    G4double kE, dkE;
-    G4double gtime, plength;
-    G4double angle;
+	G4ThreeVector pos;
+	G4ThreeVector dir;
+	G4double kE, dkE;
+	G4double gtime, plength;
+	G4double angle;
 
 	G4int copyNum;
 	G4int trackID;
@@ -50,22 +38,22 @@ class primaryTrackInfo{
 	
 	G4bool inScint;
 
-    const G4ParticleDefinition *part;
-    
-    primaryTrackInfo(const G4Step *step);
-    
-    primaryTrackInfo(const G4Track *track);
+	const G4ParticleDefinition *part;
+	
+	primaryTrackInfo(const G4Step *step);
+	
+	primaryTrackInfo(const G4Track *track);
 
-    bool compare(const G4Track *rhs);
+	bool compare(const G4Track *rhs);
 
-    double getAngle(const G4Track *rhs);
+	double getAngle(const G4Track *rhs);
 
-    double getAngle(const G4ThreeVector &rhs);
+	double getAngle(const G4ThreeVector &rhs);
 
 	double getPathLength(const G4ThreeVector &rhs);
 
-    void print();
-    
+	void print();
+	
   private:
 	void setValues(const G4Track *track);
 };
@@ -73,125 +61,15 @@ class primaryTrackInfo{
 class nDetRunAction : public G4UserRunAction
 {
   public:
-	// Run information.
-    short runNb;
-
-    // Normal neutron output.
-    short nScatters;
-
-    double depEnergy; // energy deposition inside of the EJ200 scintillator
-    double initEnergy; // Initial energy of the neutron (CRT)
-    
-    bool nAbsorbed;
-    bool goodEvent;
-
-	// Neutron debug output variables.
-    double neutronIncidentPositionX;
-    double neutronIncidentPositionY;
-    double neutronIncidentPositionZ;
-	double neutronExitPositionX;
-	double neutronExitPositionY;
-	double neutronExitPositionZ;	
-
-	double nTimeToFirstScatter;
-	double nLengthToFirstScatter;
-	double incidentTime;
-	double timeInMaterial;
+	nDetRunAction(nDetConstruction *det);
 	
-    std::vector<double> nScatterX;
-    std::vector<double> nScatterY;
-    std::vector<double> nScatterZ;
-    std::vector<double> nScatterAngle;
-    std::vector<double> nPathLength;
-    std::vector<double> impartedE;
-    std::vector<double> scatterTime;
-    std::vector<short> segmentCol;
-    std::vector<short> segmentRow;
-    std::vector<short> Nphotons;
-    std::vector<short> recoilMass;
-	std::vector<bool> nScatterScint;
+	virtual ~nDetRunAction();
 
-    // Normal photon output.
-    double photonDetEfficiency;
-	double photonLightBalance;    
-    double barCenterOfMassX;
-    double barCenterOfMassY;
-
-    float barTOF;
-    float barQDC;    
-    float barMaxADC;
-	float pulsePhase[2];
-	float anodePhase[2][4];
-
-	double photonDetCenterOfMassX[2];
-	double photonDetCenterOfMassY[2];
-	double reconstructedCenterX[2];
-	double reconstructedCenterY[2];
-
-    short centerOfMassColumn[2];
-    short centerOfMassRow[2];
-    
-    // Photon debug output variables.
-    unsigned int nPhotonsTot;
-    unsigned int nPhotonsDetTot;
-    unsigned int nPhotonsDet[2];
-
-    double photonDetCenterOfMassZ[2];
-    double photonMinArrivalTime[2];
-    double photonAvgArrivalTime[2];
-    double pulseWeightedArrival[2];
-
-	float pulseMaxTime[2];
-    float pulseMax[2];
-    float pulseQDC[2];
-    
-	double neutronCenterOfMass[3];
-	double neutronWeight;
-	double detSpeedLight;
+	void BeginOfRunAction(const G4Run* aRun);
 	
-    nDetRunAction(nDetConstruction *det);
-    
-    virtual ~nDetRunAction();
+	void EndOfRunAction(const G4Run* aRun);
 
-    void BeginOfRunAction(const G4Run* aRun);
-    
-    void EndOfRunAction(const G4Run* aRun);
-
-	pmtResponse *getPmtResponseLeft();
-
-	pmtResponse *getPmtResponseRight();
-
-	pmtResponse *getAnodeResponseLeft();
-
-	pmtResponse *getAnodeResponseRight();
-	
 	ParticleSource *getSource(){ return source; }
-
-    bool fillBranch();
-
-    void vectorClear();
-
-	void setOutputFilename(const std::string &fname);
-
-	void setOutputTreeName(const std::string &tname){ treename = tname; }
-	
-	void setPersistentMode(const bool &enabled){ persistentMode = enabled; }
-	
-	void setOutputEnabled(const bool &enabled){ outputEnabled = enabled; }
-	
-	void setOutputFileTitle(const std::string &title){ runTitle = title; }	
-
-	void setOutputFileIndex(const G4int &index){ runIndex = index; }
-	
-	void setOutputTraces(const bool &enabled){ outputTraces = enabled; }
-	
-	void setOutputDebug(const bool &enabled){ outputDebug = enabled; }
-	
-	void setOutputBadEvents(const bool &enabled){ outputBadEvents = enabled; }
-
-	void setPrintTrace(const bool &enabled){ printTrace = enabled; }
-	
-	void setOverwriteOutputFile(const bool &overwrite){ overwriteExistingFile = overwrite; }
 
 	void setActions(nDetEventAction *event_, nDetStackingAction *stacking_, nDetTrackingAction *tracking_, nDetSteppingAction *stepping_);
 
@@ -205,45 +83,21 @@ class nDetRunAction : public G4UserRunAction
 	
 	void setPulseIntegralHigh(const short &high){ pulseIntegralHigh = high; }
 
-    bool toggleVerboseMode(){ return (verbose = !verbose); }
-
 	void process();
 
-    void initializeNeutron(const G4Step *step);
+	bool AddDetectedPhoton(const G4Step *step, const double &mass=1);
 
-    void scatterNeutron(const G4Step *step);
+	void initializeNeutron(const G4Step *step);
 
-    void finalizeNeutron(const G4Step *step);
+	void scatterNeutron(const G4Step *step);
 
-  private:  // function member
-    bool scatterEvent();
+	void finalizeNeutron(const G4Step *step);
 
-    bool openRootFile(const G4Run* aRun);
-    
-    bool closeRootFile();
-  
-  private:  // data member
-    G4Timer* timer;  // able to measure elasped user/system process time.
+  private:
+	G4Timer* timer;
 
-    std::string filename;
-    std::string treename;
-    
-    std::string filenamePrefix;
-    std::string filenameSuffix;
-    
-    TFile *fFile; // define root file
-    TTree *fTree; // tree and its branches
-    TBranch *fBranch;
-    
-    bool defineRootBranch;
-    bool persistentMode;
-    bool verbose;
-	bool printTrace;
-    
-	bool outputEnabled;
-    bool outputTraces;
-    bool outputDebug;
-    bool outputBadEvents;
+	bool outputDebug;
+	bool verbose;
 
 	double baselineFraction;
 	double baselineJitterFraction;
@@ -252,44 +106,28 @@ class nDetRunAction : public G4UserRunAction
 	short pulseIntegralLow;
 	short pulseIntegralHigh;
 
-	std::vector<unsigned short> lightPulseL;
-	std::vector<unsigned short> lightPulseR;
+	nDetRunActionMessenger *fActionMessenger;
+	
+	nDetEventAction *eventAction;
+	nDetStackingAction *stacking;
+	nDetTrackingAction *tracking;
+	nDetSteppingAction *stepping;
+	nDetConstruction *detector;  
+	ParticleSource *source;  
+	
+	std::vector<primaryTrackInfo> primaryTracks;
+	
+	G4ThreeVector prevDirection;
+	G4ThreeVector prevPosition;
+	
+	nDetDataPack data;
 
-    nDetRunActionMessenger *fActionMessenger;
-    
-    nDetEventAction *eventAction;
-    nDetStackingAction *stacking;
-    nDetTrackingAction *tracking;
-    nDetSteppingAction *stepping;
-    nDetConstruction *detector;  
-    ParticleSource *source;  
-    
-    std::vector<primaryTrackInfo> primaryTracks;
-    
-    photonCounter *counter;
-    
-    G4ThreeVector prevDirection;
-    G4ThreeVector prevPosition;
-    
-    std::string runTitle;
-    G4int runIndex;
-    
-    bool overwriteExistingFile;
+	photonCounter *counter;
+
+	centerOfMass cmL;
+	centerOfMass cmR;
+
+	bool scatterEvent();	
 };
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-#endif /*nDetRunAction_h*/
-
-// Class description:
-//
-// This is  the base class of a user's action class which defines the 
-// user's action at the begining and the end of each run. The user can
-// override the following two methods but the user should not change 
-// any of the contents of G4Run object.
-
-// Description of G4Run
-// This class represents a run. An object of this class is constructed 
-// and deleted by G4RunManager. Basically the user should use only 
-// the get methods. All properties are set by G4RunManager.
-//
+#endif

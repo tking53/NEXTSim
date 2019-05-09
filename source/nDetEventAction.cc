@@ -34,7 +34,7 @@ nDetEventAction::~nDetEventAction(){
 void nDetEventAction::BeginOfEventAction(const G4Event* evt){
   // initialisation per event.
 
-  G4long eventID = evt->GetEventID();
+  /*G4long eventID = evt->GetEventID();
 
   double avgTimePerEvent;
   double avgTimePerPhoton;
@@ -54,7 +54,7 @@ void nDetEventAction::BeginOfEventAction(const G4Event* evt){
       std::cout << ", RATE=" << 1/avgTimePerEvent << " evt/s (" << 1/avgTimePerPhoton << " phot/s & " << 1/avgTimePerDetection << " det/s)\n";
       previousTime = totalTime;
     }
-  }
+  }*/
   
   // Start the timer.
   timer->Start();
@@ -67,14 +67,11 @@ void nDetEventAction::EndOfEventAction(const G4Event*){
   runAct->process();
 
   // Fill branches
-  runAct->fillBranch();
+  //runAct->fillBranch();
 
   // Update photon statistics.
-  numPhotons += runAct->nPhotonsTot;
-  numPhotonsDet += runAct->nPhotonsDet[0]+runAct->nPhotonsDet[1];
-  
-  // Clear vector for next event
-  runAct->vectorClear();
+  //numPhotons += runAct->nPhotonsTot;
+  //numPhotonsDet += runAct->nPhotonsDet[0]+runAct->nPhotonsDet[1];
 }
 
 void nDetEventAction::StartTimer(){

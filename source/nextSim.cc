@@ -13,9 +13,14 @@
 																		 
 // c/c++ headers
 
-#include "G4MTRunManager.hh"
-#include "G4RunManager.hh"
 #include "G4UImanager.hh"
+#include "G4ios.hh"
+
+#ifdef USE_MULTITHREAD
+#include "G4MTRunManager.hh"	
+#else
+#include "G4RunManager.hh"
+#endif
 
 #ifdef G4VIS_USE
 #include "G4VisExecutive.hh"
@@ -28,6 +33,9 @@
 // using the modular physics list
 #include "G4VModularPhysicsList.hh"
 #include "QGSP_BERT_HP.hh"
+
+#include "nDetActionInitialization.hh"
+#include "nDetMasterOutputFile.hh"
 
 #include "nDetConstruction.hh"
 #include "nDetRunAction.hh"
@@ -43,8 +51,7 @@
 #include "Randomize.hh"
 #include "time.h"
 
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv){
 	optionHandler handler;
 	handler.add(optionExt("input", required_argument, NULL, 'i', "<filename>", "Specify an input geant macro."));
 	handler.add(optionExt("output", required_argument, NULL, 'o', "<filename>", "Specify the name of the output file."));
@@ -104,7 +111,14 @@ int main(int argc, char** argv)
 	//////////////////////////////////////
 
 	// Construct the default run manager
-	G4RunManager* runManager = new G4RunManager;
+#ifdef USE_MULTITHREAD
+	G4MTRunManager* runManager = new G4MTRunManager();
+	runManager->SetNumberOfThreads(G4Threading::G4GetNumberOfCores());
+	std::cout << "nextSim: Multi-threading enabled.\n";
+	std::cout << "nextSim: Setting number of threads to " << G4Threading::G4GetNumberOfCores() << std::endl;
+#else
+	G4RunManager* runManager = new G4RunManager();
+#endif
 
 	// set mandatory initialization classes
 	// Initialize the detector
@@ -113,17 +127,17 @@ int main(int argc, char** argv)
 		detector = new nDetConstruction();
 	}
 	else{ // Modify the photon yield of the detector
-		std::cout << "neutronDetectorDesign: Setting photon yield multiplier to " << yieldMult << std::endl;
+		std::cout << "nextSim: Setting photon yield multiplier to " << yieldMult << std::endl;
 		detector = new nDetConstruction(yieldMult);
 	}
-	runManager->SetUserInitialization( detector );
+	runManager->SetUserInitialization(detector);
 
 	G4VModularPhysicsList* physics = new QGSP_BERT_HP();
 
 	G4OpticalPhysics *theOpticalPhysics=new G4OpticalPhysics();
 	theOpticalPhysics->SetScintillationByParticleType(true);
 	physics->ReplacePhysics(theOpticalPhysics);
-	runManager->SetUserInitialization( physics );
+	runManager->SetUserInitialization(physics);
 
 #ifdef G4VIS_USE
 	// add visulization manager
@@ -131,33 +145,11 @@ int main(int argc, char** argv)
 	visManager->Initialize();
 #endif
 
-	nDetRunAction* runAction = new nDetRunAction(detector);
-	if(!outputFilename.empty()){
-		size_t index = outputFilename.find('.');
-		std::string prefix = outputFilename;
-		if(index != std::string::npos) prefix = outputFilename.substr(0, index);
-		runAction->setOutputFilename((prefix+"_m.root").c_str());
-	}
-	if(!outputTreeName.empty()) runAction->setOutputTreeName(outputTreeName);
-	if(verboseMode) runAction->toggleVerboseMode();
-	runManager->SetUserAction(runAction);
-	runManager->SetUserAction(runAction->getSource());
-
-	nDetEventAction* eventAction = new nDetEventAction(runAction);
-	if(userTimeDelay > 0)
-		eventAction->SetDisplayTimeInterval(userTimeDelay);
-	runManager->SetUserAction(eventAction);
-
-	nDetSteppingAction* steppingAction = new nDetSteppingAction(detector, runAction, eventAction);
-	runManager->SetUserAction(steppingAction);
-
-	nDetStackingAction* stackingAction = new nDetStackingAction(runAction);
-	runManager->SetUserAction(stackingAction);
-
-	nDetTrackingAction*	trackingAction = new nDetTrackingAction(runAction);
-	runManager->SetUserAction(trackingAction);
-
-	runAction->setActions(eventAction, stackingAction, trackingAction, steppingAction);
+	// 
+	nDetActionInitialization *runAction = new nDetActionInitialization(detector);
+	
+	// Set the action initialization.
+	runManager->SetUserInitialization(runAction);
 
 	// Initialize G4 kernel
 	runManager->Initialize();
@@ -168,7 +160,7 @@ int main(int argc, char** argv)
 	if(!batchMode){	 // Define UI session for interactive mode
 #ifdef G4UI_USE
 		// Set root output to a single output file.
-		runAction->setPersistentMode(true);
+		//runAction->setPersistentMode(true);
 
 		G4UIExecutive *ui = new G4UIExecutive(argc, argv, "");
 		UImanager->ApplyCommand("/vis/open OGL");
@@ -197,8 +189,6 @@ int main(int argc, char** argv)
 	delete visManager;
 #endif
 	delete runManager;
-	//std::cout<<"runManager is deleted"<<std::endl;
-	//delete verbosity;
 	
 	return 0;
 }//END of main() function

@@ -3,11 +3,16 @@ if(GEANT4_GDML)
 	add_definitions(-DUSE_GDML)
 endif(GEANT4_GDML)
 
+#Enable multi-threading support..
+if(GEANT4_MT)
+	add_definitions(-DUSE_MULTITHREAD)
+endif(GEANT4_MT)
+
 #Set the scan sources that we will make a lib out of.
-set(NextSimSources centerOfMass.cc nDetConstruction.cc nDetEventAction.cc nDetRunActionMessenger.cc 
-                   nDetSteppingAction.cc ParticleSource.cc ParticleSourceMessenger.cc pmtResponse.cc 
-                   messengerHandler.cc nDetConstructionMessenger.cc nDetRunAction.cc nDetStackingAction.cc 
-                   cmcalc.cc nDetTrackingAction.cc optionHandler.cc photonCounter.cc gdmlSolid.cc nistDatabase.cc)
+set(NextSimSources centerOfMass.cc nDetConstruction.cc nDetActionInitialization.cc nDetEventAction.cc nDetRunActionMessenger.cc 
+                   nDetMasterOutputFile.cc nDetSteppingAction.cc ParticleSource.cc ParticleSourceMessenger.cc pmtResponse.cc 
+                   messengerHandler.cc nDetConstructionMessenger.cc nDetRunAction.cc nDetStackingAction.cc cmcalc.cc 
+                   nDetTrackingAction.cc optionHandler.cc photonCounter.cc gdmlSolid.cc nistDatabase.cc nDetDataPack.cc)
 
 #Add the sources to the library.
 add_library(NextSimObjects OBJECT ${NextSimSources})

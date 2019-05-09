@@ -7,18 +7,19 @@
 #include "messengerHandler.hh"
 
 class nDetRunAction;
+class nDetMasterOutputFile;
 
 class nDetRunActionMessenger: public messengerHandler {
   public:
-	nDetRunActionMessenger() : messengerHandler("nDetRunActionMessenger"), fAction(NULL) { addAllCommands(); }
+	nDetRunActionMessenger();
 
-	nDetRunActionMessenger(nDetRunAction *action) : messengerHandler("nDetRunActionMessenger"), fAction(action) { addAllCommands(); }
+	nDetRunActionMessenger(nDetRunAction *action);
 	
 	virtual void SetNewValue(G4UIcommand *command, G4String newValue);
 
   private:
 	nDetRunAction *fAction;
-	
+	nDetMasterOutputFile *fOutputFile;
 	
 	void addAllCommands();
 };

@@ -8,7 +8,6 @@
 #include "G4RotationMatrix.hh"
 #include "globals.hh"
 
-#include "centerOfMass.hh"
 #include "gdmlSolid.hh"
 #include "nistDatabase.hh"
 
@@ -30,6 +29,7 @@ class G4PVPlacement;
 class G4VSolid;
 class G4Box;
 class G4VisAttributes;
+class G4Step;
 
 class userAddLayer;
 
@@ -131,21 +131,13 @@ class nDetConstruction : public G4VUserDetectorConstruction
 	
 	G4int GetNumPmtRows() const { return fNumRowsPmt; }
 
-	void GetSegmentFromCopyNum(const G4int &copyNum, G4int &col, G4int &row) const ;
-
-    centerOfMass *GetCenterOfMassPositiveSide(){ return &center[0]; }
-  
-    centerOfMass *GetCenterOfMassNegativeSide(){ return &center[1]; }
-
+	void GetSegmentFromCopyNum(const G4int &copyNum, G4int &col, G4int &row) const ;    
+		
 	nDetConstructionMessenger *GetMessenger(){ return fDetectorMessenger; }
 
     bool PmtIsSegmented() const { return (fNumColumnsPmt > 0 && fNumRowsPmt > 0); }
-    
-    bool AddDetectedPhoton(const G4Step *step, const double &mass=1);
 
-	void GetDetectedPhotons(size_t &numLeft, size_t &numRight);
-
-	void Clear();
+	bool AddDetectedPhoton(const G4Step *step, const double &mass=1);
     
     void UpdateGeometry();
 
@@ -209,8 +201,6 @@ private:
 	G4int fNumRows;
 	G4int fNumColumnsPmt;
 	G4int fNumRowsPmt;
-
-    centerOfMass center[2];
 
 	G4bool fPolishedInterface;
     G4bool fCheckOverlaps;
