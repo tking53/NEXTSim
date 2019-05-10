@@ -5,7 +5,8 @@
 
 class nDetDataPack{
   public:
-	// Run information.
+	// Run / event information.
+	short threadID;
 	short runNb;
 
 	// Normal neutron output.

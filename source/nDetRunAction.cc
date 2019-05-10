@@ -127,6 +127,9 @@ nDetRunAction::~nDetRunAction(){
 
 void nDetRunAction::BeginOfRunAction(const G4Run* aRun)
 {
+	// Update the debug output flag.
+	outputDebug = nDetMasterOutputFile::getInstance().getOutputDebug();
+
 	//if(!IsMaster()) return; // Master thread only. THIS DOESN'T WORK CRT
 	if(G4Threading::G4GetThreadId() >= 0) return; // Master thread only.
 	
@@ -140,8 +143,9 @@ void nDetRunAction::BeginOfRunAction(const G4Run* aRun)
 	// Set the total number of events
 	eventAction->SetTotalEvents(aRun->GetNumberOfEventToBeProcessed());
 
-	// get RunId
+	// Get RunId and threadID
 	data.runNb = aRun->GetRunID();
+	data.threadID = G4Threading::G4GetThreadId();
 	
 	// Update the source.
 	source->SetDetector(detector);
@@ -235,8 +239,8 @@ void nDetRunAction::process(){
 		unsigned short *traceL = pmtL->getDigitizedPulse();
 		unsigned short *traceR = pmtR->getDigitizedPulse();
 		std::cout << "***********************************************************\n";
-		std::cout << "* PhotonsTot	 : " << nPhotonsTot << std::endl;
-		std::cout << "* PhotonsDet	 : " << nPhotonsDet[0] << "\t" << nPhotonsDet[1] << std::endl;
+		std::cout << "* PhotonsTot	 : " << data.nPhotonsTot << std::endl;
+		std::cout << "* PhotonsDet	 : " << data.nPhotonsDet[0] << "\t" << data.nPhotonsDet[1] << std::endl;
 		std::cout << "* MaxIndex	   : " << pmtL->getMaximumIndex() << "\t" << pmtR->getMaximumIndex() << std::endl;
 		std::cout << "* Baseline	   : " << pmtL->getBaseline() << "\t" << pmtR->getBaseline() << std::endl;	
 		std::cout << "* Maximum		: " << pmtL->getMaximum() << "\t" << pmtR->getMaximum() << std::endl;
@@ -325,6 +329,10 @@ void nDetRunAction::process(){
 	cmL.clear();
 	cmR.clear();
 	data.clear();
+	
+	if(stacking) stacking->Reset();
+	if(tracking) tracking->Reset();
+	if(stepping) stepping->Reset();
 }
 
 void nDetRunAction::setActions(nDetEventAction *event_, nDetStackingAction *stacking_, nDetTrackingAction *tracking_, nDetSteppingAction *stepping_){

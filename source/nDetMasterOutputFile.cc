@@ -111,6 +111,9 @@ bool nDetMasterOutputFile::openRootFile(const G4Run* aRun){
 	if(treename.empty()) treename = "data"; //"neutronEvent";
 	fTree = new TTree(treename.c_str(),"Photons produced by thermal neutrons");
 
+#ifdef USE_MULTITHREAD
+	fTree->Branch("threadID", &data.threadID);
+#endif
 	if(persistentMode) // Run number
 		fTree->Branch("runNb", &data.runNb);
 	fTree->Branch("nScatters", &data.nScatters);

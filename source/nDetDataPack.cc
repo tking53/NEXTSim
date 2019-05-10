@@ -32,11 +32,4 @@ void nDetDataPack::clear(){
 
 	lightPulseL.clear();
 	lightPulseR.clear();
-
-	/*if(stacking)
-		stacking->Reset();
-	if(tracking)
-		tracking->Reset();
-	if(stepping)
-		stepping->Reset();*/
 }

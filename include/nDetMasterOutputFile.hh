@@ -26,6 +26,8 @@ class nDetMasterOutputFile{
 
 	bool fillBranch(const nDetDataPack &pack);
 
+	bool getOutputDebug() const { return outputDebug; }
+
 	void setOutputFilename(const std::string &fname);
 
 	void setOutputTreeName(const std::string &tname){ treename = tname; }
