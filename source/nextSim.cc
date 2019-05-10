@@ -133,7 +133,7 @@ int main(int argc, char** argv){
 		runManager = new G4MTRunManager();
 		((G4MTRunManager*)runManager)->SetNumberOfThreads(numberOfThreads);
 		std::cout << "nextSim: Multi-threading enabled.\n";
-		std::cout << "nextSim: Setting number of threads to " << numberOfThreads << std::endl;
+		std::cout << "nextSim: Set number of threads to " << ((G4MTRunManager*)runManager)->GetNumberOfThreads() << std::endl;
 	}
 	else{
 		runManager = new G4RunManager();
@@ -183,7 +183,7 @@ int main(int argc, char** argv){
 	if(!batchMode){	 // Define UI session for interactive mode
 #ifdef G4UI_USE
 		// Set root output to a single output file.
-		nDetMasterOutputFile::getInstance().setPersistentMode(true);; // The master output file is a singleton class.
+		nDetMasterOutputFile::getInstance().setPersistentMode(true); // The master output file is a singleton class.
 
 		G4UIExecutive *ui = new G4UIExecutive(argc, argv, "");
 		UImanager->ApplyCommand("/vis/open OGL");

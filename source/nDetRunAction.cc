@@ -115,8 +115,7 @@ nDetRunAction::nDetRunAction(nDetConstruction *det){
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-nDetRunAction::~nDetRunAction()
-{
+nDetRunAction::~nDetRunAction(){
 	delete timer;
 	delete fActionMessenger;
 }

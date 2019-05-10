@@ -82,6 +82,18 @@ class nDetRunAction : public G4UserRunAction
 	void setPulseIntegralLow(const short &low){ pulseIntegralLow = low; }
 	
 	void setPulseIntegralHigh(const short &high){ pulseIntegralHigh = high; }
+	
+	centerOfMass *getCenterOfMassLeft(){ return &cmL; }
+	  
+	centerOfMass *getCenterOfMassRight(){ return &cmR; }
+
+	pmtResponse *getPmtResponseLeft(){ return cmL.getPmtResponse();	}
+
+	pmtResponse *getPmtResponseRight(){	return cmR.getPmtResponse(); }
+
+	pmtResponse *getAnodeResponseLeft(){ return cmL.getAnodeResponse();	}
+
+	pmtResponse *getAnodeResponseRight(){ return cmR.getAnodeResponse(); }
 
 	void process();
 

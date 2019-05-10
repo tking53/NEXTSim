@@ -107,8 +107,8 @@ void nDetRunActionMessenger::SetNewValue(G4UIcommand *command, G4String newValue
 	size_t index;
 	if(!findCommand(command, newValue, index)) return;
 
-	//pmtResponse *prL = fAction->getPmtResponseLeft();
-	//pmtResponse *prR = fAction->getPmtResponseRight();
+	pmtResponse *prL = fAction->getPmtResponseLeft();
+	pmtResponse *prR = fAction->getPmtResponseRight();
 
 	if(index == 0){
 		fOutputFile->setOutputFilename(newValue);
@@ -132,7 +132,7 @@ void nDetRunActionMessenger::SetNewValue(G4UIcommand *command, G4String newValue
 		G4int val = command->ConvertToInt(newValue);
 		fOutputFile->setOutputFileIndex(val);
 	}
-	/*else if(index == 7){
+	else if(index == 7){
 		G4double val = command->ConvertToDouble(newValue);
 		prL->setRisetime(val);
 		prR->setRisetime(val);
@@ -191,7 +191,7 @@ void nDetRunActionMessenger::SetNewValue(G4UIcommand *command, G4String newValue
 		G4int val = command->ConvertToInt(newValue);
 		prL->setFunctionType(val);
 		prR->setFunctionType(val);
-	}*/
+	}
 	else if(index == 20){
 		fOutputFile->setPrintTrace((newValue == "true") ? true : false);
 	}
