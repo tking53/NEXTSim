@@ -117,12 +117,8 @@ nDetRunAction::nDetRunAction(nDetConstruction *det){
 
 nDetRunAction::~nDetRunAction()
 {
-	/*std::cout << "\n~nDetRunAction(), threadID=" << G4Threading::G4GetThreadId() << std::endl;
-
 	delete timer;
 	delete fActionMessenger;
-	
-	std::cout << "end ~nDetRunAction()\n\n";*/
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

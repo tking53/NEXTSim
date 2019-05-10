@@ -61,7 +61,8 @@ int main(int argc, char** argv){
 	handler.add(optionExt("verbose", no_argument, NULL, 'V', "", "Toggle verbose mode."));
 	handler.add(optionExt("delay", required_argument, NULL, 'D', "<seconds>", "Set the time delay between successive event counter updates (default=10s)."));
 #ifdef USE_MULTITHREAD
-	handler.add(optionExt("disable-multithreaded", no_argument, NULL, 0x0, "", "Force single-threaded mode."));
+	handler.add(optionExt("mt-disable", no_argument, NULL, 0x0, "", "Force single-threaded mode."));
+	handler.add(optionExt("mt-thread-limit", required_argument, NULL, 0x0, "", "Set the maximum number of threads to use."));
 #endif
 
 	// Handle user input.
@@ -100,6 +101,12 @@ int main(int argc, char** argv){
 	bool forceSingleThreaded = false;
 	if(handler.getOption(7)->active) // Force single-threaded mode.
 		forceSingleThreaded = true;
+		
+	G4int numberOfThreads = G4Threading::G4GetNumberOfCores();
+	if(handler.getOption(8)->active){ // Set the maximum number of threads to use.
+		G4int userInput = strtol(handler.getOption(8)->argument.c_str(), NULL, 10);
+		numberOfThreads = std::min(userInput, G4Threading::G4GetNumberOfCores());
+	}
 #endif
 
 	if(batchMode && inputFilename.empty()){
@@ -124,9 +131,9 @@ int main(int argc, char** argv){
 	G4RunManager* runManager;
 	if(!forceSingleThreaded){
 		runManager = new G4MTRunManager();
-		((G4MTRunManager*)runManager)->SetNumberOfThreads(G4Threading::G4GetNumberOfCores());
+		((G4MTRunManager*)runManager)->SetNumberOfThreads(numberOfThreads);
 		std::cout << "nextSim: Multi-threading enabled.\n";
-		std::cout << "nextSim: Setting number of threads to " << G4Threading::G4GetNumberOfCores() << std::endl;
+		std::cout << "nextSim: Setting number of threads to " << numberOfThreads << std::endl;
 	}
 	else{
 		runManager = new G4RunManager();
