@@ -117,22 +117,27 @@ nDetRunAction::nDetRunAction(nDetConstruction *det){
 
 nDetRunAction::~nDetRunAction()
 {
+	/*std::cout << "\n~nDetRunAction(), threadID=" << G4Threading::G4GetThreadId() << std::endl;
+
 	delete timer;
 	delete fActionMessenger;
+	
+	std::cout << "end ~nDetRunAction()\n\n";*/
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void nDetRunAction::BeginOfRunAction(const G4Run* aRun)
 {
-	if(!IsMaster()) return; // Master thread only.
+	//if(!IsMaster()) return; // Master thread only. THIS DOESN'T WORK CRT
+	if(G4Threading::G4GetThreadId() >= 0) return; // Master thread only.
 	
 	G4cout << "nDetRunAction::BeginOfRunAction()->"<< G4endl;
 	G4cout << "### Run " << aRun->GetRunID() << " start." << G4endl; 
 	timer->Start();
 
 	// Open a root file.
-	nDetMasterOutputFile::getInstance().openRootFile(aRun);
+	nDetMasterOutputFile::getInstance().openRootFile(aRun); // The master output file is a singleton class.
 
 	// Set the total number of events
 	eventAction->SetTotalEvents(aRun->GetNumberOfEventToBeProcessed());
@@ -314,6 +319,9 @@ void nDetRunAction::process(){
 	// Get the segment of the detector where the photon CoM occurs.
 	cmL.getCenterSegment(data.centerOfMassColumn[0], data.centerOfMassRow[0]);
 	cmR.getCenterSegment(data.centerOfMassColumn[1], data.centerOfMassRow[1]);
+	
+	// Write the data (mutex protected, thread safe).
+	nDetMasterOutputFile::getInstance().fillBranch(data); // The master output file is a singleton class.
 	
 	// Clear all statistics.
 	cmL.clear();

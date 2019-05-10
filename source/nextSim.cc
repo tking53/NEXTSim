@@ -60,6 +60,9 @@ int main(int argc, char** argv){
 	handler.add(optionExt("yield", required_argument, NULL, 'Y', "<multiplier>", "Specify the light yield multiplier to use when producing photons (default=1)."));
 	handler.add(optionExt("verbose", no_argument, NULL, 'V', "", "Toggle verbose mode."));
 	handler.add(optionExt("delay", required_argument, NULL, 'D', "<seconds>", "Set the time delay between successive event counter updates (default=10s)."));
+#ifdef USE_MULTITHREAD
+	handler.add(optionExt("disable-multithreaded", no_argument, NULL, 0x0, "", "Force single-threaded mode."));
+#endif
 
 	// Handle user input.
 	if(!handler.setup(argc, argv))
@@ -93,6 +96,12 @@ int main(int argc, char** argv){
 	if(handler.getOption(6)->active) // Set the output time delay.
 		userTimeDelay = strtol(handler.getOption(6)->argument.c_str(), NULL, 0);	
 
+#ifdef USE_MULTITHREAD
+	bool forceSingleThreaded = false;
+	if(handler.getOption(7)->active) // Force single-threaded mode.
+		forceSingleThreaded = true;
+#endif
+
 	if(batchMode && inputFilename.empty()){
 		std::cout << " ERROR: Input macro filename not specified!\n";
 		return 1;
@@ -112,10 +121,17 @@ int main(int argc, char** argv){
 
 	// Construct the default run manager
 #ifdef USE_MULTITHREAD
-	G4MTRunManager* runManager = new G4MTRunManager();
-	runManager->SetNumberOfThreads(G4Threading::G4GetNumberOfCores());
-	std::cout << "nextSim: Multi-threading enabled.\n";
-	std::cout << "nextSim: Setting number of threads to " << G4Threading::G4GetNumberOfCores() << std::endl;
+	G4RunManager* runManager;
+	if(!forceSingleThreaded){
+		runManager = new G4MTRunManager();
+		((G4MTRunManager*)runManager)->SetNumberOfThreads(G4Threading::G4GetNumberOfCores());
+		std::cout << "nextSim: Multi-threading enabled.\n";
+		std::cout << "nextSim: Setting number of threads to " << G4Threading::G4GetNumberOfCores() << std::endl;
+	}
+	else{
+		runManager = new G4RunManager();
+		std::cout << "nextSim: Multi-threading disabled by user.\n";
+	}
 #else
 	G4RunManager* runManager = new G4RunManager();
 #endif
@@ -160,7 +176,7 @@ int main(int argc, char** argv){
 	if(!batchMode){	 // Define UI session for interactive mode
 #ifdef G4UI_USE
 		// Set root output to a single output file.
-		//runAction->setPersistentMode(true);
+		nDetMasterOutputFile::getInstance().setPersistentMode(true);; // The master output file is a singleton class.
 
 		G4UIExecutive *ui = new G4UIExecutive(argc, argv, "");
 		UImanager->ApplyCommand("/vis/open OGL");
@@ -183,6 +199,9 @@ int main(int argc, char** argv){
 		command += inputFilename;
 		UImanager->ApplyCommand(command);
 	}
+
+	// Close the root file.
+	nDetMasterOutputFile::getInstance().closeRootFile(); // The master output file is a singleton class.
 
 	// job termination
 #ifdef G4VIS_USE

@@ -46,6 +46,8 @@ class nDetMasterOutputFile{
 
 	bool openRootFile(const G4Run* aRun);
 
+	bool closeRootFile();
+
   private:
 	std::mutex fileLock;
 
@@ -58,8 +60,8 @@ class nDetMasterOutputFile{
 	std::string runTitle;
 	int runIndex;
 	
-	TFile *fFile; // define root file
-	TTree *fTree; // tree and its branches
+	TFile *fFile;
+	TTree *fTree;
 	TBranch *fBranch;
 
 	bool defineRootBranch;
@@ -82,8 +84,6 @@ class nDetMasterOutputFile{
 	nDetMasterOutputFile(nDetMasterOutputFile const &copy); // Not Implemented
 	
 	nDetMasterOutputFile &operator=(nDetMasterOutputFile const &copy); // Not Implemented
-
-	bool closeRootFile();
 };
 
 #endif
