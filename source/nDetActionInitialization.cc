@@ -10,11 +10,11 @@
 #include "nDetSteppingAction.hh"
 #include "nDetTrackingAction.hh"
 
-nDetActionInitialization::nDetActionInitialization(nDetConstruction *detector) : runAction(NULL), eventAction(NULL), steppingAction(NULL), stackingAction(NULL), trackingAction(NULL), masterRunManager(NULL) {
+nDetActionInitialization::nDetActionInitialization() : runAction(NULL), eventAction(NULL), steppingAction(NULL), stackingAction(NULL), trackingAction(NULL), masterRunManager(NULL) {
 	// Define all actions.
-	runAction = new nDetRunAction(detector);
+	runAction = new nDetRunAction();
 	eventAction = new nDetEventAction(runAction);
-	steppingAction = new nDetSteppingAction(detector, runAction, eventAction);
+	steppingAction = new nDetSteppingAction(runAction, eventAction);
 	stackingAction = new nDetStackingAction(runAction);
 	trackingAction = new nDetTrackingAction(runAction);	
 

@@ -21,7 +21,7 @@ class nDetRunAction;
 class nDetSteppingAction : public G4UserSteppingAction
 {
 public:
-  nDetSteppingAction(nDetConstruction*, nDetRunAction*, nDetEventAction*);
+  nDetSteppingAction(nDetRunAction*, nDetEventAction*);
   
   virtual ~nDetSteppingAction();
 
@@ -30,8 +30,6 @@ public:
   void Reset();
 
 private:
-  nDetConstruction* detector;
-  
   nDetRunAction* runAction;
   
   nDetEventAction*  evtAction;

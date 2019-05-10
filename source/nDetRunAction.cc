@@ -88,7 +88,7 @@ void primaryTrackInfo::setValues(const G4Track *track){
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-nDetRunAction::nDetRunAction(nDetConstruction *det){
+nDetRunAction::nDetRunAction(){
 	timer = new G4Timer;
 	
 	outputDebug = false;
@@ -109,8 +109,11 @@ nDetRunAction::nDetRunAction(nDetConstruction *det){
 	pulseIntegralLow = 5;
 	pulseIntegralHigh = 10;
 		
-	//create a messenger for this class
+	// Create a messenger for this class
 	fActionMessenger = new nDetRunActionMessenger(this); 
+	
+	// Get a pointer to the detector.
+	detector = &nDetConstruction::getInstance(); // The detector builder is a singleton class.
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -141,7 +144,7 @@ void nDetRunAction::BeginOfRunAction(const G4Run* aRun)
 	data.runNb = aRun->GetRunID();
 	
 	// Update the source.
-	//source->SetDetector(detector);
+	source->SetDetector(detector);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -331,7 +334,7 @@ void nDetRunAction::setActions(nDetEventAction *event_, nDetStackingAction *stac
 	stepping = stepping_;
 
 	// Get the photon counter
-	//counter = stacking->GetCounter();
+	counter = stacking->GetCounter();
 }
 
 bool nDetRunAction::AddDetectedPhoton(const G4Step *step, const double &mass/*=1*/){
@@ -342,8 +345,8 @@ bool nDetRunAction::AddDetectedPhoton(const G4Step *step, const double &mass/*=1
 	
 	double energy = step->GetTrack()->GetTotalEnergy();
 	double time = step->GetPostStepPoint()->GetGlobalTime();
-	//G4ThreeVector position = detectorRotation*(step->GetPostStepPoint()->GetPosition()-detectorPosition);
-	G4ThreeVector position = step->GetPostStepPoint()->GetPosition();
+	G4ThreeVector position = step->GetPostStepPoint()->GetPosition() - detector->GetDetectorPos();
+	position = (*detector->GetDetectorRot())*position;
 	
     if(position.z() > 0){
         if(cmL.addPoint(energy, time, position, mass))
@@ -408,10 +411,10 @@ bool nDetRunAction::scatterEvent(){
 		data.recoilMass.push_back(priTrack->atomicMass); 
 		data.nScatterScint.push_back(priTrack->inScint);
 
-		/*G4int segCol, segRow;
+		G4int segCol, segRow;
 		detector->GetSegmentFromCopyNum(priTrack->copyNum, segCol, segRow);
 		data.segmentCol.push_back(segCol);
-		data.segmentRow.push_back(segRow);*/
+		data.segmentRow.push_back(segRow);
 	}
 	
 	primaryTracks.pop_back();

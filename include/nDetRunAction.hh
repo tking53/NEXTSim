@@ -61,7 +61,7 @@ class primaryTrackInfo{
 class nDetRunAction : public G4UserRunAction
 {
   public:
-	nDetRunAction(nDetConstruction *det);
+	nDetRunAction();
 	
 	virtual ~nDetRunAction();
 

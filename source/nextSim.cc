@@ -61,8 +61,7 @@ int main(int argc, char** argv){
 	handler.add(optionExt("verbose", no_argument, NULL, 'V', "", "Toggle verbose mode."));
 	handler.add(optionExt("delay", required_argument, NULL, 'D', "<seconds>", "Set the time delay between successive event counter updates (default=10s)."));
 #ifdef USE_MULTITHREAD
-	handler.add(optionExt("mt-disable", no_argument, NULL, 0x0, "", "Force single-threaded mode."));
-	handler.add(optionExt("mt-thread-limit", required_argument, NULL, 0x0, "", "Set the maximum number of threads to use."));
+	handler.add(optionExt("mt-thread-limit", required_argument, NULL, 'n', "", "Set the maximum number of threads to use (set to 1 to disable multithreading)."));
 #endif
 
 	// Handle user input.
@@ -98,13 +97,9 @@ int main(int argc, char** argv){
 		userTimeDelay = strtol(handler.getOption(6)->argument.c_str(), NULL, 0);	
 
 #ifdef USE_MULTITHREAD
-	bool forceSingleThreaded = false;
-	if(handler.getOption(7)->active) // Force single-threaded mode.
-		forceSingleThreaded = true;
-		
 	G4int numberOfThreads = G4Threading::G4GetNumberOfCores();
-	if(handler.getOption(8)->active){ // Set the maximum number of threads to use.
-		G4int userInput = strtol(handler.getOption(8)->argument.c_str(), NULL, 10);
+	if(handler.getOption(7)->active){ // Set the maximum number of threads to use.
+		G4int userInput = strtol(handler.getOption(7)->argument.c_str(), NULL, 10);
 		numberOfThreads = std::min(userInput, G4Threading::G4GetNumberOfCores());
 	}
 #endif
@@ -129,7 +124,7 @@ int main(int argc, char** argv){
 	// Construct the default run manager
 #ifdef USE_MULTITHREAD
 	G4RunManager* runManager;
-	if(!forceSingleThreaded){
+	if(numberOfThreads > 1){
 		runManager = new G4MTRunManager();
 		((G4MTRunManager*)runManager)->SetNumberOfThreads(numberOfThreads);
 		std::cout << "nextSim: Multi-threading enabled.\n";
@@ -137,7 +132,7 @@ int main(int argc, char** argv){
 	}
 	else{
 		runManager = new G4RunManager();
-		std::cout << "nextSim: Multi-threading disabled by user.\n";
+		std::cout << "nextSim: Multi-threading disabled.\n";
 	}
 #else
 	G4RunManager* runManager = new G4RunManager();
@@ -166,7 +161,7 @@ int main(int argc, char** argv){
 #endif
 
 	// 
-	nDetActionInitialization *runAction = new nDetActionInitialization(detector);
+	nDetActionInitialization *runAction = new nDetActionInitialization();
 	
 	// Set the action initialization.
 	runManager->SetUserInitialization(runAction);
