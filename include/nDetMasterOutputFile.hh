@@ -16,6 +16,12 @@ class photonCounter;
 
 class nDetMasterOutputFile{
   public:
+	~nDetMasterOutputFile();
+
+	nDetMasterOutputFile(nDetMasterOutputFile const &copy); // Not Implemented
+	
+	nDetMasterOutputFile &operator=(nDetMasterOutputFile const &copy); // Not Implemented
+
 	static nDetMasterOutputFile &getInstance();
 
 	bool fillBranch(const nDetDataPack &pack);
@@ -78,12 +84,6 @@ class nDetMasterOutputFile{
 	nDetDataPack data;
 
 	nDetMasterOutputFile();	
-
-	~nDetMasterOutputFile();
-
-	nDetMasterOutputFile(nDetMasterOutputFile const &copy); // Not Implemented
-	
-	nDetMasterOutputFile &operator=(nDetMasterOutputFile const &copy); // Not Implemented
 };
 
 #endif

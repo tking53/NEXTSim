@@ -143,15 +143,12 @@ int main(int argc, char** argv){
 	G4RunManager* runManager = new G4RunManager();
 #endif
 
-	// set mandatory initialization classes
+	// Set mandatory initialization classes
 	// Initialize the detector
-	nDetConstruction* detector;
-	if(yieldMult < 0){ 
-		detector = new nDetConstruction();
-	}
-	else{ // Modify the photon yield of the detector
+	nDetConstruction* detector = &nDetConstruction::getInstance(); // The detector builder is a singleton class.
+	if(yieldMult > 0){ // Modify the photon yield of the detector
 		std::cout << "nextSim: Setting photon yield multiplier to " << yieldMult << std::endl;
-		detector = new nDetConstruction(yieldMult);
+		detector->SetLightYieldMultiplier(yieldMult);
 	}
 	runManager->SetUserInitialization(detector);
 

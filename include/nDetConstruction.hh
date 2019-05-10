@@ -37,14 +37,16 @@ class userAddLayer;
 // class nDetConstruction
 ///////////////////////////////////////////////////////////////////////////////
 
-class nDetConstruction : public G4VUserDetectorConstruction
-{
+class nDetConstruction : public G4VUserDetectorConstruction{
   public:
-    nDetConstruction(const G4double &scale=1);
-    
-   ~nDetConstruction();
+	~nDetConstruction();
 
-  public:
+	nDetConstruction(nDetConstruction const &copy); // Not Implemented
+	
+	nDetConstruction &operator=(nDetConstruction const &copy); // Not Implemented
+
+	static nDetConstruction &getInstance();
+
     G4VPhysicalVolume* Construct();
     
     G4VPhysicalVolume* ConstructDetector();
@@ -150,6 +152,8 @@ class nDetConstruction : public G4VUserDetectorConstruction
 	void AddDiffuser(const G4String &input);
 
 	void AddLightGuide(const G4String &input);
+	
+	void SetLightYieldMultiplier(const G4double &input){ fLightYieldScale = input; }
 
 private:
     nDetConstructionMessenger *fDetectorMessenger;
@@ -298,6 +302,9 @@ private:
 
 	// Deque of layers added by the user.
 	std::deque<userAddLayer> userLayers;
+
+	// Private constructor.
+	nDetConstruction();
 
     // member functions
     void buildExpHall();

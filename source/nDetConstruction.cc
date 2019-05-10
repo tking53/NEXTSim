@@ -47,7 +47,15 @@ static const G4double inch = 2.54*cm;
 // class nDetConstruction
 ///////////////////////////////////////////////////////////////////////////////
 
-nDetConstruction::nDetConstruction(const G4double &scale/*=1*/){
+nDetConstruction &nDetConstruction::getInstance(){
+	// The only instance
+	// Guaranteed to be lazy initialized
+	// Guaranteed that it will be destroyed correctly
+	static nDetConstruction instance;
+	return instance;
+}
+
+nDetConstruction::nDetConstruction(){
     expHall_logV = NULL;
     expHall_physV = NULL;
     
@@ -103,7 +111,7 @@ nDetConstruction::nDetConstruction(const G4double &scale/*=1*/){
     currentLayerSizeY = 0;
     currentOffsetZ = 0;
     
-    fLightYieldScale = scale;
+    fLightYieldScale = 1;
 
     expHallX = 10*m;
     expHallY = 10*m;
