@@ -3,11 +3,19 @@
 
 #include "G4Run.hh"
 #include "G4Timer.hh"
+#include "G4MTRunManager.hh"
+#include "G4UserRunAction.hh"
 
 #include "TFile.h"
 #include "TTree.h"
 #include "TBranch.h"
 
+#include "ParticleSource.hh"
+#include "ParticleSourceMessenger.hh"
+#include "nDetRunAction.hh"
+#include "nDetRunActionMessenger.hh"
+#include "nDetConstruction.hh"
+#include "nDetConstructionMessenger.hh"
 #include "nDetMasterOutputFile.hh"
 #include "photonCounter.hh"
 
@@ -79,7 +87,7 @@ bool nDetMasterOutputFile::openRootFile(const G4Run* aRun){
 		// Create a ROOT file
 		fFile = new TFile(filename.c_str(), "RECREATE", runTitle.c_str());
 		if(!fFile->IsOpen()) {
-			G4cout << " nDetRunAction: ERROR! Failed to open file \"" << filename << "\"!\n";
+			G4cout << "nDetMasterOutputFile: ERROR! Failed to open file \"" << filename << "\"!\n";
 			return false;
 		}
 	}
@@ -93,7 +101,7 @@ bool nDetMasterOutputFile::openRootFile(const G4Run* aRun){
 				std::ifstream fCheck(newFilename.c_str());
 				if(fCheck.good()){ // File exists. Start over.
 					if(verbose)
-						std::cout << " nDetRunAction: File \"" << newFilename << "\" already exists.\n";
+						std::cout << "nDetMasterOutputFile: File \"" << newFilename << "\" already exists.\n";
 					fCheck.close();
 					continue;
 				}
@@ -104,7 +112,7 @@ bool nDetMasterOutputFile::openRootFile(const G4Run* aRun){
 				fFile = new TFile(newFilename.c_str(), "RECREATE", runTitle.c_str());
 			}
 			if(!fFile->IsOpen()) {
-				G4cout << " nDetRunAction: ERROR! Failed to open file \"" << newFilename << "\"!\n";
+				G4cout << "nDetMasterOutputFile: ERROR! Failed to open file \"" << newFilename << "\"!\n";
 				return false;
 			}
 			break;
@@ -113,9 +121,10 @@ bool nDetMasterOutputFile::openRootFile(const G4Run* aRun){
 
 	// Add user commands to the output file.
 	TDirectory *dir = fFile->mkdir("setup");
-	//detector->GetMessenger()->write(dir);
-	//source->GetMessenger()->write(dir);
-	//fActionMessenger->write(dir);
+	nDetConstruction::getInstance().GetMessenger()->write(dir);
+	const G4UserRunAction *runAction = G4MTRunManager::GetMasterRunManager()->GetUserRunAction();
+	((nDetRunAction*)runAction)->getSource()->GetMessenger()->write(dir);
+	((nDetRunAction*)runAction)->getMessenger()->write(dir);
 
 	// Create root tree.
 	if(treename.empty()) treename = "data"; //"neutronEvent";
@@ -194,7 +203,7 @@ bool nDetMasterOutputFile::openRootFile(const G4Run* aRun){
 
 	defineRootBranch = true;
 		
-	std::cout << " nDetRunAction: File " << fFile->GetName() << " opened." << std::endl;
+	std::cout << "nDetMasterOutputFile: File " << fFile->GetName() << " opened." << std::endl;
 	
 	// Start the timer.
 	timer->Start();

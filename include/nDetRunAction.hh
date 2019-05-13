@@ -96,6 +96,8 @@ class nDetRunAction : public G4UserRunAction
 	pmtResponse *getAnodeResponseLeft(){ return cmL.getAnodeResponse();	}
 
 	pmtResponse *getAnodeResponseRight(){ return cmR.getAnodeResponse(); }
+	
+	nDetRunActionMessenger *getMessenger(){ return fActionMessenger; }
 
 	void process();
 
