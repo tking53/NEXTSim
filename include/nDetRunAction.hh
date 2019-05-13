@@ -83,6 +83,8 @@ class nDetRunAction : public G4UserRunAction
 	
 	void setPulseIntegralHigh(const short &high){ pulseIntegralHigh = high; }
 	
+	void setEventNumber(const int &eventID){ data.eventID = eventID; }
+	
 	centerOfMass *getCenterOfMassLeft(){ return &cmL; }
 	  
 	centerOfMass *getCenterOfMassRight(){ return &cmR; }
@@ -138,6 +140,9 @@ class nDetRunAction : public G4UserRunAction
 
 	centerOfMass cmL;
 	centerOfMass cmR;
+
+    unsigned long long numPhotonsTotal;
+    unsigned long long numPhotonsDetTotal;
 
 	bool scatterEvent();	
 };

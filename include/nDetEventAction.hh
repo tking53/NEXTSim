@@ -1,22 +1,12 @@
-//
-// $Id: nDetEventAction.hh,v1.0 Sept., 2015 $
-//   Written by Dr. Xiaodong Zhang
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
- 
 #ifndef nDetEventAction_h
 #define nDetEventAction_h 1
 
 #include "nDetRunAction.hh"
 
 #include "G4UserEventAction.hh"
-#include "globals.hh"
 
-//class G4Event;
 class nDetRunAction;
 class G4Event;
-class G4Timer;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -32,28 +22,8 @@ class nDetEventAction : public G4UserEventAction
     
     void EndOfEventAction(const G4Event*);
 
-    void StartTimer();
-    
-    void SetTotalEvents(const G4long &events){ totalEvents = events; }
-
-	void SetDisplayTimeInterval(const int &interval){ displayTimeInterval = interval; }
-
-    G4double GetTimeElapsed();
-
   private:
     nDetRunAction *runAct;
-    
-    G4Timer *timer;
-    
-    G4double previousTime;
-    G4double totalTime;
-    
-    G4long totalEvents;
-    
-    int displayTimeInterval; // In seconds.
-    
-    unsigned long long numPhotons;
-    unsigned long long numPhotonsDet;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

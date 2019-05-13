@@ -7,6 +7,7 @@
 #include "nDetDataPack.hh"
 
 class G4Run;
+class G4Timer;
 
 class TFile;
 class TTree;
@@ -50,6 +51,10 @@ class nDetMasterOutputFile{
 	
 	void setOverwriteOutputFile(const bool &overwrite){ overwriteExistingFile = overwrite; }
 
+    void setTotalEvents(const G4long &events){ totalEvents = events; }
+
+	void setDisplayTimeInterval(const int &interval){ displayTimeInterval = interval; }
+
 	bool toggleVerboseMode(){ return (verbose = !verbose); }
 
 	bool openRootFile(const G4Run* aRun);
@@ -84,6 +89,15 @@ class nDetMasterOutputFile{
 	bool overwriteExistingFile;	
 
 	nDetDataPack data;
+
+    G4Timer *timer;
+    
+    G4double previousTime;
+    G4double totalTime;
+    
+    G4long totalEvents;
+    
+    int displayTimeInterval; // In seconds.
 
 	nDetMasterOutputFile();	
 };

@@ -172,6 +172,9 @@ int main(int argc, char** argv){
 	// get the pointer to the UI manager and set verbosities
 	G4UImanager *UImanager = G4UImanager::GetUIpointer();
 
+	if(userTimeDelay > 0)
+		nDetMasterOutputFile::getInstance().setDisplayTimeInterval(userTimeDelay);
+
 	if(!batchMode){	 // Define UI session for interactive mode
 #ifdef G4UI_USE
 		// Set root output to a single output file.

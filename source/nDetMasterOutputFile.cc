@@ -2,6 +2,7 @@
 #include <fstream>
 
 #include "G4Run.hh"
+#include "G4Timer.hh"
 
 #include "TFile.h"
 #include "TTree.h"
@@ -36,12 +37,21 @@ nDetMasterOutputFile::nDetMasterOutputFile(){
 	runTitle = "NEXT Geant4 output";
 	runIndex = 1;
 
+	// Timer initialization.
+	timer = new G4Timer();
+	previousTime = 0;
+	totalTime = 0;
+	totalEvents = 0;
+	displayTimeInterval = 10;
+
 	overwriteExistingFile = false;
 }
 
 nDetMasterOutputFile::~nDetMasterOutputFile(){
 	// Close the root file, if it's still open.
 	closeRootFile();
+	
+	delete timer;
 }
 
 bool nDetMasterOutputFile::openRootFile(const G4Run* aRun){
@@ -185,7 +195,10 @@ bool nDetMasterOutputFile::openRootFile(const G4Run* aRun){
 	defineRootBranch = true;
 		
 	std::cout << " nDetRunAction: File " << fFile->GetName() << " opened." << std::endl;
-		
+	
+	// Start the timer.
+	timer->Start();
+	
 	return true;
 }//end of open root file...
 
@@ -212,6 +225,29 @@ bool nDetMasterOutputFile::fillBranch(const nDetDataPack &pack){
 
 	if(outputBadEvents || pack.goodEvent || (pack.nPhotonsDet[0] > 0 || pack.nPhotonsDet[1] > 0))
 		fTree->Fill(); // Fill the tree
+
+	double avgTimePerEvent;
+	double avgTimePerPhoton;
+	double avgTimePerDetection;
+
+	if(pack.eventID != 0){ // Status output.
+		timer->Stop();
+		totalTime += timer->GetRealElapsed();
+		if(displayTimeInterval > 0 && (totalTime - previousTime) >= displayTimeInterval){ // Display every 10 seconds.
+			std::cout << "Event ID: " << pack.eventID << ", TIME=" << totalTime << " s";
+			avgTimePerEvent = totalTime/pack.eventID;
+			avgTimePerPhoton = totalTime/1;//numPhotons;
+			avgTimePerDetection = totalTime/1;//numPhotonsDet;
+			if(totalEvents > 0){
+				std::cout << ", REMAINING=" << (totalEvents-pack.eventID)*avgTimePerEvent << " s";
+			}
+			std::cout << ", RATE=" << 1/avgTimePerEvent << " evt/s (" << 1/avgTimePerPhoton << " phot/s & " << 1/avgTimePerDetection << " det/s)\n";
+			previousTime = totalTime;
+		}
+	}
+
+	// Start the timer.
+	timer->Start();
 
 	// Disable the mutex lock to open access to the file.
 	fileLock.unlock();

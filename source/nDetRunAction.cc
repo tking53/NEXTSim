@@ -108,7 +108,10 @@ nDetRunAction::nDetRunAction(){
 
 	pulseIntegralLow = 5;
 	pulseIntegralHigh = 10;
-		
+	
+	numPhotonsTotal = 0;
+	numPhotonsDetTotal = 0;
+  
 	// Create a messenger for this class
 	fActionMessenger = new nDetRunActionMessenger(this); 
 	
@@ -127,8 +130,11 @@ nDetRunAction::~nDetRunAction(){
 
 void nDetRunAction::BeginOfRunAction(const G4Run* aRun)
 {
-	// Update the debug output flag.
+	// Update the debug output flag (may not be thread safe CRT)
 	outputDebug = nDetMasterOutputFile::getInstance().getOutputDebug();
+
+	numPhotonsTotal = 0;
+	numPhotonsDetTotal = 0;
 
 	//if(!IsMaster()) return; // Master thread only. THIS DOESN'T WORK CRT
 	if(G4Threading::G4GetThreadId() >= 0) return; // Master thread only.
@@ -141,7 +147,7 @@ void nDetRunAction::BeginOfRunAction(const G4Run* aRun)
 	nDetMasterOutputFile::getInstance().openRootFile(aRun); // The master output file is a singleton class.
 
 	// Set the total number of events
-	eventAction->SetTotalEvents(aRun->GetNumberOfEventToBeProcessed());
+	nDetMasterOutputFile::getInstance().setTotalEvents(aRun->GetNumberOfEventToBeProcessed());
 
 	// Get RunId and threadID
 	data.runNb = aRun->GetRunID();
@@ -324,6 +330,10 @@ void nDetRunAction::process(){
 	
 	// Write the data (mutex protected, thread safe).
 	nDetMasterOutputFile::getInstance().fillBranch(data); // The master output file is a singleton class.
+
+	// Update photon statistics.
+	numPhotonsTotal += data.nPhotonsTot;
+	numPhotonsDetTotal += data.nPhotonsDet[0]+data.nPhotonsDet[1];
 	
 	// Clear all statistics.
 	cmL.clear();
@@ -356,15 +366,15 @@ bool nDetRunAction::AddDetectedPhoton(const G4Step *step, const double &mass/*=1
 	G4ThreeVector position = step->GetPostStepPoint()->GetPosition() - detector->GetDetectorPos();
 	position = (*detector->GetDetectorRot())*position;
 	
-    if(position.z() > 0){
-        if(cmL.addPoint(energy, time, position, mass))
-            return true;
-    }
-    if(position.z() < 0){
-        if(cmR.addPoint(energy, time, position, mass))
-            return true;
-    }
-    return false;
+	if(position.z() > 0){
+		if(cmL.addPoint(energy, time, position, mass))
+			return true;
+	}
+	if(position.z() < 0){
+		if(cmR.addPoint(energy, time, position, mass))
+			return true;
+	}
+	return false;
 }
 
 

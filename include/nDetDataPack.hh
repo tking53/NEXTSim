@@ -6,6 +6,7 @@
 class nDetDataPack{
   public:
 	// Run / event information.
+	int eventID;
 	short threadID;
 	short runNb;
 
