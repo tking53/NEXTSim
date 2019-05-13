@@ -117,8 +117,7 @@ nDetConstruction::nDetConstruction(){
     expHallY = 10*m;
     expHallZ = 10*m;
 
-    //Build the materials
-    DefineMaterials();
+	materialsAreDefined = false;
 
     assembly_VisAtt = new G4VisAttributes();
     //assembly_VisAtt->SetVisibility(false);
@@ -166,6 +165,9 @@ G4VPhysicalVolume* nDetConstruction::Construct() {
 }
 
 G4VPhysicalVolume* nDetConstruction::ConstructDetector(){
+	if(!materialsAreDefined)
+		this->DefineMaterials();
+
 	// Build experiment hall
 	buildExpHall();
 
@@ -284,6 +286,8 @@ void nDetConstruction::buildExpHall()
 //****************************************** Material Definitions  *********************************************//
 
 void nDetConstruction::DefineMaterials() {
+	if(materialsAreDefined) return;
+
     G4cout<<"nDetConstruction::DefineMaterials()"<<G4endl;
 
 	// Elements
@@ -363,6 +367,7 @@ void nDetConstruction::DefineMaterials() {
     fEJ200MPT->AddConstProperty("FASTTIMECONSTANT", 2.1*ns);
     fEJ200MPT->AddConstProperty("YIELDRATIO",1);// the strength of the fast component as a function of total scintillation yield
 
+	std::cout << "nDetConstruction: Photon yield is set to " << fLightYieldScale << "x scale\n";
     G4double pEF = fLightYieldScale; 
     G4double pSF = pEF * 1.35;
 
@@ -652,7 +657,7 @@ void nDetConstruction::DefineMaterials() {
 	fGreaseOpticalSurface->SetModel(unified); // Defaults to Lambertian reflection (i.e. rough surface) --CRT
 	fGreaseOpticalSurface->SetMaterialPropertiesTable(fGreaseMPT);	
 
-    return;
+	materialsAreDefined = true;
 }
 
 void nDetConstruction::ConstructSDandField(){

@@ -303,6 +303,8 @@ private:
 	// Deque of layers added by the user.
 	std::deque<userAddLayer> userLayers;
 
+	bool materialsAreDefined;
+
 	// Private constructor.
 	nDetConstruction();
 
