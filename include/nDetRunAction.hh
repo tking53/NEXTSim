@@ -85,6 +85,8 @@ class nDetRunAction : public G4UserRunAction
 	
 	void setEventNumber(const int &eventID){ data.eventID = eventID; }
 	
+	bool toggleVerboseMode(){ return (verbose = !verbose); }
+	
 	centerOfMass *getCenterOfMassLeft(){ return &cmL; }
 	  
 	centerOfMass *getCenterOfMassRight(){ return &cmR; }

@@ -14,7 +14,7 @@ class nDetTrackingAction;
 
 class nDetActionInitialization : public G4VUserActionInitialization {
   public:
-	nDetActionInitialization();
+	nDetActionInitialization(bool verboseMode=false);
   
 	virtual void Build() const ;
 	

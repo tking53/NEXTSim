@@ -161,7 +161,7 @@ int main(int argc, char** argv){
 #endif
 
 	// 
-	nDetActionInitialization *runAction = new nDetActionInitialization();
+	nDetActionInitialization *runAction = new nDetActionInitialization(verboseMode);
 	
 	// Set the action initialization.
 	runManager->SetUserInitialization(runAction);

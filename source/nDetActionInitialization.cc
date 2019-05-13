@@ -10,7 +10,7 @@
 #include "nDetSteppingAction.hh"
 #include "nDetTrackingAction.hh"
 
-nDetActionInitialization::nDetActionInitialization() : runAction(NULL), eventAction(NULL), steppingAction(NULL), stackingAction(NULL), trackingAction(NULL), masterRunManager(NULL) {
+nDetActionInitialization::nDetActionInitialization(bool verboseMode/*=false*/) : runAction(NULL), eventAction(NULL), steppingAction(NULL), stackingAction(NULL), trackingAction(NULL), masterRunManager(NULL) {
 	// Define all actions.
 	runAction = new nDetRunAction();
 	eventAction = new nDetEventAction(runAction);
@@ -18,10 +18,7 @@ nDetActionInitialization::nDetActionInitialization() : runAction(NULL), eventAct
 	stackingAction = new nDetStackingAction(runAction);
 	trackingAction = new nDetTrackingAction(runAction);	
 
-	//if(verboseMode) runAction->toggleVerboseMode();
-	
-	//if(userTimeDelay > 0)
-	//	eventAction->SetDisplayTimeInterval(userTimeDelay);
+	if(verboseMode) runAction->toggleVerboseMode();
 	
 	// Link all actions back to run control thread.
 	runAction->setActions(eventAction, stackingAction, trackingAction, steppingAction);
