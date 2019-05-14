@@ -6,50 +6,22 @@
 #include "centerOfMass.hh"
 
 #include "nDetRunAction.hh"
-#include "nDetMasterOutputFile.hh"
 #include "G4UIcmdWithAString.hh"
 #include "G4UIcmdWithADouble.hh"
 #include "G4UIcmdWithAnInteger.hh"
 #include "G4UIdirectory.hh"
 #include "G4UIcommand.hh"
 
-nDetRunActionMessenger::nDetRunActionMessenger() : messengerHandler("nDetRunActionMessenger"), fAction(NULL), fOutputFile(NULL) { 
+nDetRunActionMessenger::nDetRunActionMessenger() : messengerHandler("nDetRunActionMessenger"), fAction(NULL) { 
 	addAllCommands(); 
 }
 
-nDetRunActionMessenger::nDetRunActionMessenger(nDetRunAction *action) : messengerHandler("nDetRunActionMessenger"), fAction(action), fOutputFile(NULL) { 
-	fOutputFile = &nDetMasterOutputFile::getInstance();
+nDetRunActionMessenger::nDetRunActionMessenger(nDetRunAction *action) : messengerHandler("nDetRunActionMessenger"), fAction(action) { 
 	addAllCommands(); 
 }
 
 void nDetRunActionMessenger::addAllCommands(){
-	addDirectory("/nDet/output/", "Output file control");
 	addDirectory("/nDet/output/trace/", "Output light pulse parameters");
-
-	addCommand(new G4UIcmdWithAString("/nDet/output/filename", this));
-	addGuidance("Sets the filename prefix of the output ROOT file.");
-
-	addCommand(new G4UIcmdWithAString("/nDet/output/title", this));
-	addGuidance("Sets the title of the output root file.");
-
-	addCommand(new G4UIcmdWithAString("/nDet/output/overwrite", this));
-	addGuidance("Set whether or not an existing output file will be overwritten");
-	addCandidates("true false");
-
-	addCommand(new G4UIcmdWithAString("/nDet/output/enabled", this));
-	addGuidance("Enable or disable output file generation");
-	addCandidates("true false");
-
-	addCommand(new G4UIcmdWithAString("/nDet/output/persistent", this));
-	addGuidance("Enable or disable persistent mode (i.e. to keep the output file open)");
-	addCandidates("true false");
-
-	addCommand(new G4UIcmdWithAString("/nDet/output/trace/enabled", this));
-	addGuidance("Enable or disable writing of light pulse to root tree");
-	addCandidates("true false");
-
-	addCommand(new G4UIcmdWithAnInteger("/nDet/output/index", this));
-	addGuidance("Sets the run number suffix of the output root file.");
 
 	addCommand(new G4UIcmdWithADouble("/nDet/output/trace/setRisetime", this));
 	addGuidance("Set the PMT light response risetime (ns)");
@@ -93,14 +65,6 @@ void nDetRunActionMessenger::addAllCommands(){
 	addCommand(new G4UIcmdWithAString("/nDet/output/trace/print", this));
 	addGuidance("Print the digitized light pulse");
 	addCandidates("true false");
-
-	addCommand(new G4UIcmdWithAString("/nDet/output/debug", this));
-	addGuidance("Enable or disable writing of detailed debug information to output file");
-	addCandidates("true false");
-	
-	addCommand(new G4UIcmdWithAString("/nDet/output/badEvents", this));
-	addGuidance("Enable or disable writing of non-detection events to the output file");
-	addCandidates("true false");
 }
 
 void nDetRunActionMessenger::SetNewValue(G4UIcommand *command, G4String newValue){
@@ -111,94 +75,66 @@ void nDetRunActionMessenger::SetNewValue(G4UIcommand *command, G4String newValue
 	pmtResponse *prR = fAction->getPmtResponseRight();
 
 	if(index == 0){
-		fOutputFile->setOutputFilename(newValue);
-	}
-	else if(index == 1){
-		fOutputFile->setOutputFileTitle(newValue);
-	}
-	else if(index == 2){
-		fOutputFile->setOverwriteOutputFile((newValue == "true") ? true : false);
-	}
-	else if(index == 3){
-		fOutputFile->setOutputEnabled((newValue == "true") ? true : false);
-	}
-	else if(index == 4){
-		fOutputFile->setPersistentMode((newValue == "true") ? true : false);
-	}
-	else if(index == 5){
-		fOutputFile->setOutputTraces((newValue == "true") ? true : false);
-	}
-	else if(index == 6){
-		G4int val = command->ConvertToInt(newValue);
-		fOutputFile->setOutputFileIndex(val);
-	}
-	else if(index == 7){
 		G4double val = command->ConvertToDouble(newValue);
 		prL->setRisetime(val);
 		prR->setRisetime(val);
 	}
-	else if(index == 8){
+	else if(index == 1){
 		G4double val = command->ConvertToDouble(newValue);
 		prL->setFalltime(val);
 		prR->setFalltime(val);
 	}
-	else if(index == 9){
+	else if(index == 2){
 		G4double val = command->ConvertToDouble(newValue);
 		prL->setGain(val);
 		prR->setGain(val);
 	}
-	else if(index == 10){
+	else if(index == 3){
 		G4double val = command->ConvertToDouble(newValue);
 		fAction->setBaselinePercentage(val);
 	}
-	else if(index == 11){
+	else if(index == 4){
 		G4double val = command->ConvertToDouble(newValue);
 		fAction->setBaselineJitterPercentage(val);
 	}
-	else if(index == 12){
+	else if(index == 5){
 		G4double val = command->ConvertToDouble(newValue);
 		fAction->setPolyCfdFraction(val);
 	}
-	else if(index == 13){
+	else if(index == 6){
 		G4double val = command->ConvertToDouble(newValue);
 		prL->setTraceDelay(val);
 		prR->setTraceDelay(val);
 	}
-	else if(index == 14){
+	else if(index == 7){
 		G4double val = command->ConvertToDouble(newValue);
 		prL->setPulseLengthInNanoSeconds(val);
 		prR->setPulseLengthInNanoSeconds(val);
 	}
-	else if(index == 15){
+	else if(index == 8){
 		G4double val = command->ConvertToDouble(newValue);
 		prL->setTransitTimeSpread(val);
 		prR->setTransitTimeSpread(val);
 	}
-	else if(index == 16){
+	else if(index == 9){
 		G4int val = command->ConvertToInt(newValue);
 		fAction->setPulseIntegralLow(val);
 	}
-	else if(index == 17){
+	else if(index == 10){
 		G4int val = command->ConvertToInt(newValue);
 		fAction->setPulseIntegralHigh(val);
 	}
-	else if(index == 18){
+	else if(index == 11){
 		G4int val = command->ConvertToInt(newValue);
 		prL->setBitRange(val);
 		prR->setBitRange(val);
 	}
-	else if(index == 19){
+	else if(index == 12){
 		G4int val = command->ConvertToInt(newValue);
 		prL->setFunctionType(val);
 		prR->setFunctionType(val);
 	}
-	else if(index == 20){
-		fOutputFile->setPrintTrace((newValue == "true") ? true : false);
-	}
-	else if(index == 21){
-		fOutputFile->setOutputDebug((newValue == "true") ? true : false);
-	}
-	else if(index == 22){
-		fOutputFile->setOutputBadEvents((newValue == "true") ? true : false);
+	else if(index == 13){
+		fAction->setPrintTrace((newValue == "true") ? true : false);
 	}
 }

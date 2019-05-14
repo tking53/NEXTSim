@@ -17,6 +17,7 @@
 #include "nDetConstruction.hh"
 #include "nDetConstructionMessenger.hh"
 #include "nDetMasterOutputFile.hh"
+#include "nDetMasterOutputFileMessenger.hh"
 #include "nDetThreadContainer.hh"
 #include "photonCounter.hh"
 
@@ -31,7 +32,6 @@ nDetMasterOutputFile &nDetMasterOutputFile::getInstance(){
 nDetMasterOutputFile::nDetMasterOutputFile(){
 	persistentMode = false;
 	verbose = false;
-	printTrace = false;
 
 	outputEnabled = true;
 	outputTraces = false;
@@ -53,6 +53,9 @@ nDetMasterOutputFile::nDetMasterOutputFile(){
 	totalEvents = 0;
 	displayTimeInterval = 10;
 
+	// Create a messenger for this class
+	fMessenger = new nDetMasterOutputFileMessenger(this); 
+
 	overwriteExistingFile = false;
 }
 
@@ -60,6 +63,7 @@ nDetMasterOutputFile::~nDetMasterOutputFile(){
 	// Close the root file, if it's still open.
 	closeRootFile();
 	
+	delete fMessenger;
 	delete timer;
 }
 

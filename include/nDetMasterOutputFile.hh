@@ -14,6 +14,7 @@ class TTree;
 class TBranch;
 
 class photonCounter;
+class nDetMasterOutputFileMessenger;
 
 class nDetMasterOutputFile{
   public:
@@ -47,8 +48,6 @@ class nDetMasterOutputFile{
 	
 	void setOutputBadEvents(const bool &enabled){ outputBadEvents = enabled; }
 
-	void setPrintTrace(const bool &enabled){ printTrace = enabled; }
-	
 	void setOverwriteOutputFile(const bool &overwrite){ overwriteExistingFile = overwrite; }
 
     void setTotalEvents(const G4long &events){ totalEvents = events; }
@@ -80,7 +79,6 @@ class nDetMasterOutputFile{
 	bool defineRootBranch;
 	bool persistentMode;
 	bool verbose;
-	bool printTrace;
 	
 	bool outputEnabled;
 	bool outputTraces;
@@ -98,6 +96,8 @@ class nDetMasterOutputFile{
     G4long totalEvents;
     
     int displayTimeInterval; // In seconds.
+
+	nDetMasterOutputFileMessenger *fMessenger;
 
 	nDetMasterOutputFile();	
 };

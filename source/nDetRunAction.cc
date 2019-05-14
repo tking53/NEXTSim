@@ -93,6 +93,7 @@ nDetRunAction::nDetRunAction(){
 	
 	outputDebug = false;
 	verbose = false;
+	printTrace = false;
 	
 	eventAction = NULL;
 	stacking = NULL;

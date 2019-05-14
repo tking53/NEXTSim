@@ -7,7 +7,6 @@
 #include "messengerHandler.hh"
 
 class nDetRunAction;
-class nDetMasterOutputFile;
 
 class nDetRunActionMessenger: public messengerHandler {
   public:
@@ -19,7 +18,6 @@ class nDetRunActionMessenger: public messengerHandler {
 
   private:
 	nDetRunAction *fAction;
-	nDetMasterOutputFile *fOutputFile;
 	
 	void addAllCommands();
 };

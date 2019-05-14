@@ -85,6 +85,8 @@ class nDetRunAction : public G4UserRunAction
 	
 	void setEventNumber(const int &eventID){ data.eventID = eventID; }
 	
+	void setPrintTrace(const bool &enabled){ printTrace = enabled; }
+	
 	bool toggleVerboseMode(){ return (verbose = !verbose); }
 	
 	centerOfMass *getCenterOfMassLeft(){ return &cmL; }
@@ -120,6 +122,7 @@ class nDetRunAction : public G4UserRunAction
 
 	bool outputDebug;
 	bool verbose;
+	bool printTrace;
 
 	double baselineFraction;
 	double baselineJitterFraction;
