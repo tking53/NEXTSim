@@ -166,6 +166,9 @@ int main(int argc, char** argv){
 	// Set the action initialization.
 	runManager->SetUserInitialization(runAction);
 
+	// Ensure that the output file is initialized.
+	nDetMasterOutputFile::getInstance();
+
 	// Initialize G4 kernel
 	runManager->Initialize();
 	

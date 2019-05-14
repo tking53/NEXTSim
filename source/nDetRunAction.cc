@@ -225,7 +225,7 @@ void nDetRunAction::process(){
 		pmtR->copyTrace(data.lightPulseR);
 	}*/
 
-	double targetTimeOffset = 0;//source->GetTargetTimeOffset();
+	double targetTimeOffset = source->GetTargetTimeOffset();
 
 	// Do some light pulse analysis
 	data.pulsePhase[0] = pmtL->analyzePolyCFD(polyCfdFraction) + targetTimeOffset;
@@ -241,7 +241,7 @@ void nDetRunAction::process(){
 	data.pulseWeightedArrival[1] = pmtR->getWeightedPhotonArrivalTime();
 
 	// Print the digitized traces.
-	/*if(printTrace){
+	if(printTrace){
 		size_t traceLength = pmtL->getPulseLength();
 		unsigned short *traceL = pmtL->getDigitizedPulse();
 		unsigned short *traceR = pmtR->getDigitizedPulse();
@@ -260,7 +260,7 @@ void nDetRunAction::process(){
 		for(size_t i = 0; i < traceLength; i++){
 			std::cout << i*adcClockTick << "\t" << traceL[i] << "\t" << traceR[i] << std::endl;
 		}
-	}*/
+	}
 
 	// Get the digitizer response of the anodes.
 	pmtResponse *anodeResponseL = cmL.getAnodeResponse();
