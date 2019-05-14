@@ -101,6 +101,10 @@ class nDetRunAction : public G4UserRunAction
 	
 	nDetRunActionMessenger *getMessenger(){ return fActionMessenger; }
 
+    unsigned long long getNumPhotons() const { return numPhotonsTotal; }
+    
+    unsigned long long getNumPhotonsDet() const { return numPhotonsDetTotal; }
+
 	void process();
 
 	bool AddDetectedPhoton(const G4Step *step, const double &mass=1);

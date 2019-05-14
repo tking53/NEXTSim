@@ -13,11 +13,10 @@
 #include "nDetSteppingAction.hh"
 #include "nDetConstruction.hh"
 #include "nDetRunAction.hh"
-#include "nDetEventAction.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-nDetSteppingAction::nDetSteppingAction(nDetRunAction* runAct, nDetEventAction* evtAct) : runAction(runAct), evtAction(evtAct)
+nDetSteppingAction::nDetSteppingAction(nDetRunAction* runAct) : runAction(runAct)
 {
 	neutronTrack = false;
 	stepID = 0;

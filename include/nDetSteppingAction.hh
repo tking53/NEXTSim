@@ -13,7 +13,6 @@
 #include "G4UserSteppingAction.hh"
 
 class nDetConstruction;
-class nDetEventAction;
 class nDetRunAction;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -21,7 +20,7 @@ class nDetRunAction;
 class nDetSteppingAction : public G4UserSteppingAction
 {
 public:
-  nDetSteppingAction(nDetRunAction*, nDetEventAction*);
+  nDetSteppingAction(nDetRunAction*);
   
   virtual ~nDetSteppingAction();
 
@@ -31,8 +30,6 @@ public:
 
 private:
   nDetRunAction* runAction;
-  
-  nDetEventAction*  evtAction;
   
   G4long stepID;
   

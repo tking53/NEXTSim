@@ -17,6 +17,7 @@
 #include "nDetConstruction.hh"
 #include "nDetConstructionMessenger.hh"
 #include "nDetMasterOutputFile.hh"
+#include "nDetThreadContainer.hh"
 #include "photonCounter.hh"
 
 nDetMasterOutputFile &nDetMasterOutputFile::getInstance(){
@@ -122,9 +123,22 @@ bool nDetMasterOutputFile::openRootFile(const G4Run* aRun){
 	// Add user commands to the output file.
 	TDirectory *dir = fFile->mkdir("setup");
 	nDetConstruction::getInstance().GetMessenger()->write(dir);
-	const G4UserRunAction *runAction = G4MTRunManager::GetMasterRunManager()->GetUserRunAction();
-	((nDetRunAction*)runAction)->getSource()->GetMessenger()->write(dir);
-	((nDetRunAction*)runAction)->getMessenger()->write(dir);
+	const G4UserRunAction *runAction = NULL;
+#ifdef USE_MULTITHREAD
+	if(G4MTRunManager::GetMasterRunManager()) // Multithreaded mode.
+		runAction = G4MTRunManager::GetMasterRunManager()->GetUserRunAction();
+	else if(G4RunManager::GetRunManager()) // Sequential mode.
+		runAction = G4RunManager::GetRunManager()->GetUserRunAction();
+#else
+	if(G4RunManager::GetRunManager())
+		runAction = G4RunManager::GetRunManager()->GetUserRunAction();
+#endif
+	if(runAction){
+		((nDetRunAction*)runAction)->getSource()->GetMessenger()->write(dir);
+		((nDetRunAction*)runAction)->getMessenger()->write(dir);		
+	}
+	else
+		std::cout << "nDetMasterOutputFile: WARNING! Failed to find master run manager.\n";
 
 	// Create root tree.
 	if(treename.empty()) treename = "data"; //"neutronEvent";
@@ -241,12 +255,19 @@ bool nDetMasterOutputFile::fillBranch(const nDetDataPack &pack){
 
 	if(pack.eventID != 0){ // Status output.
 		timer->Stop();
+		nDetThreadContainer *container = &nDetThreadContainer::getInstance();
+		unsigned long long numPhotons = 0;
+		unsigned long long numPhotonsDet = 0;
+		for(size_t index = 0; index < container->size(); index++){
+			numPhotons += container->getAction(index)->first->getNumPhotons();
+			numPhotonsDet += container->getAction(index)->first->getNumPhotonsDet();
+		}
 		totalTime += timer->GetRealElapsed();
 		if(displayTimeInterval > 0 && (totalTime - previousTime) >= displayTimeInterval){ // Display every 10 seconds.
 			std::cout << "Event ID: " << pack.eventID << ", TIME=" << totalTime << " s";
 			avgTimePerEvent = totalTime/pack.eventID;
-			avgTimePerPhoton = totalTime/1;//numPhotons;
-			avgTimePerDetection = totalTime/1;//numPhotonsDet;
+			avgTimePerPhoton = totalTime/numPhotons;
+			avgTimePerDetection = totalTime/numPhotonsDet;
 			if(totalEvents > 0){
 				std::cout << ", REMAINING=" << (totalEvents-pack.eventID)*avgTimePerEvent << " s";
 			}
