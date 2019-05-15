@@ -7,6 +7,7 @@
 #include "Randomize.hh"
 
 #include "cmcalc.hh"
+#include "termColors.hh"
 
 const double c = 2.99792458E8; // m/s
 const double cSquare = 8.9875517873E16; // m^2/s^2
@@ -119,7 +120,7 @@ bool Reaction::Read(const char *fname_/*=NULL*/){
 	if(fname_ != NULL){
 		std::ifstream configFile(fname_);
 		if(!configFile.good()){
-			std::cout << " Error: Failed to load input configuration file.\n";
+			Display::ErrorPrint("Failed to load input configuration file.", "Reaction::Read");
 			return false;
 		}
 		int Z, A;

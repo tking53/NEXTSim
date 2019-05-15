@@ -45,6 +45,7 @@
 #include "nDetTrackingAction.hh"
 #include "ParticleSource.hh"
 #include "optionHandler.hh"
+#include "termColors.hh"
 
 #include "G4OpticalPhysics.hh"
 
@@ -108,7 +109,7 @@ int main(int argc, char** argv){
 #endif
 
 	if(batchMode && inputFilename.empty()){
-		std::cout << "nextSim: ERROR! Input macro filename not specified!\n";
+		Display::ErrorPrint("Input macro filename not specified!", "nextSim");
 		return 1;
 	}
 

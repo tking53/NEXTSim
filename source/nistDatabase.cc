@@ -6,6 +6,7 @@
 #include "G4Material.hh"
 
 #include "nistDatabase.hh"
+#include "termColors.hh"
 
 nistDatabase::nistDatabase(){
 	G4NistManager *manNist = G4NistManager::Instance();
@@ -58,7 +59,7 @@ size_t nistDatabase::searchMaterialList(const G4String &name) const {
 G4Element *nistDatabase::searchForElement(const G4String &name) const {
 	G4Element *retval = G4NistManager::Instance()->FindOrBuildElement(name);
 	if(!retval)
-		std::cout << "nistDatabase: ERROR! Failed to find element named \"" << name << "\" in NIST database.\n";
+		Display::ErrorPrint("Failed to find element named \""+name+" in NIST database.", "nistDatabase");
 	else
 		std::cout << "nistDatabase: Successfully found element named \"" << name << "\" in NIST database.\n";
 	return retval;
@@ -67,7 +68,7 @@ G4Element *nistDatabase::searchForElement(const G4String &name) const {
 G4Material *nistDatabase::searchForMaterial(const G4String &name) const {
 	G4Material *retval = G4NistManager::Instance()->FindOrBuildMaterial(name);
 	if(!retval)
-		std::cout << "nistDatabase: ERROR! Failed to find material named \"" << name << "\" in NIST database.\n";
+		Display::ErrorPrint("Failed to find material named \""+name+" in NIST database.", "nistDatabase");
 	else
 		std::cout << "nistDatabase: Successfully found material named \"" << name << "\" in NIST database.\n";
 	return retval;

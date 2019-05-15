@@ -20,6 +20,7 @@
 #include "nDetMasterOutputFileMessenger.hh"
 #include "nDetThreadContainer.hh"
 #include "photonCounter.hh"
+#include "termColors.hh"
 
 nDetMasterOutputFile &nDetMasterOutputFile::getInstance(){
 	// The only instance
@@ -92,7 +93,7 @@ bool nDetMasterOutputFile::openRootFile(const G4Run* aRun){
 		// Create a ROOT file
 		fFile = new TFile(filename.c_str(), "RECREATE", runTitle.c_str());
 		if(!fFile->IsOpen()) {
-			G4cout << "nDetMasterOutputFile: ERROR! Failed to open file \"" << filename << "\"!\n";
+			Display::ErrorPrint("Failed to open output file \""+filename+"\"!", "nDetMasterOutputFile");
 			return false;
 		}
 	}
@@ -117,7 +118,7 @@ bool nDetMasterOutputFile::openRootFile(const G4Run* aRun){
 				fFile = new TFile(newFilename.c_str(), "RECREATE", runTitle.c_str());
 			}
 			if(!fFile->IsOpen()) {
-				G4cout << "nDetMasterOutputFile: ERROR! Failed to open file \"" << newFilename << "\"!\n";
+				Display::ErrorPrint("Failed to open output file \""+filename+"\"!", "nDetMasterOutputFile");
 				return false;
 			}
 			break;
@@ -142,7 +143,7 @@ bool nDetMasterOutputFile::openRootFile(const G4Run* aRun){
 		((nDetRunAction*)runAction)->getMessenger()->write(dir);		
 	}
 	else
-		std::cout << "nDetMasterOutputFile: WARNING! Failed to find master run manager.\n";
+		Display::WarningPrint("Failed to find master run manager.", "nDetMasterOutputFile");
 
 	// Create root tree.
 	if(treename.empty()) treename = "data"; //"neutronEvent";

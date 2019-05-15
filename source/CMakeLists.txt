@@ -12,7 +12,7 @@ endif(GEANT4_MT)
 set(NextSimSources centerOfMass.cc nDetConstruction.cc nDetActionInitialization.cc nDetEventAction.cc nDetRunActionMessenger.cc 
                    nDetMasterOutputFile.cc nDetMasterOutputFileMessenger.cc nDetSteppingAction.cc ParticleSource.cc ParticleSourceMessenger.cc 
                    pmtResponse.cc messengerHandler.cc nDetConstructionMessenger.cc nDetRunAction.cc nDetStackingAction.cc cmcalc.cc 
-                   nDetTrackingAction.cc optionHandler.cc photonCounter.cc gdmlSolid.cc nistDatabase.cc nDetDataPack.cc)
+                   nDetTrackingAction.cc optionHandler.cc photonCounter.cc gdmlSolid.cc nistDatabase.cc nDetDataPack.cc termColors.cc)
 
 #Add the sources to the library.
 add_library(NextSimObjects OBJECT ${NextSimSources})

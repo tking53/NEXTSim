@@ -18,6 +18,7 @@
 #include "nDetConstruction.hh"
 #include "ParticleSource.hh"
 #include "ParticleSourceMessenger.hh"
+#include "termColors.hh"
 
 #include "nDetConstructionMessenger.hh"
 #include "nDetRunActionMessenger.hh"
@@ -216,7 +217,7 @@ void nDetRunAction::process(){
 
 	// Check for saturated pulse.
 	if(pmtL->getPulseIsSaturated() || pmtR->getPulseIsSaturated()){
-		std::cout << " Warning: One or more PMT's traces have saturated! Recommend lowering the gain.\n";
+		Display::WarningPrint("One or more PMT's traces have saturated! Recommend lowering the gain.", "nDetRunAction");
 	}
 
 	// Copy the trace into the trace vector.
@@ -358,7 +359,7 @@ void nDetRunAction::setActions(nDetEventAction *event_, nDetStackingAction *stac
 
 bool nDetRunAction::AddDetectedPhoton(const G4Step *step, const double &mass/*=1*/){
 	if(!step->GetPostStepPoint()){
-		std::cout << " nDetRunAction: WARNING! INVALID POST POINT!\n";
+		Display::WarningPrint("INVALID POST POINT!", "nDetRunAction");
 		return false;
 	}
 	
@@ -389,7 +390,7 @@ bool nDetRunAction::scatterEvent(){
 	if(data.nScatters++ == 0){ // First scatter event (CAREFUL! These are in reverse order).
 		if(primaryTracks.size() < 2){
 			if(verbose){
-				std::cout << " Warning: Expected at least two events in primaryTracks, but primaryTracks.size()=" << primaryTracks.size() << std::endl;
+				Display::WarningPrint("Expected at least two events in primaryTracks.", "nDetRunAction");
 				priTrack->print();
 			}
 			return false;

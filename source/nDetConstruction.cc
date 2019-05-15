@@ -8,6 +8,7 @@
 #include "nDetConstruction.hh"
 #include "nDetConstructionMessenger.hh"
 #include "nDetThreadContainer.hh"
+#include "termColors.hh"
 
 #include "G4LogicalVolume.hh"
 #include "G4Element.hh"
@@ -224,7 +225,7 @@ bool nDetConstruction::setPmtSpectralResponse(const char *fname){
 	for(size_t index = 0; index < container->size(); index++){
 		nDetRunAction *runAction = container->getAction(index);
 		if(!(runAction->getCenterOfMassLeft()->loadSpectralResponse(fname) && runAction->getCenterOfMassRight()->loadSpectralResponse(fname))){
-			std::cout << " nDetConstruction: ERROR! Failed to load PMT spectral response from \"" << fname << "\"!\n";
+			Display::ErrorPrint("Failed to load PMT spectral response from!", "nDetConstruction");
 			return false;
 		}
 	}
@@ -237,7 +238,7 @@ bool nDetConstruction::setPmtGainMatrix(const char *fname){
 	for(size_t index = 0; index < container->size(); index++){
 		nDetRunAction *runAction = container->getAction(index);
 		if(!(runAction->getCenterOfMassLeft()->loadGainMatrix(fname) && runAction->getCenterOfMassLeft()->loadGainMatrix(fname))){
-			std::cout << " nDetConstruction: ERROR! Failed to load PMT anode gain matrix from \"" << fname << "\"!\n";
+			Display::ErrorPrint("Failed to load PMT anode gain matrix from!", "nDetConstruction");
 			return false;
 		}
 	}
