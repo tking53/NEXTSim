@@ -294,7 +294,7 @@ void nDetMasterOutputFile::setOutputFilename(const std::string &fname){
 	std::string prefix = fname;
 	if(index != std::string::npos) 
 		prefix = fname.substr(0, index);
-	filename = prefix + "_m.root";
+	filename = prefix + ".root";
 	filenamePrefix = filename;
 	filenameSuffix = "";
 	index = filename.find_last_of('.');
