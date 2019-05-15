@@ -7,6 +7,7 @@
 
 #include "nDetConstruction.hh"
 #include "nDetConstructionMessenger.hh"
+#include "nDetThreadContainer.hh"
 
 #include "G4LogicalVolume.hh"
 #include "G4Element.hh"
@@ -209,29 +210,39 @@ G4VPhysicalVolume* nDetConstruction::ConstructDetector(){
 }
 
 void nDetConstruction::setSegmentedPmt(const short &col_, const short &row_, const double &width_, const double &height_){
-  //center[0].setSegmentedPmt(col_, row_, width_, height_);
-	// center[1].setSegmentedPmt(col_, row_, width_, height_);
-  std::cout << " nDetConstruction: Setting segmented PMTs with WxH=(" << width_ << " x " << height_ << ") and " << col_ << " columns and " << row_ << " rows.\n";
+	nDetThreadContainer *container = &nDetThreadContainer::getInstance();
+	for(size_t index = 0; index < container->size(); index++){
+		nDetRunAction *runAction = container->getAction(index);
+		runAction->getCenterOfMassLeft()->setSegmentedPmt(col_, row_, width_, height_);
+		runAction->getCenterOfMassRight()->setSegmentedPmt(col_, row_, width_, height_);
+	}
+	std::cout << " nDetConstruction: Set segmented PMTs with WxH=(" << width_ << " x " << height_ << ") and " << col_ << " columns and " << row_ << " rows.\n";
 }
 
 bool nDetConstruction::setPmtSpectralResponse(const char *fname){
-  /*bool retval = (center[0].loadSpectralResponse(fname) && center[1].loadSpectralResponse(fname));
-  if(retval)
-    std::cout << " nDetConstruction: Successfully loaded PMT spectral response function\n";
-  else
-    std::cout << " nDetConstruction: ERROR! Failed to load PMT spectral response from \"" << fname << "\"!\n";
-  return retval;*/
-  return false;
+	nDetThreadContainer *container = &nDetThreadContainer::getInstance();
+	for(size_t index = 0; index < container->size(); index++){
+		nDetRunAction *runAction = container->getAction(index);
+		if(!(runAction->getCenterOfMassLeft()->loadSpectralResponse(fname) && runAction->getCenterOfMassRight()->loadSpectralResponse(fname))){
+			std::cout << " nDetConstruction: ERROR! Failed to load PMT spectral response from \"" << fname << "\"!\n";
+			return false;
+		}
+	}
+	std::cout << " nDetConstruction: Successfully loaded PMT spectral response function\n";
+	return true;
 }
 
 bool nDetConstruction::setPmtGainMatrix(const char *fname){
-  /*bool retval = (center[0].loadGainMatrix(fname) && center[1].loadGainMatrix(fname));
-  if(retval)
-    std::cout << " nDetConstruction: Successfully loaded PMT anode gain matrix\n";
-  else
-    std::cout << " nDetConstruction: ERROR! Failed to load PMT anode gain matrix from \"" << fname << "\"!\n";
-  return retval;*/
-  return false;
+	nDetThreadContainer *container = &nDetThreadContainer::getInstance();
+	for(size_t index = 0; index < container->size(); index++){
+		nDetRunAction *runAction = container->getAction(index);
+		if(!(runAction->getCenterOfMassLeft()->loadGainMatrix(fname) && runAction->getCenterOfMassLeft()->loadGainMatrix(fname))){
+			std::cout << " nDetConstruction: ERROR! Failed to load PMT anode gain matrix from \"" << fname << "\"!\n";
+			return false;
+		}
+	}
+	std::cout << " nDetConstruction: Successfully loaded PMT anode gain matrix\n";
+	return true;
 }
 
 void nDetConstruction::SetPositionCylindrical(const G4ThreeVector &position){ 

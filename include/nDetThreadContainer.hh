@@ -22,16 +22,18 @@ class nDetThreadContainer{
 		return instance;
 	}
 
-	void addAction(const nDetRunAction* ptr, const int &threadID){ actions.push_back(std::pair<const nDetRunAction*, int>(ptr, threadID)); }
+	void addAction(nDetRunAction* ptr, const int &threadID){ actions.push_back(std::pair<nDetRunAction*, int>(ptr, threadID)); }
 	
 	size_t size() const { return actions.size(); }
 	
-	std::vector<std::pair<const nDetRunAction*, int> > *getAction(){ return &actions; }
+	std::vector<std::pair<nDetRunAction*, int> > *getAction(){ return &actions; }
 	
-	std::pair<const nDetRunAction*, int> *getAction(const size_t &index){ return &actions.at(index); }
+	nDetRunAction *getAction(const size_t &index){ return actions.at(index).first; }
+	
+	int getThreadID(const size_t &index){ return actions.at(index).second; }
 	
   private:
-	std::vector<std::pair<const nDetRunAction*, int> > actions;
+	std::vector<std::pair<nDetRunAction*, int> > actions;
 
 	// Private constructor.
 	nDetThreadContainer(){ }
