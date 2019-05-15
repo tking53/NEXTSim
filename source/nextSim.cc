@@ -208,11 +208,14 @@ int main(int argc, char** argv){
 	// Close the root file.
 	nDetMasterOutputFile::getInstance().closeRootFile(); // The master output file is a singleton class.
 
-	// job termination
+	// Job termination
 #ifdef G4VIS_USE
 	delete visManager;
 #endif
-	//delete runManager;
+	// We MUST set detector initialization to NULL because the run manager does not
+	// own the detector and will cause a seg-fault when its destructor is called.
+	runManager->SetUserInitialization((detector = NULL)); 
+	delete runManager;
 	
 	return 0;
-}//END of main() function
+}
