@@ -61,7 +61,7 @@ int main(int argc, char** argv){
 	handler.add(optionExt("verbose", no_argument, NULL, 'V', "", "Toggle verbose mode."));
 	handler.add(optionExt("delay", required_argument, NULL, 'D', "<seconds>", "Set the time delay between successive event counter updates (default=10s)."));
 #ifdef USE_MULTITHREAD
-	handler.add(optionExt("mt-thread-limit", required_argument, NULL, 'n', "", "Set the maximum number of threads to use (set to 1 to disable multithreading)."));
+	handler.add(optionExt("mt-thread-limit", required_argument, NULL, 'n', "<threads>", "Set the number of threads to use (uses all threads for n <= 0)."));
 #endif
 
 	// Handle user input.
@@ -97,15 +97,18 @@ int main(int argc, char** argv){
 		userTimeDelay = strtol(handler.getOption(6)->argument.c_str(), NULL, 0);	
 
 #ifdef USE_MULTITHREAD
-	G4int numberOfThreads = G4Threading::G4GetNumberOfCores();
-	if(handler.getOption(7)->active){ // Set the maximum number of threads to use.
+	G4int numberOfThreads = 1; // Sequential mode by default.
+	if(handler.getOption(7)->active){ 
 		G4int userInput = strtol(handler.getOption(7)->argument.c_str(), NULL, 10);
-		numberOfThreads = std::min(userInput, G4Threading::G4GetNumberOfCores());
+		if(userInput > 0) // Set the number of threads to use.
+			numberOfThreads = std::min(userInput, G4Threading::G4GetNumberOfCores());
+		else // Use all available threads.
+			numberOfThreads = G4Threading::G4GetNumberOfCores();
 	}
 #endif
 
 	if(batchMode && inputFilename.empty()){
-		std::cout << " ERROR: Input macro filename not specified!\n";
+		std::cout << "nextSim: ERROR! Input macro filename not specified!\n";
 		return 1;
 	}
 
@@ -127,12 +130,12 @@ int main(int argc, char** argv){
 	if(numberOfThreads > 1){
 		runManager = new G4MTRunManager();
 		((G4MTRunManager*)runManager)->SetNumberOfThreads(numberOfThreads);
-		std::cout << "nextSim: Multi-threading enabled.\n";
+		std::cout << "nextSim: Multi-threading mode enabled.\n";
 		std::cout << "nextSim: Set number of threads to " << ((G4MTRunManager*)runManager)->GetNumberOfThreads() << std::endl;
 	}
 	else{
 		runManager = new G4RunManager();
-		std::cout << "nextSim: Multi-threading disabled.\n";
+		std::cout << "nextSim: Using sequential mode.\n";
 	}
 #else
 	G4RunManager* runManager = new G4RunManager();
