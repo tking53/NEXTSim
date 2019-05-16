@@ -14,6 +14,16 @@ class spectralResponse{
 	/// Destructor.
 	~spectralResponse();
 
+	void getRange(double &min_, double &max_);
+
+	TGraph *getSpectrum(){ return spectrum; }
+	
+	TF1 *getExtrapolateLow(){ return extrapolateLow; }
+	
+	TF1 *getExtrapolateHigh(){ return extrapolateHigh; }
+
+	void copy(spectralResponse *other);
+
 	/// Load response function from a file.
 	bool load(const char *fname);
 
@@ -76,6 +86,9 @@ class pmtResponse{
 	/// Return the minimum photon arrival time of the pulse.
 	double getMinimumPhotonArrivalTime() const { return minimumArrivalTime; }
 
+	/// Return a pointer to the PMT spectral response (quantum efficiency).
+	spectralResponse *getSpectralResponse(){ return &spec; }
+
 	/// Set the rise time of the single photon pulse (in ns).
 	void setRisetime(const double &risetime_);
 	
@@ -108,6 +121,9 @@ class pmtResponse{
 
 	/// Load PMT spectral response from root file.
 	bool loadSpectralResponse(const char *fname);
+
+	/// Copy spectral response from another pmtResponse object.
+	void copySpectralResponse(spectralResponse *spec_){ spec.copy(spec_); }
 
 	/// Add a photon signal to the raw pulse.
 	void addPhoton(const double &arrival, const double &wavelength=0, const double &gain_=1);

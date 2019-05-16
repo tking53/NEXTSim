@@ -104,7 +104,7 @@ void centerOfMass::setSegmentedPmt(const short &col_, const short &row_, const d
 	countMatrix.clear();
 	for(short i = 0; i < Ncol; i++){
 		gainMatrix.push_back(std::vector<double>(Nrow, 100));
-		countMatrix.push_back(std::vector<double>(Nrow, 0));
+		countMatrix.push_back(std::vector<int>(Nrow, 0));
 	}
 }
 
@@ -132,6 +132,14 @@ bool centerOfMass::loadGainMatrix(const char *fname){
 	gainFile.close();
 	
 	return true;
+}
+
+void centerOfMass::copySpectralResponse(centerOfMass *other){
+	response.copySpectralResponse(other->getPmtResponse()->getSpectralResponse());
+}
+
+void centerOfMass::copyGainMatrix(centerOfMass *other){
+	other->getGainMatrix(gainMatrix);
 }
 
 void centerOfMass::clear(){

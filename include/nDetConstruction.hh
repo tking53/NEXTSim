@@ -10,6 +10,7 @@
 
 #include "gdmlSolid.hh"
 #include "nistDatabase.hh"
+#include "centerOfMass.hh"
 
 // Class declarations
 class nDetConstructionMessenger;
@@ -304,6 +305,8 @@ private:
 	std::deque<userAddLayer> userLayers;
 
 	bool materialsAreDefined;
+
+	centerOfMass center[2];
 
 	// Private constructor.
 	nDetConstruction();

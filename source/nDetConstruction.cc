@@ -221,26 +221,30 @@ void nDetConstruction::setSegmentedPmt(const short &col_, const short &row_, con
 }
 
 bool nDetConstruction::setPmtSpectralResponse(const char *fname){
+	if(!(center[0].loadSpectralResponse(fname) && center[1].loadSpectralResponse(fname))){
+		Display::ErrorPrint("Failed to load PMT spectral response from file!", "nDetConstruction");
+		return false;
+	}
 	nDetThreadContainer *container = &nDetThreadContainer::getInstance();
 	for(size_t index = 0; index < container->size(); index++){
 		nDetRunAction *runAction = container->getAction(index);
-		if(!(runAction->getCenterOfMassLeft()->loadSpectralResponse(fname) && runAction->getCenterOfMassRight()->loadSpectralResponse(fname))){
-			Display::ErrorPrint("Failed to load PMT spectral response from!", "nDetConstruction");
-			return false;
-		}
+		runAction->getCenterOfMassLeft()->copySpectralResponse(&center[0]);
+		runAction->getCenterOfMassRight()->copySpectralResponse(&center[1]);
 	}
 	std::cout << " nDetConstruction: Successfully loaded PMT spectral response function\n";
 	return true;
 }
 
 bool nDetConstruction::setPmtGainMatrix(const char *fname){
+	if(!(center[0].loadGainMatrix(fname) && center[1].loadGainMatrix(fname))){
+		Display::ErrorPrint("Failed to load PMT anode gain matrix from file!", "nDetConstruction");
+		return false;
+	}
 	nDetThreadContainer *container = &nDetThreadContainer::getInstance();
 	for(size_t index = 0; index < container->size(); index++){
 		nDetRunAction *runAction = container->getAction(index);
-		if(!(runAction->getCenterOfMassLeft()->loadGainMatrix(fname) && runAction->getCenterOfMassLeft()->loadGainMatrix(fname))){
-			Display::ErrorPrint("Failed to load PMT anode gain matrix from!", "nDetConstruction");
-			return false;
-		}
+		runAction->getCenterOfMassLeft()->copyGainMatrix(&center[0]);
+		runAction->getCenterOfMassRight()->copyGainMatrix(&center[1]);
 	}
 	std::cout << " nDetConstruction: Successfully loaded PMT anode gain matrix\n";
 	return true;

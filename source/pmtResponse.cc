@@ -21,6 +21,20 @@ spectralResponse::~spectralResponse(){
 	this->close();
 }
 
+void spectralResponse::getRange(double &min_, double &max_){
+	min_ = xmin;
+	max_ = xmax;
+}
+
+void spectralResponse::copy(spectralResponse *other){
+	this->close();
+	
+	spectrum = new TGraph(*other->getSpectrum());
+	extrapolateLow = new TF1(*other->getExtrapolateLow());
+	extrapolateHigh = new TF1(*other->getExtrapolateHigh());
+	other->getRange(xmin, xmax);
+}
+
 /// Load response function from a file.
 bool spectralResponse::load(const char *fname){
 	this->close();
@@ -37,12 +51,14 @@ bool spectralResponse::load(const char *fname){
 	TF1 *f1 = (TF1*)f->Get("exlow");
 	TF1 *f2 = (TF1*)f->Get("exhigh");
 	
-	if(f1) extrapolateLow = (TF1*)f1->Clone("ex1");
-	if(f2) extrapolateHigh = (TF1*)f2->Clone("ex2");
+	if(f1) extrapolateLow = new TF1(*f1);
+	if(f2) extrapolateHigh = new TF1(*f2);
 	
 	this->scanSpectrum();
 	
 	f->Close();
+	delete f;
+	
 	return true;
 }
 
@@ -73,7 +89,7 @@ void spectralResponse::scanSpectrum(){
 void spectralResponse::close(){
 	if(spectrum) 
 		delete spectrum;
-	if(extrapolateLow) 
+	if(extrapolateLow)
 		delete extrapolateLow;
 	if(extrapolateHigh) 
 		delete extrapolateHigh;

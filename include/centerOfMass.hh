@@ -63,6 +63,10 @@ class centerOfMass{
 	
 	double getReconstructedY() const ;
 	
+	void getGainMatrix(std::vector<std::vector<double> > &matrix) const { matrix = gainMatrix; }
+	
+	void getCountMatrix(std::vector<std::vector<int> > &matrix) const { matrix = countMatrix; }
+	
 	short setNumColumns(const short &col_);
 	
 	short setNumRows(const short &row_);
@@ -76,6 +80,10 @@ class centerOfMass{
 	bool loadSpectralResponse(const char *fname);
 	
 	bool loadGainMatrix(const char *fname);
+
+	void copySpectralResponse(centerOfMass *other);
+	
+	void copyGainMatrix(centerOfMass *other);
 	
 	void clear();
 	
@@ -112,7 +120,7 @@ class centerOfMass{
 	pmtResponse anodeResponse[4]; // Anode responses.
 	
 	std::vector<std::vector<double> > gainMatrix;
-	std::vector<std::vector<double> > countMatrix;
+	std::vector<std::vector<int> > countMatrix;
 	
 	void increment(const int &x, const int &y);
 	
