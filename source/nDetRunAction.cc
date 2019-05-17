@@ -39,7 +39,7 @@ primaryTrackInfo::primaryTrackInfo(const G4Step *step){
 	this->setValues(step->GetTrack());
 	if(step->GetPreStepPoint()->GetPhysicalVolume()->GetName().find("Scint") != std::string::npos) // Scatter event occured inside a scintillator.
 		inScint = true;
-	dkE = -1*step->GetDeltaEnergy();
+	dkE = -1*(step->GetPostStepPoint()->GetKineticEnergy()-step->GetPreStepPoint()->GetKineticEnergy());
 }
 
 primaryTrackInfo::primaryTrackInfo(const G4Track *track){
@@ -464,7 +464,7 @@ void nDetRunAction::initializeNeutron(const G4Step *step){
 }
 
 void nDetRunAction::scatterNeutron(const G4Step *step){
-	double dE = -1*step->GetDeltaEnergy();
+	double dE = -1*(step->GetPostStepPoint()->GetKineticEnergy()-step->GetPreStepPoint()->GetKineticEnergy());
 	G4Track *track = step->GetTrack();
 	if(dE > 0){
 		primaryTracks.push_back(step);
