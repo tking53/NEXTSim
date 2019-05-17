@@ -134,7 +134,7 @@ int main(int argc, char** argv){
 	// Construct the default run manager
 #ifdef USE_MULTITHREAD
 	G4RunManager* runManager;
-	if(numberOfThreads > 1){
+	if(batchMode && numberOfThreads > 1){
 		runManager = new G4MTRunManager();
 		((G4MTRunManager*)runManager)->SetNumberOfThreads(numberOfThreads);
 		std::cout << "nextSim: Multi-threading mode enabled.\n";
