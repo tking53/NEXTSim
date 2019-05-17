@@ -8,6 +8,7 @@
 #include "nDetConstruction.hh"
 #include "nDetConstructionMessenger.hh"
 #include "nDetThreadContainer.hh"
+#include "ParticleSource.hh"
 #include "termColors.hh"
 
 #include "G4LogicalVolume.hh"
@@ -691,18 +692,24 @@ void nDetConstruction::GetSegmentFromCopyNum(const G4int &copyNum, G4int &col, G
 }
 
 void nDetConstruction::UpdateGeometry(){
-    // clean-up previous geometry
-    G4SolidStore::GetInstance()->Clean();
-    G4LogicalVolumeStore::GetInstance()->Clean();
-    G4PhysicalVolumeStore::GetInstance()->Clean();
-    
-    //define new one
-    G4RunManager::GetRunManager()->DefineWorldVolume(ConstructDetector());
-    G4RunManager::GetRunManager()->GeometryHasBeenModified();
-    G4RunManager::GetRunManager()->ReinitializeGeometry();
+	// Clean-up previous geometry
+	G4SolidStore::GetInstance()->Clean();
+	G4LogicalVolumeStore::GetInstance()->Clean();
+	G4PhysicalVolumeStore::GetInstance()->Clean();
 
-    if(PmtIsSegmented())
-      setSegmentedPmt(fNumColumnsPmt, fNumRowsPmt, SiPM_dimension*2, SiPM_dimension*2);
+	// Define new one
+	G4RunManager::GetRunManager()->DefineWorldVolume(ConstructDetector());
+	G4RunManager::GetRunManager()->GeometryHasBeenModified();
+	G4RunManager::GetRunManager()->ReinitializeGeometry();
+
+	if(PmtIsSegmented())
+		setSegmentedPmt(fNumColumnsPmt, fNumRowsPmt, SiPM_dimension*2, SiPM_dimension*2);
+
+	// Update the particle sources.
+	nDetThreadContainer *container = &nDetThreadContainer::getInstance();
+	for(size_t index = 0; index < container->size(); index++){
+		container->getAction(index)->getSource()->SetDetector(this);
+	}
 }
 
 void nDetConstruction::loadGDML(const G4String &input){

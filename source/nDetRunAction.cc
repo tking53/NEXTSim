@@ -153,9 +153,6 @@ void nDetRunAction::BeginOfRunAction(const G4Run* aRun)
 
 	// Set the total number of events
 	nDetMasterOutputFile::getInstance().setTotalEvents(aRun->GetNumberOfEventToBeProcessed());
-	
-	// Update the source.
-	source->SetDetector(detector);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

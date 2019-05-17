@@ -357,7 +357,6 @@ void ParticleSource::SetBeamspotType(const G4String &str){
 }
 
 void ParticleSource::SetDetector(nDetConstruction *det){
-	detector = det;
 	detPos = det->GetDetectorPos();
 	detSize = det->GetDetectorSize();
 	vSourceDet = detPos - pos;

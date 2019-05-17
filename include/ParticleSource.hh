@@ -216,8 +216,6 @@ class ParticleSource : public G4VUserPrimaryGeneratorAction {
 
 	G4ParticleGun *particleGun;
 	
-	nDetConstruction *detector;
-	
 	G4RotationMatrix rot;
 	
     void InitFunction(){ }
