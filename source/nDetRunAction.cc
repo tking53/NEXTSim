@@ -138,7 +138,10 @@ void nDetRunAction::BeginOfRunAction(const G4Run* aRun)
 	numPhotonsTotal = 0;
 	numPhotonsDetTotal = 0;
 
-	//if(!IsMaster()) return; // Master thread only. THIS DOESN'T WORK CRT
+	// Get RunId and threadID
+	data.runNb = aRun->GetRunID();
+	data.threadID = G4Threading::G4GetThreadId();
+
 	if(G4Threading::G4GetThreadId() >= 0) return; // Master thread only.
 	
 	G4cout << "nDetRunAction::BeginOfRunAction()->"<< G4endl;
@@ -150,10 +153,6 @@ void nDetRunAction::BeginOfRunAction(const G4Run* aRun)
 
 	// Set the total number of events
 	nDetMasterOutputFile::getInstance().setTotalEvents(aRun->GetNumberOfEventToBeProcessed());
-
-	// Get RunId and threadID
-	data.runNb = aRun->GetRunID();
-	data.threadID = G4Threading::G4GetThreadId();
 	
 	// Update the source.
 	source->SetDetector(detector);
