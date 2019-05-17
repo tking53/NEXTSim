@@ -198,6 +198,9 @@ void ParticleSource::GeneratePrimaries(G4Event* anEvent){
 			particleRxn->SetEbeam(beamE0-targEnergyLoss*reactionDepth); // Set the energy of the projectile at the time of the reaction.
 			targTimeOffset = targTimeSlope*(reactionDepth - 0.5*targThickness); // Compute the global time offset due to the target.
 		}
+		else{
+			vRxnDet = detPos;
+		}
 		
 		// Get the vector from the center of the detector to a uniformly sampled point inside its volume.
 		G4ThreeVector insideDet((detSize.getX()/2)*(2*G4UniformRand()-1), (detSize.getY()/2)*(2*G4UniformRand()-1), (detSize.getZ()/2)*(2*G4UniformRand()-1));
@@ -209,7 +212,7 @@ void ParticleSource::GeneratePrimaries(G4Event* anEvent){
 		G4ThreeVector dirPrime = vRxnDet + insideDet;
 		dirPrime *= (1/dirPrime.mag());
 		particleGun->SetParticlePosition(sourceOrigin);
-		particleGun->SetParticleMomentumDirection(dirPrime); // along the y-axis direction
+		particleGun->SetParticleMomentumDirection(dirPrime);
 		
 		// Compute the particle energy.
 		if(useReaction){
