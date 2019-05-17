@@ -21,6 +21,8 @@ const double fwhm2stddev = 1/(2*std::sqrt(2*std::log(2)));
 const double coeff = 1.23984193E-3; // hc = Mev * nm
 const double cvac = 299.792458; // mm/ns
 
+const G4ThreeVector sourceOrigin(0,0,0);
+
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 Source::~Source(){
@@ -153,7 +155,7 @@ double Californium252::func(const double &E_) const {
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-ParticleSource::ParticleSource(nDetRunAction *run, nDetConstruction *det/*=NULL*/) : G4VUserPrimaryGeneratorAction(), fGunMessenger(0), psource(), pos(0, 0, 0), dir(0, 0, 0), detPos(0, 0, 0), 
+ParticleSource::ParticleSource(nDetRunAction *run, nDetConstruction *det/*=NULL*/) : G4VUserPrimaryGeneratorAction(), fGunMessenger(0), psource(), dir(0, 0, 0), detPos(0, 0, 0), 
                                                                                      detSize(0, 0, 0), type("iso"), beamspotType(0), beamspot(0), targThickness(0), targEnergyLoss(0), 
 												                                     targTimeSlope(0), targTimeOffset(0), beamE0(0), unitX(1, 0, 0), unitY(0, 1, 0), unitZ(0, 0, 1), useReaction(false) {
 	runAction = run;
@@ -163,7 +165,7 @@ ParticleSource::ParticleSource(nDetRunAction *run, nDetConstruction *det/*=NULL*
 
 	// Set the default particle gun.
 	particleGun = new G4ParticleGun(1);
-	particleGun->SetParticlePosition(this->pos);
+	particleGun->SetParticlePosition(sourceOrigin);
 	particleGun->SetParticleMomentumDirection(this->dir);
 	this->SetNeutronBeam(1.0); // Set a 1 MeV neutron beam by default
 
@@ -190,22 +192,23 @@ void ParticleSource::GeneratePrimaries(G4Event* anEvent){
 		G4ThreeVector vRxnDet;
 		if(useReaction && targThickness > 0){ // Use psuedo-realistic target energy loss.
 			double reactionDepth = targThickness*G4UniformRand();
-			G4ThreeVector reactionPoint = pos + (-targThickness/2+reactionDepth)*dir;
+			G4ThreeVector reactionPoint = (-targThickness/2+reactionDepth)*dir;
 			vRxnDet = detPos - reactionPoint;
 			particleGun->SetParticlePosition(reactionPoint); // Set the reaction point inside the target.
 			particleRxn->SetEbeam(beamE0-targEnergyLoss*reactionDepth); // Set the energy of the projectile at the time of the reaction.
 			targTimeOffset = targTimeSlope*(reactionDepth - 0.5*targThickness); // Compute the global time offset due to the target.
 		}
-		else{
-			vRxnDet = vSourceDet;
-		}
 		
 		// Get the vector from the center of the detector to a uniformly sampled point inside its volume.
 		G4ThreeVector insideDet((detSize.getX()/2)*(2*G4UniformRand()-1), (detSize.getY()/2)*(2*G4UniformRand()-1), (detSize.getZ()/2)*(2*G4UniformRand()-1));
 
+		// Transform to the frame of the detector.
+		insideDet *= detRot;
+
 		// Compute the direction of the particle emitted from the source.
 		G4ThreeVector dirPrime = vRxnDet + insideDet;
 		dirPrime *= (1/dirPrime.mag());
+		particleGun->SetParticlePosition(sourceOrigin);
 		particleGun->SetParticleMomentumDirection(dirPrime); // along the y-axis direction
 		
 		// Compute the particle energy.
@@ -247,19 +250,16 @@ void ParticleSource::GeneratePrimaries(G4Event* anEvent){
 		}
 		
 		rpoint *= rot;
-		particleGun->SetParticlePosition(pos+rpoint);
+		particleGun->SetParticlePosition(rpoint);
+		particleGun->SetParticleMomentumDirection(this->dir);
 		particleGun->SetParticleEnergy(psource->sample());
 	}
 	else{
+		particleGun->SetParticlePosition(sourceOrigin);
+		particleGun->SetParticleMomentumDirection(this->dir);
 		particleGun->SetParticleEnergy(psource->sample());
 	}
 	particleGun->GeneratePrimaryVertex(anEvent);
-}
-
-void ParticleSource::SetPosition(const G4ThreeVector &p){ 
-	pos = p; 
-	vSourceDet = detPos - pos;
-	particleGun->SetParticlePosition(this->pos);
 }
 
 void ParticleSource::SetDirection(const G4ThreeVector &d){ 
@@ -267,6 +267,7 @@ void ParticleSource::SetDirection(const G4ThreeVector &d){
 	unitY = G4ThreeVector(0, 1, 0);
 	unitZ = G4ThreeVector(0, 0, 1);
 	
+	rot = G4RotationMatrix();
 	rot.rotateX(d.getX()*deg);
 	rot.rotateY(d.getY()*deg);
 	rot.rotateZ(d.getZ()*deg);
@@ -359,7 +360,7 @@ void ParticleSource::SetBeamspotType(const G4String &str){
 void ParticleSource::SetDetector(nDetConstruction *det){
 	detPos = det->GetDetectorPos();
 	detSize = det->GetDetectorSize();
-	vSourceDet = detPos - pos;
+	detRot = *det->GetDetectorRot();
 }
 
 void ParticleSource::Set137Cs(){

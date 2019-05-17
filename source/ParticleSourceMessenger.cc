@@ -14,9 +14,6 @@ void ParticleSourceMessenger::addAllCommands(){
 	addCommand(new G4UIcmdWithoutParameter("/nDet/source/sample", this)); // test function
 	addGuidance("Test distribution by outputing a random energy");
 	
-	addCommand(new G4UIcmdWith3VectorAndUnit("/nDet/source/position", this)); // position of source
-	addGuidance("Set the position of the source in the lab frame");
-	
 	addCommand(new G4UIcmdWith3Vector("/nDet/source/direction", this)); // direction of source
 	addGuidance("Set the direction of the source by specifying angles about the x, y, and z axes (in deg)");
 	
@@ -51,24 +48,22 @@ void ParticleSourceMessenger::SetNewValue(G4UIcommand* command, G4String newValu
 	if(index == 0)
 		fAction->Sample(true);
 	else if(index == 1)
-		fAction->SetPosition(G4UIcommand::ConvertToDimensioned3Vector(newValue));
-	else if(index == 2)
 		fAction->SetDirection(G4UIcommand::ConvertTo3Vector(newValue));
-	else if(index == 3)
+	else if(index == 2)
 		fAction->SetType(newValue);
-	else if(index == 4)
+	else if(index == 3)
 		fAction->SetBeamType(newValue);
-	else if(index == 5)
+	else if(index == 4)
 		fAction->SetBeamspotRadius(G4UIcommand::ConvertToDouble(newValue));
-	else if(index == 6)
+	else if(index == 5)
 		fAction->SetBeamspotType(newValue);
-	else if(index == 7)
+	else if(index == 6)
 		fAction->SetIsotropicMode((newValue == "true") ? true : false);
-	else if(index == 8){
+	else if(index == 7){
 		G4ThreeVector vec = G4UIcommand::ConvertTo3Vector(newValue);
 		fAction->SetEnergyLimits(vec.getX(), vec.getY());
 	}
-	else if(index == 9){
+	else if(index == 8){
 		fAction->LoadReactionFile(newValue);
 	}
 }

@@ -141,8 +141,6 @@ class ParticleSource : public G4VUserPrimaryGeneratorAction {
 
 	double GetTargetTimeOffset() const { return targTimeOffset; }
 
-	void SetPosition(const G4ThreeVector &p);
-	
 	void SetDirection(const G4ThreeVector &d);
 
 	bool SetType(const G4String &str);
@@ -188,11 +186,9 @@ class ParticleSource : public G4VUserPrimaryGeneratorAction {
  
 	Source *psource; // Generic particle source
 
-	G4ThreeVector pos;
 	G4ThreeVector dir;
 	G4ThreeVector detPos;	
 	G4ThreeVector detSize;
-	G4ThreeVector vSourceDet;
 	G4String type;
 
 	int beamspotType;
@@ -217,6 +213,7 @@ class ParticleSource : public G4VUserPrimaryGeneratorAction {
 	G4ParticleGun *particleGun;
 	
 	G4RotationMatrix rot;
+	G4RotationMatrix detRot;
 	
     void InitFunction(){ }
     
