@@ -309,3 +309,12 @@ void nDetMasterOutputFile::setOutputFilename(const std::string &fname){
 		std::cout << " Reset output filename run counter to 1\n";
 	}
 }
+
+bool nDetMasterOutputFile::writeInfoToFile(const std::string &name, const std::string &value){
+	if(fFile && fFile->IsOpen()){
+		fFile->cd();
+		TNamed named(name.c_str(), value.c_str());
+		named.Write();
+	}
+	return false;
+}

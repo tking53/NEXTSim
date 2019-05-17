@@ -54,6 +54,8 @@ class nDetMasterOutputFile{
 
 	void setDisplayTimeInterval(const int &interval){ displayTimeInterval = interval; }
 
+	bool writeInfoToFile(const std::string &name, const std::string &value);
+
 	bool toggleVerboseMode(){ return (verbose = !verbose); }
 
 	bool openRootFile(const G4Run* aRun);

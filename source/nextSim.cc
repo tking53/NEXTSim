@@ -129,6 +129,8 @@ int main(int argc, char** argv){
 	G4long seed = time(NULL);
 	CLHEP::HepRandom::setTheSeed(seed);
 	
+	std::cout << "nextSim: Using random seed " << seed << std::endl;
+	
 	//////////////////////////////////////
 
 	// Construct the default run manager
@@ -177,7 +179,7 @@ int main(int argc, char** argv){
 	runManager->SetUserInitialization(runAction);
 
 	// Ensure that the output file is initialized.
-	nDetMasterOutputFile::getInstance();
+	nDetMasterOutputFile *output = &nDetMasterOutputFile::getInstance();
 
 	// Initialize G4 kernel
 	runManager->Initialize();
@@ -186,12 +188,12 @@ int main(int argc, char** argv){
 	G4UImanager *UImanager = G4UImanager::GetUIpointer();
 
 	if(userTimeDelay > 0)
-		nDetMasterOutputFile::getInstance().setDisplayTimeInterval(userTimeDelay);
+		output->setDisplayTimeInterval(userTimeDelay);
 
 	if(!batchMode){	 // Define UI session for interactive mode
 #ifdef G4UI_USE
 		// Set root output to a single output file.
-		nDetMasterOutputFile::getInstance().setPersistentMode(true); // The master output file is a singleton class.
+		output->setPersistentMode(true); // The master output file is a singleton class.
 
 		G4UIExecutive *ui = new G4UIExecutive(argc, argv, "");
 		UImanager->ApplyCommand("/vis/open OGL");
@@ -215,8 +217,13 @@ int main(int argc, char** argv){
 		UImanager->ApplyCommand(command);
 	}
 
+	// Write the random seed to the file.
+	std::stringstream stream;
+	stream << seed;
+	output->writeInfoToFile("seed", stream.str());
+
 	// Close the root file.
-	nDetMasterOutputFile::getInstance().closeRootFile(); // The master output file is a singleton class.
+	output->closeRootFile(); // The master output file is a singleton class.
 
 	// Job termination
 #ifdef G4VIS_USE
