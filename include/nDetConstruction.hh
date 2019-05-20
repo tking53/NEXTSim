@@ -185,6 +185,7 @@ private:
 	G4int fNumRows;
 	G4int fNumColumnsPmt;
 	G4int fNumRowsPmt;
+	G4int scintCopyNum;
 
 	G4bool fPolishedInterface;
     G4bool fCheckOverlaps;
@@ -357,11 +358,11 @@ class userAddLayer{
 
 class userAddDetector{
   public:
-	userAddDetector() : assembly_logV(NULL), assembly_physV(NULL), layerSizeX(0), layerSizeY(0), offsetZ(0) { }
+	userAddDetector() : assembly_logV(NULL), assembly_physV(NULL), layerSizeX(0), layerSizeY(0), offsetZ(0), copyNum(0) { }
 	
-	userAddDetector(G4LogicalVolume *logical) : assembly_logV(logical), assembly_physV(NULL), layerSizeX(0), layerSizeY(0), offsetZ(0) { }
+	userAddDetector(G4LogicalVolume *logical) : assembly_logV(logical), assembly_physV(NULL), layerSizeX(0), layerSizeY(0), offsetZ(0), copyNum(0) { }
 	
-	userAddDetector(G4LogicalVolume *logical, G4VPhysicalVolume *physical) : assembly_logV(logical), assembly_physV(physical), layerSizeX(0), layerSizeY(0), offsetZ(0) { }
+	userAddDetector(G4LogicalVolume *logical, G4VPhysicalVolume *physical) : assembly_logV(logical), assembly_physV(physical), layerSizeX(0), layerSizeY(0), offsetZ(0), copyNum(0) { }
 	
 	G4LogicalVolume *getLogicalVolume(){ return assembly_logV; }
 
@@ -370,6 +371,8 @@ class userAddDetector{
 	void setPositionAndRotation(const G4ThreeVector &pos, const G4RotationMatrix &rot);
 
 	void setCurrentOffset(const G4double &x_, const G4double &y_, const G4double &z_);
+
+	void setCopyNumber(const G4int &num){ copyNum = num; }
 
 	void addLayer(const userAddLayer &layer){ userLayers.push_back(layer); }
 
@@ -384,6 +387,8 @@ class userAddDetector{
 	G4double layerSizeX;
 	G4double layerSizeY;    
 	G4double offsetZ;
+	
+	G4int copyNum;
 
 	G4ThreeVector position; // Position of detector in lab frame.
 	G4RotationMatrix rotation; // Rotation of detector.

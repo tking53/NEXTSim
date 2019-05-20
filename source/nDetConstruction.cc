@@ -60,6 +60,7 @@ nDetConstruction::nDetConstruction(){
 	fNumRows = 1;
 	fNumColumnsPmt = -1;
 	fNumRowsPmt = -1;
+	scintCopyNum = 1;
 
 	fDetectorMessenger = new nDetConstructionMessenger(this);
 
@@ -180,6 +181,9 @@ void nDetConstruction::ClearGeometry(){
 	
 	// Clear previous construction.
 	userDetectors.clear();
+	
+	// Reset the scintillator copy number.
+	scintCopyNum = 1;
 }
 
 void nDetConstruction::UpdateGeometry(){
@@ -839,7 +843,7 @@ void nDetConstruction::buildModule(){
 
 			// Copy numbers (segment IDs), indexed from 1
 			std::stringstream stream; stream << "Scint-" << col << "," << row;
-			cellScint_physV[col][row] = new G4PVPlacement(0, cellCenter, cellScint_logV, stream.str().c_str(), currentAssembly, 0, col*fNumRows+row+1, fCheckOverlaps); 
+			cellScint_physV[col][row] = new G4PVPlacement(0, cellCenter, cellScint_logV, stream.str().c_str(), currentAssembly, 0, scintCopyNum + col*fNumRows+row, fCheckOverlaps); 
 			scintBody_physV.push_back(cellScint_physV[col][row]);
 		
 			// Place vertical and horizontal reflectors.
@@ -883,6 +887,9 @@ void nDetConstruction::buildModule(){
 			}
 		}
 	}
+	
+	// Update the scintillator copy number.
+	scintCopyNum += fNumRows*fNumColumns;
 }
 
 void nDetConstruction::buildEllipse(){
@@ -1016,6 +1023,7 @@ G4LogicalVolume *nDetConstruction::constructAssembly(G4ThreeVector &boundingBox)
 	// Update the position and rotation of the detector.
 	currentDetector->setPositionAndRotation(detectorPosition, detectorRotation);
 	currentDetector->setCurrentOffset(currentLayerSizeX, currentLayerSizeY, currentOffsetZ);
+	currentDetector->setCopyNumber(userDetectors.size()-1);
 
 	boundingBox = G4ThreeVector(assemblyWidth, assemblyThickness, assemblyLength);
 
@@ -1394,4 +1402,5 @@ void userAddDetector::buildAllLayers(nDetConstruction *detector){
 
 void userAddDetector::placeDetector(G4LogicalVolume *parent){
 	assembly_physV = new G4PVPlacement(&rotation, position, assembly_logV, "Assembly", parent, 0, 0, false);
+	assembly_physV->SetCopyNo(copyNum);
 }
