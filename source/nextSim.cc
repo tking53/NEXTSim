@@ -196,15 +196,16 @@ int main(int argc, char** argv){
 		output->setPersistentMode(true); // The master output file is a singleton class.
 
 		G4UIExecutive *ui = new G4UIExecutive(argc, argv, "");
+		
+		G4String command = "/control/execute ";
+		command += inputFilename;
+		UImanager->ApplyCommand(command);
 		UImanager->ApplyCommand("/vis/open OGL");
 		UImanager->ApplyCommand("/vis/drawVolume");
 		UImanager->ApplyCommand("/vis/scene/add/trajectories");
 		UImanager->ApplyCommand("/vis/viewer/set/viewpointThetaPhi 90 0");
 		UImanager->ApplyCommand("/vis/viewer/set/viewpointVector -1 1 1");
 		UImanager->ApplyCommand("/vis/viewer/refresh");
-		G4String command = "/control/execute ";
-		command += inputFilename;
-		UImanager->ApplyCommand(command);
 		
 		// start interactive session
 		ui->SessionStart();		
@@ -223,7 +224,7 @@ int main(int argc, char** argv){
 	output->writeInfoToFile("seed", stream.str());
 
 	// Close the root file.
-	output->closeRootFile(); // The master output file is a singleton class.
+	output->closeRootFile();
 
 	// Job termination
 #ifdef G4VIS_USE

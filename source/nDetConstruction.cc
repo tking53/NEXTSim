@@ -61,11 +61,8 @@ nDetConstruction::nDetConstruction(){
 	fNumColumnsPmt = -1;
 	fNumRowsPmt = -1;
 
-	G4cout << "nDetConstruction::nDetConstruction()->0x" << this << G4endl;
-
 	fDetectorMessenger = new nDetConstructionMessenger(this);
 
-	fGeometry = "rectangle";
 	wrappingMaterial = "mylar";
 
 	fCheckOverlaps = false;
@@ -119,45 +116,41 @@ nDetConstruction::nDetConstruction(){
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-nDetConstruction::~nDetConstruction()
-{} // end of deconstruction function.
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-G4VPhysicalVolume* nDetConstruction::Construct() {
-
-    G4cout << "nDetConstruction::Construct()-->" << G4endl;
-
-    if (expHall_physV) {
-        G4GeometryManager::GetInstance()->OpenGeometry();
-        G4PhysicalVolumeStore::GetInstance()->Clean();
-        G4LogicalVolumeStore::GetInstance()->Clean();
-        G4SolidStore::GetInstance()->Clean();
-        G4LogicalSkinSurface::CleanSurfaceTable();
-        G4LogicalBorderSurface::CleanSurfaceTable();
-    }
-
-    return ConstructDetector();
+nDetConstruction::~nDetConstruction(){
 }
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+G4VPhysicalVolume* nDetConstruction::Construct(){
+	if(!expHall_physV)
+		this->ConstructDetector();
+	
+	return expHall_physV;
+}
+	
 G4VPhysicalVolume* nDetConstruction::ConstructDetector(){
 	if(!materialsAreDefined)
 		this->DefineMaterials();
 
-	// Clear previous construction.
-	userDetectors.clear();
-
 	// Build experiment hall.
 	buildExpHall();
 
-	// Build the detector.
-	if(fGeometry == "next" || fGeometry == "module")
-		buildModule();
-	else if(fGeometry == "ellipse")
-		buildEllipse();
-	else if(fGeometry == "rectangle")
-		buildRectangle();
-	else if(fGeometry == "test")
-		buildTestAssembly();
+    // Place all detectors.
+    for(std::deque<userAddDetector>::iterator iter = userDetectors.begin(); iter != userDetectors.end(); iter++){
+    	currentDetector = &(*iter);
+    	currentAssembly = currentDetector->getLogicalVolume();
+    	
+    	// Update the detector position offsets.
+    	currentDetector->getCurrentOffset(currentLayerSizeX, currentLayerSizeY, currentOffsetZ);
+    
+    	// Generate all user-defined layers.
+    	iter->buildAllLayers(this);
+    
+    	// Attach PMTs.
+		constructPSPmts();
+    	
+    	// Place the detector into the world.
+    	iter->placeDetector(expHall_logV);
+	}
 
 	// Build the shadow bar.
 	if(shadowBarMaterial){
@@ -167,19 +160,54 @@ G4VPhysicalVolume* nDetConstruction::ConstructDetector(){
 		new G4PVPlacement(0, shadowBarPos, shadowBox_logV, "ShadowBar", expHall_logV, true, 0, fCheckOverlaps);
 	}
 
-    // Place all detectors.
-    for(std::deque<userAddDetector>::iterator iter = userDetectors.begin(); iter != userDetectors.end(); iter++){
-    	// Load all user-defined layers.
-    	iter->buildAllLayers(this);
-    	
-    	// Attach PMTs.
-		constructPSPmts();
-    	
-    	// Place the detector into the world.
-    	iter->setPhysicalVolume(new G4PVPlacement(&detectorRotation, detectorPosition, iter->getLogicalVolume(), "Assembly", expHall_logV, 0, 0, fCheckOverlaps));
-	}
-
 	return expHall_physV;
+}
+
+void nDetConstruction::ClearGeometry(){
+	// Clean-up previous geometry
+    G4GeometryManager::GetInstance()->OpenGeometry();
+    G4PhysicalVolumeStore::GetInstance()->Clean();
+    G4LogicalVolumeStore::GetInstance()->Clean();
+    G4SolidStore::GetInstance()->Clean();
+    G4LogicalSkinSurface::CleanSurfaceTable();
+    G4LogicalBorderSurface::CleanSurfaceTable();
+	G4SolidStore::GetInstance()->Clean();
+	G4LogicalVolumeStore::GetInstance()->Clean();
+	G4PhysicalVolumeStore::GetInstance()->Clean();
+	
+	// Reset the world volume.
+	expHall_physV = NULL;
+	
+	// Clear previous construction.
+	userDetectors.clear();
+}
+
+void nDetConstruction::UpdateGeometry(){
+	// Define new one
+	G4RunManager::GetRunManager()->DefineWorldVolume(ConstructDetector());
+	G4RunManager::GetRunManager()->GeometryHasBeenModified();
+	G4RunManager::GetRunManager()->ReinitializeGeometry();
+
+	if(PmtIsSegmented())
+		setSegmentedPmt(fNumColumnsPmt, fNumRowsPmt, SiPM_dimension*2, SiPM_dimension*2);
+
+	// Update the particle sources.
+	nDetThreadContainer *container = &nDetThreadContainer::getInstance();
+	for(size_t index = 0; index < container->size(); index++){
+		container->getAction(index)->getSource()->SetDetector(this);
+	}
+}
+
+void nDetConstruction::AddGeometry(const G4String &geom){
+	// Build the detector.
+	if(geom == "next" || geom == "module")
+		buildModule();
+	else if(geom == "ellipse")
+		buildEllipse();
+	else if(geom == "rectangle")
+		buildRectangle();
+	else if(geom == "test")
+		buildTestAssembly();
 }
 
 void nDetConstruction::setSegmentedPmt(const short &col_, const short &row_, const double &width_, const double &height_){
@@ -275,8 +303,6 @@ void nDetConstruction::buildExpHall()
 
 void nDetConstruction::DefineMaterials() {
 	if(materialsAreDefined) return;
-
-    G4cout<<"nDetConstruction::DefineMaterials()"<<G4endl;
 
 	// Elements
 	fH = nist.searchForElement("H");
@@ -648,9 +674,6 @@ void nDetConstruction::DefineMaterials() {
 	materialsAreDefined = true;
 }
 
-void nDetConstruction::ConstructSDandField(){
-}
-
 void nDetConstruction::GetSegmentFromCopyNum(const G4int &copyNum, G4int &col, G4int &row) const {
 	if(copyNum > 0){ // Scintillator
 		col = ((copyNum-1) / fNumRows) + 1;
@@ -659,27 +682,6 @@ void nDetConstruction::GetSegmentFromCopyNum(const G4int &copyNum, G4int &col, G
 	else{ // Outer wrappings (mylar, teflon, etc) (id==0)
 		col = 0;
 		row = 0;
-	}
-}
-
-void nDetConstruction::UpdateGeometry(){
-	// Clean-up previous geometry
-	G4SolidStore::GetInstance()->Clean();
-	G4LogicalVolumeStore::GetInstance()->Clean();
-	G4PhysicalVolumeStore::GetInstance()->Clean();
-
-	// Define new one
-	G4RunManager::GetRunManager()->DefineWorldVolume(ConstructDetector());
-	G4RunManager::GetRunManager()->GeometryHasBeenModified();
-	G4RunManager::GetRunManager()->ReinitializeGeometry();
-
-	if(PmtIsSegmented())
-		setSegmentedPmt(fNumColumnsPmt, fNumRowsPmt, SiPM_dimension*2, SiPM_dimension*2);
-
-	// Update the particle sources.
-	nDetThreadContainer *container = &nDetThreadContainer::getInstance();
-	for(size_t index = 0; index < container->size(); index++){
-		container->getAction(index)->getSource()->SetDetector(this);
 	}
 }
 
@@ -785,7 +787,7 @@ void nDetConstruction::buildModule(){
 
 	// Construct the assembly bounding box.
 	G4ThreeVector assemblyBoundingBox;
-	currentAssembly = constructAssembly(assemblyBoundingBox);
+	constructAssembly(assemblyBoundingBox);
 
     // Construct the scintillator cell
     G4Box *cellScint = new G4Box("scintillator", cellWidth/2, cellHeight/2, fDetectorLength/2);
@@ -892,7 +894,7 @@ void nDetConstruction::buildEllipse(){
 
 	// Construct the assembly bounding box.
 	G4ThreeVector assemblyBoundingBox;
-	currentAssembly = constructAssembly(assemblyBoundingBox);
+	constructAssembly(assemblyBoundingBox);
 
 	// Create the geometry.
 	G4Trd *innerTrapezoid = new G4Trd("innerTrapezoid", fDetectorWidth/2, SiPM_dimension, fDetectorThickness/2, SiPM_dimension, fTrapezoidLength/2);
@@ -940,7 +942,7 @@ void nDetConstruction::buildEllipse(){
 void nDetConstruction::buildRectangle(){
 	// Construct the assembly bounding box.
 	G4ThreeVector assemblyBoundingBox;
-	currentAssembly = constructAssembly(assemblyBoundingBox);
+	constructAssembly(assemblyBoundingBox);
 
     G4Box *plateBody = new G4Box("", fDetectorWidth/2, fDetectorThickness/2, fDetectorLength/2);
     G4LogicalVolume *plateBody_logV = new G4LogicalVolume(plateBody, getUserDetectorMaterial(), "plateBody_logV");
@@ -1011,6 +1013,10 @@ G4LogicalVolume *nDetConstruction::constructAssembly(G4ThreeVector &boundingBox)
 	currentLayerSizeY = fDetectorThickness;
 	currentOffsetZ = fDetectorLength/2;
 
+	// Update the position and rotation of the detector.
+	currentDetector->setPositionAndRotation(detectorPosition, detectorRotation);
+	currentDetector->setCurrentOffset(currentLayerSizeX, currentLayerSizeY, currentOffsetZ);
+
 	boundingBox = G4ThreeVector(assemblyWidth, assemblyThickness, assemblyLength);
 
 	return currentAssembly;
@@ -1032,7 +1038,7 @@ void nDetConstruction::constructPSPmts(){
 		G4LogicalVolume *grease_logV = new G4LogicalVolume(grease_solidV, fGrease, "grease_logV");
 		
 		grease_logV->SetVisAttributes(grease_VisAtt);
-	
+
 		grease_physV[0] = new G4PVPlacement(0, G4ThreeVector(0, 0, greaseZ), grease_logV, "Grease", currentAssembly, true, 0, fCheckOverlaps);
 		grease_physV[1] = new G4PVPlacement(0, G4ThreeVector(0, 0, -greaseZ), grease_logV, "Grease", currentAssembly, true, 0, fCheckOverlaps);
 		
@@ -1055,7 +1061,7 @@ void nDetConstruction::constructPSPmts(){
 		G4LogicalVolume *window_logV = new G4LogicalVolume(window_solidV, fSiO2, "window_logV");
 		
 		window_logV->SetVisAttributes(window_VisAtt);
-	
+
 		window_physV[0] = new G4PVPlacement(0, G4ThreeVector(0, 0, windowZ), window_logV, "Quartz", currentAssembly, true, 0, fCheckOverlaps);
 		window_physV[1] = new G4PVPlacement(0, G4ThreeVector(0, 0, -windowZ), window_logV, "Quartz", currentAssembly, true, 0, fCheckOverlaps);
 	}
@@ -1070,7 +1076,7 @@ void nDetConstruction::constructPSPmts(){
 		greaseWrapping_logV->SetVisAttributes(wrapping_VisAtt);
 		
 		G4double wrappingZ = currentOffsetZ + fGreaseThickness;
-		
+
 		// Place the wrapping around the scintillator.
 		G4PVPlacement *greaseWrapping_physV[2];
 		greaseWrapping_physV[0] = new G4PVPlacement(0, G4ThreeVector(0, 0, wrappingZ), greaseWrapping_logV, "Wrapping", currentAssembly, true, 0, fCheckOverlaps);		
@@ -1093,7 +1099,7 @@ void nDetConstruction::constructPSPmts(){
     
     // Logical skin surface.
     new G4LogicalSkinSurface(name, sensitive_logV, fSiliconPMOpticalSurface);    
-    
+
 	new G4PVPlacement(0, G4ThreeVector(0, 0, sensitiveZ), sensitive_logV, name, currentAssembly, true, 0, fCheckOverlaps);
 	new G4PVPlacement(0, G4ThreeVector(0, 0, -sensitiveZ), sensitive_logV, name, currentAssembly, true, 0, fCheckOverlaps);
 
@@ -1363,8 +1369,29 @@ G4OpticalSurface *nDetConstruction::getUserOpticalSurface(){
 // class userAddDetector
 ///////////////////////////////////////////////////////////////////////////////
 
+void userAddDetector::getCurrentOffset(G4double &x_, G4double &y_, G4double &z_){
+	x_ = layerSizeX;
+	y_ = layerSizeY;
+	z_ = offsetZ;
+}
+
+void userAddDetector::setPositionAndRotation(const G4ThreeVector &pos, const G4RotationMatrix &rot){
+	position = pos;
+	rotation = rot;
+}
+
+void userAddDetector::setCurrentOffset(const G4double &x_, const G4double &y_, const G4double &z_){
+	layerSizeX = x_;
+	layerSizeY = y_;
+	offsetZ = z_;
+}
+
 void userAddDetector::buildAllLayers(nDetConstruction *detector){
 	for(std::deque<userAddLayer>::iterator iter = userLayers.begin(); iter != userLayers.end(); iter++){
 		iter->execute(detector);
 	}		
+}
+
+void userAddDetector::placeDetector(G4LogicalVolume *parent){
+	assembly_physV = new G4PVPlacement(&rotation, position, assembly_logV, "Assembly", parent, 0, 0, false);
 }

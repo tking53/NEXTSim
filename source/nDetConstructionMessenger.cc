@@ -17,7 +17,7 @@
 void nDetConstructionMessenger::addAllCommands(){
 	addDirectory("/nDet/detector/", "Detector geometry control");
 
-	addCommand(new G4UIcmdWithAString("/nDet/detector/setGeometry", this));
+	addCommand(new G4UIcmdWithAString("/nDet/detector/addGeometry", this));
 	addGuidance("Defines the Geometry of the detector");
 	addCandidates("next module ellipse rectangle test");
 
@@ -117,6 +117,9 @@ void nDetConstructionMessenger::addAllCommands(){
 	addCommand(new G4UIcmdWithAString("/nDet/detector/setPolished", this));
 	addGuidance("Enable or disable polished optical grease faces (disabled by default)");
 	addCandidates("true false");
+
+	addCommand(new G4UIcommand("/nDet/detector/clear", this));
+	addGuidance("Clear all detector Geometry");
 }
 
 void nDetConstructionMessenger::SetNewValue(G4UIcommand* command, G4String newValue){
@@ -124,7 +127,7 @@ void nDetConstructionMessenger::SetNewValue(G4UIcommand* command, G4String newVa
 	if(!findCommand(command, newValue, index)) return;
 
 	if(index == 0){
-		fDetector->SetGeometry(newValue);
+		fDetector->AddGeometry(newValue);
 	}
 	else if(index == 1) {
 		G4double dimensions = command->ConvertToDouble(newValue);
@@ -238,4 +241,7 @@ void nDetConstructionMessenger::SetNewValue(G4UIcommand* command, G4String newVa
 	else if(index == 31){
 		fDetector->SetPolishedInterface((newValue == "true") ? true : false);
 	}
+	else if(index == 32){
+		fDetector->ClearGeometry();
+	}	
 }

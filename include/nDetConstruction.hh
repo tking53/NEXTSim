@@ -49,13 +49,11 @@ class nDetConstruction : public G4VUserDetectorConstruction{
 
 	static nDetConstruction &getInstance();
 
-    G4VPhysicalVolume* Construct();
+	G4VPhysicalVolume* Construct();
+
+	G4VPhysicalVolume* ConstructDetector();
     
-    G4VPhysicalVolume* ConstructDetector();
-    
-    virtual void ConstructSDandField();
-    
-    void SetGeometry(G4String geom){ fGeometry = geom; }
+	void AddGeometry(const G4String &geom);
 
     void SetSiPM_dimension(G4double dim){ SiPM_dimension = dim; }
     
@@ -129,8 +127,6 @@ class nDetConstruction : public G4VUserDetectorConstruction{
 
 	G4RotationMatrix *GetDetectorRot(){ return &detectorRotation; }
 
-    G4String GetGeometry(){ return fGeometry; }
-
 	G4int GetNumPmtColumns() const { return fNumColumnsPmt; }
 	
 	G4int GetNumPmtRows() const { return fNumRowsPmt; }
@@ -142,6 +138,8 @@ class nDetConstruction : public G4VUserDetectorConstruction{
     bool PmtIsSegmented() const { return (fNumColumnsPmt > 0 && fNumRowsPmt > 0); }
 
 	bool AddDetectedPhoton(const G4Step *step, const double &mass=1);
+
+    void ClearGeometry();
     
     void UpdateGeometry();
 
@@ -190,7 +188,6 @@ private:
 
 	G4bool fPolishedInterface;
     G4bool fCheckOverlaps;
-    G4String fGeometry;
 
     // Logical and physical volume
 	G4LogicalVolume* expHall_logV;
@@ -360,23 +357,36 @@ class userAddLayer{
 
 class userAddDetector{
   public:
-	userAddDetector() : assembly_logV(NULL), assembly_physV(NULL) { }
+	userAddDetector() : assembly_logV(NULL), assembly_physV(NULL), layerSizeX(0), layerSizeY(0), offsetZ(0) { }
 	
-	userAddDetector(G4LogicalVolume *logical) : assembly_logV(logical), assembly_physV(NULL) { }
+	userAddDetector(G4LogicalVolume *logical) : assembly_logV(logical), assembly_physV(NULL), layerSizeX(0), layerSizeY(0), offsetZ(0) { }
 	
-	userAddDetector(G4LogicalVolume *logical, G4VPhysicalVolume *physical) : assembly_logV(logical), assembly_physV(physical) { }
+	userAddDetector(G4LogicalVolume *logical, G4VPhysicalVolume *physical) : assembly_logV(logical), assembly_physV(physical), layerSizeX(0), layerSizeY(0), offsetZ(0) { }
 	
 	G4LogicalVolume *getLogicalVolume(){ return assembly_logV; }
+
+	void getCurrentOffset(G4double &x_, G4double &y_, G4double &z_);
 	
-	G4VPhysicalVolume *setPhysicalVolume(G4VPhysicalVolume *volume){ return (assembly_physV = volume); }
+	void setPositionAndRotation(const G4ThreeVector &pos, const G4RotationMatrix &rot);
+
+	void setCurrentOffset(const G4double &x_, const G4double &y_, const G4double &z_);
 
 	void addLayer(const userAddLayer &layer){ userLayers.push_back(layer); }
 
 	void buildAllLayers(nDetConstruction *detector);
+	
+	void placeDetector(G4LogicalVolume *parent);
 
   private:
 	G4LogicalVolume *assembly_logV;
 	G4VPhysicalVolume* assembly_physV;
+
+	G4double layerSizeX;
+	G4double layerSizeY;    
+	G4double offsetZ;
+
+	G4ThreeVector position; // Position of detector in lab frame.
+	G4RotationMatrix rotation; // Rotation of detector.
 	
 	// Deque of layers added by the user.
 	std::deque<userAddLayer> userLayers;	
