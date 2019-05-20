@@ -33,6 +33,7 @@ class G4VisAttributes;
 class G4Step;
 
 class userAddLayer;
+class userAddDetector;
 
 ///////////////////////////////////////////////////////////////////////////////
 // class nDetConstruction
@@ -163,26 +164,6 @@ private:
     G4double expHallY;
     G4double expHallZ;
 
-    G4double assemblyBoxX;
-    G4double assemblyBoxY;
-    G4double assemblyBoxZ;
-
-    G4double assemblyPx;
-    G4double assemblyPy;
-    G4double assemblyPz;
-
-    G4double ej200X;
-    G4double ej200Y;
-    G4double ej200Z;
-
-    G4double qwSiPMx;
-    G4double qwSiPMy;
-    G4double qwSiPMz;
-
-    G4double psSiPMx;
-    G4double psSiPMy;
-    G4double psSiPMz;
-
     G4double SiPM_dimension;
     G4double fTeflonThickness;
     G4double fMylarThickness;
@@ -211,22 +192,11 @@ private:
     G4bool fCheckOverlaps;
     G4String fGeometry;
 
-    // logical and physical volume
-    G4LogicalVolume* expHall_logV;
-    G4LogicalVolume* assembly_logV;
+    // Logical and physical volume
+	G4LogicalVolume* expHall_logV;
+	G4VPhysicalVolume* expHall_physV;
 
-    G4LogicalVolume* ej200_logV; // ej200 scintillator
-    G4LogicalVolume* mylar_logV;
-    G4LogicalVolume* qwSiPM_logV;
-    G4LogicalVolume* psSiPM_logV;
-
-    G4VPhysicalVolume* expHall_physV;
-    G4VPhysicalVolume* assembly_physV;
-
-    SiPMSD *fSiPMSD;
-    nDetSD *fScintSD;
-
-    //Materials and elements
+    // Materials and elements
     G4Element* fH;
     G4Element* fC;
     G4Element* fO;
@@ -246,7 +216,7 @@ private:
     G4Material* fAcrylic;
 	G4Material* fAluminum;
 
-    //Material table properties
+    // Material table properties
     G4MaterialPropertiesTable* fAirMPT;
     G4MaterialPropertiesTable* fTeflonMPT;
     G4MaterialPropertiesTable* fEJ200MPT;
@@ -259,18 +229,13 @@ private:
 	G4MaterialPropertiesTable* fAluminumMPT;
 	G4MaterialPropertiesTable* fEsrMPT;
 
-    //Optical Surfaces
+    // Optical Surfaces
     G4OpticalSurface* fTeflonOpticalSurface;
     G4OpticalSurface* fSiliconPMOpticalSurface;
     G4OpticalSurface* fMylarOpticalSurface;
     G4OpticalSurface* fEsrOpticalSurface;
 	G4OpticalSurface* fPerfectOpticalSurface;
 	G4OpticalSurface* fGreaseOpticalSurface;
-
-    //Logical Skins
-    G4LogicalSkinSurface* fWrapSkinSurface;
-    G4LogicalSkinSurface* fSiPMSkinSurface;
-    G4LogicalBorderSurface* fMylarSurface;
 
 	// Visual attributes
 	G4VisAttributes *assembly_VisAtt;
@@ -301,8 +266,12 @@ private:
 	// Optical grease placement.
 	std::vector<G4PVPlacement*> scintBody_physV;
 
-	// Deque of layers added by the user.
-	std::deque<userAddLayer> userLayers;
+	// Deque of detectors added by the user.
+	std::deque<userAddDetector> userDetectors;
+	
+	// Pointer to the current detector construction.
+	userAddDetector *currentDetector;
+	G4LogicalVolume *currentAssembly;
 
 	bool materialsAreDefined;
 
@@ -324,7 +293,7 @@ private:
     
     void DefineMaterials();
 
-	G4ThreeVector constructAssembly();
+	G4LogicalVolume *constructAssembly(G4ThreeVector &boundingBox);
 
     void constructPSPmts();
 
@@ -383,6 +352,34 @@ class userAddLayer{
 	G4String argStr;
 
 	void (nDetConstruction::* ptr)(const G4String &);
+};
+
+///////////////////////////////////////////////////////////////////////////////
+// class userAddDetector
+///////////////////////////////////////////////////////////////////////////////
+
+class userAddDetector{
+  public:
+	userAddDetector() : assembly_logV(NULL), assembly_physV(NULL) { }
+	
+	userAddDetector(G4LogicalVolume *logical) : assembly_logV(logical), assembly_physV(NULL) { }
+	
+	userAddDetector(G4LogicalVolume *logical, G4VPhysicalVolume *physical) : assembly_logV(logical), assembly_physV(physical) { }
+	
+	G4LogicalVolume *getLogicalVolume(){ return assembly_logV; }
+	
+	G4VPhysicalVolume *setPhysicalVolume(G4VPhysicalVolume *volume){ return (assembly_physV = volume); }
+
+	void addLayer(const userAddLayer &layer){ userLayers.push_back(layer); }
+
+	void buildAllLayers(nDetConstruction *detector);
+
+  private:
+	G4LogicalVolume *assembly_logV;
+	G4VPhysicalVolume* assembly_physV;
+	
+	// Deque of layers added by the user.
+	std::deque<userAddLayer> userLayers;	
 };
 
 #endif
