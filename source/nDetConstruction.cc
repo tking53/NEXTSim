@@ -268,6 +268,7 @@ void nDetConstruction::SetPositionSpherical(const G4ThreeVector &position){
 }
 
 void nDetConstruction::SetRotation(const G4ThreeVector &rotation){
+	detectorRotation = G4RotationMatrix();
 	detectorRotation.rotateX(rotation.getX()*deg);
 	detectorRotation.rotateY(rotation.getY()*deg); 
 	detectorRotation.rotateZ(rotation.getZ()*deg);  
@@ -770,6 +771,32 @@ void nDetConstruction::AddDiffuser(const G4String &input){
 
 void nDetConstruction::AddLightGuide(const G4String &input){
 	currentDetector->addLayer(userAddLayer(input, &nDetConstruction::applyLightGuide));
+}
+
+void nDetConstruction::AddDetectorArray(const G4String &input){
+	// Expects a space-delimited string of the form:
+	//  "addDiffuserLayer width(mm) height(mm) thickness(mm) material"
+	std::vector<std::string> args;
+	unsigned int Nargs = split_str(input, args);
+	if(Nargs < 3){
+		std::cout << " nDetConstruction: Invalid number of arguments given to ::AddDetectorArray(). Expected 5, received " << Nargs << ".\n";
+		std::cout << " nDetConstruction:  SYNTAX: addArray <geom> <r0> <startTheta> <stopTheta> <Ndet>\n";
+		return;
+	}
+	double r0 = strtod(args.at(1).c_str(), NULL);
+	double startTheta = strtod(args.at(2).c_str(), NULL);
+	double stopTheta = strtod(args.at(3).c_str(), NULL);
+	int Ndet = strtol(args.at(4).c_str(), NULL, 10);
+	
+	double dTheta = 0;
+	if(Ndet > 1)
+		dTheta = (stopTheta-startTheta)/(Ndet-1);
+	for(int i = 0; i < Ndet; i++){
+		//std::cout << " nDetConstruction: Adding detector (type=" << args.at(0) << ", r=" << r0 << ", theta=" << startTheta+dTheta*i << ")\n";
+		this->SetPositionCylindrical(G4ThreeVector(r0, startTheta+dTheta*i, 0));
+		this->SetRotation(G4ThreeVector(90, 0, startTheta+dTheta*i));
+		this->AddGeometry(args.at(0));
+	}
 }
 
 void nDetConstruction::buildModule(){

@@ -152,6 +152,8 @@ class nDetConstruction : public G4VUserDetectorConstruction{
 
 	void AddLightGuide(const G4String &input);
 	
+	void AddDetectorArray(const G4String &input);
+	
 	void SetLightYieldMultiplier(const G4double &input){ fLightYieldScale = input; }
 
 private:

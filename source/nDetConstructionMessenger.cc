@@ -120,6 +120,9 @@ void nDetConstructionMessenger::addAllCommands(){
 
 	addCommand(new G4UIcommand("/nDet/detector/clear", this));
 	addGuidance("Clear all detector Geometry");
+	
+	addCommand(new G4UIcmdWithAString("/nDet/detector/addArray", this));
+	addGuidance("Add an array of multiple detectors. SYNTAX: addArray <geom> <r0> <startTheta> <stopTheta> <Ndet>");
 }
 
 void nDetConstructionMessenger::SetNewValue(G4UIcommand* command, G4String newValue){
@@ -243,5 +246,8 @@ void nDetConstructionMessenger::SetNewValue(G4UIcommand* command, G4String newVa
 	}
 	else if(index == 32){
 		fDetector->ClearGeometry();
-	}	
+	}
+	else if(index == 33){
+		fDetector->AddDetectorArray(newValue);
+	}
 }
