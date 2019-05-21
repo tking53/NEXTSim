@@ -2,7 +2,6 @@
 #define NDETCONSTRUCTION_HH
 
 #include <vector>
-#include <deque>
 
 #include "G4VUserDetectorConstruction.hh"
 #include "G4RotationMatrix.hh"
@@ -125,15 +124,15 @@ class nDetConstruction : public G4VUserDetectorConstruction{
 	
 	G4ThreeVector GetDetectorPos() const { return detectorPosition; }
 
-	G4RotationMatrix *GetDetectorRot(){ return &detectorRotation; }
+	G4RotationMatrix GetDetectorRot() const { return detectorRotation; }
 
 	G4int GetNumPmtColumns() const { return fNumColumnsPmt; }
 	
 	G4int GetNumPmtRows() const { return fNumRowsPmt; }
 
-	void GetSegmentFromCopyNum(const G4int &copyNum, G4int &col, G4int &row) const ;    
-		
 	nDetConstructionMessenger *GetMessenger(){ return fDetectorMessenger; }
+
+	std::vector<userAddDetector> GetUserDetectors() const { return userDetectors; }
 
     bool PmtIsSegmented() const { return (fNumColumnsPmt > 0 && fNumRowsPmt > 0); }
 
@@ -264,8 +263,8 @@ private:
 	// Optical grease placement.
 	std::vector<G4PVPlacement*> scintBody_physV;
 
-	// Deque of detectors added by the user.
-	std::deque<userAddDetector> userDetectors;
+	// Vector of detectors added by the user.
+	std::vector<userAddDetector> userDetectors;
 	
 	// Pointer to the current detector construction.
 	userAddDetector *currentDetector;
@@ -358,27 +357,35 @@ class userAddLayer{
 
 class userAddDetector{
   public:
-	userAddDetector() : assembly_logV(NULL), assembly_physV(NULL), layerSizeX(0), layerSizeY(0), offsetZ(0), copyNum(0) { }
+	userAddDetector() : assembly_logV(NULL), assembly_physV(NULL), layerSizeX(0), layerSizeY(0), offsetZ(0), parentCopyNum(0), firstSegmentCopyNum(0), lastSegmentCopyNum(0), numColumns(1), numRows(1) { }
 	
-	userAddDetector(G4LogicalVolume *logical) : assembly_logV(logical), assembly_physV(NULL), layerSizeX(0), layerSizeY(0), offsetZ(0), copyNum(0) { }
+	userAddDetector(G4LogicalVolume *logical) : assembly_logV(logical), assembly_physV(NULL), layerSizeX(0), layerSizeY(0), offsetZ(0), parentCopyNum(0), firstSegmentCopyNum(0), lastSegmentCopyNum(0), numColumns(1), numRows(1) { }
 	
-	userAddDetector(G4LogicalVolume *logical, G4VPhysicalVolume *physical) : assembly_logV(logical), assembly_physV(physical), layerSizeX(0), layerSizeY(0), offsetZ(0), copyNum(0) { }
+	userAddDetector(G4LogicalVolume *logical, G4VPhysicalVolume *physical) : assembly_logV(logical), assembly_physV(physical), layerSizeX(0), layerSizeY(0), offsetZ(0), parentCopyNum(0), firstSegmentCopyNum(0), lastSegmentCopyNum(0), numColumns(1), numRows(1) { }
 	
 	G4LogicalVolume *getLogicalVolume(){ return assembly_logV; }
 
 	void getCurrentOffset(G4double &x_, G4double &y_, G4double &z_);
 	
+	G4int getParentCopyNumber() const { return parentCopyNum; }
+	
 	void setPositionAndRotation(const G4ThreeVector &pos, const G4RotationMatrix &rot);
 
 	void setCurrentOffset(const G4double &x_, const G4double &y_, const G4double &z_);
 
-	void setCopyNumber(const G4int &num){ copyNum = num; }
+	void setParentCopyNumber(const G4int &num){ parentCopyNum = num; }
+	
+	void setSegmentedDetector(const G4int &col, const G4int &row, const G4int &startCopyNum=0);
 
 	void addLayer(const userAddLayer &layer){ userLayers.push_back(layer); }
 
 	void buildAllLayers(nDetConstruction *detector);
 	
 	void placeDetector(G4LogicalVolume *parent);
+
+	bool checkCopyNumber(const G4int &num) const { return (num >= firstSegmentCopyNum && num < lastSegmentCopyNum); }
+
+	bool getSegmentFromCopyNum(const G4int &copyNum, G4int &col, G4int &row) const ;
 
   private:
 	G4LogicalVolume *assembly_logV;
@@ -388,13 +395,18 @@ class userAddDetector{
 	G4double layerSizeY;    
 	G4double offsetZ;
 	
-	G4int copyNum;
+	G4int parentCopyNum;
+	G4int firstSegmentCopyNum;
+	G4int lastSegmentCopyNum;
+
+	G4int numColumns;
+	G4int numRows;
 
 	G4ThreeVector position; // Position of detector in lab frame.
 	G4RotationMatrix rotation; // Rotation of detector.
 	
-	// Deque of layers added by the user.
-	std::deque<userAddLayer> userLayers;	
+	// vector of layers added by the user.
+	std::vector<userAddLayer> userLayers;	
 };
 
 #endif

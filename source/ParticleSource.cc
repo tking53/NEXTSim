@@ -360,10 +360,10 @@ void ParticleSource::SetBeamspotType(const G4String &str){
 	}
 }
 
-void ParticleSource::SetDetector(nDetConstruction *det){
+void ParticleSource::SetDetector(const nDetConstruction *det){
 	detPos = det->GetDetectorPos();
 	detSize = det->GetDetectorSize();
-	detRot = *det->GetDetectorRot();
+	detRot = det->GetDetectorRot();
 }
 
 void ParticleSource::Set137Cs(){

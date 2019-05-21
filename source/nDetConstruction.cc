@@ -135,22 +135,22 @@ G4VPhysicalVolume* nDetConstruction::ConstructDetector(){
 	// Build experiment hall.
 	buildExpHall();
 
-    // Place all detectors.
-    for(std::deque<userAddDetector>::iterator iter = userDetectors.begin(); iter != userDetectors.end(); iter++){
-    	currentDetector = &(*iter);
-    	currentAssembly = currentDetector->getLogicalVolume();
-    	
-    	// Update the detector position offsets.
-    	currentDetector->getCurrentOffset(currentLayerSizeX, currentLayerSizeY, currentOffsetZ);
-    
-    	// Generate all user-defined layers.
-    	iter->buildAllLayers(this);
-    
-    	// Attach PMTs.
+	// Place all detectors.
+	for(std::vector<userAddDetector>::iterator iter = userDetectors.begin(); iter != userDetectors.end(); iter++){
+		currentDetector = &(*iter);
+		currentAssembly = currentDetector->getLogicalVolume();
+
+		// Update the detector position offsets.
+		currentDetector->getCurrentOffset(currentLayerSizeX, currentLayerSizeY, currentOffsetZ);
+
+		// Generate all user-defined layers.
+		iter->buildAllLayers(this);
+
+		// Attach PMTs.
 		constructPSPmts();
-    	
-    	// Place the detector into the world.
-    	iter->placeDetector(expHall_logV);
+
+		// Place the detector into the world.
+		iter->placeDetector(expHall_logV);
 	}
 
 	// Build the shadow bar.
@@ -198,7 +198,7 @@ void nDetConstruction::UpdateGeometry(){
 	// Update the particle sources.
 	nDetThreadContainer *container = &nDetThreadContainer::getInstance();
 	for(size_t index = 0; index < container->size(); index++){
-		container->getAction(index)->getSource()->SetDetector(this);
+		container->getAction(index)->updateDetector(this);
 	}
 }
 
@@ -678,17 +678,6 @@ void nDetConstruction::DefineMaterials() {
 	materialsAreDefined = true;
 }
 
-void nDetConstruction::GetSegmentFromCopyNum(const G4int &copyNum, G4int &col, G4int &row) const {
-	if(copyNum > 0){ // Scintillator
-		col = ((copyNum-1) / fNumRows) + 1;
-		row = ((copyNum-1) % fNumRows) + 1;
-	}
-	else{ // Outer wrappings (mylar, teflon, etc) (id==0)
-		col = 0;
-		row = 0;
-	}
-}
-
 void nDetConstruction::loadGDML(const G4String &input){
 	// Expects a space-delimited string of the form:
 	//  "filename posX(cm) posY(cm) posZ(cm) rotX(deg) rotY(deg) rotZ(deg) material"
@@ -792,6 +781,10 @@ void nDetConstruction::buildModule(){
 	// Construct the assembly bounding box.
 	G4ThreeVector assemblyBoundingBox;
 	constructAssembly(assemblyBoundingBox);
+
+	// Update the detector's number of rows and columns.
+	currentDetector->setParentCopyNumber(userDetectors.size()-1);
+	currentDetector->setSegmentedDetector(fNumColumns, fNumRows, scintCopyNum);
 
     // Construct the scintillator cell
     G4Box *cellScint = new G4Box("scintillator", cellWidth/2, cellHeight/2, fDetectorLength/2);
@@ -1012,7 +1005,7 @@ G4LogicalVolume *nDetConstruction::constructAssembly(G4ThreeVector &boundingBox)
 	currentAssembly = new G4LogicalVolume(assembly, fAir, "assembly_logV");
 	currentAssembly->SetVisAttributes(assembly_VisAtt);
 
-	// Add the assembly to the deque of detectors.
+	// Add the assembly to the vector of detectors.
 	userDetectors.push_back(userAddDetector(currentAssembly));
 	currentDetector = &userDetectors.back();
 
@@ -1023,7 +1016,6 @@ G4LogicalVolume *nDetConstruction::constructAssembly(G4ThreeVector &boundingBox)
 	// Update the position and rotation of the detector.
 	currentDetector->setPositionAndRotation(detectorPosition, detectorRotation);
 	currentDetector->setCurrentOffset(currentLayerSizeX, currentLayerSizeY, currentOffsetZ);
-	currentDetector->setCopyNumber(userDetectors.size()-1);
 
 	boundingBox = G4ThreeVector(assemblyWidth, assemblyThickness, assemblyLength);
 
@@ -1395,12 +1387,26 @@ void userAddDetector::setCurrentOffset(const G4double &x_, const G4double &y_, c
 }
 
 void userAddDetector::buildAllLayers(nDetConstruction *detector){
-	for(std::deque<userAddLayer>::iterator iter = userLayers.begin(); iter != userLayers.end(); iter++){
+	for(std::vector<userAddLayer>::iterator iter = userLayers.begin(); iter != userLayers.end(); iter++){
 		iter->execute(detector);
 	}		
 }
 
 void userAddDetector::placeDetector(G4LogicalVolume *parent){
 	assembly_physV = new G4PVPlacement(&rotation, position, assembly_logV, "Assembly", parent, 0, 0, false);
-	assembly_physV->SetCopyNo(copyNum);
+	assembly_physV->SetCopyNo(parentCopyNum);
+}
+
+bool userAddDetector::getSegmentFromCopyNum(const G4int &copyNum, G4int &col, G4int &row) const {
+	if(!this->checkCopyNumber(copyNum)) return false;
+	col = (copyNum-firstSegmentCopyNum) / numRows;
+	row = (copyNum-firstSegmentCopyNum) % numRows;
+	return true;
+}
+
+void userAddDetector::setSegmentedDetector(const G4int &col, const G4int &row, const G4int &startCopyNum/*=0*/){
+	firstSegmentCopyNum = startCopyNum; 
+	lastSegmentCopyNum = startCopyNum+col*row;
+	numColumns = col;
+	numRows = row;
 }

@@ -151,7 +151,7 @@ class ParticleSource : public G4VUserPrimaryGeneratorAction {
 
 	void SetBeamspotType(const G4String &str);
 
-	void SetDetector(nDetConstruction *det);
+	void SetDetector(const nDetConstruction *det);
 
 	void Set137Cs();
 	

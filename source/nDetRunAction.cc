@@ -15,7 +15,6 @@
 #include "nDetStackingAction.hh"
 #include "nDetTrackingAction.hh"
 #include "nDetSteppingAction.hh"
-#include "nDetConstruction.hh"
 #include "ParticleSource.hh"
 #include "ParticleSourceMessenger.hh"
 #include "termColors.hh"
@@ -163,6 +162,27 @@ void nDetRunAction::EndOfRunAction(const G4Run* aRun)
 	
 	timer->Stop();
 	G4cout << "number of event = " << aRun->GetNumberOfEvent() << " " << *timer << G4endl;
+}
+
+void nDetRunAction::updateDetector(const nDetConstruction *det){
+	source->SetDetector(det);
+	userDetectors = det->GetUserDetectors();
+}
+
+G4int nDetRunAction::checkCopyNumber(const G4int &num) const {
+	for(std::vector<userAddDetector>::const_iterator iter = userDetectors.begin(); iter != userDetectors.end(); iter++){
+		if(iter->checkCopyNumber(num))
+			return iter->getParentCopyNumber();
+	}
+	return -1;
+}
+
+bool nDetRunAction::getSegmentFromCopyNum(const G4int &copyNum, G4int &col, G4int &row) const {
+	for(std::vector<userAddDetector>::const_iterator iter = userDetectors.begin(); iter != userDetectors.end(); iter++){
+		if(iter->getSegmentFromCopyNum(copyNum, col, row))
+			return true;
+	}
+	return false;
 }
 
 void nDetRunAction::process(){
@@ -361,8 +381,8 @@ bool nDetRunAction::AddDetectedPhoton(const G4Step *step, const double &mass/*=1
 	
 	double energy = step->GetTrack()->GetTotalEnergy();
 	double time = step->GetPostStepPoint()->GetGlobalTime();
-	G4ThreeVector position = step->GetPostStepPoint()->GetPosition() - detector->GetDetectorPos();
-	position = (*detector->GetDetectorRot())*position;
+	G4ThreeVector position = step->GetPostStepPoint()->GetPosition();// - detPos;
+	//position = detRot*position;
 	
 	if(position.z() > 0){
 		if(cmL.addPoint(energy, time, position, mass))
@@ -428,7 +448,7 @@ bool nDetRunAction::scatterEvent(){
 		data.nScatterScint.push_back(priTrack->inScint);
 
 		G4int segCol, segRow;
-		detector->GetSegmentFromCopyNum(priTrack->copyNum, segCol, segRow);
+		getSegmentFromCopyNum(priTrack->copyNum, segCol, segRow);
 		data.segmentCol.push_back(segCol);
 		data.segmentRow.push_back(segRow);
 	}

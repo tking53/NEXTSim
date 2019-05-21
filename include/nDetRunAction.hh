@@ -7,6 +7,7 @@
 #include "G4ThreeVector.hh"
 #include "G4ParticleDefinition.hh"
 
+#include "nDetConstruction.hh"
 #include "nDetDataPack.hh"
 #include "centerOfMass.hh"
 
@@ -107,6 +108,12 @@ class nDetRunAction : public G4UserRunAction
     
     unsigned long long getNumPhotonsDet() const { return numPhotonsDetTotal; }
 
+	void updateDetector(const nDetConstruction *det);
+
+	G4int checkCopyNumber(const G4int &num) const ;
+
+	bool getSegmentFromCopyNum(const G4int &copyNum, G4int &col, G4int &row) const ;
+
 	void process();
 
 	bool AddDetectedPhoton(const G4Step *step, const double &mass=1);
@@ -154,6 +161,9 @@ class nDetRunAction : public G4UserRunAction
 
     unsigned long long numPhotonsTotal;
     unsigned long long numPhotonsDetTotal;
+
+	// Deque of detectors added by the user.
+	std::vector<userAddDetector> userDetectors;
 
 	bool scatterEvent();	
 };
