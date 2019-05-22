@@ -12,7 +12,7 @@ class nDetActionInitialization : public G4VUserActionInitialization {
 	virtual void BuildForMaster() const ;
 
   private:
-	bool verbose;
+	bool verbose; ///< Verbosity flag
 };
 
 #endif

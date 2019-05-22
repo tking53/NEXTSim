@@ -1,5 +1,5 @@
-#ifndef nDetRunAction_h
-#define nDetRunAction_h 1
+#ifndef NDET_RUN_ACTION_HH
+#define NDET_RUN_ACTION_HH
 
 #include "globals.hh"
 #include "G4UserRunAction.hh"
@@ -27,19 +27,21 @@ class ParticleSource;
 
 class primaryTrackInfo{
   public:
-	G4ThreeVector pos;
-	G4ThreeVector dir;
-	G4double kE, dkE;
-	G4double gtime, plength;
-	G4double angle;
+	G4ThreeVector pos; ///< 3d position of scatter (in mm)
+	G4ThreeVector dir; ///< 3d momentum direction of primary particle prior to scattering
+	G4double kE; ///< Kinetic energy of primary particle prior to scattering (in MeV)
+	G4double dkE; ///< Change in kinetic energy of primary particle during scatter event (in MeV)
+	G4double gtime; ///< Global time of scatter event (in ns)
+	G4double plength; ///< Path length of primary particle between successive scatter events (in mm)
+	G4double angle; ///< Angle between incoming and outgoing primary particle (in degrees)
 
-	G4int copyNum;
-	G4int trackID;
-	G4int atomicMass;
+	G4int copyNum; ///< Copy number of object inside which the scatter event occured
+	G4int trackID; ///< Geant track ID of the primary particle track
+	G4int atomicMass; ///< Atomic mass of the recoiling particle after the scatter event (NOT WORKING)
 	
-	G4bool inScint;
+	G4bool inScint; ///< Flag indicating that the scatter event occured in a scintillator material
 
-	const G4ParticleDefinition *part;
+	const G4ParticleDefinition *part; ///< Pointer to the Geant particle definition of the primary particle
 	
 	primaryTrackInfo(const G4Step *step);
 	
@@ -125,45 +127,44 @@ class nDetRunAction : public G4UserRunAction
 	void finalizeNeutron(const G4Step *step);
 
   private:
-	G4Timer* timer;
+	G4Timer* timer; ///< Timer used to measure the total time for a run (in seconds)
 
-	bool outputDebug;
-	bool verbose;
-	bool printTrace;
+	bool outputDebug; ///< Flag indicating that the user has requested low-level debug to be written to the output file
+	bool verbose; ///< Verbosity flag
+	bool printTrace; ///< Flag indicating that the left and right digitized PMT traces will be printed to the screen
 
-	double baselineFraction;
-	double baselineJitterFraction;
-	double polyCfdFraction;
+	double baselineFraction; ///< Digitized light pulse baseline as a fraction of the total ADC dynamic range
+	double baselineJitterFraction; ///< Digitized light pulse baseline jitter as a fraction of the total ADC dynamic range
+	double polyCfdFraction; ///< PolyCFD F parameter as a fraction of max pulse height minus the baseline
 	
-	short pulseIntegralLow;
-	short pulseIntegralHigh;
+	short pulseIntegralLow; ///< Number of ADC clock ticks for start of digitized pulse TQDC integral wrt pulse maximum
+	short pulseIntegralHigh; ///< Number of ADC clock ticks for stop of digitized pulse TQDC integral wrt pulse maximum
 
-	nDetRunActionMessenger *fActionMessenger;
+	nDetRunActionMessenger *fActionMessenger; ///< Pointer to the messenger object used for this class
 	
-	nDetEventAction *eventAction;
-	nDetStackingAction *stacking;
-	nDetTrackingAction *tracking;
-	nDetSteppingAction *stepping;
-	nDetConstruction *detector;  
-	ParticleSource *source;  
+	nDetEventAction *eventAction; ///< Pointer to the thread-local user event action
+	nDetStackingAction *stacking; ///< Pointer to the thread-local user stacking action
+	nDetTrackingAction *tracking; ///< Pointer to the thread-local user tracking action
+	nDetSteppingAction *stepping; ///< Pointer to the thread-local user stepping action
+	nDetConstruction *detector; ///< Pointer to the global detector singleton
+	ParticleSource *source; ///< Pointer to the thread-local particle source
 	
-	std::vector<primaryTrackInfo> primaryTracks;
+	std::vector<primaryTrackInfo> primaryTracks; ///< Vector of primary particle scatter events
 	
-	G4ThreeVector prevDirection;
-	G4ThreeVector prevPosition;
+	G4ThreeVector prevDirection; ///< Momentum direction of the previous primary particle scatter
+	G4ThreeVector prevPosition; ///< Position of the previous primary particle scatter
 	
-	nDetDataPack data;
+	nDetDataPack data; ///< Data structure used for storing event information
 
-	photonCounter *counter;
+	photonCounter *counter; ///< Counter used to record the total number of optical photons produced by scattering
 
-	centerOfMass cmL;
-	centerOfMass cmR;
+	centerOfMass cmL; ///< Object used to compute the optical photon detection center-of-mass for the left PMT
+	centerOfMass cmR; ///< Object used to compute the optical photon detection center-of-mass for the right PMT
 
-    unsigned long long numPhotonsTotal;
-    unsigned long long numPhotonsDetTotal;
+    unsigned long long numPhotonsTotal; ///< Total number of simulated optical photons (thread-local)
+    unsigned long long numPhotonsDetTotal; ///< Total number of detected optical photons (thread-local)
 
-	// Deque of detectors added by the user.
-	std::vector<userAddDetector> userDetectors;
+	std::vector<userAddDetector> userDetectors; ///< Vector of detectors added by the user
 
 	bool scatterEvent();	
 };

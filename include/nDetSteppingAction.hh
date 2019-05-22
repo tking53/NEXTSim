@@ -1,21 +1,10 @@
-//
-// $Id: nDetSteppingAction.hh,v 1.0 Jan., 2015 $
-// GEANT4 tag $Name: geant4-09-03-patch-01 $
-// by Dr. Xiaodong Zhang:q
-//
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-#ifndef nDetSteppingAction_h
-#define nDetSteppingAction_h 1
+#ifndef NDET_STEPPING_ACTION_HH
+#define NDET_STEPPING_ACTION_HH
 
 #include "G4UserSteppingAction.hh"
 
 class nDetConstruction;
 class nDetRunAction;
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 class nDetSteppingAction : public G4UserSteppingAction
 {
@@ -29,14 +18,10 @@ public:
   void Reset();
 
 private:
-  nDetRunAction* runAction;
+  nDetRunAction* runAction; ///< Pointer to the thread-local user run action
   
-  G4long stepID;
-  
-  bool neutronTrack;
+  bool neutronTrack; ///< Flag indicating that a primary particle is being tracked
 };
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
 

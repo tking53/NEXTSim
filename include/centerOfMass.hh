@@ -94,33 +94,33 @@ class centerOfMass{
 	void print() const ;
   
   private:
-	short Ncol;
-	short Nrow;
+	short Ncol; ///< Number of PMT anode columns
+	short Nrow; ///< Number of PMT anode rows
 	
-	size_t Npts;
-	size_t NnotDetected;
+	size_t Npts; ///< Number of photons added to the weighted average
+	size_t NnotDetected; ///< Number of photons not detected by the sensitive surface
 	
-	double totalMass;
-	double t0;
-	double tSum;
-	double lambdaSum;
+	double totalMass; ///< Total photon weight for the weighted average
+	double t0; ///< Photon minimum time-of-arrival
+	double tSum; ///< Sum of all photon arrival times
+	double lambdaSum; ///< Sum of all photon wavelengths
 	
-	double activeWidth;
-	double activeHeight;
+	double activeWidth; ///< Width of the active anode area (in mm)
+	double activeHeight; ///< Height of the active anode area (in mm)
 	
-	double pixelWidth;
-	double pixelHeight;
+	double pixelWidth; ///< Width of each individual PMT anode
+	double pixelHeight; ///< Height of each individual PMT anode
 	
-	double anodeCurrent[4];
+	double anodeCurrent[4]; ///< Sum of the current at each Anger Logic readout
 	
-	G4ThreeVector center;
+	G4ThreeVector center; ///< 3d sum of all photon detection points
 	
-	pmtResponse response; // Dynode response.
+	pmtResponse response; ///< Light pulse response of the dynode
 	
-	pmtResponse anodeResponse[4]; // Anode responses.
+	pmtResponse anodeResponse[4]; // Light pulse response of the four Anger Logic readouts
 	
-	std::vector<std::vector<double> > gainMatrix;
-	std::vector<std::vector<int> > countMatrix;
+	std::vector<std::vector<double> > gainMatrix; ///< Matrix containing the gain of each PSPMT anode (in percent)
+	std::vector<std::vector<int> > countMatrix; ///< Matrix containing the number of photon counts of each PSPMT anode
 	
 	void increment(const int &x, const int &y);
 	

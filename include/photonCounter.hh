@@ -1,5 +1,5 @@
-#ifndef PHOTON_COUNTER_HPP
-#define PHOTON_COUNTER_HPP
+#ifndef PHOTON_COUNTER_HH
+#define PHOTON_COUNTER_HH
 
 #include <vector>
 
@@ -20,11 +20,11 @@ class photonCounter{
 	void clear();
 
   private:
-	std::vector<unsigned int> Nphotons;
+	std::vector<unsigned int> Nphotons; ///< Vector of optical photon counts whose index is equal to the track ID of the parent particle
 	
-	unsigned int Ntotal;
+	unsigned int Ntotal; ///< Total number of photons
 	
-	int size;
+	int size; ///< Size of photon count vector. Equal to the maximum parent track ID plus 1
 };
 
 #endif

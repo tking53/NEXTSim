@@ -42,7 +42,6 @@ nDetMasterOutputFile::nDetMasterOutputFile(){
 	runIndex = 1;
 	fFile = NULL;
 	fTree = NULL;
-	fBranch = NULL;
 
 	runTitle = "NEXT Geant4 output";
 	runIndex = 1;
@@ -220,8 +219,6 @@ bool nDetMasterOutputFile::openRootFile(const G4Run* aRun){
 			fTree->Branch("lightPulseR", &data.lightPulseR);
 	}
 
-	defineRootBranch = true;
-		
 	std::cout << "nDetMasterOutputFile: File " << fFile->GetName() << " opened." << std::endl;
 	
 	// Start the timer.

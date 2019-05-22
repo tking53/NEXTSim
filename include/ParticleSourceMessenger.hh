@@ -13,7 +13,7 @@ class ParticleSourceMessenger: public messengerHandler {
 	virtual void SetNewValue(G4UIcommand* command, G4String newValue);
 
   private:
-	ParticleSource* fAction;
+	ParticleSource* fAction; ///< Pointer to the particle source object for which this messenger is defined
 	
 	void addAllCommands();
 };

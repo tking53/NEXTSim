@@ -33,7 +33,7 @@ class nDetThreadContainer{
 	int getThreadID(const size_t &index){ return actions.at(index).second; }
 	
   private:
-	std::vector<std::pair<nDetRunAction*, int> > actions;
+	std::vector<std::pair<nDetRunAction*, int> > actions; ///< Vector of pairs of all thread-local user run actions and their thread IDs
 
 	// Private constructor.
 	nDetThreadContainer(){ }

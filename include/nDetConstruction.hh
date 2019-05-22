@@ -1,5 +1,5 @@
-#ifndef NDETCONSTRUCTION_HH
-#define NDETCONSTRUCTION_HH
+#ifndef NDET_CONSTRUCTION_HH
+#define NDET_CONSTRUCTION_HH
 
 #include <vector>
 
@@ -66,8 +66,6 @@ class nDetConstruction : public G4VUserDetectorConstruction{
 
     void SetDiffuserLength(G4double val){ fDiffuserLength = val; }
 
-    void SetHexagonRadius(G4double val){ fHexagonRadius = val; }
-        
     void SetMylarThickness(G4double val){ fMylarThickness = val; }
     
     void SetGreaseThickness(G4double val){ fGreaseThickness = val; }
@@ -159,122 +157,114 @@ class nDetConstruction : public G4VUserDetectorConstruction{
 private:
     nDetConstructionMessenger *fDetectorMessenger;
     
-    G4double expHallX;
-    G4double expHallY;
-    G4double expHallZ;
+    G4double expHallX; ///< Size of the world along the x-axis (in mm)
+    G4double expHallY; ///< Size of the world along the y-axis (in mm)
+    G4double expHallZ; ///< Size of the world along the z-axis (in mm)
 
-    G4double SiPM_dimension;
-    G4double fTeflonThickness;
-    G4double fMylarThickness;
-    G4double fGreaseThickness;
-    G4double fWindowThickness;
-    G4double fSensitiveThickness;
-    G4double fDetectorLength;
-    G4double fDetectorThickness;
-    G4double fDetectorWidth;
-    G4double fTrapezoidLength;
-    G4double fDiffuserLength;
-    G4double fHexagonRadius;
-    G4double fLightYieldScale;
+    G4double SiPM_dimension; ///< Half of the width and height of the PMT (in mm)
+    G4double fMylarThickness; ///< Thickness of the inner and outer detector wrapping (in mm)
+    G4double fGreaseThickness; ///< Thickness of all optical grease layers (in mm)
+    G4double fWindowThickness; ///< Thickness of all optical window layers (in mm)
+    G4double fSensitiveThickness; ///< Thickness of the optical photon-sensitive surfaces (in mm)
+    G4double fDetectorLength; ///< Size of the detector along the z-axis (in mm)
+    G4double fDetectorThickness; ///< Size of the detector along the y-axis (in mm)
+    G4double fDetectorWidth; ///< Size of the detector along the x-axis (in mm)
+    G4double fTrapezoidLength; ///< Thickness of the trapezoids used as light guides (in mm)
+    G4double fDiffuserLength; ///< Thickness of straight diffusers (in mm)
+    G4double fLightYieldScale; ///< Scaling parameter used for scintillation light yield (default=1)
 
-	G4double currentLayerSizeX;
-	G4double currentLayerSizeY;    
-	G4double currentOffsetZ;
+	G4double currentLayerSizeX; ///< Size of the current user add layer along the x-axis (in mm)
+	G4double currentLayerSizeY; ///< Size of the current user add layer along the y-axis (in mm)
+	G4double currentOffsetZ; ///< Offset of the current user add layer along the z-axis (in mm)
 
-    G4int fNdetectors;
-	G4int fNumColumns;
-	G4int fNumRows;
-	G4int fNumColumnsPmt;
-	G4int fNumRowsPmt;
-	G4int scintCopyNum;
+	G4int fNumColumns; ///< Current number of scintillator columns (x-axis) for modular detectors
+	G4int fNumRows; ///< Current number of scintillator rows (y-axis) for modular detectors
+	G4int fNumColumnsPmt; ///< Current number of PMT anode columns (x-axis) for PSPmts
+	G4int fNumRowsPmt; ///< Current number of PMT anode rows (y-axis) for PSPmts
+	G4int scintCopyNum; ///< Current scintillator segment copy number
 
-	G4bool fPolishedInterface;
-    G4bool fCheckOverlaps;
+	G4bool fPolishedInterface; /*!< Flag indicating that a polished interface should be used between scintillators and optical grease
+	                                otherwise a Lambertian surface will be used for the optical interface */
+    G4bool fCheckOverlaps; ///< Flag indicating that Geant should check for overlaps between all placed objects
 
     // Logical and physical volume
-	G4LogicalVolume* expHall_logV;
-	G4VPhysicalVolume* expHall_physV;
+	G4LogicalVolume* expHall_logV; ///< Logical volume of the world
+	G4VPhysicalVolume* expHall_physV; ///< Physical volume of the world
 
     // Materials and elements
-    G4Element* fH;
-    G4Element* fC;
-    G4Element* fO;
-    G4Element* fF;
-    G4Element* fSi;
-    G4Element* fAl;
+    G4Element* fH; ///< Hydrogen
+    G4Element* fC; ///< Carbon
+    G4Element* fO; ///< Oxygen
+    G4Element* fF; ///< Flourine
+    G4Element* fSi; ///< Silicon
+    G4Element* fAl; ///< Aluminium
 
-    G4Material* fAir;
-    G4Material* fVacuum;
-    G4Material* fTeflon;
-    G4Material* fEJ200;
-    G4Material* fEJ276;
-    G4Material* fGrease;
-    G4Material* fSiO2;
-    G4Material* fSil;
-    G4Material* fMylar;
-    G4Material* fAcrylic;
-	G4Material* fAluminum;
+    G4Material* fAir; ///< Material corresponding to air
+    G4Material* fVacuum; ///< Material corresponding to natural vacuum
+    G4Material* fTeflon; ///< Material corresponding to teflon
+    G4Material* fEJ200; ///< Material corresponding to EJ-200 scintillator
+    G4Material* fEJ276; ///< Material corresponding to EJ-276 scintillator
+    G4Material* fGrease; ///< Material corresponding to optical grease
+    G4Material* fSiO2; ///< Material corresponding to quartz
+    G4Material* fSil; ///< Material corresponding to silicon
+    G4Material* fMylar; ///< Material corresponding to aluminized mylar
+    G4Material* fAcrylic; ///< Material corresponding to acrylic
+	G4Material* fAluminum; ///< Material corresponding to aluminum
 
     // Material table properties
-    G4MaterialPropertiesTable* fAirMPT;
-    G4MaterialPropertiesTable* fTeflonMPT;
-    G4MaterialPropertiesTable* fEJ200MPT;
-    G4MaterialPropertiesTable* fEJ276MPT;
-    G4MaterialPropertiesTable* fGreaseMPT;
-    G4MaterialPropertiesTable* fSiO2MPT;
-    G4MaterialPropertiesTable* fSilMPT;
-	G4MaterialPropertiesTable* fMylarMPT;
-	G4MaterialPropertiesTable* fPerfectMPT;
-	G4MaterialPropertiesTable* fAluminumMPT;
-	G4MaterialPropertiesTable* fEsrMPT;
+    G4MaterialPropertiesTable* fAirMPT; ///< Material properties table for air
+    G4MaterialPropertiesTable* fTeflonMPT; ///< Material properties table for teflon
+    G4MaterialPropertiesTable* fEJ200MPT; ///< Material properties table for EJ-200 scintillator
+    G4MaterialPropertiesTable* fEJ276MPT; ///< Material properties table for EJ-276 scintillator
+    G4MaterialPropertiesTable* fGreaseMPT; ///< Material properties table for optical grease
+    G4MaterialPropertiesTable* fSiO2MPT; ///< Material properties table for quartz
+    G4MaterialPropertiesTable* fSilMPT; ///< Material properties table for silicon
+	G4MaterialPropertiesTable* fMylarMPT; ///< Material properties table for aluminized mylar
+	G4MaterialPropertiesTable* fPerfectMPT; ///< Material properties table for a perfect reflector
+	G4MaterialPropertiesTable* fAluminumMPT; ///< Material properties table for aluminum
+	G4MaterialPropertiesTable* fEsrMPT; ///< Material properties table for 3M Enhanced Specular Reflector
 
     // Optical Surfaces
-    G4OpticalSurface* fTeflonOpticalSurface;
-    G4OpticalSurface* fSiliconPMOpticalSurface;
-    G4OpticalSurface* fMylarOpticalSurface;
-    G4OpticalSurface* fEsrOpticalSurface;
-	G4OpticalSurface* fPerfectOpticalSurface;
-	G4OpticalSurface* fGreaseOpticalSurface;
+    G4OpticalSurface* fTeflonOpticalSurface; ///< Optical surface for teflon
+    G4OpticalSurface* fSiliconPMOpticalSurface; ///< Optical surface for silicon
+    G4OpticalSurface* fMylarOpticalSurface; ///< Optical surface for aluminized mylar
+    G4OpticalSurface* fEsrOpticalSurface; ///< Optical surface for 3M Enhanced Specular Reflector
+	G4OpticalSurface* fPerfectOpticalSurface; ///< Optical surface for a perfect reflector
+	G4OpticalSurface* fGreaseOpticalSurface; ///< Optical surface for optical grease
 
 	// Visual attributes
-	G4VisAttributes *assembly_VisAtt;
-	G4VisAttributes *sensitive_VisAtt;
-	G4VisAttributes *window_VisAtt;
-	G4VisAttributes *grease_VisAtt;
-	G4VisAttributes *wrapping_VisAtt;
-	G4VisAttributes *scint_VisAtt;
-	G4VisAttributes *shadow_VisAtt;
+	G4VisAttributes *assembly_VisAtt; ///< Visual attributes for the mother assembly
+	G4VisAttributes *sensitive_VisAtt; ///< Visual attributes for the photo-sensitive surface
+	G4VisAttributes *window_VisAtt; ///< Visual attributes for the optical window
+	G4VisAttributes *grease_VisAtt; ///< Visual attributes for the optical grease
+	G4VisAttributes *wrapping_VisAtt; ///< Visual attributes for the inner/outer detector wrappint
+	G4VisAttributes *scint_VisAtt; ///< Visual attributes for the scintillator material
+	G4VisAttributes *shadow_VisAtt; ///< Visual attributes for the shadow object
 
-	// Loaded gdml solids.
-	std::vector<gdmlSolid> solids;
+	std::vector<gdmlSolid> solids; ///< Vector of all loaded gdml solids
 
-	// Database of elements and materials.
-	nistDatabase nist;
+	nistDatabase nist; ///< Database used for pre-defined NIST element and material lookups
 
-	G4String detectorMaterial;
-	G4String wrappingMaterial;
+	G4String detectorMaterial; ///< String indicating the material to use for the detector scintillator body
+	G4String wrappingMaterial; ///< String indicating the material to use for the inner and outer detector wrapping
 
-	G4ThreeVector detectorPosition; // Position of detector in lab frame.
-	G4RotationMatrix detectorRotation; // Rotation of detector.
+	G4ThreeVector detectorPosition; ///< Position of detector in the lab frame
+	G4RotationMatrix detectorRotation; ///< Rotation of detector in the lab frame
 
-	// Shadow bar
-	G4ThreeVector shadowBarSize;
-	G4ThreeVector shadowBarPos;
-	G4Material *shadowBarMaterial;
+	G4ThreeVector shadowBarSize; ///< Size of the shadow object in 3d space
+	G4ThreeVector shadowBarPos; ///< Position of the shadow object in 3d space
+	G4Material *shadowBarMaterial; ///< Pointer to the material used for the shadow object
 
-	// Optical grease placement.
-	std::vector<G4PVPlacement*> scintBody_physV;
+	std::vector<G4PVPlacement*> scintBody_physV; ///< Vector of all physical volumes of all scintillator segments
 
-	// Vector of detectors added by the user.
-	std::vector<userAddDetector> userDetectors;
+	std::vector<userAddDetector> userDetectors; ///< Vector of all detectors added by the user
 	
-	// Pointer to the current detector construction.
-	userAddDetector *currentDetector;
-	G4LogicalVolume *currentAssembly;
+	userAddDetector *currentDetector; ///< Pointer to the current detector added by the user
+	G4LogicalVolume *currentAssembly; ///< Pointer to the mother logical volume of the current detector
 
-	bool materialsAreDefined;
+	bool materialsAreDefined; ///< Flag indicating that the hard-coded materials have been defined
 
-	centerOfMass center[2];
+	centerOfMass center[2]; ///< Objects used to compute the detected optical photon center-of-mass position for the left and right PMT
 
 	// Private constructor.
 	nDetConstruction();
@@ -348,9 +338,9 @@ class userAddLayer{
 	G4String dump() const { return argStr; }
 
   private:
-	G4String argStr;
+	G4String argStr; ///< Argument string from the macro supplied by the user
 
-	void (nDetConstruction::* ptr)(const G4String &);
+	void (nDetConstruction::* ptr)(const G4String &); ///< Pointer to a nDetConstruction member function taking a const G4String as an argument
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -390,25 +380,24 @@ class userAddDetector{
 	bool getSegmentFromCopyNum(const G4int &copyNum, G4int &col, G4int &row) const ;
 
   private:
-	G4LogicalVolume *assembly_logV;
-	G4VPhysicalVolume* assembly_physV;
+	G4LogicalVolume *assembly_logV; ///< Pointer to the logical volume of the mother of the detector
+	G4VPhysicalVolume* assembly_physV; ///< Pointer to the physical volume of the mother of the detector
 
-	G4double layerSizeX;
-	G4double layerSizeY;    
-	G4double offsetZ;
+	G4double layerSizeX; ///< Width of the current user add layer (in mm)
+	G4double layerSizeY; ///< Height of the current user add layer (in mm)
+	G4double offsetZ; ///< Offset of the current user add layer along the z-axis (in mm)
 	
-	G4int parentCopyNum;
-	G4int firstSegmentCopyNum;
-	G4int lastSegmentCopyNum;
+	G4int parentCopyNum; ///< Copy number of the mother of the detector
+	G4int firstSegmentCopyNum; ///< Copy number of the first scintillator segment
+	G4int lastSegmentCopyNum; ///< Copy number of the last scintillator segment
 
-	G4int numColumns;
-	G4int numRows;
+	G4int numColumns; ///< Number of scintillator segment columns
+	G4int numRows; ///< Number of scintillator segment rows
 
-	G4ThreeVector position; // Position of detector in lab frame.
-	G4RotationMatrix rotation; // Rotation of detector.
+	G4ThreeVector position; ///< Position of the detector in the lab frame
+	G4RotationMatrix rotation; ///< Rotation of the detector in the lab frame
 	
-	// vector of layers added by the user.
-	std::vector<userAddLayer> userLayers;	
+	std::vector<userAddLayer> userLayers; ///< Vector of all layers added by the user
 };
 
 #endif

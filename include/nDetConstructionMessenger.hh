@@ -1,5 +1,5 @@
-#ifndef NDETCONSTRUCTIONMESSENGER_HH
-#define NDETCONSTRUCTIONMESSENGER_HH
+#ifndef NDET_CONSTRUCTION_MESSENGER_HH
+#define NDET_CONSTRUCTION_MESSENGER_HH
 
 #include "G4UImessenger.hh"
 #include "globals.hh"
@@ -17,9 +17,9 @@ class nDetConstructionMessenger : public messengerHandler {
 	virtual void SetNewValue(G4UIcommand* command, G4String newValue);
 
   private:
-	nDetConstruction *fDetector;
+	nDetConstruction *fDetector; ///< Pointer to the detector object for which this messenger is defined
 	
 	void addAllCommands();
 };
 
-#endif //NDETCONSTRUCTIONMESSENGER_HH
+#endif

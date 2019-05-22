@@ -1,5 +1,3 @@
-// A few things to make the output more pleasing to look at
-
 #ifndef TERM_COLORS_HH
 #define TERM_COLORS_HH
 
@@ -54,7 +52,7 @@ namespace Display {
   
   bool StatusPrint(bool errorStatus);
 
-  extern bool hasColorTerm;
+  extern bool hasColorTerm; ///< Flag indicating that the terminal is capable of outputting colored text
 }
 
-#endif // TERM_COLORS_HH
+#endif

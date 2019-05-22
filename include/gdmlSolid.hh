@@ -46,12 +46,12 @@ class gdmlSegment{
 	G4ThreeVector transform(const G4ThreeVector &vec) const ;
 
   private:
-	G4RotationMatrix *rot;
-	G4VPhysicalVolume *physV;  
-	G4LogicalVolume *logV;
+	G4RotationMatrix *rot; ///< Rotation of the segment in 3d space
+	G4VPhysicalVolume *physV;  ///< Physical volume of the segment
+	G4LogicalVolume *logV; ///< Logical volume of the segment
 	
-	G4ThreeVector pos;
-	G4ThreeVector unit[3];
+	G4ThreeVector pos; ///< Position of the center of the segment
+	G4ThreeVector unit[3]; ///< Local unit vectors for the x, y, and z axes
 };
 
 class gdmlSolid{
@@ -117,24 +117,24 @@ class gdmlSolid{
 	void clear();
 
   private:
-	std::string name;
+	std::string name; ///< Name of the world logical volume
   
-	G4Box *parent;
-	G4LogicalVolume *parent_logV;
-	G4PVPlacement *parent_physV;
+	G4Box *parent; ///< Bounding box for the parent volume
+	G4LogicalVolume *parent_logV; ///< Logical volume of the parent
+	G4PVPlacement *parent_physV; ///< Physical volume of the parent
   
-	G4VPhysicalVolume *world;
-	G4LogicalVolume *worldLogV;
+	G4VPhysicalVolume *world; ///< Physical volume of the world
+	G4LogicalVolume *worldLogV; ///< Logical volume of the world
   
-	std::vector<G4PVPlacement*> placements;
-	std::vector<G4LogicalBorderSurface*> borders;
+	std::vector<G4PVPlacement*> placements; ///< Vector of physical volumes of all children
+	std::vector<G4LogicalBorderSurface*> borders; ///< Vector of logical border surfaces between all children
 
-	std::vector<gdmlSegment> daughters;
+	std::vector<gdmlSegment> daughters; ///< Vector of all daughter segments
 	
-	size_t nDaughters;
+	size_t nDaughters; ///< Number of daughter segments
 	
-	G4ThreeVector position;
-	G4RotationMatrix rotation;
+	G4ThreeVector position; ///< Position of center of parent volume
+	G4RotationMatrix rotation; ///< Rotation of parent volume in 3d space
 	
-	G4ThreeVector size;
+	G4ThreeVector size; ///< Size of the parent volume along the x, y, and z axes
 };

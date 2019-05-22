@@ -27,9 +27,9 @@ unsigned int split_str(std::string str, std::vector<std::string> &args, char del
 
 class cmdSearchPair{
   public:
-	G4UIcommand *command;
-	std::string unformatted;
-	std::string formatted;
+	G4UIcommand *command; ///< Pointer to the geant UI command
+	std::string unformatted; ///< 
+	std::string formatted; ///< 
   
 	cmdSearchPair() : command(NULL) { }
 	
@@ -65,36 +65,39 @@ class messengerHandler : public G4UImessenger {
 	void printAllCommands() const ;
 
   protected:
-	/// Create a new directory.
+	///< Create a new directory.
 	void addDirectory(const std::string &str, const std::string &guidance="");
   
-	/// Add a new command to the vector.
+	///< Add a new command to the vector.
 	void addCommand(G4UIcommand* cmd);
 	
-	/// Add guidance to the most recently added command.
+	///< Add guidance to the most recently added command.
 	void addGuidance(const std::string &str);
 	
-	/// Add candidates to the most recently added command.
+	///< Add candidates to the most recently added command.
 	void addCandidates(const std::string &str);
 
-	/// Find a command pointed to by cmd and return the index in the vector.
+	///< Find a command pointed to by cmd and return the index in the vector.
 	bool findCommand(G4UIcommand *cmd, const std::string &str, size_t &index, const bool &verbose=false);
 
-	/// Get the most recently added command.
+	///< Get the most recently added command.
 	G4UIcommand* getBack(){ return fCmd.back(); }
 
   private:
-	std::vector<G4UIdirectory*> fDir;
+	std::vector<G4UIdirectory*> fDir; ///< Vector of UI directories which are added
   
-	std::vector<G4UIcommand*> fCmd;
+	std::vector<G4UIcommand*> fCmd; ///< Vector of UI commands which are added
 	
-	std::vector<bool> fCmdCalled;
+	std::vector<bool> fCmdCalled; /*!< Vector of bool flags for all commands
+	                                   These flags are set to true if a command is called by the user */
 	
-	std::vector<std::string> fCmdArg;
+	std::vector<std::string> fCmdArg; /*!< Vector of argument strings for all commands
+	                                       The strings are empty unless the command is called by the user 
+	                                       in which case the string is set to the argument supplied by the user */
 	
-	std::string name;
+	std::string name; ///< Name of the class for which this messenger is used
 	
-	size_t size;
+	size_t size; ///< Number of defined commands
 };
 
 #endif

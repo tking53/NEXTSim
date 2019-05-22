@@ -1,5 +1,5 @@
-#ifndef OPTIONHANDLER_HPP
-#define OPTIONHANDLER_HPP
+#ifndef OPTIONHANDLER_HH
+#define OPTIONHANDLER_HH
 
 #include <string>
 #include <vector>
@@ -12,16 +12,16 @@ class optionExt{
 	int *flag;
 	int val;
   
-  	std::string argstr; /// The argument syntax for the command line option.
-	std::string helpstr; /// The help & syntax string to print when -h is passed.
-	std::string argument; /// The argument received from getopt_long (if available).
-	bool active; /// Set to true if this option was selected by the user.
+  	std::string argstr; ///< The argument syntax for the command line option.
+	std::string helpstr; ///< The help & syntax string to print when -h is passed.
+	std::string argument; ///< The argument received from getopt_long (if available).
+	bool active; ///< Set to true if this option was selected by the user.
 	
 	optionExt() : has_arg(0), flag(0), val(0), active(false) { }
 	
 	optionExt(const char *name_, const int &has_arg_, int *flag_, const int &val_, const std::string &arg_, const std::string &help_);
 	
-	/// Print a help string for this option.
+	///< Print a help string for this option.
 	void print(const size_t &len_=0, const std::string &prefix_="");
 	
 	option getOption();
@@ -62,10 +62,10 @@ class optionHandler{
 	optionExt *getOption(const size_t &index_);
 
   private:
-	std::vector<option> longOpts; /// Vector of all command line options.
-	std::vector<optionExt> baseOpts; /// Default command line options.
-	std::vector<optionExt> userOpts; /// User added command line options.
-	std::string optstr;
+	std::vector<option> longOpts; ///< Vector of all command line options
+	std::vector<optionExt> baseOpts; ///< Default command line options
+	std::vector<optionExt> userOpts; ///< User added command line options
+	std::string optstr; ///< String of valid command line option flags
 };
 
 /** Add a command line option to the option list.

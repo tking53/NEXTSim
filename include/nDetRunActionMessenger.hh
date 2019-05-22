@@ -1,5 +1,5 @@
-#ifndef NDETRUNACTIONMESSENGER_HH
-#define NDETRUNACTIONMESSENGER_HH
+#ifndef NDET_RUN_ACTION_MESSENGER_HH
+#define NDET_RUN_ACTION_MESSENGER_HH
 
 #include "G4UImessenger.hh"
 #include "globals.hh"
@@ -17,10 +17,9 @@ class nDetRunActionMessenger: public messengerHandler {
 	virtual void SetNewValue(G4UIcommand *command, G4String newValue);
 
   private:
-	nDetRunAction *fAction;
+	nDetRunAction *fAction; ///< Pointer to the user run action object for which this messenger is defined
 	
 	void addAllCommands();
 };
 
-
-#endif //NDETRUNACTIONMESSENGER_HH
+#endif

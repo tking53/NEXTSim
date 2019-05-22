@@ -20,7 +20,9 @@ class Reaction;
 class G4UIdirectory;
 class G4UIcmdWithoutParameter;
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+///////////////////////////////////////////////////////////////////////////////
+// class EnergyLevel
+///////////////////////////////////////////////////////////////////////////////
 
 class EnergyLevel{
   public:
@@ -33,12 +35,14 @@ class EnergyLevel{
 	bool check(const double &sum) const { return (sum >= runningSum && sum < runningSum+intensity); }
 	
   private:
-	double energy;
-	double intensity;
-	double runningSum;
+	double energy; ///< Gamma ray energy (in MeV)
+	double intensity; ///< Fractional intensity
+	double runningSum; ///< Sum of all energy level intensities preceeding this one
 };
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+///////////////////////////////////////////////////////////////////////////////
+// class Source
+///////////////////////////////////////////////////////////////////////////////
 
 class Source{
   public:
@@ -75,24 +79,24 @@ class Source{
 	virtual double func(const double &E_) const { return E_; }
 	
   protected:
-	bool iso;
-	double E;
+	bool iso; ///< Flag indicating that the source is isotropic
+	double E; ///< Energy of the primary particle (in MeV)
 
-	double totalIntegral;
-	double stepSize;
+	double totalIntegral; ///< Total integral of the energy distribution
+	double stepSize; ///< Energy distribution step size (in MeV)
 	
-	size_t size;
-	double *energy;
-	double *intensity;
-	double *integral;
+	size_t size; ///< Length of energy distribution arrays
+	double *energy; ///< Array of source energy (in MeV)
+	double *intensity; ///< Array for storing the source intensity as a function of the source energy
+	double *integral; ///< Array for storing the running total integral of the intensity as a function of the source energy
 	
-	double ElowLimit;
-	double EhighLimit;
+	double ElowLimit; ///< Lower energy limit for restricting the source energy distribution (in MeV)
+	double EhighLimit; ///< Upper energy limit for restricting the source energy distribution (in MeV)
 
-	double Ilow;
-	double Ihigh;
+	double Ilow; ///< Distribution integral corresponding to lower energy limit
+	double Ihigh; ///< Distribution integral corresponding to upper energy limit
 
-	std::vector<EnergyLevel> gammas;
+	std::vector<EnergyLevel> gammas; ///< Vector of all energy levels
   
 	void initializeDistribution(const size_t &size_, const double &stepSize_);
   
@@ -106,7 +110,9 @@ class Source{
 	void setEnergyLimits();
 };
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+///////////////////////////////////////////////////////////////////////////////
+// class Californium252
+///////////////////////////////////////////////////////////////////////////////
 
 class Californium252 : public Source {
   public:
@@ -118,10 +124,12 @@ class Californium252 : public Source {
 	double func(const double &E_) const ;
 };
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
 class ParticleSourceMessenger;
 class nDetConstruction;
+
+///////////////////////////////////////////////////////////////////////////////
+// class ParticleSource
+///////////////////////////////////////////////////////////////////////////////
 
 class ParticleSource : public G4VUserPrimaryGeneratorAction {
   public:
@@ -184,42 +192,40 @@ class ParticleSource : public G4VUserPrimaryGeneratorAction {
   private:    
 	ParticleSourceMessenger *fGunMessenger;
  
-	Source *psource; // Generic particle source
+	Source *psource; ///< Pointer to the 
 
-	G4ThreeVector dir;
-	G4ThreeVector detPos;	
-	G4ThreeVector detSize;
-	G4String type;
+	G4ThreeVector dir; ///< 3d momentum direction of the primary particle
+	G4ThreeVector detPos; ///< 3d position of the detector used for isotropic sources
+	G4ThreeVector detSize; ///< 3d size of the detector used for isotropic sources
+	G4String type; ///< String indicating the type of source to use
 
-	int beamspotType;
+	int beamspotType; ///< Integer indicating the type of beamspot to use for sampling
 
-	double beamspot; // mm
-	double targThickness; // mm
-	double targEnergyLoss; // MeV/mm
-	double targTimeSlope; // ns/mm
-	double targTimeOffset; // ns
-	double beamE0; // MeV
+	double beamspot; ///< Radius of the beamspot (in mm)
+	double targThickness; ///< Physical thickness of the target (in mm)
+	double targEnergyLoss; ///< Slope equal to the energy loss of the primary particle as a function of distance in the target (in MeV/mm)
+	double targTimeSlope; ///< Slope equal to the primary particle time straggling as a function of distance in the target (in ns/mm)
+	double targTimeOffset; ///< Time offset due to primary particle straggling in the target (in ns)
+	double beamE0; ///< Initial source energy (in MeV)
 
-	G4ThreeVector unitX;
-	G4ThreeVector unitY;
-	G4ThreeVector unitZ;
+	G4ThreeVector unitX; ///< X-axis unit vector in the frame of the source
+	G4ThreeVector unitY; ///< Y-axis unit vector in the frame of the source
+	G4ThreeVector unitZ; ///< Z-axis unit vector in the frame of the source
 
-	bool useReaction;
+	bool useReaction; ///< Flag indicating that energy and angle sampling should use a user specified reaction
 
-	nDetRunAction *runAction;
+	nDetRunAction *runAction; ///< Pointer to the thread-local user run action
 
-	Reaction *particleRxn;
+	Reaction *particleRxn; ///< Pointer to a reaction object used for sampling reaction product particle energies and angles
 
-	G4ParticleGun *particleGun;
+	G4ParticleGun *particleGun; ///< Pointer to a generic Geant4 particle generator
 	
-	G4RotationMatrix rot;
-	G4RotationMatrix detRot;
+	G4RotationMatrix rot; ///< Rotation of the source
+	G4RotationMatrix detRot; ///< Rotation of the detector used for isotropic sources
 	
     void InitFunction(){ }
     
     Source *GetNewSource(const double &E_=-1);
 };
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif

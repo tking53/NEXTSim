@@ -5,10 +5,10 @@
 
 class Particle{
   public:
-	double v[2];
-	double E[2];
-	double labAngle[2];
-	double comAngle[2];
+	double v[2]; ///< Velocity of the particle for the first and second solution (in m/s)
+	double E[2]; ///< Energy of the particle for the first and second solution (in MeV)
+	double labAngle[2]; ///< Angle of the particle in the lab frame for the first and second solution (in radians)
+	double comAngle[2]; ///< Angle of the particle in the center-of-mass frame for the first and second solution (in radians)
 
 	bool inverseKin;
 	
@@ -25,25 +25,31 @@ class Particle{
 
 class Reaction : public Source {
   private:
-	double Mbeam, Mtarg, Mrecoil, Meject;
-	double Vcm, recoilVcm, ejectVcm;
-	double recoilDelta, ejectDelta;
-	double EXeject, EXrecoil;
-	double Ebeam;
-	double Ecm, Qgs;
+	double Mbeam; ///< Mass of the beam particle reactant (in MeV/c^2)
+	double Mtarg; ///< Mass of the target particle reactant (in MeV/c^2)
+	double Mrecoil; ///< Mass of the recoil particle reaction product (in MeV/c^2)
+	double Meject; ///< Mass of the ejectile particle reaction product (in MeV/c^2)
+	double Vcm; ///< Center-of-mass velocity of the beam and target particles (in m/s)
+	double recoilVcm; ///< Velocity of the recoil particle in the centr-of-mass frame (in m/s)
+	double ejectVcm; ///< Velocity of the ejectile particle in the centr-of-mass frame (in m/s)
+	double EXeject; ///< Excitation of the ejectile particle (in MeV)
+	double EXrecoil; ///< Excitation of the recoil particle (in MeV)
+	double Ebeam; ///< Energy of the beam particle (in MeV)
+	double Ecm; ///< Energy of the reaction in the center-of-mass frame (in MeV)
+	double Qgs; ///< Ground state Q-value of the reaction (in MeV)
 	
-	double recoilMaxAngle;
-	double ejectMaxAngle;
-	double Qfinal;
+	double recoilMaxAngle; ///< Maximum angle of the recoil particle in the lab frame (in degrees)
+	double ejectMaxAngle; ///< Maximum angle of the ejectile particle in the lab frame (in degrees)
+	double Qfinal; ///< Q-value of the final reaction state (in MeV)
 	
-	Particle recoilPart;
-	Particle ejectPart;
+	Particle recoilPart; ///< Recoil reaction product
+	Particle ejectPart; ///< Ejectile reaction product
 	
 	void Calculate();
 	
   public:
-	Reaction() : Source(), Mbeam(0.0), Mtarg(0.0), Mrecoil(0.0), Meject(0.0), Vcm(0.0), recoilVcm(0.0), ejectVcm(0.0), 
-	             recoilDelta(0.0), ejectDelta(0.0), EXeject(0.0), EXrecoil(0.0), Ebeam(0.0), Ecm(0.0), Qgs(0.0) {}
+	Reaction() : Source(), Mbeam(0.0), Mtarg(0.0), Mrecoil(0.0), Meject(0.0), Vcm(0.0), recoilVcm(0.0), 
+	             ejectVcm(0.0), EXeject(0.0), EXrecoil(0.0), Ebeam(0.0), Ecm(0.0), Qgs(0.0) {}
 
 	bool Read(const char *fname_=NULL);
 

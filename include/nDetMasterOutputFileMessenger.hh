@@ -17,7 +17,7 @@ class nDetMasterOutputFileMessenger : public messengerHandler {
 	virtual void SetNewValue(G4UIcommand *command, G4String newValue);
 
   private:
-	nDetMasterOutputFile *fOutputFile;
+	nDetMasterOutputFile *fOutputFile; ///< Pointer to the output file object for which this messenger is defined
 	
 	void addAllCommands();
 };

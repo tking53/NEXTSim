@@ -1,9 +1,5 @@
-//
-// Created by David Pérez Loureiro on 4/4/17.
-//
-
-#ifndef NEXTMULTIPLESCATTERING_NDETTRACKINGACTION_HH
-#define NEXTMULTIPLESCATTERING_NDETTRACKINGACTION_HH
+#ifndef NDET_TRACKING_ACTION_HH
+#define NDET_TRACKING_ACTION_HH
 
 #include "G4UserTrackingAction.hh"
 #include "G4Types.hh"
@@ -21,13 +17,10 @@ public:
     
     void PostUserTrackingAction(const G4Track*){ }
 
-    void Reset(){ prevTrackID = 0; }
+    void Reset(){ }
 
 private:
-    nDetRunAction* runAction;
-
-    G4int prevTrackID;
+    nDetRunAction* runAction; ///< Pointer to the thread-local user run action
 };
 
-
-#endif //NEXTMULTIPLESCATTERING_NDETTRACKINGACTION_HH
+#endif

@@ -63,43 +63,41 @@ class nDetMasterOutputFile{
 	bool closeRootFile();
 
   private:
-	std::mutex fileLock;
+	std::mutex fileLock; ///< Mutex lock for thread-safe TTree filling
 
-	std::string filename;
-	std::string treename;
+	std::string filename; ///< Default time & date filename when output filename unspecified by user
+	std::string treename; ///< Name of the output TTree
 	
-	std::string filenamePrefix;
-	std::string filenameSuffix;
+	std::string filenamePrefix; ///< Prefix of output filename i.e. [PREFIX]-xxx.SUFFIX
+	std::string filenameSuffix; ///< Suffix of output filename i.e. PREFIX-xxx.[SUFFIX]
 
-	std::string runTitle;
-	int runIndex;
+	std::string runTitle; ///< Title of the output root file
+	int runIndex; ///< Geant run ID number
 	
-	TFile *fFile;
-	TTree *fTree;
-	TBranch *fBranch;
+	TFile *fFile; ///< Pointer to the output root file
+	TTree *fTree; ///< Pointer to the output TTree
 
-	bool defineRootBranch;
-	bool persistentMode;
-	bool verbose;
+	bool persistentMode; ///< Flag indicating whether or not the output file should remain open for subsequent runs
+	bool verbose; ///< Verbosity flag
 	
-	bool outputEnabled;
-	bool outputTraces;
-	bool outputDebug;
-	bool outputBadEvents;
-	bool overwriteExistingFile;	
+	bool outputEnabled; ///< Flag indicating that root file output is enabled
+	bool outputTraces; ///< Flag indicating that traces will be written to the output tree
+	bool outputDebug; ///< Flag indicating that low-level scattering information will be written to the output tree
+	bool outputBadEvents; ///< Flag indicating that invalid detection events will be written to the output tree
+	bool overwriteExistingFile; ///< Flag indicating that files with matching filenames will be overwritten
 
-	nDetDataPack data;
+	nDetDataPack data; ///< Data structure used for filling event data into the output TTree
 
-    G4Timer *timer;
+    G4Timer *timer; ///< Geant timer used to measure time between successive status updates
     
-    G4double previousTime;
-    G4double totalTime;
+    G4double previousTime; ///< Time of previous status output (in seconds)
+    G4double totalTime; ///< Total time of current run (in seconds)
     
-    G4long totalEvents;
+    G4long totalEvents; ///< Total number of events for the current run
     
-    int displayTimeInterval; // In seconds.
+    int displayTimeInterval; ///< Time to wait between successive status updates (in seconds)
 
-	nDetMasterOutputFileMessenger *fMessenger;
+	nDetMasterOutputFileMessenger *fMessenger; ///< Pointer to the messenger object used for this class
 
 	nDetMasterOutputFile();	
 };

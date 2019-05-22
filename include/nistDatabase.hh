@@ -1,3 +1,5 @@
+#ifndef NIST_DATABASE_HH
+#define NIST_DATABASE_HH
 
 #include <vector>
 
@@ -27,6 +29,8 @@ class nistDatabase{
 	G4Material *searchForMaterial(const G4String &name) const ;
 
   private:
-	std::vector<G4String> elements;
-	std::vector<G4String> materials;
+	std::vector<G4String> elements; ///< Vector of NIST element names
+	std::vector<G4String> materials; ///< Vector of NISt material names
 };
+
+#endif

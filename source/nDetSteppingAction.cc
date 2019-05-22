@@ -1,11 +1,3 @@
-//
-// $Id: nDetSteppingAction.hh,v 1.0 Sept., 2015 $
-// by Dr. Xiaodong Zhang
-//
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
 #include "G4Step.hh"
 #include "G4ParticleDefinition.hh"
 #include "G4OpticalPhoton.hh"
@@ -14,23 +6,13 @@
 #include "nDetConstruction.hh"
 #include "nDetRunAction.hh"
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-nDetSteppingAction::nDetSteppingAction(nDetRunAction* runAct) : runAction(runAct)
-{
+nDetSteppingAction::nDetSteppingAction(nDetRunAction* runAct) : runAction(runAct) {
 	neutronTrack = false;
-	stepID = 0;
 }
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+nDetSteppingAction::~nDetSteppingAction(){ }
 
-nDetSteppingAction::~nDetSteppingAction()
-{ }
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-void nDetSteppingAction::UserSteppingAction(const G4Step* aStep)
-{
+void nDetSteppingAction::UserSteppingAction(const G4Step* aStep){
 	G4Track *track = aStep->GetTrack();
 	if(track->GetDefinition() == G4OpticalPhoton::OpticalPhotonDefinition()){ // Check for detected optical photons.
 		if(aStep->GetPostStepPoint()->GetStepStatus() == fGeomBoundary && aStep->GetPostStepPoint()->GetPhysicalVolume()->GetName().find("psSiPM") != std::string::npos)
@@ -57,5 +39,3 @@ void nDetSteppingAction::UserSteppingAction(const G4Step* aStep)
 void nDetSteppingAction::Reset(){
 	neutronTrack = false;
 }
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

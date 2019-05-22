@@ -1,5 +1,5 @@
-#ifndef nDetEventAction_h
-#define nDetEventAction_h 1
+#ifndef NDET_EVENT_ACTION_HH
+#define NDET_EVENT_ACTION_HH
 
 #include "nDetRunAction.hh"
 
@@ -7,8 +7,6 @@
 
 class nDetRunAction;
 class G4Event;
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 class nDetEventAction : public G4UserEventAction
 {
@@ -23,23 +21,7 @@ class nDetEventAction : public G4UserEventAction
     void EndOfEventAction(const G4Event*);
 
   private:
-    nDetRunAction *runAct;
+    nDetRunAction *runAct; ///< Pointer to the thread-local user run action
 };
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
 #endif
-
-// Class description:
-//
-// This is the class of one of the user's optional action class.
-// The two methods BeginOfEventAction() and EndOfEventAction() are invoked
-// at the begining and the end of one event processing. These methods are
-// invoked by G4EventManager.
-//
-// Be aware that BeginOfEventAction() is invoked when a G4Event object is 
-// sent to G4EventManager. Thus the primary vertexes/particles have already
-// been made by the primary generator. In case the user wants to do something
-// before generating primaries(i.e., store randomnumber status), do it in the 
-// G4VUserPrimaryGeneratorAction concrete class.
-//    

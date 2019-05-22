@@ -55,7 +55,6 @@ nDetConstruction::nDetConstruction(){
 	expHall_logV = NULL;
 	expHall_physV = NULL;
 
-	fNdetectors = 0;
 	fNumColumns = 1;
 	fNumRows = 1;
 	fNumColumnsPmt = -1;
@@ -68,7 +67,6 @@ nDetConstruction::nDetConstruction(){
 
 	fCheckOverlaps = false;
 	fPolishedInterface = true;
-	fTeflonThickness = 0.11*mm;
 	fMylarThickness = 0;
 	fGreaseThickness = 0.1*mm;
 	fWindowThickness = 0.1*mm;
