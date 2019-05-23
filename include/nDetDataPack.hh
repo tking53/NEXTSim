@@ -3,9 +3,11 @@
 
 #include <vector>
 
-///////////////////////////////////////////////////////////////////////////////
-// class nDetDataPack
-///////////////////////////////////////////////////////////////////////////////
+/*! \class nDetDataPack
+ *  \brief Class used to store simulated data and output variables
+ *  \author Cory R. Thornsberry (cthornsb@vols.utk.edu)
+ *  \date May 23, 2019
+*/
 
 class nDetDataPack{
   public:
@@ -91,6 +93,8 @@ class nDetDataPack{
 	std::vector<unsigned short> lightPulseL; ///< Copy of the psuedo-digitized left PMT light response pulse
 	std::vector<unsigned short> lightPulseR; ///< Copy of the psuedo-digitized right PMT light response pulse
 
+	/** Clear all variables and vectors
+	  */
 	void clear();
 };
 

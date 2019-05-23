@@ -19,10 +19,6 @@ const double neutron_RME = 939.565378; // MeV/c^2
 const double mev2amu = 1.0/931.494061; // (amu*c^2)/MeV
 const double mev2kg = 1.783E-30; // (kg*c^2)/MeV
 
-Particle::Particle(const double &thetaLab_, const double &Vcm_, const double &partVcm_, const double &mass_){
-	calculate(thetaLab_, Vcm_, partVcm_, mass_);
-}
-
 bool Particle::calculate(const double &thetaLab_, const double &Vcm_, const double &partVcm_, const double &mass_){
 	labAngle[0] = thetaLab_;
 	labAngle[1] = thetaLab_;
