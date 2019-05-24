@@ -163,7 +163,7 @@ nextSim -g
 
 This will bring up the default empty NEXTSim GUI session as seen below
 
-![NEXTSim default GUI session](doc/images/defaultGUI.png "NEXTSim default GUI session")
+![NEXTSim default GUI session](doc/markdown/images/defaultGUI.png "NEXTSim default GUI session")
 
 Commands for source and detector setup may be selected from the command
 window on the left. All NEXTSim commands are found under the **nDet**
@@ -179,7 +179,7 @@ For example
 will generate the simplest possible detector, using default settings. The
 detector should look something like
 
-![Very simple detector defined with two commands](doc/images/simpleDetector.png "Very simple detector")
+![Very simple detector defined with two commands](doc/markdown/images/simpleDetector.png "Very simple detector")
 
 Note that, by default, the detector will be placed at the origin. This means
 that particles will be generated at the center of the detector. To move the
@@ -210,7 +210,7 @@ To simulate an event, click the green play button on the top menu-bar. After a
 short delay, while Geant is loading the high-precision neutron model, a green
 track may be seen on the screen.
 
-![Our first simulated event!](doc/images/simulatedEvent.png "Our first simulated event!")
+![Our first simulated event!](doc/markdown/images/simulatedEvent.png "Our first simulated event!")
 
 Note that by default the particle source will generate 1 MeV neutrons along
 the X-axis. You may instead see an event where the neutron travels through
@@ -275,7 +275,7 @@ nextCmdSearch -v Position trace
 
 produces the following output
 
-![nextCmdSearch output](doc/images/cmdSearchOutput.png "nextCmdSearch output")
+![nextCmdSearch output](doc/markdown/images/cmdSearchOutput.png "nextCmdSearch output")
 
 ### Multithreading
 
@@ -290,3 +290,12 @@ will run the simulation on four threads (usually CPU cores) simultaneously. If t
 threads specified is greater than the maximum number available to NEXTSim, the maximum
 number will be used instead. Additionally, if you specify zero threads `-n 0` then the 
 program will use all available threads.
+
+## Advanced Topics
+
+[2-Body Kinematic Reaction Sources](doc/markdown/reactionSource.md)
+
+[Using Segmented PMTs](doc/markdown/segmentedPMT.md)
+
+[Using Segmented Scintillators](doc/markdown/segmentedDetector.md)
+
