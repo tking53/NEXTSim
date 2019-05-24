@@ -139,6 +139,22 @@ nextSim
 
 [ERROR] nextSim: Input macro filename not specified!
 
+Passing the `-h` flag will display a list of all command line options.
+These options are summarized in the table below.
+
+| Long Option       |Flag| Argument     | Description |
+|-------------------|----|--------------|-------------|
+| --help            | -h |              | Display the help dialogue and exit
+| --input           | -i | <filename>   | Specify an input geant macro file
+| --output          | -o | <prefix>     | Specify the prefix of the output file e.g. prefix-001.root
+| --gui             | -g |              | Run interactive GUI session
+| --tree            | -t | <treename>   | Set the output TTree name (default="data")
+| --yield           | -Y | <multiplier> | Specify the light yield multiplier to use when producing photons (default=1)
+| --verbose         | -V |              | Toggle verbose output mode
+| --delay           | -D | <seconds>    | Set the time delay between successive event counter updates (default=10)
+| --mt-thread-limit | -n | <threads>    | Set the number of threads to use (uses all threads for n <= 0)
+| --mt-max-threads  | -T |              | Print the maximum number of threads and exit
+
 The simplest way to start a session is to toggle the GUI flag i.e.
 
 ```bash
