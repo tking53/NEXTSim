@@ -3,6 +3,7 @@
 #include <string>
 #include <stdlib.h>
 
+#include "nDetMasterOutputFileMessenger.hh"
 #include "nDetConstructionMessenger.hh"
 #include "nDetRunActionMessenger.hh"
 #include "ParticleSourceMessenger.hh"
@@ -24,29 +25,31 @@ int main(int argc, char *argv[]){
 	int index = 1;
 	std::vector<std::string> searchStrings;
 	while(index < argc){
-		if(strcmp(argv[index], "--verbose") == 0 || strcmp(argv[index], "-v") == 0)
+		if(strcmp(argv[index], "--verbose") == 0 || strcmp(argv[index], "-V") == 0)
 			verbose = true;
 		else
 			searchStrings.push_back(std::string(argv[index]));
 		index++;
 	}
 
+	nDetMasterOutputFileMessenger outputMessenger;
 	nDetConstructionMessenger constructionMessenger;
 	nDetRunActionMessenger runActionMessenger;
 	ParticleSourceMessenger sourceMessenger;
 
-	messengerHandler *handlers[3] = {&constructionMessenger, &runActionMessenger, &sourceMessenger};
+	const size_t numMessengers = 4;
+	messengerHandler *handlers[numMessengers] = {&outputMessenger, &constructionMessenger, &runActionMessenger, &sourceMessenger};
 
-	std::string msgNames[3];
-	size_t msgNumCmds[3];
+	std::string msgNames[numMessengers];
+	size_t msgNumCmds[numMessengers];
 
-	for(size_t i = 0; i < 3; i++){
+	for(size_t i = 0; i < numMessengers; i++){
 		msgNames[i] = handlers[i]->getName();
 		msgNumCmds[i] = handlers[i]->getSize();
 	}
 
 	if(searchStrings.empty()){
-		for(size_t i = 0; i < 3; i++){
+		for(size_t i = 0; i < numMessengers; i++){
 			std::cout << msgNames[i] << ": (" << msgNumCmds[i] << " commands)\n";
 			std::vector<cmdSearchPair> commands;
 			handlers[i]->getAllCommands(commands);
@@ -65,13 +68,13 @@ int main(int argc, char *argv[]){
 		}
 	}
 	else{
-		std::vector<cmdSearchPair> matches[3];
-		for(size_t i = 0; i < 3; i++){
+		std::vector<cmdSearchPair> matches[numMessengers];
+		for(size_t i = 0; i < numMessengers; i++){
 			for(std::vector<std::string>::iterator iter = searchStrings.begin(); iter != searchStrings.end(); iter++){
 				handlers[i]->searchForString(*iter, matches[i]);
 			}
 		}
-		for(size_t i = 0; i < 3; i++){
+		for(size_t i = 0; i < numMessengers; i++){
 			if(matches[i].empty()) continue;
 			std::cout << msgNames[i] << ": (" << msgNumCmds[i] << " commands, " << matches[i].size() << " matches)\n";
 			size_t maxLength = 0;
