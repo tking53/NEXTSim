@@ -1,8 +1,6 @@
-#
-# create empty scene
-#
-
-/nDet/detector/setGeometry rectangle
+# bar.mac
+# Cory R Thornsberry
+# Simulates a simple rectangular bar with a 1 MeV beam of neutrons
 
 /nDet/detector/setSiPMdimensions 6
 
@@ -17,11 +15,6 @@
 # Bar prototype
 /nDet/detector/setDetectorLength 10
 /nDet/detector/setDetectorWidth 0.6
-#/nDet/detector/setDetectorThickness 6
-#/nDet/detector/setDetectorThickness 3
-#/nDet/detector/setDetectorThickness 1
-#/nDet/detector/setDetectorThickness 12
-#/nDet/detector/setDetectorThickness 18
 /nDet/detector/setDetectorThickness 6
 /nDet/detector/setWrapping mylar
 
@@ -30,6 +23,7 @@
 /nDet/detector/setRotation 0 0 0
 
 # Update the detector.
+/nDet/detector/addGeometry rectangle
 /nDet/detector/update
 
 ################

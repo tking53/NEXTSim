@@ -1,8 +1,6 @@
-#
-# create empty scene
-#
-
-/nDet/detector/setGeometry module
+# 252Cf.mac
+# Cory R Thornsberry
+# Simulates a NEXT module with 8x4 scintillator cells with a 252Cf neutron source
 
 # Set the size of the PSPmt
 /nDet/detector/setSiPMdimensions 48.5
@@ -37,6 +35,7 @@
 /nDet/detector/setRotation 0 0 0
 
 # Update the detector.
+/nDet/detector/addGeometry module
 /nDet/detector/update
 
 # Load PSPMT gain matrix 

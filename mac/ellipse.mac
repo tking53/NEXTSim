@@ -1,8 +1,6 @@
-#
-# create empty scene
-#
-
-/nDet/detector/setGeometry ellipse
+# ellipse.mac
+# Cory R Thornsberry
+# Simulates an elliptical bar (football) with a 1 MeV beam of neutrons
 
 /nDet/detector/setSiPMdimensions 6
 
@@ -17,7 +15,7 @@
 # Ellipse prototype
 /nDet/detector/setDetectorLength 6
 /nDet/detector/setDetectorThickness 6
-/nDet/detector/setWrapping teflon
+/nDet/detector/setWrapping mylar
 
 /nDet/detector/setTrapezoidLength 2
 
@@ -26,6 +24,7 @@
 /nDet/detector/setRotation 0 0 0
 
 # Update the detector.
+/nDet/detector/addGeometry ellipse
 /nDet/detector/update
 
 ################
@@ -34,7 +33,7 @@
 
 # Set the output filename prefix
 /nDet/output/filename ellipse.root
-/nDet/output/title 10 cm ellipse prototype w/ 6x6 mm^2 SiPMs and 1 MeV neutron pencil beam at 1 m (changed wrapping to mylar)
+/nDet/output/title 10 cm ellipse prototype w/ 6x6 mm^2 SiPMs and 1 MeV neutron pencil beam at 1 m (wrapped with mylar)
 /nDet/output/debug true
 
 # Setup information about the PMT response

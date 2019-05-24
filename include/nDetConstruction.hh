@@ -365,6 +365,8 @@ class userAddDetector{
 
 	void setCurrentOffset(const G4double &x_, const G4double &y_, const G4double &z_);
 
+	void setCurrentOffsetZ(const G4double &z_){ offsetZ = z_; }
+
 	void setParentCopyNumber(const G4int &num){ parentCopyNum = num; }
 	
 	void setSegmentedDetector(const G4int &col, const G4int &row, const G4int &startCopyNum=0);

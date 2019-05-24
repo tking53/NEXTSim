@@ -954,7 +954,10 @@ void nDetConstruction::buildEllipse(){
 	}
 
 	// Account for the trapezoids.
-	currentOffsetZ += fTrapezoidLength;
+	currentOffsetZ = fDetectorLength/2 + fTrapezoidLength;
+	
+	// Update the detector position offsets.
+	currentDetector->setCurrentOffsetZ(currentOffsetZ);	
 	
 	// Directly modify the size of the grease layer.
 	currentLayerSizeX = 2*SiPM_dimension;
@@ -973,25 +976,8 @@ void nDetConstruction::buildRectangle(){
     G4LogicalVolume *plateBody_logV = new G4LogicalVolume(plateBody, getUserDetectorMaterial(), "plateBody_logV");
     plateBody_logV->SetVisAttributes(scint_VisAtt);
 
-	/*// Add some bubbles (for testing).
-	G4Sphere *bubble = new G4Sphere("", 0, 1.5*mm, 0, 360*deg, 0, 360*deg);
-	
-	//G4SubtractionSolid *bubblePlate = new G4SubtractionSolid("", plateBody, bubble);
-	G4SubtractionSolid *bubblePlate;
-	for(size_t i = 0; i < 10; i++){
-		G4double x = (fDetectorWidth/2)*(2*G4UniformRand()-1);
-		G4double y = (fDetectorThickness/2)*(2*G4UniformRand()-1);
-		G4double z = (fDetectorLength/2)*(2*G4UniformRand()-1);
-		if(i != 0)
-			bubblePlate = new G4SubtractionSolid("", bubblePlate, bubble, 0, G4ThreeVector(x, y, z));
-		else
-			bubblePlate = new G4SubtractionSolid("", plateBody, bubble, 0, G4ThreeVector(x, y, z));
-	}
-	G4LogicalVolume *bubble_logV = new G4LogicalVolume(bubblePlate, getUserDetectorMaterial(), "bubble_logV");*/
-
 	// Place the scintillator inside the assembly.
 	G4PVPlacement *plateBody_physV = new G4PVPlacement(0, G4ThreeVector(0, 0, 0), plateBody_logV, "Scint", currentAssembly, true, 0, fCheckOverlaps);
-	//G4PVPlacement *plateBody_physV = new G4PVPlacement(0, G4ThreeVector(0, 0, 0), bubble_logV, "Scint", currentAssembly, true, 0, fCheckOverlaps);
 
 	scintBody_physV.push_back(plateBody_physV);
 
