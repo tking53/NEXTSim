@@ -115,7 +115,7 @@ Whenever you want to use NEXTSim, load the NEXTSim module by typing
 module load nextSim
 ```
 
-## Updating the Source
+### Updating the Source Code
 
 In the ./NEXTSim/ directory type
 
@@ -129,7 +129,7 @@ Barring a substantial change in the structure of the source code,
 this should be sufficient for keeping your install up-to-date with
 the repository.
 
-## Running a Simulation
+## Getting Started
 
 Attempting to run nextSim with no arguments will result in an error
 
@@ -142,18 +142,18 @@ nextSim
 Passing the `-h` flag will display a list of all command line options.
 These options are summarized in the table below.
 
-| Long Option       |Flag| Argument     | Description |
-|-------------------|----|--------------|-------------|
-| --help            | -h |              | Display the help dialogue and exit
-| --input           | -i | <filename>   | Specify an input geant macro file
-| --output          | -o | <prefix>     | Specify the prefix of the output file e.g. prefix-001.root
-| --gui             | -g |              | Run interactive GUI session
-| --tree            | -t | <treename>   | Set the output TTree name (default="data")
-| --yield           | -Y | <multiplier> | Specify the light yield multiplier to use when producing photons (default=1)
-| --verbose         | -V |              | Toggle verbose output mode
-| --delay           | -D | <seconds>    | Set the time delay between successive event counter updates (default=10)
-| --mt-thread-limit | -n | <threads>    | Set the number of threads to use (uses all threads for n <= 0)
-| --mt-max-threads  | -T |              | Print the maximum number of threads and exit
+| Long Option       |Flag| Argument   | Description |
+|-------------------|----|------------|-------------|
+| --help            | -h |            | Display the help dialogue and exit
+| --input           | -i | filename   | Specify an input geant macro file
+| --output          | -o | prefix     | Specify the prefix of the output file e.g. prefix-001.root
+| --gui             | -g |            | Run interactive GUI session
+| --tree            | -t | treename   | Set the output TTree name (default="data")
+| --yield           | -Y | multiplier | Specify the light yield multiplier to use when producing photons (default=1)
+| --verbose         | -V |            | Toggle verbose output mode
+| --delay           | -D | seconds    | Set the time delay between successive event counter updates (default=10)
+| --mt-thread-limit | -n | threads    | Set the number of threads to use (uses all threads for n <= 0)
+| --mt-max-threads  | -T |            | Print the maximum number of threads and exit
 
 The simplest way to start a session is to toggle the GUI flag i.e.
 
@@ -171,7 +171,7 @@ drop-down menu.
 
 For example
 
-```bash
+```
 /nDet/detector/addGeometry rectangle
 /nDet/detector/update
 ```
@@ -185,7 +185,7 @@ Note that, by default, the detector will be placed at the origin. This means
 that particles will be generated at the center of the detector. To move the
 detector use
 
-```bash
+```
 /nDet/detector/setPosition 50 0 0 cm
 /nDet/detector/addGeometry rectangle
 /nDet/detector/update
@@ -196,7 +196,7 @@ This will place an additional detector at x=50, y=0, z=0 cm. Every time the
 whatever setup information was specified by the user prior to the call. To
 get back to just one detector use the `clear` command
 
-```bash
+```
 /nDet/detector/clear
 /nDet/detector/setPosition 50 0 0 cm
 /nDet/detector/addGeometry rectangle
@@ -221,7 +221,7 @@ neutron track everything is working as it should.
 You may run as many single events as you wish, but eventually you will want
 to simulate a batch of events all at once. To do this, type
 
-```bash
+```
 /run/beamOn 100
 ```
 
@@ -252,7 +252,7 @@ with different PMT output characteristics. Several example macro files
 are included in the directory NEXTSim/mac/ which show how to use some
 of these commands.
 
-## Searching for Macro Commands
+### Searching for Macro Commands
 
 If you installed with the `-DBUILD_TOOLS_CMDSEARCH=ON` option, you may
 use the command search executable to print all the currently defined
@@ -277,4 +277,16 @@ produces the following output
 
 ![nextCmdSearch output](doc/images/cmdSearchOutput.png "nextCmdSearch output")
 
+### Multithreading
 
+If multithreading support was enabled during installation via `-DGEANT4_BUILD_MULTITHREADED=ON`,
+then you may enable it through the `-n` or `--mt-thread-limit` command line flags. For example
+
+```bash
+nextSim -i ourFirstMacro.mac -n 4
+```
+
+will run the simulation on four threads (usually CPU cores) simultaneously. If the number of
+threads specified is greater than the maximum number available to NEXTSim, the maximum
+number will be used instead. Additionally, if you specify zero threads `-n 0` then the 
+program will use all available threads.
