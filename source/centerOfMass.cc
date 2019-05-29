@@ -35,9 +35,6 @@ bool centerOfMass::getCenterSegment(G4ThreeVector &pos, short &col, short &row) 
 	double xpos = (pos.getX()+activeWidth/2)/pixelWidth;
 	double ypos = (pos.getY()+activeHeight/2)/pixelHeight;
 	
-	pos.setX(xpos*(activeWidth/Ncol)-activeWidth/2);
-	pos.setY(ypos*(activeHeight/Nrow)-activeHeight/2);
-	
 	col = (short)floor(xpos);
 	row = (short)floor(ypos);
 	

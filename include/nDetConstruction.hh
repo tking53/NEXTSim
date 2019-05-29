@@ -361,6 +361,14 @@ class userAddDetector{
 	
 	G4int getParentCopyNumber() const { return parentCopyNum; }
 	
+	G4int getLeftPmtCopyNumber() const { return 2*parentCopyNum; }
+	
+	G4int getRightPmtCopyNumber() const { return 2*parentCopyNum+1; }
+	
+	G4ThreeVector *getPosition(){ return &position; }
+	
+	G4RotationMatrix *getRotation(){ return &rotation; }
+	
 	void setPositionAndRotation(const G4ThreeVector &pos, const G4RotationMatrix &rot);
 
 	void setCurrentOffset(const G4double &x_, const G4double &y_, const G4double &z_);
@@ -378,6 +386,10 @@ class userAddDetector{
 	void placeDetector(G4LogicalVolume *parent);
 
 	bool checkCopyNumber(const G4int &num) const { return (num >= firstSegmentCopyNum && num < lastSegmentCopyNum); }
+
+	bool checkPmtCopyNumber(const G4int &num) const { return (num == 2*parentCopyNum || num == 2*parentCopyNum+1); }
+	
+	bool checkPmtCopyNumber(const G4int &num, bool &isLeft) const ;
 
 	bool getSegmentFromCopyNum(const G4int &copyNum, G4int &col, G4int &row) const ;
 

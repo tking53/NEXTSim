@@ -379,19 +379,35 @@ bool nDetRunAction::AddDetectedPhoton(const G4Step *step, const double &mass/*=1
 		return false;
 	}
 	
+	// Find which detector this optical photon is inside.
+	G4int copyNum = step->GetPostStepPoint()->GetTouchable()->GetCopyNumber();
+	bool foundMatch=false, isLeft;
+	G4ThreeVector *detPos;
+	G4RotationMatrix *detRot;
+	for(std::vector<userAddDetector>::iterator iter = userDetectors.begin(); iter != userDetectors.end(); iter++){
+		if(iter->checkPmtCopyNumber(copyNum, isLeft)){
+			foundMatch = true;
+			detPos = iter->getPosition();
+			detRot = iter->getRotation();
+		}
+	}
+	
+	if(!foundMatch){
+		Display::WarningPrint("Failed to find matching detector for detected photon?", "nDetRunAction");
+		return false;
+	}
+	
 	double energy = step->GetTrack()->GetTotalEnergy();
 	double time = step->GetPostStepPoint()->GetGlobalTime();
-	G4ThreeVector position = step->GetPostStepPoint()->GetPosition();// - detPos;
-	//position = detRot*position;
+	G4ThreeVector position = step->GetPostStepPoint()->GetPosition() - (*detPos);
+	position = (*detRot)*position;
 	
-	if(position.z() > 0){
+	if(isLeft){
 		if(cmL.addPoint(energy, time, position, mass))
 			return true;
 	}
-	if(position.z() < 0){
-		if(cmR.addPoint(energy, time, position, mass))
-			return true;
-	}
+	if(cmR.addPoint(energy, time, position, mass))
+		return true;
 	return false;
 }
 

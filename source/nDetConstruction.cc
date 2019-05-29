@@ -1041,6 +1041,9 @@ void nDetConstruction::constructPSPmts(){
 
 	G4double sensitiveZ = currentOffsetZ + fGreaseThickness + fWindowThickness + fSensitiveThickness/2;
 	G4double wrappingThickness = fGreaseThickness + fWindowThickness;
+
+	G4int leftSideCopyNum = currentDetector->getLeftPmtCopyNumber();
+	G4int rightSideCopyNum = currentDetector->getRightPmtCopyNumber();
 	
 	// The optical grease layer.
 	G4PVPlacement *grease_physV[2] = {NULL, NULL};
@@ -1052,8 +1055,8 @@ void nDetConstruction::constructPSPmts(){
 		
 		grease_logV->SetVisAttributes(grease_VisAtt);
 
-		grease_physV[0] = new G4PVPlacement(0, G4ThreeVector(0, 0, greaseZ), grease_logV, "Grease", currentAssembly, true, 0, fCheckOverlaps);
-		grease_physV[1] = new G4PVPlacement(0, G4ThreeVector(0, 0, -greaseZ), grease_logV, "Grease", currentAssembly, true, 0, fCheckOverlaps);
+		grease_physV[0] = new G4PVPlacement(0, G4ThreeVector(0, 0, greaseZ), grease_logV, "Grease", currentAssembly, true, leftSideCopyNum, fCheckOverlaps);
+		grease_physV[1] = new G4PVPlacement(0, G4ThreeVector(0, 0, -greaseZ), grease_logV, "Grease", currentAssembly, true, rightSideCopyNum, fCheckOverlaps);
 		
 		if(!fPolishedInterface){
 			for(std::vector<G4PVPlacement*>::iterator iter = scintBody_physV.begin(); iter != scintBody_physV.end(); iter++){
@@ -1075,8 +1078,8 @@ void nDetConstruction::constructPSPmts(){
 		
 		window_logV->SetVisAttributes(window_VisAtt);
 
-		window_physV[0] = new G4PVPlacement(0, G4ThreeVector(0, 0, windowZ), window_logV, "Quartz", currentAssembly, true, 0, fCheckOverlaps);
-		window_physV[1] = new G4PVPlacement(0, G4ThreeVector(0, 0, -windowZ), window_logV, "Quartz", currentAssembly, true, 0, fCheckOverlaps);
+		window_physV[0] = new G4PVPlacement(0, G4ThreeVector(0, 0, windowZ), window_logV, "Quartz", currentAssembly, true, leftSideCopyNum, fCheckOverlaps);
+		window_physV[1] = new G4PVPlacement(0, G4ThreeVector(0, 0, -windowZ), window_logV, "Quartz", currentAssembly, true, rightSideCopyNum, fCheckOverlaps);
 	}
 
 	// Build the wrapping.
@@ -1092,8 +1095,8 @@ void nDetConstruction::constructPSPmts(){
 
 		// Place the wrapping around the scintillator.
 		G4PVPlacement *greaseWrapping_physV[2];
-		greaseWrapping_physV[0] = new G4PVPlacement(0, G4ThreeVector(0, 0, wrappingZ), greaseWrapping_logV, "Wrapping", currentAssembly, true, 0, fCheckOverlaps);		
-		greaseWrapping_physV[1] = new G4PVPlacement(0, G4ThreeVector(0, 0, -wrappingZ), greaseWrapping_logV, "Wrapping", currentAssembly, true, 0, fCheckOverlaps);
+		greaseWrapping_physV[0] = new G4PVPlacement(0, G4ThreeVector(0, 0, wrappingZ), greaseWrapping_logV, "Wrapping", currentAssembly, true, leftSideCopyNum, fCheckOverlaps);		
+		greaseWrapping_physV[1] = new G4PVPlacement(0, G4ThreeVector(0, 0, -wrappingZ), greaseWrapping_logV, "Wrapping", currentAssembly, true, rightSideCopyNum, fCheckOverlaps);
 		
 		if(grease_physV[0] && grease_physV[1]){
 			new G4LogicalBorderSurface("Wrapping", grease_physV[0], greaseWrapping_physV[0], getUserOpticalSurface());
@@ -1113,8 +1116,8 @@ void nDetConstruction::constructPSPmts(){
     // Logical skin surface.
     new G4LogicalSkinSurface(name, sensitive_logV, fSiliconPMOpticalSurface);    
 
-	new G4PVPlacement(0, G4ThreeVector(0, 0, sensitiveZ), sensitive_logV, name, currentAssembly, true, 0, fCheckOverlaps);
-	new G4PVPlacement(0, G4ThreeVector(0, 0, -sensitiveZ), sensitive_logV, name, currentAssembly, true, 0, fCheckOverlaps);
+	new G4PVPlacement(0, G4ThreeVector(0, 0, sensitiveZ), sensitive_logV, name, currentAssembly, true, leftSideCopyNum, fCheckOverlaps);
+	new G4PVPlacement(0, G4ThreeVector(0, 0, -sensitiveZ), sensitive_logV, name, currentAssembly, true, rightSideCopyNum, fCheckOverlaps);
 
 	/*// Physically segmented PMT.
  	for(int col = 0; col < fNumColumns; col++){
@@ -1408,6 +1411,11 @@ void userAddDetector::buildAllLayers(nDetConstruction *detector){
 void userAddDetector::placeDetector(G4LogicalVolume *parent){
 	assembly_physV = new G4PVPlacement(&rotation, position, assembly_logV, "Assembly", parent, 0, 0, false);
 	assembly_physV->SetCopyNo(parentCopyNum);
+}
+
+bool userAddDetector::checkPmtCopyNumber(const G4int &num, bool &isLeft) const { 
+	isLeft = (num % 2 == 0);
+	return (num == 2*parentCopyNum || num == 2*parentCopyNum+1);
 }
 
 bool userAddDetector::getSegmentFromCopyNum(const G4int &copyNum, G4int &col, G4int &row) const {
