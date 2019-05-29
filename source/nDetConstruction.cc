@@ -1088,7 +1088,7 @@ void nDetConstruction::constructPSPmts(){
 		G4LogicalVolume *greaseWrapping_logV = new G4LogicalVolume(greaseWrapping, getUserSurfaceMaterial(), "greaseWrapping_logV");
 		greaseWrapping_logV->SetVisAttributes(wrapping_VisAtt);
 		
-		G4double wrappingZ = currentOffsetZ + fGreaseThickness;
+		G4double wrappingZ = currentOffsetZ + fGreaseThickness/2 + fWindowThickness/2;
 
 		// Place the wrapping around the scintillator.
 		G4PVPlacement *greaseWrapping_physV[2];
