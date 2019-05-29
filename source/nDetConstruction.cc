@@ -213,6 +213,8 @@ void nDetConstruction::AddGeometry(const G4String &geom){
 }
 
 void nDetConstruction::setSegmentedPmt(const short &col_, const short &row_, const double &width_, const double &height_){
+	center[0].setSegmentedPmt(col_, row_, width_, height_);
+	center[1].setSegmentedPmt(col_, row_, width_, height_);
 	nDetThreadContainer *container = &nDetThreadContainer::getInstance();
 	for(size_t index = 0; index < container->size(); index++){
 		nDetRunAction *runAction = container->getAction(index);
