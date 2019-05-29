@@ -125,7 +125,7 @@ void nDetConstructionMessenger::addAllCommands(){
 	addGuidance("Add an array of multiple detectors. SYNTAX: addArray <geom> <r0> <startTheta> <stopTheta> <Ndet>");
 }
 
-void nDetConstructionMessenger::SetNewValue(G4UIcommand* command, G4String newValue){
+void nDetConstructionMessenger::SetNewChildValue(G4UIcommand* command, G4String newValue){
 	size_t index;
 	if(!findCommand(command, newValue, index)) return;
 

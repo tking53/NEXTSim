@@ -49,7 +49,7 @@ void nDetMasterOutputFileMessenger::addAllCommands(){
 	addCandidates("true false");
 }
 	
-void nDetMasterOutputFileMessenger::SetNewValue(G4UIcommand *command, G4String newValue){
+void nDetMasterOutputFileMessenger::SetNewChildValue(G4UIcommand *command, G4String newValue){
 	size_t index;
 	if(!findCommand(command, newValue, index)) return;
 		

@@ -14,7 +14,7 @@ class nDetRunActionMessenger: public messengerHandler {
 
 	nDetRunActionMessenger(nDetRunAction *action);
 	
-	virtual void SetNewValue(G4UIcommand *command, G4String newValue);
+	virtual void SetNewChildValue(G4UIcommand *command, G4String newValue);
 
   private:
 	nDetRunAction *fAction; ///< Pointer to the user run action object for which this messenger is defined

@@ -52,7 +52,9 @@ class messengerHandler : public G4UImessenger {
 	
 	virtual void write(TDirectory*);
 
-    virtual void SetNewValue(G4UIcommand*, G4String){ }
+    virtual void SetNewValue(G4UIcommand* command, G4String newValue);
+    
+    virtual void SetNewChildValue(G4UIcommand*, G4String){ }
 
 	size_t getSize() const { return size; }
 	
@@ -94,6 +96,8 @@ class messengerHandler : public G4UImessenger {
 	std::vector<std::string> fCmdArg; /*!< Vector of argument strings for all commands
 	                                       The strings are empty unless the command is called by the user 
 	                                       in which case the string is set to the argument supplied by the user */
+	
+	std::vector<std::string> fUserCmdList; ///< Vector of all macro commands called by the user
 	
 	std::string name; ///< Name of the class for which this messenger is used
 	

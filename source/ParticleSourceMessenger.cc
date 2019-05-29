@@ -42,7 +42,7 @@ void ParticleSourceMessenger::addAllCommands(){
 	addGuidance("Load a reaction file");
 }
 
-void ParticleSourceMessenger::SetNewValue(G4UIcommand* command, G4String newValue){ 
+void ParticleSourceMessenger::SetNewChildValue(G4UIcommand* command, G4String newValue){ 
 	size_t index;
 	if(!findCommand(command, newValue, index)) return;
 	if(index == 0)

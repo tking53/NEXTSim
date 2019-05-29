@@ -69,18 +69,24 @@ messengerHandler::~messengerHandler(){
 
 void messengerHandler::write(TDirectory *dir){
 	dir->cd();
-	for(size_t i = 0; i < size; i++){
-		if(fCmdCalled[i]){ // Write the command to the output file.
-			std::string output = fCmd[i]->GetCommandPath() + " " + fCmdArg[i];
-			std::string cmd = fCmd[i]->GetCommandPath();
-			size_t index = cmd.find_last_of('/');
-			if(index != std::string::npos){
-				cmd = cmd.substr(index+1);
-			}
-			TNamed named(cmd.c_str(), output.c_str());
-			named.Write();
+	for(std::vector<std::string>::iterator iter = fUserCmdList.begin(); iter != fUserCmdList.end(); iter++){ // Write the commands to the output file.
+		std::string cmd = (*iter);
+		size_t index1 = iter->find_last_of('/');
+		if(index1 != std::string::npos){
+			size_t index2 = iter->find_first_of(' ');
+			if(index2 != std::string::npos)
+				cmd = cmd.substr(index1+1, index2-(index1+1));
+			else
+				cmd = cmd.substr(index1+1);
 		}
-	}		
+		TNamed named(cmd.c_str(), iter->c_str());
+		named.Write();
+	}
+}
+
+void messengerHandler::SetNewValue(G4UIcommand* command, G4String newValue){
+	fUserCmdList.push_back(command->GetCommandPath() + " " + newValue);
+	this->SetNewChildValue(command, newValue); 
 }
 
 bool messengerHandler::searchForString(const std::string &str, std::vector<cmdSearchPair> &matches) const {

@@ -67,7 +67,7 @@ void nDetRunActionMessenger::addAllCommands(){
 	addCandidates("true false");
 }
 
-void nDetRunActionMessenger::SetNewValue(G4UIcommand *command, G4String newValue){
+void nDetRunActionMessenger::SetNewChildValue(G4UIcommand *command, G4String newValue){
 	size_t index;
 	if(!findCommand(command, newValue, index)) return;
 

@@ -14,7 +14,7 @@ class nDetConstructionMessenger : public messengerHandler {
 	
 	nDetConstructionMessenger(nDetConstruction* detector) : messengerHandler("nDetConstructionMessenger"), fDetector(detector) { addAllCommands(); }
 	
-	virtual void SetNewValue(G4UIcommand* command, G4String newValue);
+	virtual void SetNewChildValue(G4UIcommand* command, G4String newValue);
 
   private:
 	nDetConstruction *fDetector; ///< Pointer to the detector object for which this messenger is defined

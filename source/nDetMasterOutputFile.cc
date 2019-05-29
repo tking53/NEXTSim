@@ -138,8 +138,8 @@ bool nDetMasterOutputFile::openRootFile(const G4Run* aRun){
 		runAction = G4RunManager::GetRunManager()->GetUserRunAction();
 #endif
 	if(runAction){
+		((nDetRunAction*)runAction)->getMessenger()->write(dir);	
 		((nDetRunAction*)runAction)->getSource()->GetMessenger()->write(dir);
-		((nDetRunAction*)runAction)->getMessenger()->write(dir);		
 	}
 	else
 		Display::WarningPrint("Failed to find master run manager.", "nDetMasterOutputFile");
