@@ -32,7 +32,7 @@ const double cvac = 299.792458; // mm/ns
 nDetParticleSource::nDetParticleSource(nDetConstruction *det/*=NULL*/) : G4GeneralParticleSource(), fSourceMessenger(NULL), dummyEvent(), 
                                                                          unitX(1,0,0), unitY(0,1,0), unitZ(0,0,1), sourceOrigin(0,0,0), beamspotType(0), beamspot(0), beamspot0(0), 
                                                                          rot(), targThickness(0), targEnergyLoss(0), targTimeSlope(0), targTimeOffset(0), beamE0(0), useReaction(false), 
-                                                                         particleRxn(NULL), detPos(), detSize(), detRot()
+                                                                         particleRxn(NULL), detPos(), detSize(), detRot(), sourceIndex(0)
 {
 	// Set the default particle source.
 	SetNeutronBeam(1.0); // Set a 1 MeV neutron beam by default
@@ -60,7 +60,10 @@ void nDetParticleSource::SetBeamEnergy(const G4double &energy){
 }
 
 void nDetParticleSource::SetSourcePosition(const G4ThreeVector &position){
-	GetCurrentSource()->GetPosDist()->SetCentreCoords(position);
+	G4SingleParticleSource *src;
+	while( (src = nextSource()) ){ // Iterate over all defined sources
+		src->GetPosDist()->SetCentreCoords(position);
+	}
 }
 
 void nDetParticleSource::SetSourceDirection(const G4ThreeVector &d){ 
@@ -131,7 +134,10 @@ bool nDetParticleSource::SetSourceType(const G4String &str){
 }
 
 void nDetParticleSource::SetParticleMomentumDirection(const G4ParticleMomentum &direction){
-	GetCurrentSource()->GetAngDist()->SetParticleMomentumDirection(direction);
+	G4SingleParticleSource *src;
+	while( (src = nextSource()) ){ // Iterate over all defined sources
+		src->GetAngDist()->SetParticleMomentumDirection(direction);
+	}
 }
 
 void nDetParticleSource::SetBeamspotType(const G4String &str){
@@ -359,28 +365,33 @@ void nDetParticleSource::AddDiscreteEnergy(const G4double &energy, const G4doubl
 	GetCurrentSource()->SetParticleDefinition((particle ? particle : G4Gamma::GammaDefinition()));
 	SetBeamEnergy(energy*keV);
 	SetCurrentSourceIntensity(intensity/100);
-	AddaSource(0);
+	addNewSource(0);
 }
 
 void nDetParticleSource::Reset(){
 	ClearAll();
-	AddaSource(1);
+	allSources.clear();
+	addNewSource();
+	sourceIndex = 0;
 }
 
 void nDetParticleSource::UpdateAll(){
-	// Set the center of the source
-	SetParticlePosition(sourceOrigin);
+	G4SingleParticleSource *src;
+	while( (src = nextSource()) ){ // Iterate over all defined sources
+		// Set the center of the source
+		src->GetPosDist()->SetCentreCoords(sourceOrigin);
 
-	// Set the beam profile
-	setBeamProfile();
+		// Set the profile of the source
+		setBeamProfile(src);
 
-	// For now, the "beam" is along the +X axis
-	// I'll change this  back to the +Z axis later. CRT
-	SetParticleMomentumDirection(unitX);
+		// For now, the "beam" is along the +X axis
+		// I'll change this  back to the +Z axis later. CRT	
+		src->GetAngDist()->SetParticleMomentumDirection(unitX);
 	
-	// Set the rotation of the source plane
-	GetCurrentSource()->GetPosDist()->SetPosRot1(unitZ); // This is x'
-	GetCurrentSource()->GetPosDist()->SetPosRot2(unitY); // This is y'
+		// Set the rotation of the source plane
+		src->GetPosDist()->SetPosRot1(unitZ); // This is x'
+		src->GetPosDist()->SetPosRot2(unitY); // This is y'
+	}
 }
 
 bool nDetParticleSource::Test(const G4String &str){
@@ -413,6 +424,7 @@ bool nDetParticleSource::Test(const char *filename, const size_t &Nevents){
 	tree->Branch("phi", &phi);	
 	tree->Branch("pos[3]", pos);
 	tree->Branch("dir[3]", dir);
+	UpdateAll(); // Update the source with the most recent changes
 	for(size_t i = 0; i < Nevents; i++){
 		energy = Sample();
 		G4ThreeVector position = GetParticlePosition();
@@ -425,6 +437,7 @@ bool nDetParticleSource::Test(const char *filename, const size_t &Nevents){
 		dir[2] = direction.z();
 		tree->Fill();
 	}
+	std::cout << " nDetParticleSource: Successfully wrote " << Nevents << " to " << filename << std::endl;
 	f->cd();
 	tree->Write();
 	f->Close();
@@ -462,6 +475,21 @@ double nDetParticleSource::Print(const size_t &Nsamples/*=1*/){
 	return retval;
 }
 
+G4SingleParticleSource *nDetParticleSource::nextSource(){
+	if(sourceIndex >= allSources.size()){ // Reset the counter
+		sourceIndex = 0;
+		return NULL;
+	}
+	return allSources.at(sourceIndex++);
+}
+
+G4SingleParticleSource *nDetParticleSource::addNewSource(const G4double &intensity/*=1*/){
+	AddaSource(intensity);
+	G4SingleParticleSource *retval = GetCurrentSource();
+	allSources.push_back(retval);
+	return retval;	
+}
+
 double nDetParticleSource::cf252(const double &E_) const {
 	const double a = 1.174; // MeV (Mannhart)
 	const double b = 1.043; // 1/MeV (Mannhart)
@@ -469,8 +497,8 @@ double nDetParticleSource::cf252(const double &E_) const {
 	return C*std::exp(-E_/a)*std::sinh(std::sqrt(b*E_));
 }
 
-void nDetParticleSource::setBeamProfile(){
-	G4SPSPosDistribution *pos = GetCurrentSource()->GetPosDist();
+void nDetParticleSource::setBeamProfile(G4SingleParticleSource *src){
+	G4SPSPosDistribution *pos = src->GetPosDist();
 	if(beamspotType == 0){ // Point source
 		pos->SetPosDisType("Point");
 	}

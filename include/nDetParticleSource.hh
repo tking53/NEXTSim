@@ -256,6 +256,21 @@ class nDetParticleSource : public G4GeneralParticleSource {
 	G4ThreeVector detSize; ///< 3d size of the detector used for isotropic sources
 	G4RotationMatrix detRot; ///< Rotation of the detector used for isotropic sources
 
+	size_t sourceIndex; ///< Current index in the vector of G4SingleParticleSources
+
+	std::vector <G4SingleParticleSource*> allSources; ///< Vector of all single particle sources (needed because G4GeneralParticleSource::sourceVector is private)
+
+	/** Get the next G4SingleParticleSource in the vector of all sources
+	  * @return A pointer to the next source (starting from the zeroth) or return NULL if the end of the vector has been reached
+	  */
+	G4SingleParticleSource *nextSource();
+
+	/** Add a new single particle source
+	  * @param intensity The intensity of the new source
+	  * @return A pointer to the newly added G4SingleParticleSource
+	  */
+	G4SingleParticleSource *addNewSource(const G4double &intensity=1);
+
 	/** Compute the intensity of a 252Cf source for a given neutron energy
 	  * @param E_ Energy of the neutron (in MeV)
 	  * @return The number density of neutrons at the specified energy
@@ -263,8 +278,9 @@ class nDetParticleSource : public G4GeneralParticleSource {
 	double cf252(const double &E_) const ;
 	
 	/** Set the profile of the beam based on user settings
+	  * @param src Pointer to the G4SingleParticleSource which will have its profile set
 	  */
-	void setBeamProfile();
+	void setBeamProfile(G4SingleParticleSource *src);
 };
 
 /*! \class nDetPrimaryGeneratorAction
