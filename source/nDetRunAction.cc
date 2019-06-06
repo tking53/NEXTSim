@@ -15,8 +15,8 @@
 #include "nDetStackingAction.hh"
 #include "nDetTrackingAction.hh"
 #include "nDetSteppingAction.hh"
-#include "ParticleSource.hh"
-#include "ParticleSourceMessenger.hh"
+#include "nDetParticleSource.hh"
+#include "nDetParticleSourceMessenger.hh"
 #include "termColors.hh"
 
 #include "nDetConstructionMessenger.hh"
@@ -101,7 +101,8 @@ nDetRunAction::nDetRunAction(){
 	stepping = NULL;
 	
 	// Setup the particle source.
-	source = new ParticleSource(this);
+	generator = new nDetPrimaryGeneratorAction();
+	source = generator->GetSource();
 
 	baselineFraction = 0;
 	baselineJitterFraction = 0;
@@ -140,6 +141,9 @@ void nDetRunAction::BeginOfRunAction(const G4Run* aRun)
 	// Get RunId and threadID
 	data.runNb = aRun->GetRunID();
 	data.threadID = G4Threading::G4GetThreadId();
+
+	// Update the source
+	source->UpdateAll();
 
 	if(G4Threading::G4GetThreadId() >= 0) return; // Master thread only.
 	

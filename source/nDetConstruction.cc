@@ -1,7 +1,7 @@
 #include "nDetConstruction.hh"
 #include "nDetConstructionMessenger.hh"
 #include "nDetThreadContainer.hh"
-#include "ParticleSource.hh"
+#include "nDetParticleSource.hh"
 #include "termColors.hh"
 
 #include "G4LogicalVolume.hh"

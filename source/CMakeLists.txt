@@ -10,7 +10,7 @@ endif(GEANT4_MT)
 
 #Set the scan sources that we will make a lib out of.
 set(NextSimSources centerOfMass.cc nDetConstruction.cc nDetActionInitialization.cc nDetEventAction.cc nDetRunActionMessenger.cc 
-                   nDetMasterOutputFile.cc nDetMasterOutputFileMessenger.cc nDetSteppingAction.cc ParticleSource.cc ParticleSourceMessenger.cc 
+                   nDetMasterOutputFile.cc nDetMasterOutputFileMessenger.cc nDetSteppingAction.cc nDetParticleSource.cc nDetParticleSourceMessenger.cc 
                    pmtResponse.cc messengerHandler.cc nDetConstructionMessenger.cc nDetRunAction.cc nDetStackingAction.cc cmcalc.cc 
                    nDetTrackingAction.cc optionHandler.cc photonCounter.cc gdmlSolid.cc nistDatabase.cc nDetDataPack.cc termColors.cc)
 

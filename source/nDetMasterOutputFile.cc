@@ -10,8 +10,8 @@
 #include "TTree.h"
 #include "TBranch.h"
 
-#include "ParticleSource.hh"
-#include "ParticleSourceMessenger.hh"
+#include "nDetParticleSource.hh"
+#include "nDetParticleSourceMessenger.hh"
 #include "nDetRunAction.hh"
 #include "nDetRunActionMessenger.hh"
 #include "nDetConstruction.hh"
@@ -139,7 +139,7 @@ bool nDetMasterOutputFile::openRootFile(const G4Run* aRun){
 #endif
 	if(runAction){
 		((nDetRunAction*)runAction)->getMessenger()->write(dir);	
-		((nDetRunAction*)runAction)->getSource()->GetMessenger()->write(dir);
+		((nDetRunAction*)runAction)->getParticleSource()->GetMessenger()->write(dir);
 	}
 	else
 		Display::WarningPrint("Failed to find master run manager.", "nDetMasterOutputFile");

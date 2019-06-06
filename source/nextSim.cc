@@ -43,7 +43,6 @@
 #include "nDetStackingAction.hh"
 #include "nDetSteppingAction.hh"
 #include "nDetTrackingAction.hh"
-#include "ParticleSource.hh"
 #include "optionHandler.hh"
 #include "termColors.hh"
 

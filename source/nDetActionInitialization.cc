@@ -29,7 +29,7 @@ void nDetActionInitialization::Build() const {
 	if(verbose) runAction->toggleVerboseMode();
 
 	this->SetUserAction(runAction);
-	this->SetUserAction((G4VUserPrimaryGeneratorAction*)runAction->getSource());	
+	this->SetUserAction((G4VUserPrimaryGeneratorAction*)runAction->getPrimaryGenerator());	
 	this->SetUserAction(eventAction);
 	this->SetUserAction(steppingAction);
 	this->SetUserAction(stackingAction);

@@ -1,7 +1,7 @@
 #ifndef CMCALC_HPP
 #define CMCALC_HPP
 
-#include "ParticleSource.hh"
+#include "nDetParticleSource.hh"
 
 /*! \class Particle
  *  \brief Class used to store information about a classical particle.
@@ -57,7 +57,7 @@ class Particle{
  *  \date May 23, 2019
 */
 
-class Reaction : public Source {
+class Reaction {
   private:
 	double Mbeam; ///< Mass of the beam particle reactant (in MeV/c^2)
 	double Mtarg; ///< Mass of the target particle reactant (in MeV/c^2)
@@ -86,7 +86,7 @@ class Reaction : public Source {
   public:
  	/** Default constructor
 	  */
-	Reaction() : Source(), Mbeam(0.0), Mtarg(0.0), Mrecoil(0.0), Meject(0.0), Vcm(0.0), recoilVcm(0.0), 
+	Reaction() : Mbeam(0.0), Mtarg(0.0), Mrecoil(0.0), Meject(0.0), Vcm(0.0), recoilVcm(0.0), 
 	             ejectVcm(0.0), EXeject(0.0), EXrecoil(0.0), Ebeam(0.0), Ecm(0.0), Qgs(0.0) { }
 
 	/** Destructor
@@ -96,6 +96,16 @@ class Reaction : public Source {
 	/** Read reaction parameters from an input file or stdin
 	  * @param fname_ Path to ascii file containing reaction parameters. If NULL, the user is prompted for input via stdin
 	  * @return True if parameters are set correctly and return false otherwise
+	  *
+	  * The following table gives the proper formatting for a tab-delimited ascii file containing reaction parameters
+	  * | pt.rxn      |            |               |                     |
+	  * |-------------|------------|---------------|---------------------|
+	  * | Beam Z      | Beam A     | Beam BE/A     |                     |
+	  * | Target Z    | Target A   | Target BE/A   |                     |
+	  * | Recoil Z    | Recoil A   | Recoil BE/A   | Recoil Excitation   |
+	  * | Ejectile Z  | Ejectile A | Ejectile BE/A | Ejectile Excitation |
+	  * | Beam Energy |            |               |                     |
+	  * Where Z and A are integer numbers and the binding energy, excitation energy, and beam energy are specified in MeV
 	  */
 	bool Read(const char *fname_=NULL);
 
@@ -229,7 +239,7 @@ class Reaction : public Source {
 	  * @param theta The lab angle of outgoing ejectile particle (in radians)
 	  * @return The energy of the ejectile particle (in MeV)
 	  */
-	virtual double sample(const double &theta);
+	double sample(const double &theta);
 };
 
 #endif

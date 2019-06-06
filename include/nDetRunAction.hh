@@ -19,11 +19,12 @@ class nDetEventAction;
 class nDetStackingAction;
 class nDetTrackingAction;
 class nDetSteppingAction;
+class nDetPrimaryGeneratorAction;
 class nDetConstruction;
 class pmtResponse;
 
 class photonCounter;
-class ParticleSource;
+class nDetParticleSource;
 
 class primaryTrackInfo{
   public:
@@ -72,7 +73,9 @@ class nDetRunAction : public G4UserRunAction
 	
 	void EndOfRunAction(const G4Run* aRun);
 
-	ParticleSource *getSource(){ return source; }
+	nDetParticleSource *getParticleSource(){ return source; }
+
+	nDetPrimaryGeneratorAction *getPrimaryGenerator(){ return generator; }
 
 	void setActions(nDetEventAction *event_, nDetStackingAction *stacking_, nDetTrackingAction *tracking_, nDetSteppingAction *stepping_);
 
@@ -146,8 +149,10 @@ class nDetRunAction : public G4UserRunAction
 	nDetStackingAction *stacking; ///< Pointer to the thread-local user stacking action
 	nDetTrackingAction *tracking; ///< Pointer to the thread-local user tracking action
 	nDetSteppingAction *stepping; ///< Pointer to the thread-local user stepping action
+	nDetPrimaryGeneratorAction *generator; ///< Pointer to the thread-local primary generator action
+	
 	nDetConstruction *detector; ///< Pointer to the global detector singleton
-	ParticleSource *source; ///< Pointer to the thread-local particle source
+	nDetParticleSource *source; ///< Pointer to the thread-local particle source
 	
 	std::vector<primaryTrackInfo> primaryTracks; ///< Vector of primary particle scatter events
 	
