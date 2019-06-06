@@ -122,10 +122,10 @@ class nDetParticleSource : public G4VUserPrimaryGeneratorAction, G4GeneralPartic
 	  */
 	void SetDetector(const nDetConstruction *det);
 
-	/** Enable or disable isotropic source mode (Currently BROKEN CRT)
+	/** Enable or disable isotropic source mode
 	  * @param state_ Flag indicating whether the source is isotropic (true) or not (false)
 	  */
-	void SetIsotropicMode(bool state_=true);
+	void SetIsotropicMode(bool state_=true){ isotropic = state_; }
 
 	/** Set the source to use the energy distribution of 252Cf
 	  * @param size_ The number of points to add to the distribution (larger numbers give higher precision)
@@ -214,9 +214,10 @@ class nDetParticleSource : public G4VUserPrimaryGeneratorAction, G4GeneralPartic
 	bool Test(const char *filename, const size_t &Nevents);
 
 	/** Sample the current source spectrum
-	  * @return A particle energy from the spectrum (in MeV)
+	  * @param evt Pointer to a G4Event. If NULL, generate a new event
+	  * @return Particle kinetic energy from the spectrum (in MeV)
 	  */
-	double Sample();
+	double Sample(G4Event *evt=NULL);
 
 	/** Sample the current source and print energies (and angles if applicable) to stdout
 	  * @param Nsamples The number of times to sample the source
@@ -231,8 +232,6 @@ class nDetParticleSource : public G4VUserPrimaryGeneratorAction, G4GeneralPartic
 
   protected:
 	nDetParticleSourceMessenger *fSourceMessenger; ///< Pointer to the messenger for this class
-	
-	G4Event dummyEvent; ///< Dummy G4Event used for testing the source
 	
 	G4ThreeVector unitX; ///< X-axis unit vector in the frame of the source
 	G4ThreeVector unitY; ///< Y-axis unit vector in the frame of the source
@@ -254,6 +253,7 @@ class nDetParticleSource : public G4VUserPrimaryGeneratorAction, G4GeneralPartic
 	double beamE0; ///< Initial source energy (in MeV)
 
 	bool useReaction; ///< Flag indicating that energy and angle sampling should use a user specified reaction
+	bool isotropic; ///< Flag indicating that the source is isotropic
 
 	Reaction *particleRxn; ///< Pointer to a reaction object used for sampling reaction product particle energies and angles
 

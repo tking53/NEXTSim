@@ -29,7 +29,7 @@ const double cvac = 299.792458; // mm/ns
 // class nDetParticleSource
 ///////////////////////////////////////////////////////////////////////////////
 
-nDetParticleSource::nDetParticleSource(nDetConstruction *det/*=NULL*/) : G4VUserPrimaryGeneratorAction(), G4GeneralParticleSource(), fSourceMessenger(NULL), dummyEvent(), 
+nDetParticleSource::nDetParticleSource(nDetConstruction *det/*=NULL*/) : G4VUserPrimaryGeneratorAction(), G4GeneralParticleSource(), fSourceMessenger(NULL), 
                                                                          unitX(1,0,0), unitY(0,1,0), unitZ(0,0,1), sourceOrigin(0,0,0), beamspotType(0), beamspot(0), beamspot0(0), 
                                                                          rot(), targThickness(0), targEnergyLoss(0), targTimeSlope(0), targTimeOffset(0), beamE0(0), useReaction(false), 
                                                                          particleRxn(NULL), detPos(), detSize(), detRot(), sourceIndex(0)
@@ -92,7 +92,7 @@ bool nDetParticleSource::SetSourceType(const G4String &str){
 	std::vector<std::string> args;
 	unsigned int Nargs = split_str(str, args);
 	if(Nargs < 1){
-		Display::ErrorPrint("Invalid number of arguments given to ::TestSource().", "nDetParticleSource");
+		Display::ErrorPrint("Invalid number of arguments given to ::SetSourceType().", "nDetParticleSource");
 		Display::ErrorPrint(" SYNTAX: type <name> [energy(MeV)]", "nDetParticleSource");
 		return false;
 	}
@@ -177,10 +177,6 @@ void nDetParticleSource::SetDetector(const nDetConstruction *det){
 	detPos = det->GetDetectorPos();
 	detSize = det->GetDetectorSize();
 	detRot = det->GetDetectorRot();
-}
-
-void nDetParticleSource::SetIsotropicMode(bool state_/*=true*/){
-	//psource->setIsIsotropic(state_); CRT
 }
 
 void nDetParticleSource::Set252Cf(const size_t &size_/*=150*/, const double &stepSize_/*=0.1*/){
@@ -358,6 +354,9 @@ bool nDetParticleSource::ReadReactionFile(const G4String &input){
 		useReaction = false;
 	}
 	
+	Reset(); // Reset the source if the reaction was loaded successfully
+	GetCurrentSource()->SetParticleDefinition(G4Neutron::NeutronDefinition()); // Hard-coded neutrons for now CRT
+	
 	return retval;
 }
 
@@ -400,7 +399,7 @@ bool nDetParticleSource::Test(const G4String &str){
 	std::vector<std::string> args;
 	unsigned int Nargs = split_str(str, args);
 	if(Nargs < 2){
-		Display::ErrorPrint("Invalid number of arguments given to ::TestSource().", "nDetParticleSource");
+		Display::ErrorPrint("Invalid number of arguments given to ::Test().", "nDetParticleSource");
 		Display::ErrorPrint(" SYNTAX: testSource <filename> <Nevents>", "nDetParticleSource");
 		return false;
 	}
@@ -412,7 +411,6 @@ bool nDetParticleSource::Test(const char *filename, const size_t &Nevents){
 	double pos[3];
 	double dir[3];
 	double theta;
-	double phi;
 	TFile *f = new TFile(filename, "RECREATE");
 	if(!f->IsOpen()){
 		Display::ErrorPrint("Failed to open output ROOT file.", "nDetParticleSource");
@@ -421,14 +419,18 @@ bool nDetParticleSource::Test(const char *filename, const size_t &Nevents){
 	TTree *tree = new TTree("data", "Energy dist test");
 	tree->Branch("energy", &energy);
 	tree->Branch("theta", &theta);
-	tree->Branch("phi", &phi);	
 	tree->Branch("pos[3]", pos);
 	tree->Branch("dir[3]", dir);
 	UpdateAll(); // Update the source with the most recent changes
 	for(size_t i = 0; i < Nevents; i++){
-		energy = Sample();
-		G4ThreeVector position = GetParticlePosition();
-		G4ThreeVector direction = GetParticleMomentumDirection();
+		G4Event dummyEvent;
+		energy = Sample(&dummyEvent);
+		GeneratePrimaries(&dummyEvent);
+		G4PrimaryVertex *vertex = dummyEvent.GetPrimaryVertex(0);
+		G4ThreeVector position = vertex->GetPosition();
+		G4ThreeVector direction = vertex->GetPrimary()->GetMomentumDirection();	
+		energy = vertex->GetPrimary()->GetKineticEnergy();
+		theta = std::acos(unitX.dot(direction))*180/3.14159;
 		pos[0] = position.x();
 		pos[1] = position.y();
 		pos[2] = position.z();
@@ -445,9 +447,18 @@ bool nDetParticleSource::Test(const char *filename, const size_t &Nevents){
 	return true;
 }
 
-double nDetParticleSource::Sample(){
-	GeneratePrimaryVertex(&dummyEvent);
-	return GetParticleEnergy();
+double nDetParticleSource::Sample(G4Event *evt/*=NULL*/){
+	double retval;
+	if(evt == NULL){
+		G4Event dummyEvent;
+		GeneratePrimaryVertex(&dummyEvent);
+		retval = dummyEvent.GetPrimaryVertex(0)->GetPrimary()->GetKineticEnergy();
+	}
+	else{
+		GeneratePrimaryVertex(evt);
+		retval = evt->GetPrimaryVertex(0)->GetPrimary()->GetKineticEnergy();
+	}
+	return retval;
 }
 
 double nDetParticleSource::Print(const size_t &Nsamples/*=1*/){
@@ -476,15 +487,20 @@ double nDetParticleSource::Print(const size_t &Nsamples/*=1*/){
 }
 
 void nDetParticleSource::GeneratePrimaries(G4Event* anEvent){
-	/*if(useReaction){// || psource->getIsIsotropic()){ // Generate particles psuedo-isotropically
+	GeneratePrimaryVertex(anEvent);
+	if(useReaction || isotropic){ // Generate particles psuedo-isotropically
+		G4PrimaryVertex *vertex = anEvent->GetPrimaryVertex(0);
+		G4PrimaryParticle *particle = vertex->GetPrimary();
+		G4ThreeVector direction = particle->GetMomentumDirection();	
+	
 		// We don't really use a true isotropic source because that would be really slow.
 		// Generate a random point inside the volume of the detector in the frame of the detector.
 		G4ThreeVector vRxnDet;
 		if(useReaction && targThickness > 0){ // Use psuedo-realistic target energy loss.
 			double reactionDepth = targThickness*G4UniformRand();
-			G4ThreeVector reactionPoint = (-targThickness/2+reactionDepth)*dir;
+			G4ThreeVector reactionPoint = vertex->GetPosition()+(-targThickness/2+reactionDepth)*direction;
 			vRxnDet = detPos - reactionPoint;
-			particleSrc->SetParticlePosition(reactionPoint); // Set the reaction point inside the target.
+			vertex->SetPosition(reactionPoint.x(), reactionPoint.y(), reactionPoint.z()); // Set the reaction point inside the target.
 			particleRxn->SetEbeam(beamE0-targEnergyLoss*reactionDepth); // Set the energy of the projectile at the time of the reaction.
 			targTimeOffset = targTimeSlope*(reactionDepth - 0.5*targThickness); // Compute the global time offset due to the target.
 		}
@@ -501,20 +517,15 @@ void nDetParticleSource::GeneratePrimaries(G4Event* anEvent){
 		// Compute the direction of the particle emitted from the source.
 		G4ThreeVector dirPrime = vRxnDet + insideDet;
 		dirPrime *= (1/dirPrime.mag());
-		particleSrc->SetParticlePosition(sourceOrigin);
-		particleSrc->SetParticleMomentumDirection(dirPrime);
+		particle->SetMomentumDirection(dirPrime);
 		
 		// Compute the particle energy.
 		if(useReaction){
-			double theta = std::acos(dir.dot(dirPrime));
+			double theta = std::acos(direction.dot(dirPrime));
 			double energy = particleRxn->sample(theta);
-			particleSrc->SetParticleEnergy(energy);
+			particle->SetKineticEnergy(energy);
 		}
-		else{
-			//particleSrc->SetParticleEnergy(psource->sample());
-		}
-	}*/
-	GeneratePrimaryVertex(anEvent);
+	}
 }
 
 G4SingleParticleSource *nDetParticleSource::nextSource(){
