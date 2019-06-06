@@ -101,8 +101,7 @@ nDetRunAction::nDetRunAction(){
 	stepping = NULL;
 	
 	// Setup the particle source.
-	generator = new nDetPrimaryGeneratorAction();
-	source = generator->GetSource();
+	source = new nDetParticleSource();
 
 	baselineFraction = 0;
 	baselineJitterFraction = 0;

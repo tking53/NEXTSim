@@ -33,7 +33,7 @@ class nDetConstruction;
  *  low level via macro commands.
 */
 
-class nDetParticleSource : public G4GeneralParticleSource {
+class nDetParticleSource : public G4VUserPrimaryGeneratorAction, G4GeneralParticleSource {
   public:
 	/** Default constructor
 	  */
@@ -224,6 +224,11 @@ class nDetParticleSource : public G4GeneralParticleSource {
 	  */
 	double Print(const size_t &Nsamples=1);
 
+	/** Generate primary particles
+	  * @param anEvent Pointer to the current event
+	  */
+	virtual void GeneratePrimaries(G4Event* anEvent);
+
   protected:
 	nDetParticleSourceMessenger *fSourceMessenger; ///< Pointer to the messenger for this class
 	
@@ -281,35 +286,6 @@ class nDetParticleSource : public G4GeneralParticleSource {
 	  * @param src Pointer to the G4SingleParticleSource which will have its profile set
 	  */
 	void setBeamProfile(G4SingleParticleSource *src);
-};
-
-/*! \class nDetPrimaryGeneratorAction
- *  \brief Simple wrapper for G4VUserPrimaryGeneratorAction
- *  \author Cory R. Thornsberry (cthornsb@vols.utk.edu)
- *  \date June 5, 2019
-*/
-
-class nDetPrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction {
-  public:
-	/** Default constructor
-	  */
-	nDetPrimaryGeneratorAction() : G4VUserPrimaryGeneratorAction(), source(new nDetParticleSource()) { }
-
-	/** Destructor
-	  */
-	~nDetPrimaryGeneratorAction(){ delete source; }
-
-	/** Generate primary particles
-	  * @param anEvent Pointer to the current event
-	  */
-	virtual void GeneratePrimaries(G4Event* anEvent);
-
-	/** Get a pointer to the particle source
-	  */
-	nDetParticleSource *GetSource(){ return source; }
-	
-  private:
-	nDetParticleSource *source; ///< Pointer to the particle source
 };
 
 #endif

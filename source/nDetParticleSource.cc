@@ -29,7 +29,7 @@ const double cvac = 299.792458; // mm/ns
 // class nDetParticleSource
 ///////////////////////////////////////////////////////////////////////////////
 
-nDetParticleSource::nDetParticleSource(nDetConstruction *det/*=NULL*/) : G4GeneralParticleSource(), fSourceMessenger(NULL), dummyEvent(), 
+nDetParticleSource::nDetParticleSource(nDetConstruction *det/*=NULL*/) : G4VUserPrimaryGeneratorAction(), G4GeneralParticleSource(), fSourceMessenger(NULL), dummyEvent(), 
                                                                          unitX(1,0,0), unitY(0,1,0), unitZ(0,0,1), sourceOrigin(0,0,0), beamspotType(0), beamspot(0), beamspot0(0), 
                                                                          rot(), targThickness(0), targEnergyLoss(0), targTimeSlope(0), targTimeOffset(0), beamE0(0), useReaction(false), 
                                                                          particleRxn(NULL), detPos(), detSize(), detRot(), sourceIndex(0)
@@ -475,6 +475,48 @@ double nDetParticleSource::Print(const size_t &Nsamples/*=1*/){
 	return retval;
 }
 
+void nDetParticleSource::GeneratePrimaries(G4Event* anEvent){
+	/*if(useReaction){// || psource->getIsIsotropic()){ // Generate particles psuedo-isotropically
+		// We don't really use a true isotropic source because that would be really slow.
+		// Generate a random point inside the volume of the detector in the frame of the detector.
+		G4ThreeVector vRxnDet;
+		if(useReaction && targThickness > 0){ // Use psuedo-realistic target energy loss.
+			double reactionDepth = targThickness*G4UniformRand();
+			G4ThreeVector reactionPoint = (-targThickness/2+reactionDepth)*dir;
+			vRxnDet = detPos - reactionPoint;
+			particleSrc->SetParticlePosition(reactionPoint); // Set the reaction point inside the target.
+			particleRxn->SetEbeam(beamE0-targEnergyLoss*reactionDepth); // Set the energy of the projectile at the time of the reaction.
+			targTimeOffset = targTimeSlope*(reactionDepth - 0.5*targThickness); // Compute the global time offset due to the target.
+		}
+		else{
+			vRxnDet = detPos;
+		}
+		
+		// Get the vector from the center of the detector to a uniformly sampled point inside its volume.
+		G4ThreeVector insideDet((detSize.getX()/2)*(2*G4UniformRand()-1), (detSize.getY()/2)*(2*G4UniformRand()-1), (detSize.getZ()/2)*(2*G4UniformRand()-1));
+
+		// Transform to the frame of the detector.
+		insideDet *= detRot;
+
+		// Compute the direction of the particle emitted from the source.
+		G4ThreeVector dirPrime = vRxnDet + insideDet;
+		dirPrime *= (1/dirPrime.mag());
+		particleSrc->SetParticlePosition(sourceOrigin);
+		particleSrc->SetParticleMomentumDirection(dirPrime);
+		
+		// Compute the particle energy.
+		if(useReaction){
+			double theta = std::acos(dir.dot(dirPrime));
+			double energy = particleRxn->sample(theta);
+			particleSrc->SetParticleEnergy(energy);
+		}
+		else{
+			//particleSrc->SetParticleEnergy(psource->sample());
+		}
+	}*/
+	GeneratePrimaryVertex(anEvent);
+}
+
 G4SingleParticleSource *nDetParticleSource::nextSource(){
 	if(sourceIndex >= allSources.size()){ // Reset the counter
 		sourceIndex = 0;
@@ -548,50 +590,4 @@ void nDetParticleSource::setBeamProfile(G4SingleParticleSource *src){
 		pos->SetBeamSigmaInX(beamspot*fwhm2stddev);
 		pos->SetBeamSigmaInY(beamspot0*fwhm2stddev);
 	}
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// class nDetPrimaryGeneratorAction
-///////////////////////////////////////////////////////////////////////////////
-
-void nDetPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent){
-	/*if(useReaction){// || psource->getIsIsotropic()){ // Generate particles psuedo-isotropically
-		// We don't really use a true isotropic source because that would be really slow.
-		// Generate a random point inside the volume of the detector in the frame of the detector.
-		G4ThreeVector vRxnDet;
-		if(useReaction && targThickness > 0){ // Use psuedo-realistic target energy loss.
-			double reactionDepth = targThickness*G4UniformRand();
-			G4ThreeVector reactionPoint = (-targThickness/2+reactionDepth)*dir;
-			vRxnDet = detPos - reactionPoint;
-			particleSrc->SetParticlePosition(reactionPoint); // Set the reaction point inside the target.
-			particleRxn->SetEbeam(beamE0-targEnergyLoss*reactionDepth); // Set the energy of the projectile at the time of the reaction.
-			targTimeOffset = targTimeSlope*(reactionDepth - 0.5*targThickness); // Compute the global time offset due to the target.
-		}
-		else{
-			vRxnDet = detPos;
-		}
-		
-		// Get the vector from the center of the detector to a uniformly sampled point inside its volume.
-		G4ThreeVector insideDet((detSize.getX()/2)*(2*G4UniformRand()-1), (detSize.getY()/2)*(2*G4UniformRand()-1), (detSize.getZ()/2)*(2*G4UniformRand()-1));
-
-		// Transform to the frame of the detector.
-		insideDet *= detRot;
-
-		// Compute the direction of the particle emitted from the source.
-		G4ThreeVector dirPrime = vRxnDet + insideDet;
-		dirPrime *= (1/dirPrime.mag());
-		particleSrc->SetParticlePosition(sourceOrigin);
-		particleSrc->SetParticleMomentumDirection(dirPrime);
-		
-		// Compute the particle energy.
-		if(useReaction){
-			double theta = std::acos(dir.dot(dirPrime));
-			double energy = particleRxn->sample(theta);
-			particleSrc->SetParticleEnergy(energy);
-		}
-		else{
-			//particleSrc->SetParticleEnergy(psource->sample());
-		}
-	}*/
-	source->GeneratePrimaryVertex(anEvent);
 }
