@@ -32,7 +32,7 @@ const double cvac = 299.792458; // mm/ns
 nDetParticleSource::nDetParticleSource(nDetConstruction *det/*=NULL*/) : G4VUserPrimaryGeneratorAction(), G4GeneralParticleSource(), fSourceMessenger(NULL), 
                                                                          unitX(1,0,0), unitY(0,1,0), unitZ(0,0,1), sourceOrigin(0,0,0), beamspotType(0), beamspot(0), beamspot0(0), 
                                                                          rot(), targThickness(0), targEnergyLoss(0), targTimeSlope(0), targTimeOffset(0), beamE0(0), useReaction(false), 
-                                                                         particleRxn(NULL), detPos(), detSize(), detRot(), sourceIndex(0)
+                                                                         particleRxn(NULL), detPos(), detSize(), detRot(), sourceIndex(0), interpolationMethod("Lin")
 {
 	// Set the default particle source.
 	SetNeutronBeam(1.0); // Set a 1 MeV neutron beam by default
@@ -120,6 +120,8 @@ bool nDetParticleSource::SetSourceType(const G4String &str){
 	else if(typeName == "gamma")
 		SetGammaRayBeam(beamEnergy);
 	else if(typeName == "laser"){
+		if(beamEnergy == 1) // Default value
+			beamEnergy = 420; // nm
 		beamEnergy = coeff / beamEnergy; // Now in MeV
 		SetLaserBeam(beamEnergy);
 	}
@@ -169,8 +171,8 @@ void nDetParticleSource::SetBeamspotType(const G4String &str){
 
 void nDetParticleSource::SetEnergyLimits(const double &Elow_, const double &Ehigh_){
 	std::cout << " nDetParticleSource: Setting energy distribution sampling in the range " << Elow_ << " MeV to " << Ehigh_ << " MeV.\n";
-	GetCurrentSource()->GetEneDist()->SetEmin(Elow_);
-	GetCurrentSource()->GetEneDist()->SetEmax(Ehigh_);
+	GetCurrentSource()->GetEneDist()->SetEmin(Elow_*MeV);
+	GetCurrentSource()->GetEneDist()->SetEmax(Ehigh_*MeV);
 }
 
 void nDetParticleSource::SetDetector(const nDetConstruction *det){
@@ -183,17 +185,18 @@ void nDetParticleSource::Set252Cf(const size_t &size_/*=150*/, const double &ste
 	Reset(); // Should this always clear the source? CRT
 
 	G4SPSEneDistribution *ene = GetCurrentSource()->GetEneDist();
-	ene->SetEnergyDisType("User");
+	ene->SetEnergyDisType("Arb");
 
 	// First point is the low edge of the first energy bin
 	G4ThreeVector point(0, cf252(0), 0);
-	ene->UserEnergyHisto(point);
+	ene->ArbEnergyHisto(point);
 	
 	for(size_t i = 1; i < size_+1; i++){
 		point.setX(i*stepSize_*MeV);
 		point.setY(cf252(point.x()));
-		ene->UserEnergyHisto(point);
+		ene->ArbEnergyHisto(point);
 	}
+	ene->ArbInterpolate(interpolationMethod);
 }
 
 void nDetParticleSource::Set137Cs(){
@@ -293,7 +296,7 @@ bool nDetParticleSource::ReadEnergyFile(const char *filename){
 	}
 
 	G4SPSEneDistribution *ene = GetCurrentSource()->GetEneDist();
-	ene->SetEnergyDisType("User");
+	ene->SetEnergyDisType("Arb");
 	
 	double energy, val;
 	G4ThreeVector point;
@@ -302,8 +305,9 @@ bool nDetParticleSource::ReadEnergyFile(const char *filename){
 		if(ifile.eof()) break;
 		point.setX(energy*MeV);
 		point.setY(val);
-		ene->UserEnergyHisto(point);
+		ene->ArbEnergyHisto(point);
 	}
+	ene->ArbInterpolate(interpolationMethod);
 	
 	ifile.close();
 	return true;
@@ -358,6 +362,37 @@ bool nDetParticleSource::ReadReactionFile(const G4String &input){
 	GetCurrentSource()->SetParticleDefinition(G4Neutron::NeutronDefinition()); // Hard-coded neutrons for now CRT
 	
 	return retval;
+}
+
+bool nDetParticleSource::AddDiscreteEnergy(const G4String &str){
+	// Expects a space-delimited string of the form:
+	//  "<energy(keV)> [intensity] [particle]"
+	std::vector<std::string> args;
+	unsigned int Nargs = split_str(str, args);
+	if(Nargs < 1){
+		Display::ErrorPrint("Invalid number of arguments given to ::AddDiscreteEnergy().", "nDetParticleSource");
+		Display::ErrorPrint(" SYNTAX: addLevel <energy(keV)> [intensity] [particle]", "nDetParticleSource");
+		return false;
+	}
+	double energy = strtod(args.at(0).c_str(), NULL);
+	double intensity = 100;
+	if(Nargs >= 2) // Set the level intensity
+		intensity = strtod(args.at(1).c_str(), NULL);
+	G4ParticleDefinition *particle = NULL;
+	if(Nargs >= 3){ // Set the particle definition
+		if(args.at(2) == "neutron")
+			particle = G4Neutron::NeutronDefinition();
+		else if(args.at(2) == "gamma")
+			particle = G4Gamma::GammaDefinition();
+		else if(args.at(2) == "electron")
+			particle = G4Electron::ElectronDefinition();
+		else{
+			Display::ErrorPrint("User specified particle type that is not known to NEXTSim", "nDetParticleSource");
+			return false;
+		}
+	}
+	AddDiscreteEnergy(energy, intensity, particle);
+	return true;
 }
 
 void nDetParticleSource::AddDiscreteEnergy(const G4double &energy, const G4double &intensity, G4ParticleDefinition *particle/*=NULL*/){

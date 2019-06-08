@@ -48,8 +48,18 @@ void nDetParticleSourceMessenger::addAllCommands(){
 	addCommand(new G4UIcmdWithAString("/nDet/source/edist", this));
 	addGuidance("Read the source energy distribution from an ascii file");
 	
+	addCommand(new G4UIcmdWithAString("/nDet/source/addLevel", this));
+	addGuidance("Add a discrete energy level to the current source. SYNTAX: addLevel <energy(keV)> [intensity] [particle]");
+	
 	addCommand(new G4UIcmdWithAString("/nDet/source/test", this));
 	addGuidance("Simulate a specified number of events and write particle energies to an output file");
+
+	addCommand(new G4UIcmdWithoutParameter("/nDet/source/reset", this));
+	addGuidance("Reset the source and clear all defined energy levels");
+	
+	addCommand(new G4UIcmdWithAString("/nDet/source/inter", this));
+	addGuidance("Set the default interpolation method for user defined energy distributions");
+	addCandidates("Lin Log Exp Spline");
 }
 
 void nDetParticleSourceMessenger::SetNewChildValue(G4UIcommand* command, G4String newValue){ 
@@ -80,6 +90,15 @@ void nDetParticleSourceMessenger::SetNewChildValue(G4UIcommand* command, G4Strin
 		fAction->ReadEnergyFile(newValue);
 	}
 	else if(index == 10){
+		fAction->AddDiscreteEnergy(newValue);
+	}
+	else if(index == 11){
 		fAction->Test(newValue);
+	}
+	else if(index == 12){
+		fAction->Reset();
+	}
+	else if(index == 13){
+		fAction->SetInterpolationMethod(newValue);
 	}
 }

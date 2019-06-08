@@ -173,6 +173,11 @@ class nDetParticleSource : public G4VUserPrimaryGeneratorAction, G4GeneralPartic
 	  */	
 	void SetElectronBeam(const double &energy_);
 
+	/** Set the default interpolation method for energy distributions
+	  * @param method The G4SPSEneDistribution interpolation method to use
+	  */
+	void SetInterpolationMethod(const G4String &method){ interpolationMethod = method; }
+
 	/** Read an energy distribution from an ascii file
 	  * @param filename Path to an ascii file containing pairs of data [Energy(MeV), Intensity]
 	  * @return True if the file was read successfully and return false otherwise
@@ -184,6 +189,12 @@ class nDetParticleSource : public G4VUserPrimaryGeneratorAction, G4GeneralPartic
 	  * @return True if the file was read successfully and return false otherwise
 	  */
 	bool ReadReactionFile(const G4String &filename);
+
+	/** Add a new energy level to the current source spectrum
+	  * @param str Space-delimited string of the form: "<energy(keV)> [intensity] [particle]"
+	  * @return True if the energy level was added successfully and return false otherwise
+	  */
+	bool AddDiscreteEnergy(const G4String &str);
 
 	/** Add a new energy level to the current source spectrum
 	  * @param energy Energy of the transition (in keV)
@@ -262,6 +273,8 @@ class nDetParticleSource : public G4VUserPrimaryGeneratorAction, G4GeneralPartic
 	G4RotationMatrix detRot; ///< Rotation of the detector used for isotropic sources
 
 	size_t sourceIndex; ///< Current index in the vector of G4SingleParticleSources
+
+	G4String interpolationMethod; ///< Interpolation method to use for G4SPSEneDistribution class
 
 	std::vector <G4SingleParticleSource*> allSources; ///< Vector of all single particle sources (needed because G4GeneralParticleSource::sourceVector is private)
 
