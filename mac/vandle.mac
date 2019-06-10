@@ -49,7 +49,7 @@
 /nDet/output/trace/setRisetime 2
 /nDet/output/trace/setFalltime 20
 /nDet/output/trace/setTimeSpread 0.35
-/nDet/output/trace/setGain 2E4
+/nDet/output/trace/setGain 2E3
 /nDet/output/trace/setBaseline 7.5
 /nDet/output/trace/setJitter 0.15
 
@@ -69,9 +69,9 @@
 # Available source types: 137Cs 60Co 133Ba 241Am 90Sr 252Cf
 #/nDet/source/type 252Cf
 
-/nDet/source/beam neutron 1.00
-#/nDet/source/beam 60Co
-#/nDet/source/beam gamma 0.03
+/nDet/source/type neutron 1.00
+#/nDet/source/type 60Co
+#/nDet/source/type gamma 0.03
 
 #/nDet/source/spot 25
 #/nDet/source/spot 15
@@ -81,5 +81,5 @@
 # RUN CONTROL #
 ###############
 
-#/run/beamOn 50000
+/run/beamOn 10000
 

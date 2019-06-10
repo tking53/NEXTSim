@@ -59,7 +59,7 @@
 # Available source types: 137Cs 60Co 133Ba 241Am 90Sr 252Cf
 #/nDet/source/type 60Co
 #/nDet/source/iso true
-/nDet/source/beam neutron 1
+/nDet/source/type neutron 1
 #/nDet/source/spot 20
 
 ###############
