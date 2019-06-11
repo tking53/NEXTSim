@@ -6,7 +6,7 @@
 #include "nDetMasterOutputFileMessenger.hh"
 #include "nDetConstructionMessenger.hh"
 #include "nDetRunActionMessenger.hh"
-#include "ParticleSourceMessenger.hh"
+#include "nDetParticleSourceMessenger.hh"
 
 void help(char * prog_name_){
 	std::cout << "  SYNTAX: " << prog_name_ << " [str1 str2 ...]\n";
@@ -35,7 +35,7 @@ int main(int argc, char *argv[]){
 	nDetMasterOutputFileMessenger outputMessenger;
 	nDetConstructionMessenger constructionMessenger;
 	nDetRunActionMessenger runActionMessenger;
-	ParticleSourceMessenger sourceMessenger;
+	nDetParticleSourceMessenger sourceMessenger;
 
 	const size_t numMessengers = 4;
 	messengerHandler *handlers[numMessengers] = {&outputMessenger, &constructionMessenger, &runActionMessenger, &sourceMessenger};
