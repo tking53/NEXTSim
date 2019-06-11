@@ -217,9 +217,7 @@ void nDetConstruction::setSegmentedPmt(const short &col_, const short &row_, con
 	center[1].setSegmentedPmt(col_, row_, width_, height_);
 	nDetThreadContainer *container = &nDetThreadContainer::getInstance();
 	for(size_t index = 0; index < container->size(); index++){
-		nDetRunAction *runAction = container->getAction(index);
-		runAction->getCenterOfMassLeft()->setSegmentedPmt(col_, row_, width_, height_);
-		runAction->getCenterOfMassRight()->setSegmentedPmt(col_, row_, width_, height_);
+		container->getAction(index)->setSegmentedPmt(col_, row_, width_, height_);
 	}
 	std::cout << " nDetConstruction: Set segmented PMTs with WxH=(" << width_ << " x " << height_ << ") and " << col_ << " columns and " << row_ << " rows.\n";
 }
@@ -231,9 +229,7 @@ bool nDetConstruction::setPmtSpectralResponse(const char *fname){
 	}
 	nDetThreadContainer *container = &nDetThreadContainer::getInstance();
 	for(size_t index = 0; index < container->size(); index++){
-		nDetRunAction *runAction = container->getAction(index);
-		runAction->getCenterOfMassLeft()->copySpectralResponse(&center[0]);
-		runAction->getCenterOfMassRight()->copySpectralResponse(&center[1]);
+		container->getAction(index)->setPmtSpectralResponse(&center[0], &center[1]);
 	}
 	std::cout << " nDetConstruction: Successfully loaded PMT spectral response function\n";
 	return true;
@@ -246,9 +242,7 @@ bool nDetConstruction::setPmtGainMatrix(const char *fname){
 	}
 	nDetThreadContainer *container = &nDetThreadContainer::getInstance();
 	for(size_t index = 0; index < container->size(); index++){
-		nDetRunAction *runAction = container->getAction(index);
-		runAction->getCenterOfMassLeft()->copyGainMatrix(&center[0]);
-		runAction->getCenterOfMassRight()->copyGainMatrix(&center[1]);
+		container->getAction(index)->setPmtGainMatrix(&center[0], &center[1]);
 	}
 	std::cout << " nDetConstruction: Successfully loaded PMT anode gain matrix\n";
 	return true;
@@ -810,7 +804,6 @@ void nDetConstruction::buildModule(){
 	constructAssembly(assemblyBoundingBox);
 
 	// Update the detector's number of rows and columns.
-	currentDetector->setParentCopyNumber(userDetectors.size()-1);
 	currentDetector->setSegmentedDetector(fNumColumns, fNumRows, scintCopyNum);
 
     // Construct the scintillator cell
@@ -1030,6 +1023,9 @@ G4LogicalVolume *nDetConstruction::constructAssembly(G4ThreeVector &boundingBox)
 	currentDetector->setPositionAndRotation(detectorPosition, detectorRotation);
 	currentDetector->setCurrentOffset(currentLayerSizeX, currentLayerSizeY, currentOffsetZ);
 
+	// Update the detector's copy numbers.
+	currentDetector->setParentCopyNumber(userDetectors.size()-1);
+
 	boundingBox = G4ThreeVector(assemblyWidth, assemblyThickness, assemblyLength);
 
 	return currentAssembly;
@@ -1044,7 +1040,7 @@ void nDetConstruction::constructPSPmts(){
 
 	G4int leftSideCopyNum = currentDetector->getLeftPmtCopyNumber();
 	G4int rightSideCopyNum = currentDetector->getRightPmtCopyNumber();
-	
+
 	// The optical grease layer.
 	G4PVPlacement *grease_physV[2] = {NULL, NULL};
 	if(fGreaseThickness > 0){

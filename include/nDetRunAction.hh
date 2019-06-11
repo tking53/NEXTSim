@@ -94,17 +94,23 @@ class nDetRunAction : public G4UserRunAction
 	
 	bool toggleVerboseMode(){ return (verbose = !verbose); }
 	
-	centerOfMass *getCenterOfMassLeft(){ return &cmL; }
+    void setSegmentedPmt(const short &col_, const short &row_, const double &width_, const double &height_);
+
+    void setPmtSpectralResponse(centerOfMass *left, centerOfMass *right);
+
+	void setPmtGainMatrix(centerOfMass *left, centerOfMass *right);
+	
+	std::vector<centerOfMass> *getCenterOfMassLeft(){ return &cmL; }
 	  
-	centerOfMass *getCenterOfMassRight(){ return &cmR; }
+	std::vector<centerOfMass> *getCenterOfMassRight(){ return &cmR; }
 
-	pmtResponse *getPmtResponseLeft(){ return cmL.getPmtResponse();	}
+	pmtResponse *getPmtResponseLeft(const size_t &index=0){ return cmL.at(index).getPmtResponse();	}
 
-	pmtResponse *getPmtResponseRight(){	return cmR.getPmtResponse(); }
+	pmtResponse *getPmtResponseRight(const size_t &index=0){	return cmR.at(index).getPmtResponse(); }
 
-	pmtResponse *getAnodeResponseLeft(){ return cmL.getAnodeResponse();	}
+	pmtResponse *getAnodeResponseLeft(const size_t &index=0){ return cmL.at(index).getAnodeResponse();	}
 
-	pmtResponse *getAnodeResponseRight(){ return cmR.getAnodeResponse(); }
+	pmtResponse *getAnodeResponseRight(const size_t &index=0){ return cmR.at(index).getAnodeResponse(); }
 	
 	nDetRunActionMessenger *getMessenger(){ return fActionMessenger; }
 
@@ -112,7 +118,7 @@ class nDetRunAction : public G4UserRunAction
     
     unsigned long long getNumPhotonsDet() const { return numPhotonsDetTotal; }
 
-	void updateDetector(const nDetConstruction *det);
+	void updateDetector(nDetConstruction *det);
 
 	G4int checkCopyNumber(const G4int &num) const ;
 
@@ -161,8 +167,9 @@ class nDetRunAction : public G4UserRunAction
 
 	photonCounter *counter; ///< Counter used to record the total number of optical photons produced by scattering
 
-	centerOfMass cmL; ///< Object used to compute the optical photon detection center-of-mass for the left PMT
-	centerOfMass cmR; ///< Object used to compute the optical photon detection center-of-mass for the right PMT
+	std::vector<centerOfMass> cmL; ///< Object used to compute the optical photon detection center-of-mass for the left PMT
+	std::vector<centerOfMass> cmR; ///< Object used to compute the optical photon detection center-of-mass for the right PMT
+	std::vector<int> cmCounts; ///< Vector of optical photon counts for all defined detectors
 
     unsigned long long numPhotonsTotal; ///< Total number of simulated optical photons (thread-local)
     unsigned long long numPhotonsDetTotal; ///< Total number of detected optical photons (thread-local)

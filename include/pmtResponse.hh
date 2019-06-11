@@ -124,11 +124,11 @@ class pmtResponse{
 
 	/** Get a pointer to the raw light pulse array
 	  */
-	double *getRawPulse(){ return rawPulse; }
+	double *getRawPulse(){ return rawPulse.data(); }
 	
 	/** Get a pointer to the digitized pulse array
 	  */
-	unsigned short *getDigitizedPulse(){ return pulseArray; }
+	unsigned short *getDigitizedPulse(){ return pulseArray.data(); }
 
 	/** Return true if the digitized pulse is saturated and return false otherwise
 	  */
@@ -314,9 +314,9 @@ class pmtResponse{
 	bool useSpectralResponse; ///< Flag indicating that PMT anode quantum efficiency spectrum should be used to compute anode gain
 	bool pulseIsSaturated; ///< Flag indicating that the digitized pulse has exceeded the maximum ADC dynamic range
 	
-	double *rawPulse; ///< Array to store un-digitized raw light response pulse
+	std::vector<double> rawPulse; ///< Array to store un-digitized raw light response pulse
 
-	unsigned short *pulseArray; ///< Array to store digitized light response pulse
+	std::vector<unsigned short> pulseArray; ///< Array to store digitized light response pulse
 
 	spectralResponse spec; ///< Anode quantum efficiency
 

@@ -106,21 +106,17 @@ void spectralResponse::close(){
 
 pmtResponse::pmtResponse() : risetime(4.0), falltime(20.0), timeSpread(0), traceDelay(50), gain(1E4),
                              maximum(-9999), baseline(-9999), maxIndex(0), adcBins(4096), pulseLength(100), isDigitized(false), useSpectralResponse(false), 
-                             pulseIsSaturated(false), rawPulse(NULL), pulseArray(NULL), spec(), minimumArrivalTime(0), functionType(0) {
+                             pulseIsSaturated(false), rawPulse(), pulseArray(), spec(), minimumArrivalTime(0), functionType(0) {
 	this->setPulseLength(pulseLength);
 }
 
 pmtResponse::pmtResponse(const double &risetime_, const double &falltime_) : risetime(risetime_), falltime(falltime_), timeSpread(0), traceDelay(50), gain(1E4),
                                                                              maximum(-9999), baseline(-9999), maxIndex(0), adcBins(4096), pulseLength(100), isDigitized(false), useSpectralResponse(false), 
-                                                                             pulseIsSaturated(false), rawPulse(NULL), pulseArray(NULL), spec(), minimumArrivalTime(0), functionType(0) {
+                                                                             pulseIsSaturated(false), rawPulse(), pulseArray(), spec(), minimumArrivalTime(0), functionType(0) {
 	this->setPulseLength(pulseLength);
 }
 
 pmtResponse::~pmtResponse(){
-	if(pulseLength > 0){
-		delete[] rawPulse;
-		delete[] pulseArray;
-	}
 }
 
 /// Return the gain-weighted arrival time of the photon pulse.
@@ -145,13 +141,9 @@ void pmtResponse::setFalltime(const double &falltime_){
 
 /// Set the length of the pulse in ADC bins.
 void pmtResponse::setPulseLength(const size_t &len){
-	if(pulseLength > 0){
-		delete[] rawPulse;
-		delete[] pulseArray;
-	}
 	pulseLength = len;
-	rawPulse = new double[len];
-	pulseArray = new unsigned short[len];
+	rawPulse = std::vector<double>(pulseLength, 0);
+	pulseArray = std::vector<unsigned short>(pulseLength, 0);
 	this->clear();
 }
 
@@ -232,7 +224,7 @@ void pmtResponse::digitize(const double &baseline_/*=0*/, const double &jitter_/
 
 /// Integrate the baseline corrected trace for QDC in the range [start_, stop_] and return the result.
 double pmtResponse::integratePulse(const size_t &start_/*=0*/, const size_t &stop_/*=0*/){
-	if(pulseLength == 0 || !pulseArray) return -9999;
+	if(pulseLength == 0 || pulseArray.empty()) return -9999;
 	size_t stop = (stop_ == 0?pulseLength:stop_);
 
 	// Check for start index greater than stop index.
@@ -255,7 +247,7 @@ double pmtResponse::integratePulseFromMaximum(const short &start_/*=5*/, const s
 
 /// Perform traditional CFD analysis on the waveform.
 double pmtResponse::analyzeCFD(const double &F_/*=0.5*/, const size_t &D_/*=1*/, const size_t &L_/*=1*/){
-	if(pulseLength == 0 || !pulseArray) return -9999;
+	if(pulseLength == 0 || pulseArray.empty()) return -9999;
 	double cfdMinimum = 9999;
 	size_t cfdMinIndex = 0;
 	
@@ -294,7 +286,7 @@ double pmtResponse::analyzeCFD(const double &F_/*=0.5*/, const size_t &D_/*=1*/,
 
 /// Perform polynomial CFD analysis on the waveform.
 double pmtResponse::analyzePolyCFD(const double &F_/*=0.5*/){
-	if(pulseLength == 0 || !pulseArray) return -9999;
+	if(pulseLength == 0 || pulseArray.empty()) return -9999;
 	if(maximum <= 0 && findMaximum() <= 0) return -9999;
 
 	double threshold = F_*maximum + baseline;
@@ -448,7 +440,7 @@ double pmtResponse::eval(const double &t, const double &dt/*=0*/){
 }
 
 double pmtResponse::findMaximum(){
-	if(pulseLength == 0 || !pulseArray) return -9999;
+	if(pulseLength == 0 || pulseArray.empty()) return -9999;
 
 	// Find the baseline.
 	double tempbaseline = 0.0;

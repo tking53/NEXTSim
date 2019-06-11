@@ -178,9 +178,39 @@ void nDetRunAction::EndOfRunAction(const G4Run* aRun)
 	G4cout << "number of event = " << aRun->GetNumberOfEvent() << " " << *timer << G4endl;
 }
 
-void nDetRunAction::updateDetector(const nDetConstruction *det){
+void nDetRunAction::setSegmentedPmt(const short &col_, const short &row_, const double &width_, const double &height_){
+	for(std::vector<centerOfMass>::iterator iterL = cmL.begin(), iterR = cmR.begin(); iterL != cmL.end() && iterR != cmR.end(); iterL++, iterR++){
+		iterL->setSegmentedPmt(col_, row_, width_, height_);
+		iterR->setSegmentedPmt(col_, row_, width_, height_);
+	}
+}
+
+void nDetRunAction::setPmtSpectralResponse(centerOfMass *left, centerOfMass *right){
+	for(std::vector<centerOfMass>::iterator iterL = cmL.begin(), iterR = cmR.begin(); iterL != cmL.end() && iterR != cmR.end(); iterL++, iterR++){
+		iterL->copySpectralResponse(left);
+		iterR->copySpectralResponse(right);
+	}
+}
+
+void nDetRunAction::setPmtGainMatrix(centerOfMass *left, centerOfMass *right){
+	for(std::vector<centerOfMass>::iterator iterL = cmL.begin(), iterR = cmR.begin(); iterL != cmL.end() && iterR != cmR.end(); iterL++, iterR++){
+		iterL->copyGainMatrix(left);
+		iterR->copyGainMatrix(right);
+	}
+}
+
+void nDetRunAction::updateDetector(nDetConstruction *det){
 	source->SetDetector(det);
 	userDetectors = det->GetUserDetectors();
+	cmL.clear();
+	cmR.clear();
+	cmL.reserve(userDetectors.size());
+	cmR.reserve(userDetectors.size());
+	for(std::vector<userAddDetector>::iterator iter = userDetectors.begin(); iter != userDetectors.end(); iter++){ // Link the PMTs to the detectors
+		cmL.push_back(centerOfMass());
+		cmR.push_back(centerOfMass());
+		iter->setCenterOfMass(&cmL.back(), &cmR.back());
+	}
 }
 
 G4int nDetRunAction::checkCopyNumber(const G4int &num) const {
@@ -208,9 +238,16 @@ void nDetRunAction::process(){
 			data.Nphotons.push_back(counter->getPhotonCount(i));
 	}
 
+	// Compute the multiplicity of this event
+	unsigned short multiplicity = 0;
+	for(std::vector<centerOfMass>::iterator iterL = cmL.begin(), iterR = cmR.begin(); iterL != cmL.end() && iterR != cmR.end(); iterL++, iterR++){
+		if(iterL->getNumDetected() + iterR->getNumDetected() > 0)
+			multiplicity++;
+	}
+
 	// Get the number of detected photons
-	data.nPhotonsDet[0] = cmL.getNumDetected();
-	data.nPhotonsDet[1] = cmR.getNumDetected();
+	data.nPhotonsDet[0] = cmL.back().getNumDetected();
+	data.nPhotonsDet[1] = cmR.back().getNumDetected();
 	data.nPhotonsDetTot = data.nPhotonsDet[0]+data.nPhotonsDet[1];
 
 	// Compute the photon detection efficiency
@@ -225,21 +262,21 @@ void nDetRunAction::process(){
 		data.goodEvent = true;
 
 	// Get the photon center-of-mass positions
-	G4ThreeVector centerL = cmL.getCenter();
-	G4ThreeVector centerR = cmR.getCenter();
+	G4ThreeVector centerL = cmL.back().getCenter();
+	G4ThreeVector centerR = cmR.back().getCenter();
 	data.photonDetCenterOfMassX[0] = centerL.getX(); data.photonDetCenterOfMassX[1] = centerR.getX(); 
 	data.photonDetCenterOfMassY[0] = centerL.getY(); data.photonDetCenterOfMassY[1] = centerR.getY(); 
 	data.photonDetCenterOfMassZ[0] = centerL.getZ(); data.photonDetCenterOfMassZ[1] = centerR.getZ(); 
 
 	// Get photon arrival times at the PMTs
-	data.photonMinArrivalTime[0] = cmL.getMinArrivalTime();
-	data.photonAvgArrivalTime[0] = cmL.getAvgArrivalTime();
+	data.photonMinArrivalTime[0] = cmL.back().getMinArrivalTime();
+	data.photonAvgArrivalTime[0] = cmL.back().getAvgArrivalTime();
 
-	data.photonMinArrivalTime[1] = cmR.getMinArrivalTime();
-	data.photonAvgArrivalTime[1] = cmR.getAvgArrivalTime();
+	data.photonMinArrivalTime[1] = cmR.back().getMinArrivalTime();
+	data.photonAvgArrivalTime[1] = cmR.back().getAvgArrivalTime();
 
-	pmtResponse *pmtL = cmL.getPmtResponse();
-	pmtResponse *pmtR = cmR.getPmtResponse();
+	pmtResponse *pmtL = cmL.back().getPmtResponse();
+	pmtResponse *pmtR = cmR.back().getPmtResponse();
 
 	// "Digitize" the light pulses.
 	pmtL->digitize(baselineFraction, baselineJitterFraction);
@@ -294,8 +331,8 @@ void nDetRunAction::process(){
 	}
 
 	// Get the digitizer response of the anodes.
-	pmtResponse *anodeResponseL = cmL.getAnodeResponse();
-	pmtResponse *anodeResponseR = cmR.getAnodeResponse();
+	pmtResponse *anodeResponseL = cmL.back().getAnodeResponse();
+	pmtResponse *anodeResponseR = cmR.back().getAnodeResponse();
 
 	// Digitize anode waveforms and integrate.
 	float anodeQDC[2][4];
@@ -357,8 +394,8 @@ void nDetRunAction::process(){
 	data.barMaxADC = std::sqrt(data.pulseMax[0]*data.pulseMax[1]);
 
 	// Get the segment of the detector where the photon CoM occurs.
-	cmL.getCenterSegment(data.centerOfMassColumn[0], data.centerOfMassRow[0]);
-	cmR.getCenterSegment(data.centerOfMassColumn[1], data.centerOfMassRow[1]);
+	cmL.back().getCenterSegment(data.centerOfMassColumn[0], data.centerOfMassRow[0]);
+	cmR.back().getCenterSegment(data.centerOfMassColumn[1], data.centerOfMassRow[1]);
 	
 	// Write the data (mutex protected, thread safe).
 	nDetMasterOutputFile::getInstance().fillBranch(data); // The master output file is a singleton class.
@@ -368,8 +405,10 @@ void nDetRunAction::process(){
 	numPhotonsDetTotal += data.nPhotonsDet[0]+data.nPhotonsDet[1];
 	
 	// Clear all statistics.
-	cmL.clear();
-	cmR.clear();
+	for(std::vector<centerOfMass>::iterator iterL = cmL.begin(), iterR = cmR.begin(); iterL != cmL.end() && iterR != cmR.end(); iterL++, iterR++){
+		iterL->clear();
+		iterR->clear();
+	}
 	data.clear();
 	
 	if(stacking) stacking->Reset();
@@ -398,11 +437,16 @@ bool nDetRunAction::AddDetectedPhoton(const G4Step *step, const double &mass/*=1
 	bool foundMatch=false, isLeft;
 	G4ThreeVector *detPos;
 	G4RotationMatrix *detRot;
+	centerOfMass *hitDetPmtL;
+	centerOfMass *hitDetPmtR;
 	for(std::vector<userAddDetector>::iterator iter = userDetectors.begin(); iter != userDetectors.end(); iter++){
 		if(iter->checkPmtCopyNumber(copyNum, isLeft)){
 			foundMatch = true;
 			detPos = iter->getPosition();
 			detRot = iter->getRotation();
+			hitDetPmtL = iter->getCenterOfMassL();
+			hitDetPmtR = iter->getCenterOfMassR();
+			break;
 		}
 	}
 	
@@ -417,10 +461,10 @@ bool nDetRunAction::AddDetectedPhoton(const G4Step *step, const double &mass/*=1
 	position = (*detRot)*position;
 	
 	if(isLeft){
-		if(cmL.addPoint(energy, time, position, mass))
+		if(hitDetPmtL->addPoint(energy, time, position, mass))
 			return true;
 	}
-	if(cmR.addPoint(energy, time, position, mass))
+	if(hitDetPmtR->addPoint(energy, time, position, mass))
 		return true;
 	return false;
 }
