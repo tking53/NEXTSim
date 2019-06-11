@@ -90,6 +90,8 @@ class nDetRunAction : public G4UserRunAction
 	
 	void setPrintTrace(const bool &enabled){ printTrace = enabled; }
 	
+	void setOutputDebug(const bool &enabled){ outputDebug = enabled; }
+	
 	bool toggleVerboseMode(){ return (verbose = !verbose); }
 	
 	centerOfMass *getCenterOfMassLeft(){ return &cmL; }

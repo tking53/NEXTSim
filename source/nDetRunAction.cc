@@ -10,6 +10,7 @@
 #include "G4Timer.hh"
 #include "G4Run.hh"
 
+#include "nDetThreadContainer.hh"
 #include "nDetRunAction.hh"
 #include "nDetEventAction.hh"
 #include "nDetStackingAction.hh"
@@ -149,6 +150,16 @@ void nDetRunAction::BeginOfRunAction(const G4Run* aRun)
 	G4cout << "nDetRunAction::BeginOfRunAction()->"<< G4endl;
 	G4cout << "### Run " << aRun->GetRunID() << " start." << G4endl; 
 	timer->Start();
+
+	if(outputDebug && userDetectors.size() > 1){ // Check for output debug mode with multiple detectors
+		Display::WarningPrint("Debug output is not supported for more than one detector!", "nDetRunAction");
+		Display::WarningPrint(" Disabling output debug mode.", "nDetRunAction");
+		nDetMasterOutputFile::getInstance().setOutputDebug((outputDebug = false));
+		nDetThreadContainer *container = &nDetThreadContainer::getInstance();
+		for(size_t index = 0; index < container->size(); index++){ // Disable for all other threads
+			container->getAction(index)->setOutputDebug(false);
+		}
+	}
 
 	// Open a root file.
 	nDetMasterOutputFile::getInstance().openRootFile(aRun); // The master output file is a singleton class.
