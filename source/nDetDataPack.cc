@@ -1,6 +1,7 @@
 #include "nDetDataPack.hh"
 
 void nDetDataPack::clear(){
+	multiplicity = 0;
 	nScatters = 0;
 	nPhotonsTot = 0;
 	nPhotonsDet[0] = 0;

@@ -153,6 +153,7 @@ bool nDetMasterOutputFile::openRootFile(const G4Run* aRun){
 #endif
 	if(persistentMode) // Run number
 		fTree->Branch("runNb", &data.runNb);
+	fTree->Branch("multiplicity", &data.multiplicity);
 	fTree->Branch("nScatters", &data.nScatters);
 	fTree->Branch("nDepEnergy", &data.depEnergy);
 	fTree->Branch("nInitEnergy", &data.initEnergy);

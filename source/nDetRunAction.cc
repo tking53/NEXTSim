@@ -239,10 +239,9 @@ void nDetRunAction::process(){
 	}
 
 	// Compute the multiplicity of this event
-	unsigned short multiplicity = 0;
 	for(std::vector<centerOfMass>::iterator iterL = cmL.begin(), iterR = cmR.begin(); iterL != cmL.end() && iterR != cmR.end(); iterL++, iterR++){
 		if(iterL->getNumDetected() + iterR->getNumDetected() > 0)
-			multiplicity++;
+			data.multiplicity++;
 	}
 
 	// Get the number of detected photons

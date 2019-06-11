@@ -15,6 +15,7 @@ class nDetDataPack{
 	int eventID; ///< Geant event ID number
 	short threadID; ///< Geant thread ID number for multithreading
 	short runNb; ///< Geant run number
+	short multiplicity; ///< Multiplicity of the event (for multiple detectors)
 
 	// Normal neutron output.
 	short nScatters; ///< Number of primary particle scatters
