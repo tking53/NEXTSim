@@ -33,7 +33,7 @@ void nDetParticleSourceMessenger::addAllCommands(){
 
 	addCommand(new G4UIcmdWithAString("/nDet/source/shape", this)); // beamspot shape type
 	addGuidance("Set the shape of the beamspot");
-	addCandidates("circle annulus ellipse square rectangle vertical horizontal gauss");
+	addCandidates("point circle annulus ellipse square rectangle vertical horizontal gauss");
 
 	addCommand(new G4UIcmdWithAString("/nDet/source/iso", this));
 	addGuidance("Set the source to psuedo-isotropic mode");
