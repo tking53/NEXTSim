@@ -56,6 +56,9 @@ option(GEANT4_UIVIS "Build example with Geant4 UI and Vis drivers" ON)
 
 #------------------------------------------------------------------------------
 
+#Set the name of the dictionary
+set(DICTIONARY_PREFIX "nDetEvent" CACHE STRING "Prefix to root dictionary.")
+
 #Find required packages.
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules/")
 
@@ -77,6 +80,10 @@ set(TOP_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
 #Add the include directories.
 include(${Geant4_USE_FILE})
 include_directories(include)
+include_directories(dict/include)
+
+#Add the root dictionary directory.
+add_subdirectory(dict)
 
 #Add the source directories.
 add_subdirectory(source)

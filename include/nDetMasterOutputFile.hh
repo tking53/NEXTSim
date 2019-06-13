@@ -4,6 +4,7 @@
 #include <mutex>
 
 #include "centerOfMass.hh"
+#include "Structures.hpp"
 #include "nDetDataPack.hh"
 
 class G4Run;
@@ -54,6 +55,11 @@ class nDetMasterOutputFile{
 
 	void setDisplayTimeInterval(const int &interval){ displayTimeInterval = interval; }
 
+	/** Set output mode for multiple detectors
+	  * @param enabled Flag indicating that there is more than one detector in the setup
+	  */
+	void setMultiDetectorMode(const bool &enabled){ singleDetectorMode = !enabled; }
+
 	bool writeInfoToFile(const std::string &name, const std::string &value);
 
 	bool toggleVerboseMode(){ return (verbose = !verbose); }
@@ -85,8 +91,17 @@ class nDetMasterOutputFile{
 	bool outputDebug; ///< Flag indicating that low-level scattering information will be written to the output tree
 	bool outputBadEvents; ///< Flag indicating that invalid detection events will be written to the output tree
 	bool overwriteExistingFile; ///< Flag indicating that files with matching filenames will be overwritten
+	bool singleDetectorMode; ///< Flag indicating that there is only one detector in the setup
 
-	nDetDataPack data; ///< Data structure used for filling event data into the output TTree
+	nDetEventStructure *evtData;
+	nDetOutputStructure *outData;
+	nDetMultiOutputStructure *multData;
+	nDetDebugStructure *debugData;
+
+	TBranch *evtBranch;
+	TBranch *outBranch;
+	TBranch *multBranch;
+	TBranch *debugBranch;
 
     G4Timer *timer; ///< Geant timer used to measure time between successive status updates
     

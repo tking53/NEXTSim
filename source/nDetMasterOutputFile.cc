@@ -38,6 +38,12 @@ nDetMasterOutputFile::nDetMasterOutputFile(){
 	outputTraces = false;
 	outputDebug = false;
 	outputBadEvents = false;
+	singleDetectorMode = true;
+
+	evtBranch = NULL;
+	outBranch = NULL;
+	multBranch = NULL;
+	debugBranch = NULL;
 
 	runIndex = 1;
 	fFile = NULL;
@@ -57,11 +63,21 @@ nDetMasterOutputFile::nDetMasterOutputFile(){
 	fMessenger = new nDetMasterOutputFileMessenger(this); 
 
 	overwriteExistingFile = false;
+	
+	evtData = new nDetEventStructure();
+	outData = new nDetOutputStructure();
+	multData = new nDetMultiOutputStructure();
+	debugData = new nDetDebugStructure();
 }
 
 nDetMasterOutputFile::~nDetMasterOutputFile(){
 	// Close the root file, if it's still open.
 	closeRootFile();
+	
+	delete evtData;
+	delete outData;
+	delete multData;
+	delete debugData;
 	
 	delete fMessenger;
 	delete timer;
@@ -148,77 +164,15 @@ bool nDetMasterOutputFile::openRootFile(const G4Run* aRun){
 	if(treename.empty()) treename = "data"; //"neutronEvent";
 	fTree = new TTree(treename.c_str(),"Photons produced by thermal neutrons");
 
-#ifdef USE_MULTITHREAD
-	fTree->Branch("threadID", &data.threadID);
-#endif
-	if(persistentMode) // Run number
-		fTree->Branch("runNb", &data.runNb);
-	fTree->Branch("multiplicity", &data.multiplicity);
-	fTree->Branch("nScatters", &data.nScatters);
-	fTree->Branch("nDepEnergy", &data.depEnergy);
-	fTree->Branch("nInitEnergy", &data.initEnergy);
-	fTree->Branch("nAbsorbed", &data.nAbsorbed);
-	fTree->Branch("nPhotonsTot", &data.nPhotonsTot);
-	fTree->Branch("nPhotonsDet", &data.nPhotonsDetTot);
-
-	if(outputDebug){ // Output extra neutron scattering information (off by default).
-		fTree->Branch("nEnterPosX", &data.neutronIncidentPositionX);
-		fTree->Branch("nEnterPosY", &data.neutronIncidentPositionY);
-		fTree->Branch("nEnterPosZ", &data.neutronIncidentPositionZ);
-		fTree->Branch("nExitPosX", &data.neutronExitPositionX);
-		fTree->Branch("nExitPosY", &data.neutronExitPositionY);
-		fTree->Branch("nExitPosZ", &data.neutronExitPositionZ);
-		fTree->Branch("nComX", &data.neutronCenterOfMass[0]);
-		fTree->Branch("nComY", &data.neutronCenterOfMass[1]);
-		fTree->Branch("nComZ", &data.neutronCenterOfMass[2]);		
-		fTree->Branch("nFirstScatterTime", &data.nTimeToFirstScatter);
-		fTree->Branch("nFirstScatterLen", &data.nLengthToFirstScatter);		
-		fTree->Branch("nEnterTime", &data.incidentTime);
-		fTree->Branch("nTimeInMat", &data.timeInMaterial);		
-		fTree->Branch("nScatterX", &data.nScatterX);
-		fTree->Branch("nScatterY", &data.nScatterY);
-		fTree->Branch("nScatterZ", &data.nScatterZ);
-		fTree->Branch("nScatterAngle", &data.nScatterAngle);
-		fTree->Branch("nPathLength", &data.nPathLength);
-		fTree->Branch("nScatterTime", &data.scatterTime);
-		fTree->Branch("impartedE", &data.impartedE);
-		fTree->Branch("segmentCol", &data.segmentCol);
-		fTree->Branch("segmentRow", &data.segmentRow);
-		fTree->Branch("photonsProd", &data.Nphotons);
-		fTree->Branch("recoilMass", &data.recoilMass);
-		fTree->Branch("nScatterScint", &data.nScatterScint);
+	// Add the branches
+	evtBranch = fTree->Branch("event", evtData);
+	if(singleDetectorMode){
+		outBranch = fTree->Branch("output", outData);
+		if(outputDebug)
+			debugBranch = fTree->Branch("debug", debugData);
 	}
-	
-	fTree->Branch("lightBalance", &data.photonLightBalance);
-	fTree->Branch("photonDetEff", &data.photonDetEfficiency);
-	fTree->Branch("barTOF", &data.barTOF);
-	fTree->Branch("barQDC", &data.barQDC);
-	fTree->Branch("barMaxADC", &data.barMaxADC);
-	fTree->Branch("goodEvent", &data.goodEvent);
-	fTree->Branch("pulsePhase[2]", data.pulsePhase);
-	fTree->Branch("photonComX[2]", data.photonDetCenterOfMassX);
-	fTree->Branch("photonComY[2]", data.photonDetCenterOfMassY);
-	fTree->Branch("reconComX[2]", data.reconstructedCenterX);
-	fTree->Branch("reconComY[2]", data.reconstructedCenterY);
-	fTree->Branch("photonComCol[2]", data.centerOfMassColumn);
-	fTree->Branch("photonComRow[2]", data.centerOfMassRow);
-
-	if(outputDebug){ // Output extra photon information (off by default).
-		fTree->Branch("nPhotons[2]", data.nPhotonsDet);
-		fTree->Branch("photonMinTime[2]", data.photonMinArrivalTime);
-		fTree->Branch("photonAvgTime[2]", data.photonAvgArrivalTime);		
-		fTree->Branch("pulseQDC[2]", data.pulseQDC);
-		fTree->Branch("pulseMax[2]", data.pulseMax);
-		fTree->Branch("pulseMaxTime[2]", data.pulseMaxTime);
-		fTree->Branch("pulseArrival[2]", data.pulseWeightedArrival);
-		fTree->Branch("detSpdLight", &data.detSpeedLight);
-		fTree->Branch("anodePhase", data.anodePhase, "anodePhase[2][4]/F");
-	}
-
-	if(outputTraces){ // Add the lilght pulses to the output tree.
-			fTree->Branch("lightPulseL", &data.lightPulseL);
-			fTree->Branch("lightPulseR", &data.lightPulseR);
-	}
+	else
+		multBranch = fTree->Branch("output", multData);
 
 	std::cout << "nDetMasterOutputFile: File " << fFile->GetName() << " opened." << std::endl;
 	
@@ -226,7 +180,7 @@ bool nDetMasterOutputFile::openRootFile(const G4Run* aRun){
 	timer->Start();
 	
 	return true;
-}//end of open root file...
+}
 
 bool nDetMasterOutputFile::closeRootFile(){
 	// Close the root file.
@@ -246,17 +200,17 @@ bool nDetMasterOutputFile::fillBranch(const nDetDataPack &pack){
 	// Enable the mutex lock to protect file access.
 	fileLock.lock();
 
-	// Copy the event data.
-	this->data = pack;
+	// Copy the data
+	pack.copyData(evtData, outData, multData, debugData);
 
-	if(outputBadEvents || pack.goodEvent || (pack.nPhotonsDet[0] > 0 || pack.nPhotonsDet[1] > 0))
+	if(outputBadEvents || pack.goodEvent())
 		fTree->Fill(); // Fill the tree
 
 	double avgTimePerEvent;
 	double avgTimePerPhoton;
 	double avgTimePerDetection;
 
-	if(pack.eventID != 0){ // Status output.
+	if(pack.getEventID() != 0){ // Status output.
 		timer->Stop();
 		nDetThreadContainer *container = &nDetThreadContainer::getInstance();
 		unsigned long long numPhotons = 0;
@@ -267,12 +221,12 @@ bool nDetMasterOutputFile::fillBranch(const nDetDataPack &pack){
 		}
 		totalTime += timer->GetRealElapsed();
 		if(displayTimeInterval > 0 && (totalTime - previousTime) >= displayTimeInterval){ // Display every 10 seconds.
-			std::cout << "Event ID: " << pack.eventID << ", TIME=" << totalTime << " s";
-			avgTimePerEvent = totalTime/pack.eventID;
+			std::cout << "Event ID: " << pack.getEventID() << ", TIME=" << totalTime << " s";
+			avgTimePerEvent = totalTime/pack.getEventID();
 			avgTimePerPhoton = totalTime/numPhotons;
 			avgTimePerDetection = totalTime/numPhotonsDet;
 			if(totalEvents > 0){
-				std::cout << ", REMAINING=" << (totalEvents-pack.eventID)*avgTimePerEvent << " s";
+				std::cout << ", REMAINING=" << (totalEvents-pack.getEventID())*avgTimePerEvent << " s";
 			}
 			std::cout << ", RATE=" << 1/avgTimePerEvent << " evt/s (" << 1/avgTimePerPhoton << " phot/s & " << 1/avgTimePerDetection << " det/s)\n";
 			previousTime = totalTime;

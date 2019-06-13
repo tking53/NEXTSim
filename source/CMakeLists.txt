@@ -22,5 +22,5 @@ add_library(NextSimStatic STATIC $<TARGET_OBJECTS:NextSimObjects>)
 
 #Build simpleScan executable.
 add_executable(nextSim nextSim.cc)
-target_link_libraries(nextSim NextSimStatic ${Geant4_LIBRARIES} ${ROOT_LIBRARIES})
+target_link_libraries(nextSim NextSimStatic ${Geant4_LIBRARIES} ${DICTIONARY_PREFIX}Static ${ROOT_LIBRARIES})
 install(TARGETS nextSim DESTINATION bin)

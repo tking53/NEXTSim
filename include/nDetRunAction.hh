@@ -11,6 +11,8 @@
 #include "nDetDataPack.hh"
 #include "centerOfMass.hh"
 
+#include "Structures.hpp"
+
 class G4Timer;
 class G4Run;
 
@@ -86,7 +88,7 @@ class nDetRunAction : public G4UserRunAction
 	
 	void setPulseIntegralHigh(const short &high){ pulseIntegralHigh = high; }
 	
-	void setEventNumber(const int &eventID){ data.eventID = eventID; }
+	void setEventNumber(const int &eventID){ evtData.eventID = eventID; }
 	
 	void setPrintTrace(const bool &enabled){ printTrace = enabled; }
 	
@@ -162,8 +164,12 @@ class nDetRunAction : public G4UserRunAction
 	
 	G4ThreeVector prevDirection; ///< Momentum direction of the previous primary particle scatter
 	G4ThreeVector prevPosition; ///< Position of the previous primary particle scatter
-	
-	nDetDataPack data; ///< Data structure used for storing event information
+
+	nDetDataPack data;
+	nDetEventStructure evtData;
+	nDetOutputStructure outData;
+	nDetMultiOutputStructure multData;
+	nDetDebugStructure debugData;
 
 	photonCounter *counter; ///< Counter used to record the total number of optical photons produced by scattering
 
