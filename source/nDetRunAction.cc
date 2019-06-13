@@ -93,6 +93,7 @@ void primaryTrackInfo::setValues(const G4Track *track){
 nDetRunAction::nDetRunAction(){
 	timer = new G4Timer;
 	
+	outputTraces = false;
 	outputDebug = false;
 	verbose = false;
 	printTrace = false;
@@ -122,7 +123,7 @@ nDetRunAction::nDetRunAction(){
 	detector = &nDetConstruction::getInstance(); // The detector builder is a singleton class.
 	
 	// Set data structure addresses.
-	data.setDataAddresses(&evtData, &outData, &multData, &debugData);
+	data.setDataAddresses(&evtData, &outData, &multData, &debugData, &traceData);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -136,10 +137,6 @@ nDetRunAction::~nDetRunAction(){
 
 void nDetRunAction::BeginOfRunAction(const G4Run* aRun)
 {
-	// Update the debug output flag (may not be thread safe CRT)
-	nDetMasterOutputFile *outputFile = &nDetMasterOutputFile::getInstance();
-	outputDebug = outputFile->getOutputDebug();
-
 	numPhotonsTotal = 0;
 	numPhotonsDetTotal = 0;
 
@@ -151,21 +148,33 @@ void nDetRunAction::BeginOfRunAction(const G4Run* aRun)
 	source->UpdateAll();
 
 	if(G4Threading::G4GetThreadId() >= 0) return; // Master thread only.
-	
+
 	G4cout << "nDetRunAction::BeginOfRunAction()->"<< G4endl;
 	G4cout << "### Run " << aRun->GetRunID() << " start." << G4endl; 
 	timer->Start();
 
+	// Get a pointer to the output file
+	nDetMasterOutputFile *outputFile = &nDetMasterOutputFile::getInstance();
+
+	nDetThreadContainer *container = &nDetThreadContainer::getInstance();
 	if(userDetectors.size() > 1){
-		outputFile->setMultiDetectorMode(true);
-		if(outputDebug){ // Check for output debug mode with multiple detectors
+		if(outputFile->getOutputDebug()){
 			Display::WarningPrint("Debug output is not supported for more than one detector!", "nDetRunAction");
-			Display::WarningPrint(" Disabling output debug mode.", "nDetRunAction");
-			outputFile->setOutputDebug((outputDebug = false));
-			nDetThreadContainer *container = &nDetThreadContainer::getInstance();
-			for(size_t index = 0; index < container->size(); index++){ // Disable for all other threads
-				container->getAction(index)->setOutputDebug(false);
-			}
+			outputFile->setOutputDebug((outputDebug = false));		
+		}
+		if(outputFile->getOutputTraces()){
+			Display::WarningPrint("Trace output is not supported for more than one detector!", "nDetRunAction");
+			outputFile->setOutputTraces((outputTraces = false));	
+		}
+		for(size_t index = 0; index < container->size(); index++){ // Set options per thread
+			container->getAction(index)->setOutputDebug(false);
+			container->getAction(index)->setOutputTraces(false);
+		}
+	}
+	else{ // Single detector mode
+		for(size_t index = 0; index < container->size(); index++){ // Set options per thread
+			container->getAction(index)->setOutputDebug(outputFile->getOutputDebug());
+			container->getAction(index)->setOutputTraces(outputFile->getOutputTraces());
 		}
 	}
 
@@ -301,10 +310,11 @@ void nDetRunAction::process(){
 		}
 		
 		// Copy the trace into the trace vector.
-		/*if(outputTraces){
-			pmtL->copyTrace(data.lightPulseL);
-			pmtR->copyTrace(data.lightPulseR);
-		}*/		
+		if(outputTraces){
+			pmtL->copyTrace(traceData.pulseL);
+			pmtR->copyTrace(traceData.pulseR);
+			traceData.mult++;
+		}		
 		
 		// Do some light pulse analysis
 		debugData.pulsePhase[0] = pmtL->analyzePolyCFD(polyCfdFraction) + targetTimeOffset;
@@ -401,7 +411,6 @@ void nDetRunAction::process(){
 		outData.barMaxADC = std::sqrt(debugData.pulseMax[0]*debugData.pulseMax[1]);
 		outData.photonComX = (debugData.photonDetCenterOfMassX[0] + debugData.photonDetCenterOfMassX[1]) / 2;
 		outData.photonComY = (debugData.photonDetCenterOfMassY[0] + debugData.photonDetCenterOfMassY[1]) / 2;
-		//debugData.photonComZ = (debugData.photonDetCenterOfMassZ[0] + debugData.photonDetCenterOfMassZ[1]) / 2;
 
 		// Get the segment of the detector where the photon CoM occurs.
 		iterL->getCenterSegment(debugData.centerOfMassColumn[0], debugData.centerOfMassRow[0]);

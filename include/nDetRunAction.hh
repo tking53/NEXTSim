@@ -91,6 +91,8 @@ class nDetRunAction : public G4UserRunAction
 	void setEventNumber(const int &eventID){ evtData.eventID = eventID; }
 	
 	void setPrintTrace(const bool &enabled){ printTrace = enabled; }
+
+	void setOutputTraces(const bool &enabled){ outputTraces = enabled; }
 	
 	void setOutputDebug(const bool &enabled){ outputDebug = enabled; }
 	
@@ -138,7 +140,8 @@ class nDetRunAction : public G4UserRunAction
 
   private:
 	G4Timer* timer; ///< Timer used to measure the total time for a run (in seconds)
-
+	
+	bool outputTraces; ///< Flag indicating that traces will be written to the output tree
 	bool outputDebug; ///< Flag indicating that the user has requested low-level debug to be written to the output file
 	bool verbose; ///< Verbosity flag
 	bool printTrace; ///< Flag indicating that the left and right digitized PMT traces will be printed to the screen
@@ -170,6 +173,7 @@ class nDetRunAction : public G4UserRunAction
 	nDetOutputStructure outData;
 	nDetMultiOutputStructure multData;
 	nDetDebugStructure debugData;
+	nDetTraceStructure traceData;
 
 	photonCounter *counter; ///< Counter used to record the total number of optical photons produced by scattering
 

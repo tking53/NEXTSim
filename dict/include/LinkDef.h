@@ -6,12 +6,10 @@
 #pragma link off all classes;
 #pragma link off all functions;
 
-#pragma link C++ class Structure+;
-#pragma link C++ class Trace+;
-
 #pragma link C++ class nDetEventStructure+;
 #pragma link C++ class nDetOutputStructure+;
 #pragma link C++ class nDetMultiOutputStructure+;
 #pragma link C++ class nDetDebugStructure+;
+#pragma link C++ class nDetTraceStructure+;
 
 #endif

@@ -8,7 +8,6 @@
 
 #include "TFile.h"
 #include "TTree.h"
-#include "TBranch.h"
 
 #include "nDetParticleSource.hh"
 #include "nDetParticleSourceMessenger.hh"
@@ -40,11 +39,6 @@ nDetMasterOutputFile::nDetMasterOutputFile(){
 	outputBadEvents = false;
 	singleDetectorMode = true;
 
-	evtBranch = NULL;
-	outBranch = NULL;
-	multBranch = NULL;
-	debugBranch = NULL;
-
 	runIndex = 1;
 	fFile = NULL;
 	fTree = NULL;
@@ -68,6 +62,7 @@ nDetMasterOutputFile::nDetMasterOutputFile(){
 	outData = new nDetOutputStructure();
 	multData = new nDetMultiOutputStructure();
 	debugData = new nDetDebugStructure();
+	traceData = new nDetTraceStructure();
 }
 
 nDetMasterOutputFile::~nDetMasterOutputFile(){
@@ -78,6 +73,7 @@ nDetMasterOutputFile::~nDetMasterOutputFile(){
 	delete outData;
 	delete multData;
 	delete debugData;
+	delete traceData;
 	
 	delete fMessenger;
 	delete timer;
@@ -165,14 +161,16 @@ bool nDetMasterOutputFile::openRootFile(const G4Run* aRun){
 	fTree = new TTree(treename.c_str(),"Photons produced by thermal neutrons");
 
 	// Add the branches
-	evtBranch = fTree->Branch("event", evtData);
-	if(singleDetectorMode){
-		outBranch = fTree->Branch("output", outData);
-		if(outputDebug)
-			debugBranch = fTree->Branch("debug", debugData);
+	fTree->Branch("event", evtData);
+	if(singleDetectorMode){ // Add the single-detector branches
+		fTree->Branch("output", outData);
+		if(outputDebug) // Add the debug branch
+			fTree->Branch("debug", debugData);
 	}
-	else
-		multBranch = fTree->Branch("output", multData);
+	else // Add the multiple-detector branch
+		fTree->Branch("output", multData);
+	if(outputTraces) // Add the trace branch
+		fTree->Branch("trace", traceData);
 
 	std::cout << "nDetMasterOutputFile: File " << fFile->GetName() << " opened." << std::endl;
 	
@@ -201,7 +199,7 @@ bool nDetMasterOutputFile::fillBranch(const nDetDataPack &pack){
 	fileLock.lock();
 
 	// Copy the data
-	pack.copyData(evtData, outData, multData, debugData);
+	pack.copyData(evtData, outData, multData, debugData, traceData);
 
 	if(outputBadEvents || pack.goodEvent())
 		fTree->Fill(); // Fill the tree

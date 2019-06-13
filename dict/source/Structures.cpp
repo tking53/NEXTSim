@@ -1,29 +1,22 @@
 #include "Structures.hpp"
 
-Trace::Trace(const std::string &name_/*=""*/){
+nDetTraceStructure::nDetTraceStructure(const std::string &name_/*=""*/){
 	name = name_;
 	mult = 0;
 }
 
-void Trace::Zero(){
-	wave.clear();
+void nDetTraceStructure::Zero(){
+	pulseL.clear();
+	pulseR.clear();
 	mult = 0;
 }
 
-Trace &Trace::Set(const Trace &other_){
-	wave = other_.wave;
-	return *this;
-}
-
-Trace &Trace::Set(Trace *other_){
-	wave = other_->wave;
-	return *this;
-}
-
-void Trace::Append(unsigned short *arr_, const size_t &size_){
-	wave.reserve(wave.size()+size_);
+void nDetTraceStructure::Append(unsigned short *arrL_, unsigned short *arrR_, const size_t &size_){
+	pulseL.reserve(pulseL.size()+size_);
+	pulseR.reserve(pulseR.size()+size_);
 	for(size_t i = 0; i < size_; i++){
-		wave.push_back(arr_[i]);
+		pulseL.push_back(arrL_[i]);
+		pulseR.push_back(arrR_[i]);
 	}
 	mult++;
 }
@@ -32,7 +25,7 @@ void Trace::Append(unsigned short *arr_, const size_t &size_){
 // nDetEventStructure
 ///////////////////////////////////////////////////////////
 
-nDetEventStructure::nDetEventStructure() : Structure("nDetEventStructure") {
+nDetEventStructure::nDetEventStructure(){
 	eventID = 0;
 	threadID = 0;
 	runNb = 0;
@@ -73,7 +66,7 @@ void nDetEventStructure::Zero(){
 // nDetOutputStructure
 ///////////////////////////////////////////////////////////
 
-nDetOutputStructure::nDetOutputStructure() : Structure("nDetOutputStructure") {
+nDetOutputStructure::nDetOutputStructure(){
 	nPhotonsTot = 0;
 	nPhotonsDetTot = 0;
 	lightBalance = 0;
@@ -129,7 +122,7 @@ void nDetOutputStructure::Zero(){
 // nDetMultiOutputStructure
 ///////////////////////////////////////////////////////////
 
-nDetMultiOutputStructure::nDetMultiOutputStructure() : Structure("nDetMultiOutputStructure") {
+nDetMultiOutputStructure::nDetMultiOutputStructure(){
 	multiplicity = 0;
 }
 
@@ -196,7 +189,7 @@ void nDetMultiOutputStructure::Zero(){
 // nDetDebugStructure
 ///////////////////////////////////////////////////////////
 
-nDetDebugStructure::nDetDebugStructure() : Structure("nDetDebugStructure") {
+nDetDebugStructure::nDetDebugStructure(){
 	nEnterPosX = 0;
 	nEnterPosY = 0;
 	nEnterPosZ = 0;

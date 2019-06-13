@@ -19,70 +19,43 @@
 
 #include <vector>
 
-/*! \class Structure
- *  \brief Simple structure used to store experimental and simulated data
- *  \author Cory R. Thornsbery
- *  \date June 12, 2019
- */
-
-class Structure : public TObject {
-  protected:
-	std::string name; ///< The name of this data structure
-
-  public:
-	/** Default constructor
-	  * @param name_ The name of this data structure
-	  */
-	Structure(const std::string &name_=""){ name = name_; }
-
-	/// @cond DUMMY
-	ClassDef(Structure, 1); // Structure
-	/// @endcond
-};
-
-/*! \class Trace
+/*! \class nDetTraceStructure
  *  \brief Simple structure used to store vectors of values corresponding to digitizer traces
  *  \author Cory R. Thornsbery
  *  \date June 12, 2019
  */
 
-class Trace : public TObject {
+class nDetTraceStructure : public TObject {
   protected:
 	std::string name; ///< The name of this trace object
 
   public:
-	std::vector<unsigned short> wave; ///< Vector containing trace values
+	std::vector<unsigned short> pulseL; ///< Vector containing trace values for left PMT
+	std::vector<unsigned short> pulseR; ///< Vector containing trace values for right PMT
 	unsigned int mult; ///< Multiplicity of the event
 
 	/** Default constructor
 	  * @param name_ The name of this data structure
 	  */
-	Trace(const std::string &name_="");
+	nDetTraceStructure(const std::string &name_="");
 
 	/** Destructor
 	  */
-	~Trace(){}
+	~nDetTraceStructure(){}
 
 	/** Zero all variables
 	  */
 	void Zero();
 
-	/** Set all values using another object
-	  */
-	Trace &Set(const Trace &other_);
-
-	/** Set all values using pointer to another object
-	  */
-	Trace &Set(Trace *other_);
-
 	/** Push back with an array of trace values
-	  * @param arr_ Array containing trace values
+	  * @param arrL_ Array containing trace values for the left PMT
+	  * @param arrR_ Array containing trace values for the right PMT
       * @param size_ The number of values to copy from the input array
 	  */
-	void Append(unsigned short *arr_, const size_t &size_);
+	void Append(unsigned short *arrL_, unsigned short *arrR_, const size_t &size_);
 
 	/// @cond DUMMY
-	ClassDef(Trace, 1); // Trace
+	ClassDef(nDetTraceStructure, 1); // nDetTraceStructure
 	/// @endcond
 };
 
@@ -94,7 +67,7 @@ class Trace : public TObject {
  *  Structure for storing information about NEXTSim run and primary event information
  */
 
-class nDetEventStructure : public Structure {
+class nDetEventStructure : public TObject {
   public:
 	int eventID; ///< Geant event ID number
 	short threadID; ///< Geant thread ID number for multithreading
@@ -146,7 +119,7 @@ class nDetEventStructure : public Structure {
  *  Structure for storing information about NEXTSim primary particles and optical photons produced by scattering
  */
 
-class nDetOutputStructure : public Structure {
+class nDetOutputStructure : public TObject {
   public:
 	unsigned int nPhotonsTot; ///< Total number of scintillation photons produced
 	unsigned int nPhotonsDetTot; ///< Total number of optical photons detected by both PMTs
@@ -208,7 +181,7 @@ class nDetOutputStructure : public Structure {
  *  Structure for storing information about NEXTSim primary particles and optical photons produced by scattering
  */
 
-class nDetMultiOutputStructure : public Structure {
+class nDetMultiOutputStructure : public TObject {
   public:
 	std::vector<unsigned int> nPhotonsTot; ///< Total number of scintillation photons produced
 	std::vector<unsigned int> nPhotonsDetTot; ///< Total number of optical photons detected by both PMTs
@@ -279,7 +252,7 @@ class nDetMultiOutputStructure : public Structure {
  *  Structure for storing information about NEXTSim primary particles and optical photons produced by scattering
  */
 
-class nDetDebugStructure : public Structure {
+class nDetDebugStructure : public TObject {
   public:
 	double nEnterPosX; ///< X-axis position where the primary particle enters the detector
 	double nEnterPosY; ///< Y-axis position where the primary particle enters the detector

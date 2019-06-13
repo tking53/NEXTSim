@@ -15,15 +15,14 @@ class TBranch;
 
 class nDetDataPack{
   public:
-	nDetDataPack() : evtData(NULL), outData(NULL), multData(NULL), debugData(NULL) { }
+	nDetDataPack() : evtData(NULL), outData(NULL), multData(NULL), debugData(NULL), traceData(NULL) { }
 
-	nDetDataPack(nDetEventStructure *evt, nDetOutputStructure *out, nDetMultiOutputStructure *mult, nDetDebugStructure *debug) : evtData(evt), outData(out), multData(mult), debugData(debug) { }
+	nDetDataPack(nDetEventStructure *evt, nDetOutputStructure *out, nDetMultiOutputStructure *mult, nDetDebugStructure *debug, nDetTraceStructure *trace) : 
+	  evtData(evt), outData(out), multData(mult), debugData(debug), traceData(trace) { }
 
-	void setDataAddresses(nDetEventStructure *evt, nDetOutputStructure *out, nDetMultiOutputStructure *mult, nDetDebugStructure *debug);
+	void setDataAddresses(nDetEventStructure *evt, nDetOutputStructure *out, nDetMultiOutputStructure *mult, nDetDebugStructure *debug, nDetTraceStructure *trace);
 
-	void setBranchAddresses(TBranch *evt_b, TBranch *out_b, TBranch *mult_b, TBranch *debug_b) const ;
-
-	void copyData(nDetEventStructure *evt, nDetOutputStructure *out, nDetMultiOutputStructure *mult, nDetDebugStructure *debug) const ;
+	void copyData(nDetEventStructure *evt, nDetOutputStructure *out, nDetMultiOutputStructure *mult, nDetDebugStructure *debug, nDetTraceStructure *trace) const ;
 
 	bool goodEvent() const ;
 
@@ -38,6 +37,7 @@ class nDetDataPack{
 	nDetOutputStructure *outData;
 	nDetMultiOutputStructure *multData;
 	nDetDebugStructure *debugData;
+	nDetTraceStructure *traceData;
 };
 
 #endif

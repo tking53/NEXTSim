@@ -12,7 +12,6 @@ class G4Timer;
 
 class TFile;
 class TTree;
-class TBranch;
 
 class photonCounter;
 class nDetMasterOutputFileMessenger;
@@ -30,6 +29,8 @@ class nDetMasterOutputFile{
 	bool fillBranch(const nDetDataPack &pack);
 
 	bool getOutputDebug() const { return outputDebug; }
+
+	bool getOutputTraces() const { return outputTraces; }
 
 	void setOutputFilename(const std::string &fname);
 
@@ -93,15 +94,11 @@ class nDetMasterOutputFile{
 	bool overwriteExistingFile; ///< Flag indicating that files with matching filenames will be overwritten
 	bool singleDetectorMode; ///< Flag indicating that there is only one detector in the setup
 
-	nDetEventStructure *evtData;
-	nDetOutputStructure *outData;
-	nDetMultiOutputStructure *multData;
-	nDetDebugStructure *debugData;
-
-	TBranch *evtBranch;
-	TBranch *outBranch;
-	TBranch *multBranch;
-	TBranch *debugBranch;
+	nDetEventStructure *evtData; ///< Pointer to data structure containing Geant4 event information
+	nDetOutputStructure *outData; ///< Pointer to data structure containing normal (single-detector) output variables
+	nDetMultiOutputStructure *multData; ///< Pointer to data structure containing multi-detector output variables
+	nDetDebugStructure *debugData; ///< Pointer to data structure containing debug output variables
+	nDetTraceStructure *traceData; ///< Pointer to data structure containing PMT response light pulses
 
     G4Timer *timer; ///< Geant timer used to measure time between successive status updates
     
