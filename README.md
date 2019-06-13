@@ -2,7 +2,7 @@
 
 [Cory R. Thornsberry](cthornsb@vols.utk.edu)
 
-Last updated: June 7, 2019
+Last updated: June 13, 2019
 
 This README gives basic information on how to install NEXTSim from source. For more information
 on using the program, see the [NEXTSim Wiki](https://github.com/cthornsb/NEXTSim/wiki).
@@ -17,10 +17,16 @@ on using the program, see the [NEXTSim Wiki](https://github.com/cthornsb/NEXTSim
 ## Installation
 
 - Required Prerequisites:
+	- [cmake](https://cmake.org/) version 2.18.12 or later is confirmed to work
 	- [Geant4](https://geant4.web.cern.ch/support/download) version 10.3.3 or later is recommended
 		- Build option `-DGEANT4_BUILD_MULTITHREADED=ON` is required for multithreading support
 		- Build option `-DGEANT4_USE_GDML=ON` is required for GDML support
 	- [ROOT](https://root.cern.ch/downloading-root) version 6 or later is recommended
+
+- Recommended Prerequisites:
+	- [ccmake](https://cmake.org/cmake/help/latest/manual/ccmake.1.html)
+		- The command `sudo apt-get install cmake-curses-gui` works on Ubuntu
+	- [Environment Modules](http://modules.sourceforge.net/)
 	
 - Optional Prerequisites:
 	- [SimpleScan](https://github.com/cthornsb/SimplePixieScan) needed for nextSim output converter
