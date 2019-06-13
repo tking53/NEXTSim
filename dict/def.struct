@@ -78,6 +78,7 @@ vector:double	reconComX	Left and right PMT photon center-of-mass along the X-axi
 vector:double	reconComY	Left and right PMT photon center-of-mass along the Y-axis computed using Anger Logic reconstruction
 vector:short	photonComCol	Segmented PMT anode column corresponding to the photon center-of-mass for the left and right PMT
 vector:short	photonComRow	Segmented PMT anode row corresponding to the photon center-of-mass for the left and right PMT
+vector:short	detID	ID of the detector which fired
 u_short	multiplicity	Multiplicity of the event
 END_TYPES
 END_CLASS

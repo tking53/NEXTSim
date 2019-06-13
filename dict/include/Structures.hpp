@@ -223,6 +223,7 @@ class nDetMultiOutputStructure : public Structure {
 	std::vector<double> reconComY; ///< Left and right PMT photon center-of-mass along the Y-axis computed using Anger Logic reconstruction
 	std::vector<short> photonComCol; ///< Segmented PMT anode column corresponding to the photon center-of-mass for the left and right PMT
 	std::vector<short> photonComRow; ///< Segmented PMT anode row corresponding to the photon center-of-mass for the left and right PMT
+	std::vector<short> detID; ///< ID of the detector which fired
 	unsigned short multiplicity; ///< Multiplicity of the event
 
 	/** Default constructor
@@ -251,13 +252,15 @@ class nDetMultiOutputStructure : public Structure {
 	  * @param reconComY_ Left and right PMT photon center-of-mass along the Y-axis computed using Anger Logic reconstruction
 	  * @param photonComCol_ Segmented PMT anode column corresponding to the photon center-of-mass for the left and right PMT
 	  * @param photonComRow_ Segmented PMT anode row corresponding to the photon center-of-mass for the left and right PMT
+	  * @param detID_ ID of the detector which fired
 	  */
-	void Append(const unsigned int &nPhotonsTot_, const unsigned int &nPhotonsDetTot_, const double &lightBalance_, const double &photonDetEff_, const float &barTOF_, const float &barQDC_, const float &barMaxADC_, const double &photonComX_, const double &photonComY_, const double &reconComX_, const double &reconComY_, const short &photonComCol_, const short &photonComRow_);
+	void Append(const unsigned int &nPhotonsTot_, const unsigned int &nPhotonsDetTot_, const double &lightBalance_, const double &photonDetEff_, const float &barTOF_, const float &barQDC_, const float &barMaxADC_, const double &photonComX_, const double &photonComY_, const double &reconComX_, const double &reconComY_, const short &photonComCol_, const short &photonComRow_, const short &detID_);
 
 	/** Push back with data from a nDetOutputStructure object
-	  * @param output 
+	  * @param output nDetOutputStructure object containing simulation variables for a single detector
+	  * @param detID_ ID of the detector which fired
 	  */
-	void Append(const nDetOutputStructure &output);
+	void Append(const nDetOutputStructure &output, const short &detID_);
 
 	/** Zero all variables
 	  */

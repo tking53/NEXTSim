@@ -250,18 +250,18 @@ void nDetRunAction::process(){
 	// Get the time offset due to straggling in the target (if applicable)
 	double targetTimeOffset = source->GetTargetTimeOffset();
 	
+	short detID = 0;
 	for(std::vector<centerOfMass>::iterator iterL = cmL.begin(), iterR = cmR.begin(); iterL != cmL.end() && iterR != cmR.end(); iterL++, iterR++){
-		if(iterL->empty() && iterR->empty()) continue; // Skip events with no detected photons
+		if(iterL->empty() && iterR->empty()){ // Skip events with no detected photons
+			detID++;
+			continue;
+		}
 	
 		debugData.nPhotons[0] += iterL->getNumDetected();
 		debugData.nPhotons[1] += iterR->getNumDetected();
 		
 		// Compute the total number of detected photons
 		outData.nPhotonsDetTot += iterL->getNumDetected() + iterR->getNumDetected();
-		
-		// Update the event multiplicity (this is done automatically)
-		//if(iterL->getNumDetected() + iterR->getNumDetected() > 0) 
-			//evtData.multiplicity++;
 			
 		// Check for valid bar detection
 		if(iterL->getNumDetected() > 0 && iterR->getNumDetected() > 0)
@@ -411,9 +411,9 @@ void nDetRunAction::process(){
 		numPhotonsTotal += outData.nPhotonsTot;
 		numPhotonsDetTotal += outData.nPhotonsDetTot;
 		
-		//
+		// Push data onto the output branch for multiple detectors
 		if(userDetectors.size() > 1)
-			multData.Append(outData);
+			multData.Append(outData, detID++);
 	}
 	
 	// Write the data (mutex protected, thread safe).

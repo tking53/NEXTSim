@@ -136,7 +136,7 @@ nDetMultiOutputStructure::nDetMultiOutputStructure() : Structure("nDetMultiOutpu
 void nDetMultiOutputStructure::SetValues(){
 }
 
-void nDetMultiOutputStructure::Append(const unsigned int &nPhotonsTot_, const unsigned int &nPhotonsDetTot_, const double &lightBalance_, const double &photonDetEff_, const float &barTOF_, const float &barQDC_, const float &barMaxADC_, const double &photonComX_, const double &photonComY_, const double &reconComX_, const double &reconComY_, const short &photonComCol_, const short &photonComRow_){
+void nDetMultiOutputStructure::Append(const unsigned int &nPhotonsTot_, const unsigned int &nPhotonsDetTot_, const double &lightBalance_, const double &photonDetEff_, const float &barTOF_, const float &barQDC_, const float &barMaxADC_, const double &photonComX_, const double &photonComY_, const double &reconComX_, const double &reconComY_, const short &photonComCol_, const short &photonComRow_, const short &detID_){
 	nPhotonsTot.push_back(nPhotonsTot_);
 	nPhotonsDetTot.push_back(nPhotonsDetTot_);
 	lightBalance.push_back(lightBalance_);
@@ -150,10 +150,11 @@ void nDetMultiOutputStructure::Append(const unsigned int &nPhotonsTot_, const un
 	reconComY.push_back(reconComY_);
 	photonComCol.push_back(photonComCol_);
 	photonComRow.push_back(photonComRow_);
+	detID.push_back(detID_);
 	multiplicity++;
 }
 
-void nDetMultiOutputStructure::Append(const nDetOutputStructure &output){
+void nDetMultiOutputStructure::Append(const nDetOutputStructure &output, const short &detID_){
 	nPhotonsTot.push_back(output.nPhotonsTot);
 	nPhotonsDetTot.push_back(output.nPhotonsDetTot);
 	lightBalance.push_back(output.lightBalance);
@@ -167,6 +168,7 @@ void nDetMultiOutputStructure::Append(const nDetOutputStructure &output){
 	reconComY.push_back(output.reconComY);
 	photonComCol.push_back(output.photonComCol);
 	photonComRow.push_back(output.photonComRow);
+	detID.push_back(detID_);
 	multiplicity++;
 }
 
@@ -185,6 +187,7 @@ void nDetMultiOutputStructure::Zero(){
 	reconComY.clear();
 	photonComCol.clear();
 	photonComRow.clear();
+	detID.clear();
 	multiplicity = 0;
 }
 
