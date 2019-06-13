@@ -270,7 +270,7 @@ void nDetRunAction::process(){
 		debugData.nPhotons[1] += iterR->getNumDetected();
 		
 		// Compute the total number of detected photons
-		outData.nPhotonsDetTot += iterL->getNumDetected() + iterR->getNumDetected();
+		outData.nPhotonsDet += iterL->getNumDetected() + iterR->getNumDetected();
 			
 		// Check for valid bar detection
 		if(iterL->getNumDetected() > 0 && iterR->getNumDetected() > 0)
@@ -279,16 +279,16 @@ void nDetRunAction::process(){
 		// Compute the photon detection efficiency
 		outData.nPhotonsTot = stacking->GetNumPhotonsProduced();
 		if(outData.nPhotonsTot > 0)
-			outData.photonDetEff = outData.nPhotonsDetTot/(double)outData.nPhotonsTot;
+			outData.photonDetEff = outData.nPhotonsDet/(double)outData.nPhotonsTot;
 		else
 			outData.photonDetEff = -1;			
 
 		// Get the photon center-of-mass positions
 		G4ThreeVector centerL = iterL->getCenter();
 		G4ThreeVector centerR = iterR->getCenter();
-		debugData.photonDetCenterOfMassX[0] = centerL.getX(); debugData.photonDetCenterOfMassX[1] = centerR.getX(); 
-		debugData.photonDetCenterOfMassY[0] = centerL.getY(); debugData.photonDetCenterOfMassY[1] = centerR.getY(); 
-		//debugData.photonDetCenterOfMassZ[0] = centerL.getZ(); debugData.photonDetCenterOfMassZ[1] = centerR.getZ(); 
+		debugData.photonDetComX[0] = centerL.getX(); debugData.photonDetComX[1] = centerR.getX(); 
+		debugData.photonDetComY[0] = centerL.getY(); debugData.photonDetComY[1] = centerR.getY(); 
+		//debugData.photonDetComZ[0] = centerL.getZ(); debugData.photonDetComZ[1] = centerR.getZ(); 
 
 		// Get photon arrival times at the PMTs
 		debugData.photonMinTime[0] = iterL->getMinArrivalTime();
@@ -311,8 +311,8 @@ void nDetRunAction::process(){
 		
 		// Copy the trace into the trace vector.
 		if(outputTraces){
-			pmtL->copyTrace(traceData.pulseL);
-			pmtR->copyTrace(traceData.pulseR);
+			pmtL->copyTrace(traceData.left);
+			pmtR->copyTrace(traceData.right);
 			traceData.mult++;
 		}		
 		
@@ -336,7 +336,7 @@ void nDetRunAction::process(){
 			unsigned short *traceR = pmtR->getDigitizedPulse();
 			std::cout << "***********************************************************\n";
 			std::cout << "* PhotonsTot	 : " << outData.nPhotonsTot << std::endl;
-			std::cout << "* PhotonsDet	 : " << outData.nPhotonsDetTot << std::endl;
+			std::cout << "* PhotonsDet	 : " << outData.nPhotonsDet << std::endl;
 			std::cout << "* MaxIndex	   : " << pmtL->getMaximumIndex() << "\t" << pmtR->getMaximumIndex() << std::endl;
 			std::cout << "* Baseline	   : " << pmtL->getBaseline() << "\t" << pmtR->getBaseline() << std::endl;	
 			std::cout << "* Maximum		: " << pmtL->getMaximum() << "\t" << pmtR->getMaximum() << std::endl;
@@ -366,11 +366,11 @@ void nDetRunAction::process(){
 		
 		// Compute the anode positions.
 		for(size_t i = 0; i < 2; i++){
-			debugData.reconstructedCenterX[i] = -((anodeQDC[i][0]+anodeQDC[i][1])-(anodeQDC[i][2]+anodeQDC[i][3]))/(anodeQDC[i][0]+anodeQDC[i][1]+anodeQDC[i][2]+anodeQDC[i][3]);
-			debugData.reconstructedCenterY[i] = ((anodeQDC[i][1]+anodeQDC[i][2])-(anodeQDC[i][3]+anodeQDC[i][0]))/(anodeQDC[i][0]+anodeQDC[i][1]+anodeQDC[i][2]+anodeQDC[i][3]);
+			debugData.reconDetComX[i] = -((anodeQDC[i][0]+anodeQDC[i][1])-(anodeQDC[i][2]+anodeQDC[i][3]))/(anodeQDC[i][0]+anodeQDC[i][1]+anodeQDC[i][2]+anodeQDC[i][3]);
+			debugData.reconDetComY[i] = ((anodeQDC[i][1]+anodeQDC[i][2])-(anodeQDC[i][3]+anodeQDC[i][0]))/(anodeQDC[i][0]+anodeQDC[i][1]+anodeQDC[i][2]+anodeQDC[i][3]);
 		}
-		outData.reconComX = (debugData.reconstructedCenterX[0] + debugData.reconstructedCenterX[1]) / 2;
-		outData.reconComY = (debugData.reconstructedCenterY[0] + debugData.reconstructedCenterY[1]) / 2;
+		outData.reconComX = (debugData.reconDetComX[0] + debugData.reconDetComX[1]) / 2;
+		outData.reconComY = (debugData.reconDetComY[0] + debugData.reconDetComY[1]) / 2;
 		
 		if(outputDebug){
 			// Perform CFD on digitized anode waveforms.
@@ -409,8 +409,8 @@ void nDetRunAction::process(){
 		outData.barTOF = (debugData.pulsePhase[0]+debugData.pulsePhase[1])/2;
 		outData.barQDC = std::sqrt(debugData.pulseQDC[0]*debugData.pulseQDC[1]);
 		outData.barMaxADC = std::sqrt(debugData.pulseMax[0]*debugData.pulseMax[1]);
-		outData.photonComX = (debugData.photonDetCenterOfMassX[0] + debugData.photonDetCenterOfMassX[1]) / 2;
-		outData.photonComY = (debugData.photonDetCenterOfMassY[0] + debugData.photonDetCenterOfMassY[1]) / 2;
+		outData.photonComX = (debugData.photonDetComX[0] + debugData.photonDetComX[1]) / 2;
+		outData.photonComY = (debugData.photonDetComY[0] + debugData.photonDetComY[1]) / 2;
 
 		// Get the segment of the detector where the photon CoM occurs.
 		iterL->getCenterSegment(debugData.centerOfMassColumn[0], debugData.centerOfMassRow[0]);
@@ -418,7 +418,7 @@ void nDetRunAction::process(){
 
 		// Update photon statistics.
 		numPhotonsTotal += outData.nPhotonsTot;
-		numPhotonsDetTotal += outData.nPhotonsDetTot;
+		numPhotonsDetTotal += outData.nPhotonsDet;
 		
 		// Push data onto the output branch for multiple detectors
 		if(userDetectors.size() > 1)
@@ -554,7 +554,7 @@ void nDetRunAction::initializeNeutron(const G4Step *step){
 		debugData.nEnterPosX = step->GetPostStepPoint()->GetPosition().getX();
 		debugData.nEnterPosY = step->GetPostStepPoint()->GetPosition().getY();
 		debugData.nEnterPosZ = step->GetPostStepPoint()->GetPosition().getZ();
-		debugData.timeInMaterial = 0;
+		debugData.nTimeInMat = 0;
 		debugData.nExitPosX = 0;
 		debugData.nExitPosY = 0;
 		debugData.nExitPosZ = 0;
@@ -595,7 +595,7 @@ void nDetRunAction::finalizeNeutron(const G4Step *step){
 	evtData.nAbsorbed = false;
 	G4Track *track = step->GetTrack();
 	if(outputDebug){
-		debugData.timeInMaterial = track->GetGlobalTime() - debugData.nEnterTime;
+		debugData.nTimeInMat = track->GetGlobalTime() - debugData.nEnterTime;
 		debugData.nExitPosX = step->GetPreStepPoint()->GetPosition().getX();
 		debugData.nExitPosY = step->GetPreStepPoint()->GetPosition().getY();
 		debugData.nExitPosZ = step->GetPreStepPoint()->GetPosition().getZ();

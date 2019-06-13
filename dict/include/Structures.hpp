@@ -30,8 +30,8 @@ class nDetTraceStructure : public TObject {
 	std::string name; ///< The name of this trace object
 
   public:
-	std::vector<unsigned short> pulseL; ///< Vector containing trace values for left PMT
-	std::vector<unsigned short> pulseR; ///< Vector containing trace values for right PMT
+	std::vector<unsigned short> left; ///< Vector containing trace values for left PMT
+	std::vector<unsigned short> right; ///< Vector containing trace values for right PMT
 	unsigned int mult; ///< Multiplicity of the event
 
 	/** Default constructor
@@ -122,7 +122,7 @@ class nDetEventStructure : public TObject {
 class nDetOutputStructure : public TObject {
   public:
 	unsigned int nPhotonsTot; ///< Total number of scintillation photons produced
-	unsigned int nPhotonsDetTot; ///< Total number of optical photons detected by both PMTs
+	unsigned int nPhotonsDet; ///< Total number of optical photons detected by both PMTs
 	double lightBalance; ///< Ratio of the difference of left and right TQDC to the sum of left and right TQDC
 	double photonDetEff; ///< Ratio of optical photons detected by a PMT to the total number of photons generated
 	float barTOF; ///< Average of the left and right dynode light pulse phases computed using PolyCFD (in ns)
@@ -145,7 +145,7 @@ class nDetOutputStructure : public TObject {
 
 	/** Set single entry data fields
 	  * @param nPhotonsTot_ Total number of scintillation photons produced
-	  * @param nPhotonsDetTot_ Total number of optical photons detected by both PMTs
+	  * @param nPhotonsDet_ Total number of optical photons detected by both PMTs
 	  * @param lightBalance_ Ratio of the difference of left and right TQDC to the sum of left and right TQDC
 	  * @param photonDetEff_ Ratio of optical photons detected by a PMT to the total number of photons generated
 	  * @param barTOF_ Average of the left and right dynode light pulse phases computed using PolyCFD (in ns)
@@ -158,7 +158,7 @@ class nDetOutputStructure : public TObject {
 	  * @param photonComCol_ Segmented PMT anode column corresponding to the photon center-of-mass for the left and right PMT
 	  * @param photonComRow_ Segmented PMT anode row corresponding to the photon center-of-mass for the left and right PMT
 	  */
-	void SetValues(const unsigned int &nPhotonsTot_, const unsigned int &nPhotonsDetTot_, const double &lightBalance_, const double &photonDetEff_, const float &barTOF_, const float &barQDC_, const float &barMaxADC_, const double &photonComX_, const double &photonComY_, const double &reconComX_, const double &reconComY_, const short &photonComCol_, const short &photonComRow_);
+	void SetValues(const unsigned int &nPhotonsTot_, const unsigned int &nPhotonsDet_, const double &lightBalance_, const double &photonDetEff_, const float &barTOF_, const float &barQDC_, const float &barMaxADC_, const double &photonComX_, const double &photonComY_, const double &reconComX_, const double &reconComY_, const short &photonComCol_, const short &photonComRow_);
 
 	/** Push back with data
 	  */
@@ -184,7 +184,7 @@ class nDetOutputStructure : public TObject {
 class nDetMultiOutputStructure : public TObject {
   public:
 	std::vector<unsigned int> nPhotonsTot; ///< Total number of scintillation photons produced
-	std::vector<unsigned int> nPhotonsDetTot; ///< Total number of optical photons detected by both PMTs
+	std::vector<unsigned int> nPhotonsDet; ///< Total number of optical photons detected by both PMTs
 	std::vector<double> lightBalance; ///< Ratio of the difference of left and right TQDC to the sum of left and right TQDC
 	std::vector<double> photonDetEff; ///< Ratio of optical photons detected by a PMT to the total number of photons generated
 	std::vector<float> barTOF; ///< Average of the left and right dynode light pulse phases computed using PolyCFD (in ns)
@@ -213,7 +213,7 @@ class nDetMultiOutputStructure : public TObject {
 
 	/** Push back with data
 	  * @param nPhotonsTot_ Total number of scintillation photons produced
-	  * @param nPhotonsDetTot_ Total number of optical photons detected by both PMTs
+	  * @param nPhotonsDet_ Total number of optical photons detected by both PMTs
 	  * @param lightBalance_ Ratio of the difference of left and right TQDC to the sum of left and right TQDC
 	  * @param photonDetEff_ Ratio of optical photons detected by a PMT to the total number of photons generated
 	  * @param barTOF_ Average of the left and right dynode light pulse phases computed using PolyCFD (in ns)
@@ -227,7 +227,7 @@ class nDetMultiOutputStructure : public TObject {
 	  * @param photonComRow_ Segmented PMT anode row corresponding to the photon center-of-mass for the left and right PMT
 	  * @param detID_ ID of the detector which fired
 	  */
-	void Append(const unsigned int &nPhotonsTot_, const unsigned int &nPhotonsDetTot_, const double &lightBalance_, const double &photonDetEff_, const float &barTOF_, const float &barQDC_, const float &barMaxADC_, const double &photonComX_, const double &photonComY_, const double &reconComX_, const double &reconComY_, const short &photonComCol_, const short &photonComRow_, const short &detID_);
+	void Append(const unsigned int &nPhotonsTot_, const unsigned int &nPhotonsDet_, const double &lightBalance_, const double &photonDetEff_, const float &barTOF_, const float &barQDC_, const float &barMaxADC_, const double &photonComX_, const double &photonComY_, const double &reconComX_, const double &reconComY_, const short &photonComCol_, const short &photonComRow_, const short &detID_);
 
 	/** Push back with data from a nDetOutputStructure object
 	  * @param output nDetOutputStructure object containing simulation variables for a single detector
@@ -267,7 +267,7 @@ class nDetDebugStructure : public TObject {
 	double nFirstScatterTime; ///< Global time of the first primary particle scatter event (in ns)
 	double nFirstScatterLen; ///< Flight path to the first primary particle scatter event (n mm)
 	double nEnterTime; ///< Global time when the primary particle enters the detector (in ns)
-	double timeInMaterial; ///< Total time the primary particle spends in the material (in ns)
+	double nTimeInMat; ///< Total time the primary particle spends in the material (in ns)
 	std::vector<double> nScatterX; ///< Vector of X-axis position of all primary particle scatter positions (in mm)
 	std::vector<double> nScatterY; ///< Vector of Y-axis position of all primary particle scatter positions (in mm)
 	std::vector<double> nScatterZ; ///< Vector of Z-axis position of all primary particle scatter positions (in mm)
@@ -291,10 +291,10 @@ class nDetDebugStructure : public TObject {
 	float pulseMax[2]; ///< Maximum of the left and right light pulses (in ADC channels)
 	float pulseQDC[2]; ///< Integral of the left and right light pulses
 	float anodeQDC[2][4]; ///< Anger logic currents for the four readouts of the left and right PSPmts
-	double photonDetCenterOfMassX[2]; ///< Left and right PMT photon center-of-mass along the X-axis weighted by the anode gain and quantum efficiency (in mm)
-	double photonDetCenterOfMassY[2]; ///< Left and right PMT photon center-of-mass along the Y-axis weighted by the anode gain and quantum efficiency (in mm)
-	double reconstructedCenterX[2]; ///< Left and right PMT photon center-of-mass along the X-axis computed using Anger Logic reconstruction
-	double reconstructedCenterY[2]; ///< Left and right PMT photon center-of-mass along the Y-axis computed using Anger Logic reconstruction
+	double photonDetComX[2]; ///< Left and right PMT photon center-of-mass along the X-axis weighted by the anode gain and quantum efficiency (in mm)
+	double photonDetComY[2]; ///< Left and right PMT photon center-of-mass along the Y-axis weighted by the anode gain and quantum efficiency (in mm)
+	double reconDetComX[2]; ///< Left and right PMT photon center-of-mass along the X-axis computed using Anger Logic reconstruction
+	double reconDetComY[2]; ///< Left and right PMT photon center-of-mass along the Y-axis computed using Anger Logic reconstruction
 	short centerOfMassColumn[2]; ///< Segmented PMT anode column corresponding to the photon center-of-mass for the left and right PMT
 	short centerOfMassRow[2]; ///< Segmented PMT anode row corresponding to the photon center-of-mass for the left and right PMT
 
@@ -320,9 +320,9 @@ class nDetDebugStructure : public TObject {
 	  * @param nFirstScatterTime_ Global time of the first primary particle scatter event (in ns)
 	  * @param nFirstScatterLen_ Flight path to the first primary particle scatter event (n mm)
 	  * @param nEnterTime_ Global time when the primary particle enters the detector (in ns)
-	  * @param timeInMaterial_ Total time the primary particle spends in the material (in ns)
+	  * @param nTimeInMat_ Total time the primary particle spends in the material (in ns)
 	  */
-	void SetValues(const double &nEnterPosX_, const double &nEnterPosY_, const double &nEnterPosZ_, const double &nExitPosX_, const double &nExitPosY_, const double &nExitPosZ_, const double &nComX_, const double &nComY_, const double &nComZ_, const double &neutronWeight_, const double &nFirstScatterTime_, const double &nFirstScatterLen_, const double &nEnterTime_, const double &timeInMaterial_);
+	void SetValues(const double &nEnterPosX_, const double &nEnterPosY_, const double &nEnterPosZ_, const double &nExitPosX_, const double &nExitPosY_, const double &nExitPosZ_, const double &nComX_, const double &nComY_, const double &nComZ_, const double &neutronWeight_, const double &nFirstScatterTime_, const double &nFirstScatterLen_, const double &nEnterTime_, const double &nTimeInMat_);
 
 	/** Push back with data
 	  * @param nScatterX_ Vector of X-axis position of all primary particle scatter positions (in mm)

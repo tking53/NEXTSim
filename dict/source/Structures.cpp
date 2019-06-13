@@ -6,17 +6,17 @@ nDetTraceStructure::nDetTraceStructure(const std::string &name_/*=""*/){
 }
 
 void nDetTraceStructure::Zero(){
-	pulseL.clear();
-	pulseR.clear();
+	left.clear();
+	right.clear();
 	mult = 0;
 }
 
 void nDetTraceStructure::Append(unsigned short *arrL_, unsigned short *arrR_, const size_t &size_){
-	pulseL.reserve(pulseL.size()+size_);
-	pulseR.reserve(pulseR.size()+size_);
+	left.reserve(left.size()+size_);
+	right.reserve(right.size()+size_);
 	for(size_t i = 0; i < size_; i++){
-		pulseL.push_back(arrL_[i]);
-		pulseR.push_back(arrR_[i]);
+		left.push_back(arrL_[i]);
+		right.push_back(arrR_[i]);
 	}
 	mult++;
 }
@@ -68,7 +68,7 @@ void nDetEventStructure::Zero(){
 
 nDetOutputStructure::nDetOutputStructure(){
 	nPhotonsTot = 0;
-	nPhotonsDetTot = 0;
+	nPhotonsDet = 0;
 	lightBalance = 0;
 	photonDetEff = 0;
 	barTOF = 0;
@@ -82,9 +82,9 @@ nDetOutputStructure::nDetOutputStructure(){
 	photonComRow = 0;
 }
 
-void nDetOutputStructure::SetValues(const unsigned int &nPhotonsTot_, const unsigned int &nPhotonsDetTot_, const double &lightBalance_, const double &photonDetEff_, const float &barTOF_, const float &barQDC_, const float &barMaxADC_, const double &photonComX_, const double &photonComY_, const double &reconComX_, const double &reconComY_, const short &photonComCol_, const short &photonComRow_){
+void nDetOutputStructure::SetValues(const unsigned int &nPhotonsTot_, const unsigned int &nPhotonsDet_, const double &lightBalance_, const double &photonDetEff_, const float &barTOF_, const float &barQDC_, const float &barMaxADC_, const double &photonComX_, const double &photonComY_, const double &reconComX_, const double &reconComY_, const short &photonComCol_, const short &photonComRow_){
 	nPhotonsTot = nPhotonsTot_;
-	nPhotonsDetTot = nPhotonsDetTot_;
+	nPhotonsDet = nPhotonsDet_;
 	lightBalance = lightBalance_;
 	photonDetEff = photonDetEff_;
 	barTOF = barTOF_;
@@ -103,7 +103,7 @@ void nDetOutputStructure::Append(){
 
 void nDetOutputStructure::Zero(){
 	nPhotonsTot = 0;
-	nPhotonsDetTot = 0;
+	nPhotonsDet = 0;
 	lightBalance = 0;
 	photonDetEff = 0;
 	barTOF = 0;
@@ -129,9 +129,9 @@ nDetMultiOutputStructure::nDetMultiOutputStructure(){
 void nDetMultiOutputStructure::SetValues(){
 }
 
-void nDetMultiOutputStructure::Append(const unsigned int &nPhotonsTot_, const unsigned int &nPhotonsDetTot_, const double &lightBalance_, const double &photonDetEff_, const float &barTOF_, const float &barQDC_, const float &barMaxADC_, const double &photonComX_, const double &photonComY_, const double &reconComX_, const double &reconComY_, const short &photonComCol_, const short &photonComRow_, const short &detID_){
+void nDetMultiOutputStructure::Append(const unsigned int &nPhotonsTot_, const unsigned int &nPhotonsDet_, const double &lightBalance_, const double &photonDetEff_, const float &barTOF_, const float &barQDC_, const float &barMaxADC_, const double &photonComX_, const double &photonComY_, const double &reconComX_, const double &reconComY_, const short &photonComCol_, const short &photonComRow_, const short &detID_){
 	nPhotonsTot.push_back(nPhotonsTot_);
-	nPhotonsDetTot.push_back(nPhotonsDetTot_);
+	nPhotonsDet.push_back(nPhotonsDet_);
 	lightBalance.push_back(lightBalance_);
 	photonDetEff.push_back(photonDetEff_);
 	barTOF.push_back(barTOF_);
@@ -149,7 +149,7 @@ void nDetMultiOutputStructure::Append(const unsigned int &nPhotonsTot_, const un
 
 void nDetMultiOutputStructure::Append(const nDetOutputStructure &output, const short &detID_){
 	nPhotonsTot.push_back(output.nPhotonsTot);
-	nPhotonsDetTot.push_back(output.nPhotonsDetTot);
+	nPhotonsDet.push_back(output.nPhotonsDet);
 	lightBalance.push_back(output.lightBalance);
 	photonDetEff.push_back(output.photonDetEff);
 	barTOF.push_back(output.barTOF);
@@ -168,7 +168,7 @@ void nDetMultiOutputStructure::Append(const nDetOutputStructure &output, const s
 void nDetMultiOutputStructure::Zero(){
 	if(multiplicity == 0){ return; } // Structure is already empty
 	nPhotonsTot.clear();
-	nPhotonsDetTot.clear();
+	nPhotonsDet.clear();
 	lightBalance.clear();
 	photonDetEff.clear();
 	barTOF.clear();
@@ -203,11 +203,11 @@ nDetDebugStructure::nDetDebugStructure(){
 	nFirstScatterTime = 0;
 	nFirstScatterLen = 0;
 	nEnterTime = 0;
-	timeInMaterial = 0;
+	nTimeInMat = 0;
 	mult = 0;
 }
 
-void nDetDebugStructure::SetValues(const double &nEnterPosX_, const double &nEnterPosY_, const double &nEnterPosZ_, const double &nExitPosX_, const double &nExitPosY_, const double &nExitPosZ_, const double &nComX_, const double &nComY_, const double &nComZ_, const double &neutronWeight_, const double &nFirstScatterTime_, const double &nFirstScatterLen_, const double &nEnterTime_, const double &timeInMaterial_){
+void nDetDebugStructure::SetValues(const double &nEnterPosX_, const double &nEnterPosY_, const double &nEnterPosZ_, const double &nExitPosX_, const double &nExitPosY_, const double &nExitPosZ_, const double &nComX_, const double &nComY_, const double &nComZ_, const double &neutronWeight_, const double &nFirstScatterTime_, const double &nFirstScatterLen_, const double &nEnterTime_, const double &nTimeInMat_){
 	nEnterPosX = nEnterPosX_;
 	nEnterPosY = nEnterPosY_;
 	nEnterPosZ = nEnterPosZ_;
@@ -221,7 +221,7 @@ void nDetDebugStructure::SetValues(const double &nEnterPosX_, const double &nEnt
 	nFirstScatterTime = nFirstScatterTime_;
 	nFirstScatterLen = nFirstScatterLen_;
 	nEnterTime = nEnterTime_;
-	timeInMaterial = timeInMaterial_;
+	nTimeInMat = nTimeInMat_;
 }
 
 void nDetDebugStructure::Append(const double &nScatterX_, const double &nScatterY_, const double &nScatterZ_, const double &nScatterAngle_, const double &nPathLength_, const double &nScatterTime_, const double &impartedE_, const short &segmentCol_, const short &segmentRow_, const short &photonsProd_, const short &recoilMass_, const bool &nScatterScint_){
@@ -255,7 +255,7 @@ void nDetDebugStructure::Zero(){
 	nFirstScatterTime = 0;
 	nFirstScatterLen = 0;
 	nEnterTime = 0;
-	timeInMaterial = 0;
+	nTimeInMat = 0;
 	nScatterX.clear();
 	nScatterY.clear();
 	nScatterZ.clear();
