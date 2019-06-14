@@ -12,7 +12,6 @@
 #include "nDetParticleSource.hh"
 #include "nDetParticleSourceMessenger.hh"
 #include "nDetRunAction.hh"
-#include "nDetRunActionMessenger.hh"
 #include "nDetConstruction.hh"
 #include "nDetConstructionMessenger.hh"
 #include "nDetMasterOutputFile.hh"
@@ -138,6 +137,7 @@ bool nDetMasterOutputFile::openRootFile(const G4Run* aRun){
 
 	// Add user commands to the output file.
 	TDirectory *dir = fFile->mkdir("setup");
+	fMessenger->write(dir);
 	nDetConstruction::getInstance().GetMessenger()->write(dir);
 	const G4UserRunAction *runAction = NULL;
 #ifdef USE_MULTITHREAD
@@ -150,7 +150,6 @@ bool nDetMasterOutputFile::openRootFile(const G4Run* aRun){
 		runAction = G4RunManager::GetRunManager()->GetUserRunAction();
 #endif
 	if(runAction){
-		((nDetRunAction*)runAction)->getMessenger()->write(dir);	
 		((nDetRunAction*)runAction)->getParticleSource()->GetMessenger()->write(dir);
 	}
 	else

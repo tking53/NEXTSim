@@ -195,6 +195,7 @@ void nDetConstruction::UpdateGeometry(){
 
 	// Update the particle sources.
 	nDetThreadContainer *container = &nDetThreadContainer::getInstance();
+	container->getMaster()->updateDetector(this);
 	for(size_t index = 0; index < container->size(); index++){
 		container->getAction(index)->updateDetector(this);
 	}
@@ -215,9 +216,9 @@ void nDetConstruction::AddGeometry(const G4String &geom){
 void nDetConstruction::setSegmentedPmt(const short &col_, const short &row_, const double &width_, const double &height_){
 	center[0].setSegmentedPmt(col_, row_, width_, height_);
 	center[1].setSegmentedPmt(col_, row_, width_, height_);
-	nDetThreadContainer *container = &nDetThreadContainer::getInstance();
-	for(size_t index = 0; index < container->size(); index++){
-		container->getAction(index)->setSegmentedPmt(col_, row_, width_, height_);
+	for(std::vector<userAddDetector>::iterator iter = userDetectors.begin(); iter != userDetectors.end(); iter++){
+		iter->getCenterOfMassL()->setSegmentedPmt(col_, row_, width_, height_);
+		iter->getCenterOfMassR()->setSegmentedPmt(col_, row_, width_, height_);
 	}
 	std::cout << " nDetConstruction: Set segmented PMTs with WxH=(" << width_ << " x " << height_ << ") and " << col_ << " columns and " << row_ << " rows.\n";
 }
@@ -227,9 +228,9 @@ bool nDetConstruction::setPmtSpectralResponse(const char *fname){
 		Display::ErrorPrint("Failed to load PMT spectral response from file!", "nDetConstruction");
 		return false;
 	}
-	nDetThreadContainer *container = &nDetThreadContainer::getInstance();
-	for(size_t index = 0; index < container->size(); index++){
-		container->getAction(index)->setPmtSpectralResponse(&center[0], &center[1]);
+	for(std::vector<userAddDetector>::iterator iter = userDetectors.begin(); iter != userDetectors.end(); iter++){
+		iter->getCenterOfMassL()->copySpectralResponse(&center[0]);
+		iter->getCenterOfMassR()->copySpectralResponse(&center[1]);
 	}
 	std::cout << " nDetConstruction: Successfully loaded PMT spectral response function\n";
 	return true;
@@ -240,9 +241,9 @@ bool nDetConstruction::setPmtGainMatrix(const char *fname){
 		Display::ErrorPrint("Failed to load PMT anode gain matrix from file!", "nDetConstruction");
 		return false;
 	}
-	nDetThreadContainer *container = &nDetThreadContainer::getInstance();
-	for(size_t index = 0; index < container->size(); index++){
-		container->getAction(index)->setPmtGainMatrix(&center[0], &center[1]);
+	for(std::vector<userAddDetector>::iterator iter = userDetectors.begin(); iter != userDetectors.end(); iter++){
+		iter->getCenterOfMassL()->copyGainMatrix(&center[0]);
+		iter->getCenterOfMassR()->copyGainMatrix(&center[1]);
 	}
 	std::cout << " nDetConstruction: Successfully loaded PMT anode gain matrix\n";
 	return true;
@@ -1407,6 +1408,11 @@ void userAddDetector::buildAllLayers(nDetConstruction *detector){
 void userAddDetector::placeDetector(G4LogicalVolume *parent){
 	assembly_physV = new G4PVPlacement(&rotation, position, assembly_logV, "Assembly", parent, 0, 0, false);
 	assembly_physV->SetCopyNo(parentCopyNum);
+}
+
+void userAddDetector::clear(){
+	cmL.clear();
+	cmR.clear();
 }
 
 bool userAddDetector::checkPmtCopyNumber(const G4int &num, bool &isLeft) const { 

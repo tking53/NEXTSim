@@ -191,6 +191,16 @@ class pmtResponse{
 	  */
 	void setFunctionType(const int &type){ functionType = type; }
 
+	void setBaselinePercentage(const double &percentage){ baselineFraction = percentage/100; }
+	
+	void setBaselineJitterPercentage(const double &percentage){ baselineJitterFraction = percentage/100; }
+
+	void setPolyCfdFraction(const double &frac){ polyCfdFraction = frac; }
+	
+	void setPulseIntegralLow(const short &low){ pulseIntegralLow = low; }
+	
+	void setPulseIntegralHigh(const short &high){ pulseIntegralHigh = high; }
+
 	/** Disable use of PMT quantum efficiency spectrum
 	  */
 	void disableSpectralResponse(){ useSpectralResponse = false; }
@@ -217,21 +227,35 @@ class pmtResponse{
 	  * @param baseline The light pulse baseline as a fraction of the full ADC dynamic range
 	  * @param jitter The random jitter in the light pulse baseline as a fraction of the full ADC dynamic range
 	  */
-	void digitize(const double &baseline=0, const double &jitter=0);
+	void digitize(const double &baseline, const double &jitter);
+
+	/** Digitize the raw light pulse (uses baseline=baselineFraction and jitter=baselineJitter)
+	  */
+	void digitize();
 
 	/** Integrate the light pulse in a range and return the result
 	  * @param start_ Inclusive start index for integration (in ADC clock ticks)
 	  * @param stop_ Inclusive stop index for integration (in ADC clock ticks)
 	  * @return The integral of the baseline corrected light pulse in the range [start_, stop_]
 	  */
-	double integratePulse(const size_t &start_=0, const size_t &stop_=0);
+	double integratePulse(const size_t &start_, const size_t &stop_);
+
+	/** Integrate the light pulse in a range and return the result
+	  * @return The integral of the baseline corrected light pulse in the range [0, pulseLength)
+	  */
+	double integratePulse();
 
 	/** Integrate the light pulse in a range about the maximum and return the result
 	  * @param start_ The number of ADC clock ticks to the left of the light pulse max index to begin integration
 	  * @param stop_ The number of ADC clock ticks to the right of the light pulse max index to stop integration
 	  * @return The integral of the baseline corrected light pulse in the range [maxIndex-start_, maxIndex+stop_]
 	  */
-	double integratePulseFromMaximum(const short &start_=5, const short &stop_=10);
+	double integratePulseFromMaximum(const short &start_, const short &stop_);
+
+	/** Integrate the light pulse in a range about the maximum and return the result
+	  * @return The integral of the baseline corrected light pulse in the range [maxIndex-pulseIntegralLow, maxIndex+pulseIntegralHigh]
+	  */
+	double integratePulseFromMaximum();
 
 	/** Perform traditional CFD analysis on the waveform using <a href="https://www.xia.com/Papers/TimeRes_DigConstFracDiscrimination.pdf">XIA CFD Algorithm</a>
 	  * @param F_ The CFD crossing point as a function of the pulse height
@@ -245,7 +269,12 @@ class pmtResponse{
 	  * @param F_ The PolyCFD crossing point as a function of the pulse height
 	  * @return The phase of the pulse, i.e. the PolyCFD crossing point (in ns)
 	  */
-	double analyzePolyCFD(const double &F_=0.5);
+	double analyzePolyCFD(const double &F_);
+
+	/** Perform polynomial CFD analysis (PolyCFD) on the waveform using F=polyCfdFraction
+	  * @return The phase of the pulse, i.e. the PolyCFD crossing point (in ns)
+	  */
+	double analyzePolyCFD();
 
 	/** Copy the digitized trace into an array
 	  * @param arr The array of unsigned shorts into which the digitized trace will be copied
@@ -303,6 +332,13 @@ class pmtResponse{
 	double maximumTime; ///< The time at the trace maximum (in ns)
 	double maximum; ///< The maximum value of the trace
 	double baseline; ///< Baseline offset of the trace
+
+	double baselineFraction; ///< Digitized light pulse baseline as a fraction of the total ADC dynamic range
+	double baselineJitterFraction; ///< Digitized light pulse baseline jitter as a fraction of the total ADC dynamic range
+	double polyCfdFraction; ///< PolyCFD F parameter as a fraction of max pulse height minus the baseline
+	
+	short pulseIntegralLow; ///< Number of ADC clock ticks for start of digitized pulse TQDC integral wrt pulse maximum
+	short pulseIntegralHigh; ///< Number of ADC clock ticks for stop of digitized pulse TQDC integral wrt pulse maximum
 
 	unsigned short maxIndex; ///< The index of the maximum trace bin (in ADC clock ticks)
 

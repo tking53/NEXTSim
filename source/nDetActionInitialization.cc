@@ -43,5 +43,9 @@ void nDetActionInitialization::Build() const {
 }
 	
 void nDetActionInitialization::BuildForMaster() const {
-	this->SetUserAction(new nDetRunAction());
+	nDetRunAction *runAction = new nDetRunAction();
+	this->SetUserAction(runAction);
+	
+	// Add this thread to the 
+	nDetThreadContainer::getInstance().setMaster(runAction);
 }

@@ -18,12 +18,8 @@
 #include "nDetTrackingAction.hh"
 #include "nDetSteppingAction.hh"
 #include "nDetParticleSource.hh"
-#include "nDetParticleSourceMessenger.hh"
-#include "termColors.hh"
-
-#include "nDetConstructionMessenger.hh"
-#include "nDetRunActionMessenger.hh"
 #include "nDetMasterOutputFile.hh"
+#include "termColors.hh"
 
 const double KINETIC_ENERGY_THRESHOLD = 0.001; // MeV
 
@@ -106,19 +102,9 @@ nDetRunAction::nDetRunAction(){
 	// Setup the particle source.
 	source = new nDetParticleSource();
 
-	baselineFraction = 0;
-	baselineJitterFraction = 0;
-	polyCfdFraction = 0.5;
-
-	pulseIntegralLow = 5;
-	pulseIntegralHigh = 10;
-	
 	numPhotonsTotal = 0;
 	numPhotonsDetTotal = 0;
   
-	// Create a messenger for this class
-	fActionMessenger = new nDetRunActionMessenger(this); 
-	
 	// Get a pointer to the detector.
 	detector = &nDetConstruction::getInstance(); // The detector builder is a singleton class.
 	
@@ -130,7 +116,6 @@ nDetRunAction::nDetRunAction(){
 
 nDetRunAction::~nDetRunAction(){
 	delete timer;
-	delete fActionMessenger;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -197,39 +182,12 @@ void nDetRunAction::EndOfRunAction(const G4Run* aRun)
 	G4cout << "number of event = " << aRun->GetNumberOfEvent() << " " << *timer << G4endl;
 }
 
-void nDetRunAction::setSegmentedPmt(const short &col_, const short &row_, const double &width_, const double &height_){
-	for(std::vector<centerOfMass>::iterator iterL = cmL.begin(), iterR = cmR.begin(); iterL != cmL.end() && iterR != cmR.end(); iterL++, iterR++){
-		iterL->setSegmentedPmt(col_, row_, width_, height_);
-		iterR->setSegmentedPmt(col_, row_, width_, height_);
-	}
-}
-
-void nDetRunAction::setPmtSpectralResponse(centerOfMass *left, centerOfMass *right){
-	for(std::vector<centerOfMass>::iterator iterL = cmL.begin(), iterR = cmR.begin(); iterL != cmL.end() && iterR != cmR.end(); iterL++, iterR++){
-		iterL->copySpectralResponse(left);
-		iterR->copySpectralResponse(right);
-	}
-}
-
-void nDetRunAction::setPmtGainMatrix(centerOfMass *left, centerOfMass *right){
-	for(std::vector<centerOfMass>::iterator iterL = cmL.begin(), iterR = cmR.begin(); iterL != cmL.end() && iterR != cmR.end(); iterL++, iterR++){
-		iterL->copyGainMatrix(left);
-		iterR->copyGainMatrix(right);
-	}
-}
-
 void nDetRunAction::updateDetector(nDetConstruction *det){
+	// Update the source with the detector position
 	source->SetDetector(det);
+	
+	// Copy the list of detectors
 	userDetectors = det->GetUserDetectors();
-	cmL.clear();
-	cmR.clear();
-	cmL.reserve(userDetectors.size());
-	cmR.reserve(userDetectors.size());
-	for(std::vector<userAddDetector>::iterator iter = userDetectors.begin(); iter != userDetectors.end(); iter++){ // Link the PMTs to the detectors
-		cmL.push_back(centerOfMass());
-		cmR.push_back(centerOfMass());
-		iter->setCenterOfMass(&cmL.back(), &cmR.back());
-	}
 }
 
 G4int nDetRunAction::checkCopyNumber(const G4int &num) const {
@@ -262,20 +220,24 @@ void nDetRunAction::process(){
 	double targetTimeOffset = source->GetTargetTimeOffset();
 	
 	short detID = 0;
-	for(std::vector<centerOfMass>::iterator iterL = cmL.begin(), iterR = cmR.begin(); iterL != cmL.end() && iterR != cmR.end(); iterL++, iterR++){
-		if(iterL->empty() && iterR->empty()){ // Skip events with no detected photons
+	for(std::vector<userAddDetector>::iterator iter = userDetectors.begin(); iter != userDetectors.end(); iter++){
+		if(iter->empty()){ // Skip events with no detected photons
 			detID++;
 			continue;
 		}
-	
-		debugData.nPhotons[0] += iterL->getNumDetected();
-		debugData.nPhotons[1] += iterR->getNumDetected();
+
+		// Get pointers to the CoM calculators
+		centerOfMass *cmL = iter->getCenterOfMassL();
+		centerOfMass *cmR = iter->getCenterOfMassR();
+
+		debugData.nPhotons[0] += cmL->getNumDetected();
+		debugData.nPhotons[1] += cmR->getNumDetected();
 		
 		// Compute the total number of detected photons
-		outData.nPhotonsDet += iterL->getNumDetected() + iterR->getNumDetected();
+		outData.nPhotonsDet += cmL->getNumDetected() + cmR->getNumDetected();
 			
 		// Check for valid bar detection
-		if(iterL->getNumDetected() > 0 && iterR->getNumDetected() > 0)
+		if(cmL->getNumDetected() > 0 && cmR->getNumDetected() > 0)
 			evtData.goodEvent = true;
 			
 		// Compute the photon detection efficiency
@@ -286,25 +248,25 @@ void nDetRunAction::process(){
 			outData.photonDetEff = -1;			
 
 		// Get the photon center-of-mass positions
-		G4ThreeVector centerL = iterL->getCenter();
-		G4ThreeVector centerR = iterR->getCenter();
+		G4ThreeVector centerL = cmL->getCenter();
+		G4ThreeVector centerR = cmR->getCenter();
 		debugData.photonDetComX[0] = centerL.getX(); debugData.photonDetComX[1] = centerR.getX(); 
 		debugData.photonDetComY[0] = centerL.getY(); debugData.photonDetComY[1] = centerR.getY(); 
 		//debugData.photonDetComZ[0] = centerL.getZ(); debugData.photonDetComZ[1] = centerR.getZ(); 
 
 		// Get photon arrival times at the PMTs
-		debugData.photonMinTime[0] = iterL->getMinArrivalTime();
-		debugData.photonAvgTime[0] = iterL->getAvgArrivalTime();
+		debugData.photonMinTime[0] = cmL->getMinArrivalTime();
+		debugData.photonAvgTime[0] = cmL->getAvgArrivalTime();
 
-		debugData.photonMinTime[1] = iterR->getMinArrivalTime();
-		debugData.photonAvgTime[1] = iterR->getAvgArrivalTime();
+		debugData.photonMinTime[1] = cmR->getMinArrivalTime();
+		debugData.photonAvgTime[1] = cmR->getAvgArrivalTime();
 		
-		pmtResponse *pmtL = iterL->getPmtResponse();
-		pmtResponse *pmtR = iterR->getPmtResponse();
+		pmtResponse *pmtL = cmL->getPmtResponse();
+		pmtResponse *pmtR = cmR->getPmtResponse();
 
 		// "Digitize" the light pulses.
-		pmtL->digitize(baselineFraction, baselineJitterFraction);
-		pmtR->digitize(baselineFraction, baselineJitterFraction);
+		pmtL->digitize();
+		pmtR->digitize();
 		
 		// Check for saturated pulse.
 		if(pmtL->getPulseIsSaturated() || pmtR->getPulseIsSaturated()){
@@ -319,14 +281,14 @@ void nDetRunAction::process(){
 		}		
 		
 		// Do some light pulse analysis
-		debugData.pulsePhase[0] = pmtL->analyzePolyCFD(polyCfdFraction) + targetTimeOffset;
-		debugData.pulseQDC[0] = pmtL->integratePulseFromMaximum(pulseIntegralLow, pulseIntegralHigh);
+		debugData.pulsePhase[0] = pmtL->analyzePolyCFD() + targetTimeOffset;
+		debugData.pulseQDC[0] = pmtL->integratePulseFromMaximum();
 		debugData.pulseMax[0] = pmtL->getMaximum();
 		debugData.pulseMaxTime[0] = pmtL->getMaximumTime();
 		debugData.pulseArrival[0] = pmtL->getWeightedPhotonArrivalTime();
 
-		debugData.pulsePhase[1] = pmtR->analyzePolyCFD(polyCfdFraction) + targetTimeOffset;
-		debugData.pulseQDC[1] = pmtR->integratePulseFromMaximum(pulseIntegralLow, pulseIntegralHigh);
+		debugData.pulsePhase[1] = pmtR->analyzePolyCFD() + targetTimeOffset;
+		debugData.pulseQDC[1] = pmtR->integratePulseFromMaximum();
 		debugData.pulseMax[1] = pmtR->getMaximum();
 		debugData.pulseMaxTime[1] = pmtR->getMaximumTime();
 		debugData.pulseArrival[1] = pmtR->getWeightedPhotonArrivalTime();		
@@ -354,16 +316,16 @@ void nDetRunAction::process(){
 		}
 		
 		// Get the digitizer response of the anodes.
-		pmtResponse *anodeResponseL = iterL->getAnodeResponse();
-		pmtResponse *anodeResponseR = iterR->getAnodeResponse();
+		pmtResponse *anodeResponseL = cmL->getAnodeResponse();
+		pmtResponse *anodeResponseR = cmR->getAnodeResponse();
 
 		// Digitize anode waveforms and integrate.
 		float anodeQDC[2][4];
 		for(size_t i = 0; i < 4; i++){
-			anodeResponseL[i].digitize(baselineFraction, baselineJitterFraction);
-			anodeResponseR[i].digitize(baselineFraction, baselineJitterFraction);
-			debugData.anodeQDC[0][i] = anodeResponseL[i].integratePulseFromMaximum(pulseIntegralLow, pulseIntegralHigh);
-			debugData.anodeQDC[1][i] = anodeResponseR[i].integratePulseFromMaximum(pulseIntegralLow, pulseIntegralHigh);
+			anodeResponseL[i].digitize();
+			anodeResponseR[i].digitize();
+			debugData.anodeQDC[0][i] = anodeResponseL[i].integratePulseFromMaximum();
+			debugData.anodeQDC[1][i] = anodeResponseR[i].integratePulseFromMaximum();
 		}		
 		
 		// Compute the anode positions.
@@ -377,8 +339,8 @@ void nDetRunAction::process(){
 		if(outputDebug){
 			// Perform CFD on digitized anode waveforms.
 			for(size_t i = 0; i < 4; i++){
-				debugData.anodePhase[0][i] = anodeResponseL[i].analyzePolyCFD(polyCfdFraction) + targetTimeOffset; // left
-				debugData.anodePhase[1][i] = anodeResponseR[i].analyzePolyCFD(polyCfdFraction) + targetTimeOffset; // right
+				debugData.anodePhase[0][i] = anodeResponseL[i].analyzePolyCFD() + targetTimeOffset; // left
+				debugData.anodePhase[1][i] = anodeResponseR[i].analyzePolyCFD() + targetTimeOffset; // right
 			}
 
 			G4ThreeVector nCenterMass(debugData.nComX, debugData.nComY, debugData.nComZ);
@@ -415,8 +377,8 @@ void nDetRunAction::process(){
 		outData.photonComY = (debugData.photonDetComY[0] + debugData.photonDetComY[1]) / 2;
 
 		// Get the segment of the detector where the photon CoM occurs.
-		iterL->getCenterSegment(debugData.centerOfMassColumn[0], debugData.centerOfMassRow[0]);
-		iterR->getCenterSegment(debugData.centerOfMassColumn[1], debugData.centerOfMassRow[1]);		
+		cmL->getCenterSegment(debugData.centerOfMassColumn[0], debugData.centerOfMassRow[0]);
+		cmR->getCenterSegment(debugData.centerOfMassColumn[1], debugData.centerOfMassRow[1]);		
 
 		// Update photon statistics.
 		numPhotonsTotal += outData.nPhotonsTot;
@@ -434,10 +396,8 @@ void nDetRunAction::process(){
 	data.clear();
 
 	// Clear all statistics.
-	for(std::vector<centerOfMass>::iterator iterL = cmL.begin(), iterR = cmR.begin(); iterL != cmL.end() && iterR != cmR.end(); iterL++, iterR++){
-		iterL->clear();
-		iterR->clear();
-	}
+	for(std::vector<userAddDetector>::iterator iter = userDetectors.begin(); iter != userDetectors.end(); iter++)
+		iter->clear();
 	
 	if(stacking) stacking->Reset();
 	if(tracking) tracking->Reset();

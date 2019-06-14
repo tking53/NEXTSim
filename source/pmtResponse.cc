@@ -104,14 +104,16 @@ void spectralResponse::close(){
 // class pmtResponse
 ///////////////////////////////////////////////////////////////////////////////
 
-pmtResponse::pmtResponse() : risetime(4.0), falltime(20.0), timeSpread(0), traceDelay(50), gain(1E4),
-                             maximum(-9999), baseline(-9999), maxIndex(0), adcBins(4096), pulseLength(100), isDigitized(false), useSpectralResponse(false), 
+pmtResponse::pmtResponse() : risetime(4.0), falltime(20.0), timeSpread(0), traceDelay(50), gain(1E4), maximum(-9999), baseline(-9999),
+                             baselineFraction(0), baselineJitterFraction(0), polyCfdFraction(0.5), pulseIntegralLow(5), pulseIntegralHigh(10),
+                             maxIndex(0), adcBins(4096), pulseLength(100), isDigitized(false), useSpectralResponse(false),
                              pulseIsSaturated(false), rawPulse(), pulseArray(), spec(), minimumArrivalTime(0), functionType(0) {
 	this->setPulseLength(pulseLength);
 }
 
-pmtResponse::pmtResponse(const double &risetime_, const double &falltime_) : risetime(risetime_), falltime(falltime_), timeSpread(0), traceDelay(50), gain(1E4),
-                                                                             maximum(-9999), baseline(-9999), maxIndex(0), adcBins(4096), pulseLength(100), isDigitized(false), useSpectralResponse(false), 
+pmtResponse::pmtResponse(const double &risetime_, const double &falltime_) : risetime(risetime_), falltime(falltime_), timeSpread(0), traceDelay(50), gain(1E4), maximum(-9999), baseline(-9999),
+                                                                             baselineFraction(0), baselineJitterFraction(0), polyCfdFraction(0.5), pulseIntegralLow(5), pulseIntegralHigh(10),
+                                                                             maxIndex(0), adcBins(4096), pulseLength(100), isDigitized(false), useSpectralResponse(false),
                                                                              pulseIsSaturated(false), rawPulse(), pulseArray(), spec(), minimumArrivalTime(0), functionType(0) {
 	this->setPulseLength(pulseLength);
 }
@@ -222,10 +224,14 @@ void pmtResponse::digitize(const double &baseline_/*=0*/, const double &jitter_/
 	isDigitized = true;
 }
 
+void pmtResponse::digitize(){
+	this->digitize(baselineFraction, baselineJitterFraction);
+}
+
 /// Integrate the baseline corrected trace for QDC in the range [start_, stop_] and return the result.
-double pmtResponse::integratePulse(const size_t &start_/*=0*/, const size_t &stop_/*=0*/){
+double pmtResponse::integratePulse(const size_t &start_, const size_t &stop_){
 	if(pulseLength == 0 || pulseArray.empty()) return -9999;
-	size_t stop = (stop_ == 0?pulseLength:stop_);
+	size_t stop = (stop_ > pulseLength ? pulseLength : stop_);
 
 	// Check for start index greater than stop index.
 	if(start_+1 >= stop) return -9999;
@@ -238,11 +244,20 @@ double pmtResponse::integratePulse(const size_t &start_/*=0*/, const size_t &sto
 	return qdc;
 }
 
+/// Integrate the baseline corrected trace for QDC in the range [0, pulseLength) and return the result.
+double pmtResponse::integratePulse(){
+	return this->integratePulse(0, pulseLength);
+}
+
 /// Integrate the baseline corrected trace for QDC in the range [maxIndex-start_, maxIndex+stop_] and return the result.
-double pmtResponse::integratePulseFromMaximum(const short &start_/*=5*/, const short &stop_/*=10*/){
-	if(maximum <= 0 && findMaximum() <= 0) return -9999;
+double pmtResponse::integratePulseFromMaximum(const short &start_, const short &stop_){
 	size_t low = (maxIndex > start_ ? maxIndex-start_ : 0);
 	return this->integratePulse(low, maxIndex+stop_);
+}
+
+/// Integrate the baseline corrected trace for QDC in the range [maxIndex-pulseIntegralLow, maxIndex+pulseIntegralHigh] and return the result.
+double pmtResponse::integratePulseFromMaximum(){
+	return this->integratePulseFromMaximum(pulseIntegralLow, pulseIntegralHigh);
 }
 
 /// Perform traditional CFD analysis on the waveform.
@@ -285,7 +300,7 @@ double pmtResponse::analyzeCFD(const double &F_/*=0.5*/, const size_t &D_/*=1*/,
 
 
 /// Perform polynomial CFD analysis on the waveform.
-double pmtResponse::analyzePolyCFD(const double &F_/*=0.5*/){
+double pmtResponse::analyzePolyCFD(const double &F_){
 	if(pulseLength == 0 || pulseArray.empty()) return -9999;
 	if(maximum <= 0 && findMaximum() <= 0) return -9999;
 
@@ -307,6 +322,11 @@ double pmtResponse::analyzePolyCFD(const double &F_/*=0.5*/){
 	}
 
 	return phase*ADC_CLOCK_TICK-traceDelay;
+}
+
+/// Perform polynomial CFD analysis on the waveform using F=polyCfdFraction
+double pmtResponse::analyzePolyCFD(){
+	return this->analyzePolyCFD(polyCfdFraction);
 }
 
 void pmtResponse::copyTrace(unsigned short *arr, const size_t &len){

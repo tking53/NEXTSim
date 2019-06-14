@@ -22,6 +22,8 @@ class nDetThreadContainer{
 		return instance;
 	}
 
+	void setMaster(nDetRunAction* ptr){ master = ptr; }
+
 	void addAction(nDetRunAction* ptr, const int &threadID){ actions.push_back(std::pair<nDetRunAction*, int>(ptr, threadID)); }
 	
 	size_t size() const { return actions.size(); }
@@ -30,10 +32,14 @@ class nDetThreadContainer{
 	
 	nDetRunAction *getAction(const size_t &index){ return actions.at(index).first; }
 	
+	nDetRunAction *getMaster(){ return master; }
+	
 	int getThreadID(const size_t &index){ return actions.at(index).second; }
 	
   private:
 	std::vector<std::pair<nDetRunAction*, int> > actions; ///< Vector of pairs of all thread-local user run actions and their thread IDs
+
+	nDetRunAction* master; ///< User run action for the master thread
 
 	// Private constructor.
 	nDetThreadContainer(){ }

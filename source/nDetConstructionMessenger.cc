@@ -15,6 +15,10 @@
 #include "G4SystemOfUnits.hh"
 
 void nDetConstructionMessenger::addAllCommands(){
+///////////////////////////////////////////////////////////////////////////////
+// Detector commands
+///////////////////////////////////////////////////////////////////////////////
+
 	addDirectory("/nDet/detector/", "Detector geometry control");
 
 	addCommand(new G4UIcmdWithAString("/nDet/detector/addGeometry", this));
@@ -123,11 +127,63 @@ void nDetConstructionMessenger::addAllCommands(){
 	
 	addCommand(new G4UIcmdWithAString("/nDet/detector/addArray", this));
 	addGuidance("Add an array of multiple detectors. SYNTAX: addArray <geom> <r0> <startTheta> <stopTheta> <Ndet>");
+
+///////////////////////////////////////////////////////////////////////////////
+// PMT & digitizer commands
+///////////////////////////////////////////////////////////////////////////////
+
+	addDirectory("/nDet/output/trace/", "Output light pulse parameters");
+
+	addCommand(new G4UIcmdWithADouble("/nDet/output/trace/setRisetime", this));
+	addGuidance("Set the PMT light response risetime (ns)");
+
+	addCommand(new G4UIcmdWithADouble("/nDet/output/trace/setFalltime", this));
+	addGuidance("Set the PMT light response falltime (ns)");
+
+	addCommand(new G4UIcmdWithADouble("/nDet/output/trace/setGain", this));
+	addGuidance("Set the gain of the PMT light response pulse");
+
+	addCommand(new G4UIcmdWithADouble("/nDet/output/trace/setBaseline", this));
+	addGuidance("Set the baseline of the PMT light response pulse as a percentage of the full ADC range");
+
+	addCommand(new G4UIcmdWithADouble("/nDet/output/trace/setJitter", this));
+	addGuidance("Set the baseline jitter of the PMT light response pulse as a percentage of the full ADC range");
+
+	addCommand(new G4UIcmdWithADouble("/nDet/output/trace/setCfdFraction", this));
+	addGuidance("Set the Cfd F parameter as a fraction of the maximum pulse height");
+
+	addCommand(new G4UIcmdWithADouble("/nDet/output/trace/setTraceDelay", this));
+	addGuidance("Set the delay of the PMT light response pulse (ns)");
+
+	addCommand(new G4UIcmdWithADouble("/nDet/output/trace/setTraceLength", this));
+	addGuidance("Set the length of the PMT light response pulse (ns)");
+
+	addCommand(new G4UIcmdWithADouble("/nDet/output/trace/setTimeSpread", this));
+	addGuidance("Set the FWHM spread in the photo-electron transit time of the PMT (ns)");
+
+	addCommand(new G4UIcmdWithAnInteger("/nDet/output/trace/setIntegralLow", this));
+	addGuidance("Set the low pulse integration limit in ADC bins");
+
+	addCommand(new G4UIcmdWithAnInteger("/nDet/output/trace/setIntegralHigh", this));
+	addGuidance("Set the high pulse integration limit in ADC bins");
+
+	addCommand(new G4UIcmdWithAnInteger("/nDet/output/trace/setBitRange", this));
+	addGuidance("Set the ADC dynamic bit range");
+
+	addCommand(new G4UIcmdWithAnInteger("/nDet/output/trace/setFunction", this));
+	addGuidance("Set the single photon response function (default=0)");
+
+	addCommand(new G4UIcmdWithAString("/nDet/output/trace/print", this));
+	addGuidance("Print the digitized light pulse");
+	addCandidates("true false");
 }
 
 void nDetConstructionMessenger::SetNewChildValue(G4UIcommand* command, G4String newValue){
 	size_t index;
 	if(!findCommand(command, newValue, index)) return;
+
+	pmtResponse *prL = fDetector->GetPmtResponseL();
+	pmtResponse *prR = fDetector->GetPmtResponseR();
 
 	if(index == 0){
 		fDetector->AddGeometry(newValue);
@@ -249,5 +305,73 @@ void nDetConstructionMessenger::SetNewChildValue(G4UIcommand* command, G4String 
 	}
 	else if(index == 33){
 		fDetector->AddDetectorArray(newValue);
+	}
+	else if(index == 34){
+		G4double val = command->ConvertToDouble(newValue);
+		prL->setRisetime(val);
+		prR->setRisetime(val);
+	}
+	else if(index == 35){
+		G4double val = command->ConvertToDouble(newValue);
+		prL->setFalltime(val);
+		prR->setFalltime(val);
+	}
+	else if(index == 36){
+		G4double val = command->ConvertToDouble(newValue);
+		prL->setGain(val);
+		prR->setGain(val);
+	}
+	else if(index == 37){
+		G4double val = command->ConvertToDouble(newValue);
+		prL->setBaselinePercentage(val);
+		prR->setBaselinePercentage(val);
+	}
+	else if(index == 38){
+		G4double val = command->ConvertToDouble(newValue);
+		prL->setBaselineJitterPercentage(val);
+		prR->setBaselineJitterPercentage(val);
+	}
+	else if(index == 39){
+		G4double val = command->ConvertToDouble(newValue);
+		prL->setPolyCfdFraction(val);
+		prR->setPolyCfdFraction(val);
+	}
+	else if(index == 40){
+		G4double val = command->ConvertToDouble(newValue);
+		prL->setTraceDelay(val);
+		prR->setTraceDelay(val);
+	}
+	else if(index == 41){
+		G4double val = command->ConvertToDouble(newValue);
+		prL->setPulseLengthInNanoSeconds(val);
+		prR->setPulseLengthInNanoSeconds(val);
+	}
+	else if(index == 42){
+		G4double val = command->ConvertToDouble(newValue);
+		prL->setTransitTimeSpread(val);
+		prR->setTransitTimeSpread(val);
+	}
+	else if(index == 43){
+		G4int val = command->ConvertToInt(newValue);
+		prL->setPulseIntegralLow(val);
+	}
+	else if(index == 44){
+		G4int val = command->ConvertToInt(newValue);
+		prL->setPulseIntegralHigh(val);
+		prR->setPulseIntegralHigh(val);
+	}
+	else if(index == 45){
+		G4int val = command->ConvertToInt(newValue);
+		prL->setBitRange(val);
+		prR->setBitRange(val);
+	}
+	else if(index == 46){
+		G4int val = command->ConvertToInt(newValue);
+		prL->setFunctionType(val);
+		prR->setFunctionType(val);
+	}
+	else if(index == 47){
+		//prL->setPrintTrace((newValue == "true") ? true : false);
+		//prR->setPrintTrace((newValue == "true") ? true : false);
 	}
 }

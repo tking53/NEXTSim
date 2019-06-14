@@ -16,7 +16,6 @@
 class G4Timer;
 class G4Run;
 
-class nDetRunActionMessenger;
 class nDetEventAction;
 class nDetStackingAction;
 class nDetTrackingAction;
@@ -78,16 +77,6 @@ class nDetRunAction : public G4UserRunAction
 
 	void setActions(nDetEventAction *event_, nDetStackingAction *stacking_, nDetTrackingAction *tracking_, nDetSteppingAction *stepping_);
 
-	void setBaselinePercentage(const double &percentage){ baselineFraction = percentage/100; }
-	
-	void setBaselineJitterPercentage(const double &percentage){ baselineJitterFraction = percentage/100; }
-
-	void setPolyCfdFraction(const double &frac){ polyCfdFraction = frac; }
-	
-	void setPulseIntegralLow(const short &low){ pulseIntegralLow = low; }
-	
-	void setPulseIntegralHigh(const short &high){ pulseIntegralHigh = high; }
-	
 	void setEventNumber(const int &eventID){ evtData.eventID = eventID; }
 	
 	void setPrintTrace(const bool &enabled){ printTrace = enabled; }
@@ -104,20 +93,16 @@ class nDetRunAction : public G4UserRunAction
 
 	void setPmtGainMatrix(centerOfMass *left, centerOfMass *right);
 	
-	std::vector<centerOfMass> *getCenterOfMassLeft(){ return &cmL; }
-	  
-	std::vector<centerOfMass> *getCenterOfMassRight(){ return &cmR; }
-
-	pmtResponse *getPmtResponseLeft(const size_t &index=0){ return cmL.at(index).getPmtResponse();	}
-
-	pmtResponse *getPmtResponseRight(const size_t &index=0){	return cmR.at(index).getPmtResponse(); }
-
-	pmtResponse *getAnodeResponseLeft(const size_t &index=0){ return cmL.at(index).getAnodeResponse();	}
-
-	pmtResponse *getAnodeResponseRight(const size_t &index=0){ return cmR.at(index).getAnodeResponse(); }
+	size_t getNumDetectors() const { return userDetectors.size(); }
 	
-	nDetRunActionMessenger *getMessenger(){ return fActionMessenger; }
+	pmtResponse *getPmtResponseLeft(const size_t &index=0){ return (index < userDetectors.size() ? userDetectors.at(index).getCenterOfMassL()->getPmtResponse() : NULL); }
 
+	pmtResponse *getPmtResponseRight(const size_t &index=0){ return (index < userDetectors.size() ? userDetectors.at(index).getCenterOfMassR()->getPmtResponse() : NULL); }
+
+	pmtResponse *getAnodeResponseLeft(const size_t &index=0){ return (index < userDetectors.size() ? userDetectors.at(index).getCenterOfMassL()->getAnodeResponse() : NULL); }
+
+	pmtResponse *getAnodeResponseRight(const size_t &index=0){ return (index < userDetectors.size() ? userDetectors.at(index).getCenterOfMassR()->getAnodeResponse() : NULL); }	
+	
     unsigned long long getNumPhotons() const { return numPhotonsTotal; }
     
     unsigned long long getNumPhotonsDet() const { return numPhotonsDetTotal; }
@@ -146,15 +131,6 @@ class nDetRunAction : public G4UserRunAction
 	bool verbose; ///< Verbosity flag
 	bool printTrace; ///< Flag indicating that the left and right digitized PMT traces will be printed to the screen
 
-	double baselineFraction; ///< Digitized light pulse baseline as a fraction of the total ADC dynamic range
-	double baselineJitterFraction; ///< Digitized light pulse baseline jitter as a fraction of the total ADC dynamic range
-	double polyCfdFraction; ///< PolyCFD F parameter as a fraction of max pulse height minus the baseline
-	
-	short pulseIntegralLow; ///< Number of ADC clock ticks for start of digitized pulse TQDC integral wrt pulse maximum
-	short pulseIntegralHigh; ///< Number of ADC clock ticks for stop of digitized pulse TQDC integral wrt pulse maximum
-
-	nDetRunActionMessenger *fActionMessenger; ///< Pointer to the messenger object used for this class
-	
 	nDetEventAction *eventAction; ///< Pointer to the thread-local user event action
 	nDetStackingAction *stacking; ///< Pointer to the thread-local user stacking action
 	nDetTrackingAction *tracking; ///< Pointer to the thread-local user tracking action
@@ -176,10 +152,6 @@ class nDetRunAction : public G4UserRunAction
 	nDetTraceStructure traceData;
 
 	photonCounter *counter; ///< Counter used to record the total number of optical photons produced by scattering
-
-	std::vector<centerOfMass> cmL; ///< Object used to compute the optical photon detection center-of-mass for the left PMT
-	std::vector<centerOfMass> cmR; ///< Object used to compute the optical photon detection center-of-mass for the right PMT
-	std::vector<int> cmCounts; ///< Vector of optical photon counts for all defined detectors
 
     unsigned long long numPhotonsTotal; ///< Total number of simulated optical photons (thread-local)
     unsigned long long numPhotonsDetTotal; ///< Total number of detected optical photons (thread-local)

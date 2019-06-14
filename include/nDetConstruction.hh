@@ -130,6 +130,14 @@ class nDetConstruction : public G4VUserDetectorConstruction{
 
 	nDetConstructionMessenger *GetMessenger(){ return fDetectorMessenger; }
 
+	centerOfMass *GetCenterOfMassL(){ return &center[0]; }
+	
+	centerOfMass *GetCenterOfMassR(){ return &center[1]; }
+
+	pmtResponse *GetPmtResponseL(){ return center[0].getPmtResponse(); }
+	
+	pmtResponse *GetPmtResponseR(){ return center[1].getPmtResponse(); }
+
 	std::vector<userAddDetector> GetUserDetectors() const { return userDetectors; }
 
     bool PmtIsSegmented() const { return (fNumColumnsPmt > 0 && fNumRowsPmt > 0); }
@@ -379,17 +387,13 @@ class userAddDetector{
 	
 	void setSegmentedDetector(const G4int &col, const G4int &row, const G4int &startCopyNum=0);
 
-	/** Set pointers to the photon center-of-mass calculators for the left and right PMTs
-	  * @param left Pointer to center-of-mass object for the left PMT
-	  * @param right Pointer to center-of-mass object for the right PMT
-	  */
-	void setCenterOfMass(centerOfMass *left, centerOfMass *right){ cmL = left; cmR = right; }
-
 	void addLayer(const userAddLayer &layer){ userLayers.push_back(layer); }
 
 	void buildAllLayers(nDetConstruction *detector);
 	
 	void placeDetector(G4LogicalVolume *parent);
+
+	void clear();
 
 	bool checkCopyNumber(const G4int &num) const { return (num >= firstSegmentCopyNum && num < lastSegmentCopyNum); }
 
@@ -399,9 +403,15 @@ class userAddDetector{
 
 	bool getSegmentFromCopyNum(const G4int &copyNum, G4int &col, G4int &row) const ;
 	
-	centerOfMass *getCenterOfMassL(){ return cmL; }
+	bool empty() const { return (cmL.empty() && cmR.empty()); }
 	
-	centerOfMass *getCenterOfMassR(){ return cmR; }
+	centerOfMass *getCenterOfMassL(){ return &cmL; }
+	
+	centerOfMass *getCenterOfMassR(){ return &cmR; }
+
+	pmtResponse *getPmtResponseL(){ return cmL.getPmtResponse(); }
+	
+	pmtResponse *getPmtResponseR(){ return cmR.getPmtResponse(); }
 
   private:
 	G4LogicalVolume *assembly_logV; ///< Pointer to the logical volume of the mother of the detector
@@ -421,8 +431,8 @@ class userAddDetector{
 	G4ThreeVector position; ///< Position of the detector in the lab frame
 	G4RotationMatrix rotation; ///< Rotation of the detector in the lab frame
 	
-	centerOfMass *cmL; ///< Pointer to center-of-mass object for the left PMT
-	centerOfMass *cmR; ///< Pointer to center-of-mass object for the right PMT
+	centerOfMass cmL; ///< Center-of-mass calculator for the left PMT
+	centerOfMass cmR; ///< Center-of-mass calculator for the right PMT
 	
 	std::vector<userAddLayer> userLayers; ///< Vector of all layers added by the user
 };
