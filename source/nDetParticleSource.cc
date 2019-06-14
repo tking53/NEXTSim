@@ -29,6 +29,14 @@ const double cvac = 299.792458; // mm/ns
 // class nDetParticleSource
 ///////////////////////////////////////////////////////////////////////////////
 
+nDetParticleSource &nDetParticleSource::getInstance(){
+	// The only instance
+	// Guaranteed to be lazy initialized
+	// Guaranteed that it will be destroyed correctly
+	static nDetParticleSource instance;
+	return instance;
+}
+
 nDetParticleSource::nDetParticleSource(nDetConstruction *det/*=NULL*/) : G4VUserPrimaryGeneratorAction(), G4GeneralParticleSource(), fSourceMessenger(NULL), 
                                                                          unitX(1,0,0), unitY(0,1,0), unitZ(0,0,1), sourceOrigin(0,0,0), beamspotType(0), beamspot(0), beamspot0(0), 
                                                                          rot(), targThickness(0), targEnergyLoss(0), targTimeSlope(0), targTimeOffset(0), beamE0(0), useReaction(false), 
@@ -38,7 +46,7 @@ nDetParticleSource::nDetParticleSource(nDetConstruction *det/*=NULL*/) : G4VUser
 	SetNeutronBeam(1.0); // Set a 1 MeV neutron beam by default
 	
 	// Set the default beam direction along the +X axis (to be changed to +Z later CRT)
-	SetSourceDirection(G4ThreeVector(1, 0, 0));
+	SetSourceDirection(G4ThreeVector(0, 0, 0));
 	
 	// Set the default particle reaction.
 	particleRxn = new Reaction();
@@ -403,8 +411,10 @@ void nDetParticleSource::AddDiscreteEnergy(const G4double &energy, const G4doubl
 }
 
 void nDetParticleSource::Reset(){
-	ClearAll();
-	allSources.clear();
+	if(GetNumberofSource() > 0){
+		ClearAll();
+		allSources.clear();
+	}
 	addNewSource();
 	sourceIndex = 0;
 }

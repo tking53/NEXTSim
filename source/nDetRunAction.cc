@@ -99,8 +99,8 @@ nDetRunAction::nDetRunAction(){
 	tracking = NULL;
 	stepping = NULL;
 	
-	// Setup the particle source.
-	source = new nDetParticleSource();
+	// Set the particle source.
+	source = &nDetParticleSource::getInstance();
 
 	numPhotonsTotal = 0;
 	numPhotonsDetTotal = 0;
@@ -129,10 +129,10 @@ void nDetRunAction::BeginOfRunAction(const G4Run* aRun)
 	evtData.runNb = aRun->GetRunID();
 	evtData.threadID = G4Threading::G4GetThreadId();
 
-	// Update the source
-	source->UpdateAll();
-
 	if(G4Threading::G4GetThreadId() >= 0) return; // Master thread only.
+
+	// Update the source. Only need to do this once since it's a singleton
+	source->UpdateAll();
 
 	G4cout << "nDetRunAction::BeginOfRunAction()->"<< G4endl;
 	G4cout << "### Run " << aRun->GetRunID() << " start." << G4endl; 
@@ -183,9 +183,6 @@ void nDetRunAction::EndOfRunAction(const G4Run* aRun)
 }
 
 void nDetRunAction::updateDetector(nDetConstruction *det){
-	// Update the source with the detector position
-	source->SetDetector(det);
-	
 	// Copy the list of detectors
 	userDetectors = det->GetUserDetectors();
 }

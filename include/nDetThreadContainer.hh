@@ -22,7 +22,7 @@ class nDetThreadContainer{
 		return instance;
 	}
 
-	void setMaster(nDetRunAction* ptr){ master = ptr; }
+	void setMaster(nDetRunAction* ptr){ master = ptr; multithreading = true; }
 
 	void addAction(nDetRunAction* ptr, const int &threadID){ actions.push_back(std::pair<nDetRunAction*, int>(ptr, threadID)); }
 	
@@ -36,13 +36,17 @@ class nDetThreadContainer{
 	
 	int getThreadID(const size_t &index){ return actions.at(index).second; }
 	
+	bool getMultithreadingMode() const { return multithreading; }
+	
   private:
 	std::vector<std::pair<nDetRunAction*, int> > actions; ///< Vector of pairs of all thread-local user run actions and their thread IDs
 
 	nDetRunAction* master; ///< User run action for the master thread
 
+	bool multithreading; ///< Flag indicating that the program is running in multithreaded mode
+
 	// Private constructor.
-	nDetThreadContainer(){ }
+	nDetThreadContainer() : master(NULL), multithreading(false) { }
 };
 
 #endif

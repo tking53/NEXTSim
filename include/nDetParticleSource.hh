@@ -35,14 +35,22 @@ class nDetConstruction;
 
 class nDetParticleSource : public G4VUserPrimaryGeneratorAction, G4GeneralParticleSource {
   public:
-	/** Default constructor
-	  */
-	nDetParticleSource(nDetConstruction *det=NULL);
-
 	/** Destructor
 	  */
 	~nDetParticleSource();
 
+	/** Copy constructor. Not implemented for singleton class
+	  */
+	nDetParticleSource(nDetParticleSource const &);
+
+	/** Assignment operator. Not implemented for singleton class
+	  */	
+	nDetParticleSource &operator=(nDetParticleSource const &);
+
+	/** Get an instance of the singleton
+	  */
+	static nDetParticleSource &getInstance();
+	
 	/** Get a pointer to the messenger used for this class
 	  */
 	nDetParticleSourceMessenger *GetMessenger(){ return fSourceMessenger; }
@@ -241,7 +249,7 @@ class nDetParticleSource : public G4VUserPrimaryGeneratorAction, G4GeneralPartic
 	  */
 	virtual void GeneratePrimaries(G4Event* anEvent);
 
-  protected:
+  private:
 	nDetParticleSourceMessenger *fSourceMessenger; ///< Pointer to the messenger for this class
 	
 	G4ThreeVector unitX; ///< X-axis unit vector in the frame of the source
@@ -277,6 +285,10 @@ class nDetParticleSource : public G4VUserPrimaryGeneratorAction, G4GeneralPartic
 	G4String interpolationMethod; ///< Interpolation method to use for G4SPSEneDistribution class
 
 	std::vector <G4SingleParticleSource*> allSources; ///< Vector of all single particle sources (needed because G4GeneralParticleSource::sourceVector is private)
+
+	/** Default constructor (private for singleton class)
+	  */
+	nDetParticleSource(nDetConstruction *det=NULL);
 
 	/** Get the next G4SingleParticleSource in the vector of all sources
 	  * @return A pointer to the next source (starting from the zeroth) or return NULL if the end of the vector has been reached

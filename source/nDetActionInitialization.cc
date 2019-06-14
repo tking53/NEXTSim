@@ -1,6 +1,7 @@
 
 #include <iostream>
 
+#include "G4RunManager.hh"
 #include "G4MTRunManager.hh"
 #include "G4Threading.hh"
 
@@ -14,8 +15,7 @@
 #include "nDetTrackingAction.hh"
 #include "nDetThreadContainer.hh"
 
-nDetActionInitialization::nDetActionInitialization(bool verboseMode/*=false*/){ 
-	verbose = verboseMode;
+nDetActionInitialization::nDetActionInitialization(bool verboseMode/*=false*/) : verbose(verboseMode) { 
 }
 
 void nDetActionInitialization::Build() const {
@@ -46,6 +46,6 @@ void nDetActionInitialization::BuildForMaster() const {
 	nDetRunAction *runAction = new nDetRunAction();
 	this->SetUserAction(runAction);
 	
-	// Add this thread to the 
+	// Add the master thread to the list of all threads
 	nDetThreadContainer::getInstance().setMaster(runAction);
 }

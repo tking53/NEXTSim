@@ -193,9 +193,13 @@ void nDetConstruction::UpdateGeometry(){
 	if(PmtIsSegmented())
 		setSegmentedPmt(fNumColumnsPmt, fNumRowsPmt, SiPM_dimension*2, SiPM_dimension*2);
 
-	// Update the particle sources.
+	// Update the particle source
+	nDetParticleSource::getInstance().SetDetector(this);
+	
+	// Update the detector lists of all user run actions
 	nDetThreadContainer *container = &nDetThreadContainer::getInstance();
-	container->getMaster()->updateDetector(this);
+	if(container->getMultithreadingMode())
+		container->getMaster()->updateDetector(this);
 	for(size_t index = 0; index < container->size(); index++){
 		container->getAction(index)->updateDetector(this);
 	}
