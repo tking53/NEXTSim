@@ -152,15 +152,15 @@ void nDetRunAction::BeginOfRunAction(const G4Run* aRun)
 			outputFile->setOutputTraces((outputTraces = false));	
 		}
 		for(size_t index = 0; index < container->size(); index++){ // Set options per thread
-			container->getAction(index)->setOutputDebug(false);
-			container->getAction(index)->setOutputTraces(false);
+			container->getActionManager(index)->getRunAction()->setOutputDebug(false);
+			container->getActionManager(index)->getRunAction()->setOutputTraces(false);
 		}
 		outputFile->setMultiDetectorMode(true);
 	}
 	else{ // Single detector mode
 		for(size_t index = 0; index < container->size(); index++){ // Set options per thread
-			container->getAction(index)->setOutputDebug(outputFile->getOutputDebug());
-			container->getAction(index)->setOutputTraces(outputFile->getOutputTraces());
+			container->getActionManager(index)->getRunAction()->setOutputDebug(outputFile->getOutputDebug());
+			container->getActionManager(index)->getRunAction()->setOutputTraces(outputFile->getOutputTraces());
 		}
 		outputFile->setMultiDetectorMode(false);
 	}

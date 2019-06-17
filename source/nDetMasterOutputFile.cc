@@ -213,8 +213,8 @@ bool nDetMasterOutputFile::fillBranch(const nDetDataPack &pack){
 		unsigned long long numPhotons = 0;
 		unsigned long long numPhotonsDet = 0;
 		for(size_t index = 0; index < container->size(); index++){
-			numPhotons += container->getAction(index)->getNumPhotons();
-			numPhotonsDet += container->getAction(index)->getNumPhotonsDet();
+			numPhotons += container->getActionManager(index)->getRunAction()->getNumPhotons();
+			numPhotonsDet += container->getActionManager(index)->getRunAction()->getNumPhotonsDet();
 		}
 		totalTime += timer->GetRealElapsed();
 		if(displayTimeInterval > 0 && (totalTime - previousTime) >= displayTimeInterval){ // Display every 10 seconds.

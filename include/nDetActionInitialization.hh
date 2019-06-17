@@ -3,8 +3,52 @@
 
 #include "G4VUserActionInitialization.hh"
 
+class nDetRunAction;
+class nDetEventAction;
+class nDetSteppingAction;
+class nDetStackingAction;
+class nDetTrackingAction;
+
+class nDetActionInitialization;
+
+/*! \class userActionManager
+ *  \brief Container for a thread's user actions
+ *  \author Cory R. Thornsberry (cthornsb@vols.utk.edu)
+ *  \date June 14, 2019
+*/
+
+class userActionManager{
+  public:
+	userActionManager(const nDetActionInitialization* init, bool verboseMode=false);
+	
+	int getThreadID() const { return threadID; }
+	
+	nDetRunAction* getRunAction(){ return runAction; }
+	
+	nDetEventAction* getEventAction(){ return eventAction; }
+	
+	nDetSteppingAction* getSteppingAction(){ return steppingAction; }
+	
+	nDetStackingAction* getStackingAction(){ return stackingAction; }
+	
+	nDetTrackingAction* getTrackingAction(){ return trackingAction; }	
+
+	const nDetActionInitialization* getActionInit(){ return actionInit; }
+
+  private:
+	int threadID;
+	
+	nDetRunAction* runAction;
+	nDetEventAction* eventAction;
+	nDetSteppingAction* steppingAction;
+	nDetStackingAction* stackingAction;
+	nDetTrackingAction* trackingAction;
+	
+	const nDetActionInitialization* actionInit;
+};
+
 /*! \class nDetActionInitialization
- *  \brief Class used to set the user actions for worker and master threads
+ *  \brief Used to set the user actions for worker and master threads
  *  \author Cory R. Thornsberry (cthornsb@vols.utk.edu)
  *  \date May 31, 2019
 */

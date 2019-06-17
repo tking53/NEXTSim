@@ -37,7 +37,7 @@ nDetParticleSource &nDetParticleSource::getInstance(){
 	return instance;
 }
 
-nDetParticleSource::nDetParticleSource(nDetConstruction *det/*=NULL*/) : G4VUserPrimaryGeneratorAction(), G4GeneralParticleSource(), fSourceMessenger(NULL), 
+nDetParticleSource::nDetParticleSource(nDetConstruction *det/*=NULL*/) : G4GeneralParticleSource(), fSourceMessenger(NULL), 
                                                                          unitX(1,0,0), unitY(0,1,0), unitZ(0,0,1), sourceOrigin(0,0,0), beamspotType(0), beamspot(0), beamspot0(0), 
                                                                          rot(), targThickness(0), targEnergyLoss(0), targTimeSlope(0), targTimeOffset(0), beamE0(0), useReaction(false), 
                                                                          particleRxn(NULL), detPos(), detSize(), detRot(), sourceIndex(0), interpolationMethod("Lin")
@@ -532,6 +532,9 @@ double nDetParticleSource::Print(const size_t &Nsamples/*=1*/){
 }
 
 void nDetParticleSource::GeneratePrimaries(G4Event* anEvent){
+	// Enable the mutex lock to protect file access.
+	generatorLock.lock();
+	
 	GeneratePrimaryVertex(anEvent);
 	if(useReaction || isotropic){ // Generate particles psuedo-isotropically
 		G4PrimaryVertex *vertex = anEvent->GetPrimaryVertex(0);
@@ -571,6 +574,9 @@ void nDetParticleSource::GeneratePrimaries(G4Event* anEvent){
 			particle->SetKineticEnergy(energy);
 		}
 	}
+	
+	// Disable the mutex lock to open access to the file.
+	generatorLock.unlock();
 }
 
 G4SingleParticleSource *nDetParticleSource::nextSource(){
@@ -646,4 +652,12 @@ void nDetParticleSource::setBeamProfile(G4SingleParticleSource *src){
 		pos->SetBeamSigmaInX(beamspot*fwhm2stddev);
 		pos->SetBeamSigmaInY(beamspot0*fwhm2stddev);
 	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// class nDetPrimaryGeneratorAction
+///////////////////////////////////////////////////////////////////////////////
+
+void nDetPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent){
+	nDetParticleSource::getInstance().GeneratePrimaries(anEvent);
 }

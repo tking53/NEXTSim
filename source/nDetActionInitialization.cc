@@ -1,6 +1,4 @@
 
-#include <iostream>
-
 #include "G4RunManager.hh"
 #include "G4MTRunManager.hh"
 #include "G4Threading.hh"
@@ -8,6 +6,7 @@
 #include "nDetActionInitialization.hh"
 #include "nDetConstruction.hh"
 
+#include "nDetParticleSource.hh"
 #include "nDetRunAction.hh"
 #include "nDetEventAction.hh"
 #include "nDetStackingAction.hh"
@@ -15,31 +14,39 @@
 #include "nDetTrackingAction.hh"
 #include "nDetThreadContainer.hh"
 
+userActionManager::userActionManager(const nDetActionInitialization* init, bool verboseMode/*=false*/) : threadID(0), runAction(NULL), eventAction(NULL), steppingAction(NULL), stackingAction(NULL), trackingAction(NULL), actionInit(init) {
+	threadID = G4Threading::G4GetThreadId();
+
+	// Define all user actions.
+	runAction = new nDetRunAction();
+	eventAction = new nDetEventAction(runAction);
+	steppingAction = new nDetSteppingAction(runAction);
+	stackingAction = new nDetStackingAction(runAction);
+	trackingAction = new nDetTrackingAction(runAction);
+	
+	// Set verbose mode
+	if(verboseMode) runAction->toggleVerboseMode();
+	
+	// Link all actions back to run control thread
+	runAction->setActions(eventAction, stackingAction, trackingAction, steppingAction);
+}
+
 nDetActionInitialization::nDetActionInitialization(bool verboseMode/*=false*/) : verbose(verboseMode) { 
 }
 
 void nDetActionInitialization::Build() const {
-	// Define all user actions.
-	nDetRunAction *runAction = new nDetRunAction();
-	nDetEventAction *eventAction = new nDetEventAction(runAction);
-	nDetSteppingAction *steppingAction = new nDetSteppingAction(runAction);
-	nDetStackingAction *stackingAction = new nDetStackingAction(runAction);
-	nDetTrackingAction *trackingAction = new nDetTrackingAction(runAction);
+	userActionManager manager(this, verbose);
 
-	if(verbose) runAction->toggleVerboseMode();
+	// Set pointers to all user actions
+	SetUserAction(manager.getRunAction());
+	SetUserAction(manager.getEventAction());
+	SetUserAction(manager.getSteppingAction());
+	SetUserAction(manager.getStackingAction());
+	SetUserAction(manager.getTrackingAction());
+	SetUserAction(new nDetPrimaryGeneratorAction());
 
-	this->SetUserAction(runAction);
-	this->SetUserAction((G4VUserPrimaryGeneratorAction*)runAction->getParticleSource());	
-	this->SetUserAction(eventAction);
-	this->SetUserAction(steppingAction);
-	this->SetUserAction(stackingAction);
-	this->SetUserAction(trackingAction);
-
-	// Link all actions back to run control thread.
-	runAction->setActions(eventAction, stackingAction, trackingAction, steppingAction);
-
-	// Add this thread to the 
-	nDetThreadContainer::getInstance().addAction(runAction, G4Threading::G4GetThreadId());
+	// Add this thread to the list of all threads
+	nDetThreadContainer::getInstance().addAction(manager);
 }
 	
 void nDetActionInitialization::BuildForMaster() const {

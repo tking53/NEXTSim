@@ -199,9 +199,9 @@ void nDetConstruction::UpdateGeometry(){
 	// Update the detector lists of all user run actions
 	nDetThreadContainer *container = &nDetThreadContainer::getInstance();
 	if(container->getMultithreadingMode())
-		container->getMaster()->updateDetector(this);
+		container->getMasterRunAction()->updateDetector(this);
 	for(size_t index = 0; index < container->size(); index++){
-		container->getAction(index)->updateDetector(this);
+		container->getActionManager(index)->getRunAction()->updateDetector(this);
 	}
 }
 

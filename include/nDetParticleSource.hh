@@ -1,6 +1,7 @@
 #ifndef NDET_PARTICLE_SOURCE_HH
 #define NDET_PARTICLE_SOURCE_HH
 
+#include <mutex>
 #include <vector>
 
 #include "G4GeneralParticleSource.hh"
@@ -33,7 +34,7 @@ class nDetConstruction;
  *  low level via macro commands.
 */
 
-class nDetParticleSource : public G4VUserPrimaryGeneratorAction, G4GeneralParticleSource {
+class nDetParticleSource : public G4GeneralParticleSource {
   public:
 	/** Destructor
 	  */
@@ -286,6 +287,8 @@ class nDetParticleSource : public G4VUserPrimaryGeneratorAction, G4GeneralPartic
 
 	std::vector <G4SingleParticleSource*> allSources; ///< Vector of all single particle sources (needed because G4GeneralParticleSource::sourceVector is private)
 
+	std::mutex generatorLock; ///< Mutex lock for thread-safe TTree filling
+
 	/** Default constructor (private for singleton class)
 	  */
 	nDetParticleSource(nDetConstruction *det=NULL);
@@ -311,6 +314,18 @@ class nDetParticleSource : public G4VUserPrimaryGeneratorAction, G4GeneralPartic
 	  * @param src Pointer to the G4SingleParticleSource which will have its profile set
 	  */
 	void setBeamProfile(G4SingleParticleSource *src);
+};
+
+class nDetPrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction{
+  public:
+	nDetPrimaryGeneratorAction() : G4VUserPrimaryGeneratorAction() { }
+	
+	~nDetPrimaryGeneratorAction(){ }
+	
+	/** Generate primary particles
+	  * @param anEvent Pointer to the current event
+	  */
+	virtual void GeneratePrimaries(G4Event* anEvent);
 };
 
 #endif

@@ -4,6 +4,7 @@
 #include <vector>
 #include <utility>
 
+#include "nDetActionInitialization.hh"
 #include "nDetRunAction.hh"
 
 class nDetThreadContainer{
@@ -24,22 +25,20 @@ class nDetThreadContainer{
 
 	void setMaster(nDetRunAction* ptr){ master = ptr; multithreading = true; }
 
-	void addAction(nDetRunAction* ptr, const int &threadID){ actions.push_back(std::pair<nDetRunAction*, int>(ptr, threadID)); }
+	void addAction(const userActionManager &manager){ actions.push_back(manager); }
 	
 	size_t size() const { return actions.size(); }
 	
-	std::vector<std::pair<nDetRunAction*, int> > *getAction(){ return &actions; }
+	std::vector<userActionManager> *getAction(){ return &actions; }
 	
-	nDetRunAction *getAction(const size_t &index){ return actions.at(index).first; }
+	userActionManager *getActionManager(const size_t &index){ return &actions.at(index); }
 	
-	nDetRunAction *getMaster(){ return master; }
-	
-	int getThreadID(const size_t &index){ return actions.at(index).second; }
+	nDetRunAction *getMasterRunAction(){ return master; }
 	
 	bool getMultithreadingMode() const { return multithreading; }
 	
   private:
-	std::vector<std::pair<nDetRunAction*, int> > actions; ///< Vector of pairs of all thread-local user run actions and their thread IDs
+	std::vector<userActionManager> actions; ///< Vector of pairs of all thread-local user run actions and their thread IDs
 
 	nDetRunAction* master; ///< User run action for the master thread
 
