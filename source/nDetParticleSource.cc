@@ -7,6 +7,7 @@
 #include "nDetRunAction.hh"
 #include "cmcalc.hh"
 #include "termColors.hh"
+#include "optionHandler.hh"
 
 #include "G4Event.hh"
 #include "G4GeneralParticleSource.hh"

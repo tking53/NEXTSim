@@ -5,7 +5,6 @@
 
 #include "nDetMasterOutputFileMessenger.hh"
 #include "nDetConstructionMessenger.hh"
-#include "nDetRunActionMessenger.hh"
 #include "nDetParticleSourceMessenger.hh"
 
 void help(char * prog_name_){
@@ -34,11 +33,10 @@ int main(int argc, char *argv[]){
 
 	nDetMasterOutputFileMessenger outputMessenger;
 	nDetConstructionMessenger constructionMessenger;
-	nDetRunActionMessenger runActionMessenger;
 	nDetParticleSourceMessenger sourceMessenger;
 
-	const size_t numMessengers = 4;
-	messengerHandler *handlers[numMessengers] = {&outputMessenger, &constructionMessenger, &runActionMessenger, &sourceMessenger};
+	const size_t numMessengers = 3;
+	messengerHandler *handlers[numMessengers] = {&outputMessenger, &constructionMessenger, &sourceMessenger};
 
 	std::string msgNames[numMessengers];
 	size_t msgNumCmds[numMessengers];

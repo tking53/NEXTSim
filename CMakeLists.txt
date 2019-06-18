@@ -57,7 +57,7 @@ option(GEANT4_UIVIS "Build example with Geant4 UI and Vis drivers" ON)
 #------------------------------------------------------------------------------
 
 #Set the name of the dictionary
-set(DICTIONARY_PREFIX "nDetEvent" CACHE STRING "Prefix to root dictionary.")
+set(DICTIONARY_NAME "NextSimEvent" CACHE STRING "Prefix to root dictionary.")
 
 #Find required packages.
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules/")

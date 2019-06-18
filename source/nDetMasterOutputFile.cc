@@ -137,8 +137,8 @@ bool nDetMasterOutputFile::openRootFile(const G4Run* aRun){
 
 	// Add user commands to the output file.
 	TDirectory *dir = fFile->mkdir("setup");
-	fMessenger->write(dir);
-	nDetConstruction::getInstance().GetMessenger()->write(dir);
+	writeMessengerCommands(fMessenger, dir);
+	writeMessengerCommands(nDetConstruction::getInstance().GetMessenger(), dir);
 	const G4UserRunAction *runAction = NULL;
 #ifdef USE_MULTITHREAD
 	if(G4MTRunManager::GetMasterRunManager()) // Multithreaded mode.
@@ -150,7 +150,7 @@ bool nDetMasterOutputFile::openRootFile(const G4Run* aRun){
 		runAction = G4RunManager::GetRunManager()->GetUserRunAction();
 #endif
 	if(runAction){
-		((nDetRunAction*)runAction)->getParticleSource()->GetMessenger()->write(dir);
+		writeMessengerCommands(((nDetRunAction*)runAction)->getParticleSource()->GetMessenger(), dir);
 	}
 	else
 		Display::WarningPrint("Failed to find master run manager.", "nDetMasterOutputFile");
@@ -266,4 +266,22 @@ bool nDetMasterOutputFile::writeInfoToFile(const std::string &name, const std::s
 		named.Write();
 	}
 	return false;
+}
+
+void nDetMasterOutputFile::writeMessengerCommands(messengerHandler* messenger, TDirectory* directory){
+	directory->cd();
+	std::vector<std::string> userCommands = messenger->getAllUserCommands();
+	for(std::vector<std::string>::iterator iter = userCommands.begin(); iter != userCommands.end(); iter++){ // Write the commands to the output file.
+		std::string cmd = (*iter);
+		size_t index1 = iter->find_last_of('/');
+		if(index1 != std::string::npos){
+			size_t index2 = iter->find_first_of(' ');
+			if(index2 != std::string::npos)
+				cmd = cmd.substr(index1+1, index2-(index1+1));
+			else
+				cmd = cmd.substr(index1+1);
+		}
+		TNamed named(cmd.c_str(), iter->c_str());
+		named.Write();
+	}
 }

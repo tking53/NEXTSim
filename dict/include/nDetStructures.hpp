@@ -1,4 +1,4 @@
-/*! \file Structures.hpp
+/*! \file nDetStructures.hpp
  *  \brief Data structures for root output
  *  \author Cory R. Thornsbery
  *  \date June 12, 2019
@@ -12,8 +12,8 @@
  *   RootClassBuilder (v. 1.0.7) on June 12, 2019
  */
 
-#ifndef ROOTDATAStructure_H
-#define ROOTDATAStructure_H
+#ifndef NDETSTRUCTURES_HPP
+#define NDETSTRUCTURES_HPP
 
 #include "TObject.h"
 

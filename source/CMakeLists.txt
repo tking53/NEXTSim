@@ -9,18 +9,32 @@ if(GEANT4_MT)
 endif(GEANT4_MT)
 
 #Set the scan sources that we will make a lib out of.
-set(NextSimSources centerOfMass.cc nDetConstruction.cc nDetActionInitialization.cc nDetEventAction.cc nDetMasterOutputFile.cc 
-                   nDetMasterOutputFileMessenger.cc nDetSteppingAction.cc nDetParticleSource.cc nDetParticleSourceMessenger.cc 
-                   pmtResponse.cc messengerHandler.cc nDetConstructionMessenger.cc nDetRunAction.cc nDetStackingAction.cc cmcalc.cc 
-                   nDetTrackingAction.cc optionHandler.cc photonCounter.cc gdmlSolid.cc nistDatabase.cc nDetDataPack.cc termColors.cc)
+set(NextSimCoreSources nDetRunAction.cc nDetActionInitialization.cc nDetEventAction.cc nDetSteppingAction.cc nDetTrackingAction.cc nDetStackingAction.cc
+                       messengerHandler.cc centerOfMass.cc pmtResponse.cc cmcalc.cc photonCounter.cc nistDatabase.cc)
+
+set(NextSimOutputSources nDetMasterOutputFile.cc nDetMasterOutputFileMessenger.cc nDetDataPack.cc)
+set(NextSimDetectorSources nDetConstruction.cc nDetConstructionMessenger.cc gdmlSolid.cc)
+set(NextSimGeneratorSources nDetParticleSource.cc nDetParticleSourceMessenger.cc)
+set(NextSimPeripheralSources optionHandler.cc termColors.cc)
 
 #Add the sources to the library.
-add_library(NextSimObjects OBJECT ${NextSimSources})
+add_library(NextSimCoreObj OBJECT ${NextSimCoreSources})
+add_library(NextSimOutputObj OBJECT ${NextSimOutputSources})
+add_library(NextSimDetectorObj OBJECT ${NextSimDetectorSources})
+add_library(NextSimGeneratorObj OBJECT ${NextSimGeneratorSources})
+add_library(NextSimPeripheralObj OBJECT ${NextSimPeripheralSources})
 
 #Generate a static library.
-add_library(NextSimStatic STATIC $<TARGET_OBJECTS:NextSimObjects>)
+add_library(NextSimCore STATIC $<TARGET_OBJECTS:NextSimCoreObj>)
+add_library(NextSimOutput STATIC $<TARGET_OBJECTS:NextSimOutputObj>)
+add_library(NextSimDetector STATIC $<TARGET_OBJECTS:NextSimDetectorObj>)
+add_library(NextSimGenerator STATIC $<TARGET_OBJECTS:NextSimGeneratorObj>)
+add_library(NextSimPeripheral STATIC $<TARGET_OBJECTS:NextSimPeripheralObj>)
+
+#Link the NextSim output library with the root dictionary
+target_link_libraries(NextSimOutput ${DICTIONARY_NAME})
 
 #Build simpleScan executable.
 add_executable(nextSim nextSim.cc)
-target_link_libraries(nextSim NextSimStatic ${Geant4_LIBRARIES} ${DICTIONARY_PREFIX}Static ${ROOT_LIBRARIES})
+target_link_libraries(nextSim NextSimOutput NextSimDetector NextSimGenerator NextSimPeripheral NextSimCore ${Geant4_LIBRARIES} ${ROOT_LIBRARIES})
 install(TARGETS nextSim DESTINATION bin)

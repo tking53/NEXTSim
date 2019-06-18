@@ -1,4 +1,4 @@
-#include "Structures.hpp"
+#include "nDetStructures.hpp"
 
 nDetTraceStructure::nDetTraceStructure(const std::string &name_/*=""*/){
 	name = name_;

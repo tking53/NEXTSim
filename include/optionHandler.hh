@@ -102,4 +102,14 @@ class optionHandler{
   */
 void addOption(optionExt opt_, std::vector<optionExt> &vec, std::string &optstr);
 
+/** Split a string on the delimiter character populating the vector args with 
+  * any substrings formed. Returns the number of substrings found.
+  *	
+  * @param str The string to be parsed
+  * @param args The vector to populate with substrings
+  * @param delimiter The character to split the string on
+  * @return The number of substrings found
+  */
+unsigned int split_str(std::string str, std::vector<std::string> &args, char delimiter=' ');
+
 #endif

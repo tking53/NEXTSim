@@ -3,23 +3,11 @@
 
 #include <vector>
 #include <string>
-#include <iostream>
 
 #include "G4UImessenger.hh"
 
 class G4UIcommand;
 class G4UIdirectory;
-class TDirectory;
-
-/** Split a string on the delimiter character populating the vector args with 
-  * any substrings formed. Returns the number of substrings found.
-  *	
-  * @param str The string to be parsed
-  * @param args The vector to populate with substrings
-  * @param delimiter The character to split the string on
-  * @return The number of substrings found
-  */
-unsigned int split_str(std::string str, std::vector<std::string> &args, char delimiter=' ');
 
 /*! \class cmdSearchPair
  *  \brief Class used link a formatted command path to a G4UIcommand object
@@ -71,11 +59,6 @@ class messengerHandler : public G4UImessenger {
 	  */
 	virtual ~messengerHandler();
 
-	/** Write all user-called commands to an output TFile
-	  * @param dir Pointer to the current directory of an output TFile
-	  */
-	virtual void write(TDirectory* dir);
-
 	/** Add a command to the list of commands the user has called. Called from G4UIcommand::DoIt()
 	  * @param command Pointer to the G4UIcommand called by the user
 	  * @param newValue String containing the argument passed by the user
@@ -105,6 +88,10 @@ class messengerHandler : public G4UImessenger {
 	  * @param commands Vector to fill with search pairs of all commands
 	  */
 	void getAllCommands(std::vector<cmdSearchPair> &commands) const ;
+
+	/** Return the list of commands in put by the user
+	  */
+	std::vector<std::string> getAllUserCommands() const { return fUserCmdList; }
 
 	/** Print all defined command paths to stdout
 	  */

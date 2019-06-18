@@ -3,6 +3,7 @@
 #include "nDetThreadContainer.hh"
 #include "nDetParticleSource.hh"
 #include "termColors.hh"
+#include "optionHandler.hh"
 
 #include "G4LogicalVolume.hh"
 #include "G4Element.hh"

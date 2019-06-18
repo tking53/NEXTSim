@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#include "Structures.hpp"
+#include "nDetStructures.hpp"
 
 class TBranch;
 

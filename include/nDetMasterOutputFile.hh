@@ -4,7 +4,6 @@
 #include <mutex>
 
 #include "centerOfMass.hh"
-#include "Structures.hpp"
 #include "nDetDataPack.hh"
 
 class G4Run;
@@ -14,6 +13,7 @@ class TFile;
 class TTree;
 
 class photonCounter;
+class messengerHandler;
 class nDetMasterOutputFileMessenger;
 
 class nDetMasterOutputFile{
@@ -62,6 +62,12 @@ class nDetMasterOutputFile{
 	void setMultiDetectorMode(const bool &enabled){ singleDetectorMode = !enabled; }
 
 	bool writeInfoToFile(const std::string &name, const std::string &value);
+
+	/** Write all user-called commands to an output TFile
+	  * @param messenger Pointer to a messengerHandler object whose commands will be written to file
+	  * @param directory Pointer to the current directory of an output TFile where the commands will be written
+	  */
+	void writeMessengerCommands(messengerHandler* messenger, TDirectory* directory);
 
 	bool toggleVerboseMode(){ return (verbose = !verbose); }
 

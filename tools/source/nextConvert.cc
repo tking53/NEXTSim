@@ -7,8 +7,9 @@
 #include "TTree.h"
 #include "TBranch.h"
 
-#include "messengerHandler.hh"
-#include "Structures.hpp"
+#include "optionHandler.hh" // split_str
+#include "nDetStructures.hpp" // Local library
+#include "Structures.hpp" // From simpleScan
 
 // Units (referenced to cm)
 const double in = 2.54;
@@ -31,9 +32,7 @@ double detectorPos[3] = {0, 0, 0};
 
 class dataPack{
   public:
-	dataPack() : goodEvent(false), numBranches(0), currBranch(0), nInitEnergy(0), energyLimitLow(0), energyLimitHigh(-1), branches(NULL) { }
-
-	dataPack(const size_t &num);
+	dataPack();
 
 	bool isGoodEvent() const { return goodEvent; }
 
@@ -43,67 +42,36 @@ class dataPack{
 
 	bool checkEnergy() const ;
 
+	int getEntry(TTree *tree, long long entry);
+
 	virtual void print(const size_t &) const { }
 
   protected:
 	bool goodEvent;  
   
-	size_t numBranches;
-	size_t currBranch;
-
 	double nInitEnergy;
 	double energyLimitLow;
 	double energyLimitHigh;
 	
-	TBranch **branches;
+	nDetEventStructure *eventData;
+	nDetDebugStructure *debugData;
 	
-	void setNumBranches(const size_t &num);
+	TBranch *branches[2];
 
-	bool checkBranches() const ;
+	void fillVariables();
 
-	bool setSingleBranch(TTree *tree, const std::string &name, void *ptr);
-
-	virtual void setChildAddresses(TTree *){ }
+	virtual void fillChildVariables(){ }
 };
 
-dataPack::dataPack(const size_t &num) : goodEvent(false), numBranches(0), currBranch(0), nInitEnergy(0), energyLimitLow(0), energyLimitHigh(-1), branches(NULL) {
-	this->setNumBranches(num);
+dataPack::dataPack() : goodEvent(false), nInitEnergy(0), energyLimitLow(0), energyLimitHigh(-1), eventData(NULL), debugData(NULL) {
+	branches[0] = NULL;
+	branches[1] = NULL;
 }
 
 bool dataPack::setAddresses(TTree *tree){
-	tree->SetMakeClass(1);
-	setSingleBranch(tree, "nInitEnergy", &nInitEnergy);
-	setSingleBranch(tree, "goodEvent", &goodEvent);
-	
-	this->setChildAddresses(tree);
-	
-	return this->checkBranches();	
-}
-
-void dataPack::setNumBranches(const size_t &num){
-	numBranches = num;
-	branches = new TBranch*[numBranches];
-	for(size_t i = 0; i < numBranches; i++){
-		branches[i] = NULL;
-	}
-}
-
-bool dataPack::checkBranches() const {
-	for(size_t i = 0; i < numBranches; i++){
-		if(!branches[i]) return false;
-	}
-	return true;
-}
-
-bool dataPack::setSingleBranch(TTree *tree, const std::string &name, void *ptr){
-	if(currBranch >= numBranches) return false;
-	tree->SetBranchAddress(name.c_str(), ptr, &branches[currBranch]);
-	if(!branches[currBranch]){
-		std::cout << " Error: Failed to load branch \"" << name << "\" from input TTree!\n";
-		return false;
-	}
-	currBranch++;
-	return true;
+	tree->SetBranchAddress("event", &eventData, &branches[0]);
+	tree->SetBranchAddress("debug", &debugData, &branches[1]);
+	return (branches[0] && branches[1]);
 }
 
 bool dataPack::checkEnergy() const {
@@ -112,13 +80,25 @@ bool dataPack::checkEnergy() const {
 	return true;
 }
 
+int dataPack::getEntry(TTree *tree, long long entry){
+	int retval = tree->GetEntry(entry);
+	fillVariables();
+	return retval;
+}
+
+void dataPack::fillVariables(){
+	goodEvent = eventData->goodEvent;
+	nInitEnergy = eventData->nInitEnergy;
+	fillChildVariables();
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // class dataPackPSPMT
 ///////////////////////////////////////////////////////////////////////////////
 
 class dataPackPSPMT : public dataPack {
   public:
-	dataPackPSPMT() : dataPack(6) { }
+	dataPackPSPMT() : dataPack() { }
 	
 	~dataPackPSPMT(){ }
 	
@@ -127,27 +107,19 @@ class dataPackPSPMT : public dataPack {
 	void decodeEntry(PSPmtStructure &pspmt, const double &t0=0);
 
   protected:
-	void setChildAddresses(TTree *tree);	
+	virtual void fillChildVariables();
 
   private:
 	unsigned int nPhotons[2];
 	
-	double anode[2][4];
-	
 	float pulsePhase[2];
 	float pulseQDC[2];
+	float anodeQDC[2][4];
 };
-
-void dataPackPSPMT::setChildAddresses(TTree *tree){
-	setSingleBranch(tree, "pulsePhase[2]", pulsePhase);
-	setSingleBranch(tree, "nPhotons[2]", nPhotons);
-	setSingleBranch(tree, "pulseQDC[2]", pulseQDC);
-	setSingleBranch(tree, "anode", anode);
-}
 
 void dataPackPSPMT::print(const size_t &index) const {
 	if(index >= 2) return;
-	std::cout << "nPhotons=" << nPhotons[index] << ", phase=" << pulsePhase[index] << ", tqdc=" << pulseQDC[index] << ", anodes=(" << anode[index][0] << ", " << anode[index][1] << ", " << anode[index][2] << ", " << anode[index][3] << "), good=" << goodEvent << std::endl;
+	std::cout << "nPhotons=" << nPhotons[index] << ", phase=" << pulsePhase[index] << ", tqdc=" << pulseQDC[index] << ", anodes=(" << anodeQDC[index][0] << ", " << anodeQDC[index][1] << ", " << anodeQDC[index][2] << ", " << anodeQDC[index][3] << "), good=" << goodEvent << std::endl;
 }
 
 void dataPackPSPMT::decodeEntry(PSPmtStructure &pspmt, const double &t0/*=0*/){
@@ -187,11 +159,22 @@ void dataPackPSPMT::decodeEntry(PSPmtStructure &pspmt, const double &t0/*=0*/){
 			chanIdentifier = ~chanIdentifier;			
 		
 			if(!isRightEnd)
-				pspmt.Append(0, anode[i][j], 0, anode[i][j], chanIdentifier, chanNum);
+				pspmt.Append(0, anodeQDC[i][j], 0, anodeQDC[i][j], chanIdentifier, chanNum);
 			else
-				pspmt.Append(0, anode[i][3-j], 0, anode[i][3-j], chanIdentifier, chanNum);
+				pspmt.Append(0, anodeQDC[i][3-j], 0, anodeQDC[i][3-j], chanIdentifier, chanNum);
 		}
 	}
+}
+
+void dataPackPSPMT::fillChildVariables(){
+	for(size_t i = 0; i < 2; i++){
+		nPhotons[i] = debugData->nPhotons[i];
+		pulsePhase[i] = debugData->pulsePhase[i];
+		pulseQDC[i] = debugData->pulseQDC[i];
+		for(size_t j = 0; j < 4; j++){
+			anodeQDC[i][j] = debugData->anodeQDC[i][j];
+		}
+	}	
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -200,7 +183,7 @@ void dataPackPSPMT::decodeEntry(PSPmtStructure &pspmt, const double &t0/*=0*/){
 
 class dataPackGenericBar : public dataPack {
   public:
-	dataPackGenericBar() : dataPack(4) { }
+	dataPackGenericBar() : dataPack() { }
 	
 	~dataPackGenericBar(){ }
 	
@@ -209,17 +192,12 @@ class dataPackGenericBar : public dataPack {
 	void decodeEntry(GenericBarStructure &bar, const double &t0=0);
 
   protected:
-	void setChildAddresses(TTree *tree);
+	virtual void fillChildVariables();
 
   private:
 	float pulsePhase[2];
 	float pulseQDC[2];
 };
-
-void dataPackGenericBar::setChildAddresses(TTree *tree){
-	setSingleBranch(tree, "pulsePhase[2]", pulsePhase);
-	setSingleBranch(tree, "pulseQDC[2]", pulseQDC);
-}
 
 void dataPackGenericBar::print(const size_t &index) const {
 	if(index >= 2) return;
@@ -229,6 +207,17 @@ void dataPackGenericBar::print(const size_t &index) const {
 void dataPackGenericBar::decodeEntry(GenericBarStructure &bar, const double &t0/*=0*/){
 	bar.Append(pulsePhase[0]+t0, pulsePhase[1]+t0, pulseQDC[0], pulseQDC[1], 0);
 }
+
+void dataPackGenericBar::fillChildVariables(){
+	for(size_t i = 0; i < 2; i++){
+		pulsePhase[i] = debugData->pulsePhase[i];
+		pulseQDC[i] = debugData->pulseQDC[i];
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// processPSPMT
+///////////////////////////////////////////////////////////////////////////////
 
 bool processPSPMT(TTree *data, const std::string &fname, const double &t0=0, const double &Elo=0, const double &Ehi=0){
 	PSPmtStructure pspmt;
@@ -248,7 +237,7 @@ bool processPSPMT(TTree *data, const std::string &fname, const double &t0=0, con
 	std::cout << " Converting " << data->GetEntries() << " PSPMT events...\n";
 
 	for(unsigned int i = 0; i < data->GetEntries(); i++){
-		data->GetEntry(i);
+		pack.getEntry(data, i);
 		
 		if(!pack.isGoodEvent() || !pack.checkEnergy()) continue;
 		
@@ -268,6 +257,10 @@ bool processPSPMT(TTree *data, const std::string &fname, const double &t0=0, con
 	return true;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// processGenericBar
+///////////////////////////////////////////////////////////////////////////////
+
 bool processGenericBar(TTree *data, const std::string &fname, const double &t0=0, const double &Elo=0, const double &Ehi=0){
 	GenericBarStructure bar;
 	dataPackGenericBar pack;
@@ -286,7 +279,7 @@ bool processGenericBar(TTree *data, const std::string &fname, const double &t0=0
 	std::cout << " Converting " << data->GetEntries() << " GenericBar events...\n";
 
 	for(unsigned int i = 0; i < data->GetEntries(); i++){
-		data->GetEntry(i);
+		pack.getEntry(data, i);
 		
 		if(!pack.isGoodEvent() || !pack.checkEnergy()) continue;
 		

@@ -11,8 +11,6 @@
 #include "nDetDataPack.hh"
 #include "centerOfMass.hh"
 
-#include "Structures.hpp"
-
 class G4Timer;
 class G4Run;
 
