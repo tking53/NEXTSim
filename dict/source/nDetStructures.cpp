@@ -166,7 +166,6 @@ void nDetMultiOutputStructure::Append(const nDetOutputStructure &output, const s
 }
 
 void nDetMultiOutputStructure::Zero(){
-	if(multiplicity == 0){ return; } // Structure is already empty
 	nPhotonsTot.clear();
 	nPhotonsDet.clear();
 	lightBalance.clear();
@@ -190,21 +189,7 @@ void nDetMultiOutputStructure::Zero(){
 ///////////////////////////////////////////////////////////
 
 nDetDebugStructure::nDetDebugStructure(){
-	nEnterPosX = 0;
-	nEnterPosY = 0;
-	nEnterPosZ = 0;
-	nExitPosX = 0;
-	nExitPosY = 0;
-	nExitPosZ = 0;
-	nComX = 0;
-	nComY = 0;
-	nComZ = 0;
-	neutronWeight = 0;
-	nFirstScatterTime = 0;
-	nFirstScatterLen = 0;
-	nEnterTime = 0;
-	nTimeInMat = 0;
-	mult = 0;
+	Zero();
 }
 
 void nDetDebugStructure::SetValues(const double &nEnterPosX_, const double &nEnterPosY_, const double &nEnterPosZ_, const double &nExitPosX_, const double &nExitPosY_, const double &nExitPosZ_, const double &nComX_, const double &nComY_, const double &nComZ_, const double &neutronWeight_, const double &nFirstScatterTime_, const double &nFirstScatterLen_, const double &nEnterTime_, const double &nTimeInMat_){
@@ -241,7 +226,6 @@ void nDetDebugStructure::Append(const double &nScatterX_, const double &nScatter
 }
 
 void nDetDebugStructure::Zero(){
-	if(mult == 0){ return; } // Structure is already empty
 	nEnterPosX = 0;
 	nEnterPosY = 0;
 	nEnterPosZ = 0;
@@ -268,6 +252,26 @@ void nDetDebugStructure::Zero(){
 	photonsProd.clear();
 	recoilMass.clear();
 	nScatterScint.clear();
+	for(size_t i = 0; i < 2; i++){
+		pulsePhase[i] = 0;
+		nPhotons[i] = 0;
+		photonMinTime[i] = 0;
+		photonAvgTime[i] = 0;
+		pulseArrival[i] = 0;
+		pulseMaxTime[i] = 0;
+		pulseMax[i] = 0;
+		pulseQDC[i] = 0;
+		photonDetComX[i] = 0;
+		photonDetComY[i] = 0;
+		reconDetComX[i] = 0;
+		reconDetComY[i] = 0;
+		centerOfMassColumn[i] = 0;
+		centerOfMassRow[i] = 0;
+		for(size_t j = 0; j < 4; j++){
+			anodeQDC[i][j] = 0;
+			anodePhase[i][j] = 0;
+		}
+	}
 	mult = 0;
 }
 
