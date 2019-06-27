@@ -106,15 +106,15 @@ void spectralResponse::close(){
 
 pmtResponse::pmtResponse() : risetime(4.0), falltime(20.0), timeSpread(0), traceDelay(50), gain(1E4), maximum(-9999), baseline(-9999),
                              baselineFraction(0), baselineJitterFraction(0), polyCfdFraction(0.5), pulseIntegralLow(5), pulseIntegralHigh(10),
-                             maxIndex(0), adcBins(4096), pulseLength(100), isDigitized(false), useSpectralResponse(false),
-                             pulseIsSaturated(false), rawPulse(), pulseArray(), spec(), minimumArrivalTime(0), functionType(0) {
+                             maxIndex(0), adcBins(4096), pulseLength(100), isDigitized(false), useSpectralResponse(false), pulseIsSaturated(false),
+                             printTrace(false), rawPulse(), pulseArray(), spec(), minimumArrivalTime(0), functionType(0) {
 	this->setPulseLength(pulseLength);
 }
 
 pmtResponse::pmtResponse(const double &risetime_, const double &falltime_) : risetime(risetime_), falltime(falltime_), timeSpread(0), traceDelay(50), gain(1E4), maximum(-9999), baseline(-9999),
                                                                              baselineFraction(0), baselineJitterFraction(0), polyCfdFraction(0.5), pulseIntegralLow(5), pulseIntegralHigh(10),
-                                                                             maxIndex(0), adcBins(4096), pulseLength(100), isDigitized(false), useSpectralResponse(false),
-                                                                             pulseIsSaturated(false), rawPulse(), pulseArray(), spec(), minimumArrivalTime(0), functionType(0) {
+                                                                             maxIndex(0), adcBins(4096), pulseLength(100), isDigitized(false), useSpectralResponse(false), pulseIsSaturated(false),
+                                                                             printTrace(false), rawPulse(), pulseArray(), spec(), minimumArrivalTime(0), functionType(0) {
 	this->setPulseLength(pulseLength);
 }
 
@@ -371,10 +371,20 @@ void pmtResponse::clear(){
 }
 
 void pmtResponse::print(){
-	std::cout << " pmtResponse-\n";
-	std::cout << "  risetime    " << risetime << " ns" << std::endl;
-	std::cout << "  falltime    " << falltime << " ns" <<  std::endl;
-	std::cout << "  gain        " << gain << std::endl;
+	std::cout << "***********************************************************\n";
+	std::cout << "* risetime : " << risetime << " ns" << std::endl;
+	std::cout << "* falltime : " << falltime << " ns" <<  std::endl;
+	std::cout << "* spread   : " << timeSpread << " ns" << std::endl;
+	std::cout << "* delay    : " << traceDelay << " ns" << std::endl;
+	std::cout << "* gain     : " << gain << "x" << std::endl;
+	std::cout << "* baseline : " << baselineFraction*100 << "% (" << (int)(baselineFraction*adcBins) << " channels)" << std::endl;
+	std::cout << "* jitter   : " << baselineJitterFraction*100 << "% (+-" << (int)(baselineJitterFraction*adcBins) << " channels)" << std::endl;
+	std::cout << "* CfdF     : " << polyCfdFraction << std::endl;
+	std::cout << "* Ilow     : " << pulseIntegralLow << " clock ticks (" << pulseIntegralLow*ADC_CLOCK_TICK << " ns)" << std::endl;
+	std::cout << "* Ihigh    : " << pulseIntegralHigh << " clock ticks (" << pulseIntegralHigh*ADC_CLOCK_TICK << " ns)" << std::endl;
+	std::cout << "* range    : " << adcBins << " channels" << std::endl;
+	std::cout << "* length   : " << pulseLength << " clock ticks (" << pulseLength*ADC_CLOCK_TICK << " ns)" << std::endl;
+	std::cout << "***********************************************************\n";	
 }
 
 void pmtResponse::printRaw(){

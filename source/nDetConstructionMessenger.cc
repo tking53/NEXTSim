@@ -12,6 +12,7 @@
 #include "G4UIcmdWith3VectorAndUnit.hh"
 #include "G4UIcmdWithADouble.hh"
 #include "G4UIcmdWithAnInteger.hh"
+#include "G4UIcmdWithoutParameter.hh"
 #include "G4SystemOfUnits.hh"
 
 void nDetConstructionMessenger::addAllCommands(){
@@ -176,6 +177,9 @@ void nDetConstructionMessenger::addAllCommands(){
 	addCommand(new G4UIcmdWithAString("/nDet/output/trace/print", this));
 	addGuidance("Print the digitized light pulse");
 	addCandidates("true false");
+
+	addCommand(new G4UIcmdWithoutParameter("/nDet/output/trace/params", this));
+	addGuidance("Print pulse and digitizer settings");
 }
 
 void nDetConstructionMessenger::SetNewChildValue(G4UIcommand* command, G4String newValue){
@@ -371,7 +375,10 @@ void nDetConstructionMessenger::SetNewChildValue(G4UIcommand* command, G4String 
 		prR->setFunctionType(val);
 	}
 	else if(index == 47){
-		//prL->setPrintTrace((newValue == "true") ? true : false);
-		//prR->setPrintTrace((newValue == "true") ? true : false);
+		prL->setPrintTrace((newValue == "true") ? true : false);
+		prR->setPrintTrace((newValue == "true") ? true : false);
+	}
+	else if(index == 48){
+		prL->print(); // Only show the left side, because they're both the same
 	}
 }

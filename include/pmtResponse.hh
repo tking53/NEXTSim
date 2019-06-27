@@ -142,6 +142,10 @@ class pmtResponse{
 	  */
 	double getMinimumPhotonArrivalTime() const { return minimumArrivalTime; }
 
+	/** Return true if the digitized pulse is to be printed and return false otherwise
+	  */
+	bool getPrintTrace() const { return printTrace; }
+
 	/** Get a pointer to the PMT quantum efficiency spectrum
 	  */
 	spectralResponse *getSpectralResponse(){ return &spec; }
@@ -191,15 +195,34 @@ class pmtResponse{
 	  */
 	void setFunctionType(const int &type){ functionType = type; }
 
+	/** Set the height of the digitized pulse baseline
+	  * @param percentage The amplitude of the pulse baseline (percentage of the total ADC dynamic range)
+	  */	
 	void setBaselinePercentage(const double &percentage){ baselineFraction = percentage/100; }
-	
+
+	/** Set the noise in the digitized pulse baseline
+	  * @param percentage The maximum amplitude of noise above or below the true pulse baseline (percentage of the total ADC dynamic range)
+	  */	
 	void setBaselineJitterPercentage(const double &percentage){ baselineJitterFraction = percentage/100; }
 
+	/** Set the PolyCFD fraction parameter (F)
+	  * @param frac The fraction of the baseline corrected pulse height where the PolyCFD crossing point will be extracted
+	  */
 	void setPolyCfdFraction(const double &frac){ polyCfdFraction = frac; }
 	
+	/** Set the lower limit for pulse integral TQDC 
+	  * @param low The number of ADC clock ticks to the left of the peak maximum to start TQDC integral (inclusive)
+	  */
 	void setPulseIntegralLow(const short &low){ pulseIntegralLow = low; }
-	
+
+	/** Set the upper limit for pulse integral TQDC
+	  * @param low The number of ADC clock ticks to the right of the peak maximum to stop TQDC integral (inclusive)
+	  */
 	void setPulseIntegralHigh(const short &high){ pulseIntegralHigh = high; }
+
+	/** Set the flag which indicates whether or not the digitized pulse should be printed
+	  */
+	void setPrintTrace(const bool &enabled){ printTrace = enabled; }
 
 	/** Disable use of PMT quantum efficiency spectrum
 	  */
@@ -349,6 +372,7 @@ class pmtResponse{
 	bool isDigitized; ///< Flag indicating that the light response pulse has been digitized
 	bool useSpectralResponse; ///< Flag indicating that PMT anode quantum efficiency spectrum should be used to compute anode gain
 	bool pulseIsSaturated; ///< Flag indicating that the digitized pulse has exceeded the maximum ADC dynamic range
+	bool printTrace; ///< Flag indicating that the left and right digitized PMT traces will be printed to the screen
 	
 	std::vector<double> rawPulse; ///< Array to store un-digitized raw light response pulse
 
