@@ -82,7 +82,7 @@ nDetOutputStructure::nDetOutputStructure(){
 	photonComRow = 0;
 }
 
-void nDetOutputStructure::SetValues(const unsigned int &nPhotonsTot_, const unsigned int &nPhotonsDet_, const double &lightBalance_, const double &photonDetEff_, const float &barTOF_, const float &barQDC_, const float &barMaxADC_, const double &photonComX_, const double &photonComY_, const double &reconComX_, const double &reconComY_, const short &photonComCol_, const short &photonComRow_){
+void nDetOutputStructure::SetValues(const unsigned int &nPhotonsTot_, const unsigned int &nPhotonsDet_, const double &lightBalance_, const double &photonDetEff_, const double &barTOF_, const double &barQDC_, const double &barMaxADC_, const double &photonComX_, const double &photonComY_, const double &reconComX_, const double &reconComY_, const short &photonComCol_, const short &photonComRow_){
 	nPhotonsTot = nPhotonsTot_;
 	nPhotonsDet = nPhotonsDet_;
 	lightBalance = lightBalance_;
@@ -129,7 +129,7 @@ nDetMultiOutputStructure::nDetMultiOutputStructure(){
 void nDetMultiOutputStructure::SetValues(){
 }
 
-void nDetMultiOutputStructure::Append(const unsigned int &nPhotonsTot_, const unsigned int &nPhotonsDet_, const double &lightBalance_, const double &photonDetEff_, const float &barTOF_, const float &barQDC_, const float &barMaxADC_, const double &photonComX_, const double &photonComY_, const double &reconComX_, const double &reconComY_, const short &photonComCol_, const short &photonComRow_, const short &detID_){
+void nDetMultiOutputStructure::Append(const unsigned int &nPhotonsTot_, const unsigned int &nPhotonsDet_, const double &lightBalance_, const double &photonDetEff_, const double &barTOF_, const double &barQDC_, const double &barMaxADC_, const double &photonComX_, const double &photonComY_, const double &reconComX_, const double &reconComY_, const short &photonComCol_, const short &photonComRow_, const short &detID_){
 	nPhotonsTot.push_back(nPhotonsTot_);
 	nPhotonsDet.push_back(nPhotonsDet_);
 	lightBalance.push_back(lightBalance_);
