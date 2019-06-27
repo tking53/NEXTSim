@@ -140,6 +140,10 @@ class nDetConstruction : public G4VUserDetectorConstruction{
 
 	std::vector<userAddDetector> GetUserDetectors() const { return userDetectors; }
 
+	G4LogicalVolume *getCurrentAssembly(){ return currentAssembly; }
+	
+	userAddDetector *getCurrentDetector(){ return currentDetector; }
+
     bool PmtIsSegmented() const { return (fNumColumnsPmt > 0 && fNumRowsPmt > 0); }
 
 	bool AddDetectedPhoton(const G4Step *step, const double &mass=1);
@@ -359,9 +363,7 @@ class userAddDetector{
   public:
 	userAddDetector() : assembly_logV(NULL), assembly_physV(NULL), layerSizeX(0), layerSizeY(0), offsetZ(0), parentCopyNum(0), firstSegmentCopyNum(0), lastSegmentCopyNum(0), numColumns(1), numRows(1) { }
 	
-	userAddDetector(G4LogicalVolume *logical) : assembly_logV(logical), assembly_physV(NULL), layerSizeX(0), layerSizeY(0), offsetZ(0), parentCopyNum(0), firstSegmentCopyNum(0), lastSegmentCopyNum(0), numColumns(1), numRows(1) { }
-	
-	userAddDetector(G4LogicalVolume *logical, G4VPhysicalVolume *physical) : assembly_logV(logical), assembly_physV(physical), layerSizeX(0), layerSizeY(0), offsetZ(0), parentCopyNum(0), firstSegmentCopyNum(0), lastSegmentCopyNum(0), numColumns(1), numRows(1) { }
+	userAddDetector(nDetConstruction *detector);
 	
 	G4LogicalVolume *getLogicalVolume(){ return assembly_logV; }
 
@@ -395,6 +397,12 @@ class userAddDetector{
 
 	void clear();
 
+	/** Copy the center-of-mass calculator for the left and right PMTs
+	  * @param left Left PMT center-of-mass calculator
+	  * @param right Right PMT center-of-mass calculator
+	  */	
+	void copyCenterOfMass(const centerOfMass &left, const centerOfMass &right);
+
 	bool checkCopyNumber(const G4int &num) const { return (num >= firstSegmentCopyNum && num < lastSegmentCopyNum); }
 
 	bool checkPmtCopyNumber(const G4int &num) const { return (num == 2*parentCopyNum || num == 2*parentCopyNum+1); }
@@ -404,7 +412,7 @@ class userAddDetector{
 	bool getSegmentFromCopyNum(const G4int &copyNum, G4int &col, G4int &row) const ;
 	
 	bool empty() const { return (cmL.empty() && cmR.empty()); }
-	
+
 	centerOfMass *getCenterOfMassL(){ return &cmL; }
 	
 	centerOfMass *getCenterOfMassR(){ return &cmR; }

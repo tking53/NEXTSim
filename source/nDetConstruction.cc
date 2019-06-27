@@ -197,6 +197,10 @@ void nDetConstruction::UpdateGeometry(){
 	// Update the particle source
 	nDetParticleSource::getInstance().SetDetector(this);
 	
+	for(std::vector<userAddDetector>::iterator iter = userDetectors.begin(); iter != userDetectors.end(); iter++){
+		iter->copyCenterOfMass(center[0], center[1]);
+	}
+	
 	// Update the detector lists of all user run actions
 	nDetThreadContainer *container = &nDetThreadContainer::getInstance();
 	if(container->getMultithreadingMode())
@@ -1018,7 +1022,7 @@ G4LogicalVolume *nDetConstruction::constructAssembly(G4ThreeVector &boundingBox)
 	currentAssembly->SetVisAttributes(assembly_VisAtt);
 
 	// Add the assembly to the vector of detectors.
-	userDetectors.push_back(userAddDetector(currentAssembly));
+	userDetectors.push_back(userAddDetector(this));
 	currentDetector = &userDetectors.back();
 
 	currentLayerSizeX = fDetectorWidth;
@@ -1387,6 +1391,11 @@ G4OpticalSurface *nDetConstruction::getUserOpticalSurface(){
 // class userAddDetector
 ///////////////////////////////////////////////////////////////////////////////
 
+userAddDetector::userAddDetector(nDetConstruction *detector) : assembly_logV(NULL), assembly_physV(NULL), layerSizeX(0), layerSizeY(0), offsetZ(0), parentCopyNum(0), firstSegmentCopyNum(0), lastSegmentCopyNum(0), numColumns(1), numRows(1) {
+	assembly_logV = detector->getCurrentAssembly();
+	copyCenterOfMass(*detector->GetCenterOfMassL(), *detector->GetCenterOfMassR());
+}
+
 void userAddDetector::getCurrentOffset(G4double &x_, G4double &y_, G4double &z_){
 	x_ = layerSizeX;
 	y_ = layerSizeY;
@@ -1418,6 +1427,11 @@ void userAddDetector::placeDetector(G4LogicalVolume *parent){
 void userAddDetector::clear(){
 	cmL.clear();
 	cmR.clear();
+}
+
+void userAddDetector::copyCenterOfMass(const centerOfMass &left, const centerOfMass &right){
+	cmL = left;
+	cmR = right;
 }
 
 bool userAddDetector::checkPmtCopyNumber(const G4int &num, bool &isLeft) const { 

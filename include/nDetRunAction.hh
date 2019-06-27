@@ -77,8 +77,6 @@ class nDetRunAction : public G4UserRunAction
 
 	void setEventNumber(const int &eventID){ evtData.eventID = eventID; }
 	
-	void setPrintTrace(const bool &enabled){ printTrace = enabled; }
-
 	void setOutputTraces(const bool &enabled){ outputTraces = enabled; }
 	
 	void setOutputDebug(const bool &enabled){ outputDebug = enabled; }
@@ -127,7 +125,6 @@ class nDetRunAction : public G4UserRunAction
 	bool outputTraces; ///< Flag indicating that traces will be written to the output tree
 	bool outputDebug; ///< Flag indicating that the user has requested low-level debug to be written to the output file
 	bool verbose; ///< Verbosity flag
-	bool printTrace; ///< Flag indicating that the left and right digitized PMT traces will be printed to the screen
 
 	nDetEventAction *eventAction; ///< Pointer to the thread-local user event action
 	nDetStackingAction *stacking; ///< Pointer to the thread-local user stacking action

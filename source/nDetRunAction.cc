@@ -92,7 +92,6 @@ nDetRunAction::nDetRunAction(){
 	outputTraces = false;
 	outputDebug = false;
 	verbose = false;
-	printTrace = false;
 	
 	eventAction = NULL;
 	stacking = NULL;
@@ -291,17 +290,17 @@ void nDetRunAction::process(){
 		debugData.pulseArrival[1] = pmtR->getWeightedPhotonArrivalTime();		
 
 		// Print the digitized traces.
-		if(printTrace){
+		if(pmtL->getPrintTrace() || pmtR->getPrintTrace()){
 			size_t traceLength = pmtL->getPulseLength();
 			unsigned short *traceL = pmtL->getDigitizedPulse();
 			unsigned short *traceR = pmtR->getDigitizedPulse();
 			std::cout << "***********************************************************\n";
-			std::cout << "* PhotonsTot	 : " << outData.nPhotonsTot << std::endl;
-			std::cout << "* PhotonsDet	 : " << outData.nPhotonsDet << std::endl;
-			std::cout << "* MaxIndex	   : " << pmtL->getMaximumIndex() << "\t" << pmtR->getMaximumIndex() << std::endl;
-			std::cout << "* Baseline	   : " << pmtL->getBaseline() << "\t" << pmtR->getBaseline() << std::endl;	
-			std::cout << "* Maximum		: " << pmtL->getMaximum() << "\t" << pmtR->getMaximum() << std::endl;
-			std::cout << "* MaxTime		: " << pmtL->getMaximumTime() << "\t" << pmtR->getMaximumTime() << std::endl;
+			std::cout << "* PhotonsTot     : " << outData.nPhotonsTot << std::endl;
+			std::cout << "* PhotonsDet     : " << outData.nPhotonsDet << std::endl;
+			std::cout << "* MaxIndex       : " << pmtL->getMaximumIndex() << "\t" << pmtR->getMaximumIndex() << std::endl;
+			std::cout << "* Baseline       : " << pmtL->getBaseline() << "\t" << pmtR->getBaseline() << std::endl;	
+			std::cout << "* Maximum        : " << pmtL->getMaximum() << "\t" << pmtR->getMaximum() << std::endl;
+			std::cout << "* MaxTime        : " << pmtL->getMaximumTime() << "\t" << pmtR->getMaximumTime() << std::endl;
 			std::cout << "* WeightedArrival: " << pmtL->getWeightedPhotonArrivalTime() << "\t" << pmtR->getWeightedPhotonArrivalTime() << std::endl;
 			std::cout << "* MinimumArrival : " << pmtL->getMinimumPhotonArrivalTime() << "\t" << pmtR->getMinimumPhotonArrivalTime() << std::endl;
 			std::cout << "***********************************************************\n";
