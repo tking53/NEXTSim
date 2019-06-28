@@ -103,7 +103,10 @@ nDetRunAction::nDetRunAction(){
 
 	numPhotonsTotal = 0;
 	numPhotonsDetTotal = 0;
-  
+	
+	// Pointer to the start detector (if available)
+	startDetector = NULL;
+
 	// Get a pointer to the detector.
 	detector = &nDetConstruction::getInstance(); // The detector builder is a singleton class.
 	
@@ -184,6 +187,15 @@ void nDetRunAction::EndOfRunAction(const G4Run* aRun)
 void nDetRunAction::updateDetector(nDetConstruction *det){
 	// Copy the list of detectors
 	userDetectors = det->GetUserDetectors();
+	
+	// Search for a start detector. Currently only one start is supported, break after finding the first one
+	startDetector = NULL;
+	for(std::vector<userAddDetector>::iterator iter = userDetectors.begin(); iter != userDetectors.end(); iter++){
+		if(iter->getIsStart()){
+			startDetector = &(*iter);
+			 break;
+		}
+	}
 }
 
 G4int nDetRunAction::checkCopyNumber(const G4int &num) const {
@@ -202,6 +214,184 @@ bool nDetRunAction::getSegmentFromCopyNum(const G4int &copyNum, G4int &col, G4in
 	return false;
 }
 
+bool nDetRunAction::processDetector(userAddDetector* det){
+	if(!det || det->empty()) // No detected photons, do not process
+		return false;
+
+	// Get the time offset due to straggling in the target (if applicable)
+	double targetTimeOffset = source->GetTargetTimeOffset();
+
+	// Get pointers to the CoM calculators
+	centerOfMass *cmL = det->getCenterOfMassL();
+	centerOfMass *cmR = det->getCenterOfMassR();
+
+	debugData.nPhotons[0] += cmL->getNumDetected();
+	debugData.nPhotons[1] += cmR->getNumDetected();
+	
+	// Compute the total number of detected photons
+	outData.nPhotonsDet += cmL->getNumDetected() + cmR->getNumDetected();
+		
+	// Check for valid bar detection
+	if(cmL->getNumDetected() > 0 && cmR->getNumDetected() > 0)
+		evtData.goodEvent = true;
+		
+	// Compute the photon detection efficiency
+	outData.nPhotonsTot = stacking->GetNumPhotonsProduced();
+	if(outData.nPhotonsTot > 0)
+		outData.photonDetEff = outData.nPhotonsDet/(double)outData.nPhotonsTot;
+	else
+		outData.photonDetEff = -1;			
+
+	// Get the photon center-of-mass positions
+	G4ThreeVector centerL = cmL->getCenter();
+	G4ThreeVector centerR = cmR->getCenter();
+	debugData.photonDetComX[0] = centerL.getX(); debugData.photonDetComX[1] = centerR.getX(); 
+	debugData.photonDetComY[0] = centerL.getY(); debugData.photonDetComY[1] = centerR.getY(); 
+	//debugData.photonDetComZ[0] = centerL.getZ(); debugData.photonDetComZ[1] = centerR.getZ(); 
+
+	// Get photon arrival times at the PMTs
+	debugData.photonMinTime[0] = cmL->getMinArrivalTime();
+	debugData.photonAvgTime[0] = cmL->getAvgArrivalTime();
+
+	debugData.photonMinTime[1] = cmR->getMinArrivalTime();
+	debugData.photonAvgTime[1] = cmR->getAvgArrivalTime();
+	
+	pmtResponse *pmtL = cmL->getPmtResponse();
+	pmtResponse *pmtR = cmR->getPmtResponse();
+
+	// "Digitize" the light pulses.
+	pmtL->digitize();
+	pmtR->digitize();
+	
+	// Check for saturated pulse.
+	if(pmtL->getPulseIsSaturated() || pmtR->getPulseIsSaturated()){
+		Display::WarningPrint("One or more PMT's traces have saturated! Recommend lowering the gain.", "nDetRunAction");
+	}
+	
+	// Copy the trace into the trace vector.
+	if(outputTraces){
+		pmtL->copyTrace(traceData.left);
+		pmtR->copyTrace(traceData.right);
+		traceData.mult++;
+	}		
+	
+	// Do some light pulse analysis
+	debugData.pulsePhase[0] = pmtL->analyzePolyCFD() + targetTimeOffset;
+	debugData.pulseQDC[0] = pmtL->integratePulseFromMaximum();
+	debugData.pulseMax[0] = pmtL->getMaximum();
+	debugData.pulseMaxTime[0] = pmtL->getMaximumTime();
+	debugData.pulseArrival[0] = pmtL->getWeightedPhotonArrivalTime();
+
+	debugData.pulsePhase[1] = pmtR->analyzePolyCFD() + targetTimeOffset;
+	debugData.pulseQDC[1] = pmtR->integratePulseFromMaximum();
+	debugData.pulseMax[1] = pmtR->getMaximum();
+	debugData.pulseMaxTime[1] = pmtR->getMaximumTime();
+	debugData.pulseArrival[1] = pmtR->getWeightedPhotonArrivalTime();		
+
+	// Print the digitized traces.
+	if(pmtL->getPrintTrace() || pmtR->getPrintTrace()){
+		size_t traceLength = pmtL->getPulseLength();
+		unsigned short *traceL = pmtL->getDigitizedPulse();
+		unsigned short *traceR = pmtR->getDigitizedPulse();
+		std::cout << "***********************************************************\n";
+		std::cout << "* PhotonsTot     : " << outData.nPhotonsTot << std::endl;
+		std::cout << "* PhotonsDet     : " << outData.nPhotonsDet << std::endl;
+		std::cout << "* MaxIndex       : " << pmtL->getMaximumIndex() << "\t" << pmtR->getMaximumIndex() << std::endl;
+		std::cout << "* Baseline       : " << pmtL->getBaseline() << "\t" << pmtR->getBaseline() << std::endl;	
+		std::cout << "* Maximum        : " << pmtL->getMaximum() << "\t" << pmtR->getMaximum() << std::endl;
+		std::cout << "* MaxTime        : " << pmtL->getMaximumTime() << "\t" << pmtR->getMaximumTime() << std::endl;
+		std::cout << "* WeightedArrival: " << pmtL->getWeightedPhotonArrivalTime() << "\t" << pmtR->getWeightedPhotonArrivalTime() << std::endl;
+		std::cout << "* MinimumArrival : " << pmtL->getMinimumPhotonArrivalTime() << "\t" << pmtR->getMinimumPhotonArrivalTime() << std::endl;
+		std::cout << "***********************************************************\n";
+
+		int adcClockTick = pmtL->getAdcClockTick();
+		for(size_t i = 0; i < traceLength; i++){
+			std::cout << i*adcClockTick << "\t" << traceL[i] << "\t" << traceR[i] << std::endl;
+		}
+	}
+	
+	// Get the digitizer response of the anodes.
+	pmtResponse *anodeResponseL = cmL->getAnodeResponse();
+	pmtResponse *anodeResponseR = cmR->getAnodeResponse();
+
+	// Digitize anode waveforms and integrate.
+	float anodeQDC[2][4];
+	for(size_t i = 0; i < 4; i++){
+		anodeResponseL[i].digitize();
+		anodeResponseR[i].digitize();
+		debugData.anodeQDC[0][i] = anodeResponseL[i].integratePulseFromMaximum();
+		debugData.anodeQDC[1][i] = anodeResponseR[i].integratePulseFromMaximum();
+	}		
+	
+	// Compute the anode positions.
+	for(size_t i = 0; i < 2; i++){
+		debugData.reconDetComX[i] = -((anodeQDC[i][0]+anodeQDC[i][1])-(anodeQDC[i][2]+anodeQDC[i][3]))/(anodeQDC[i][0]+anodeQDC[i][1]+anodeQDC[i][2]+anodeQDC[i][3]);
+		debugData.reconDetComY[i] = ((anodeQDC[i][1]+anodeQDC[i][2])-(anodeQDC[i][3]+anodeQDC[i][0]))/(anodeQDC[i][0]+anodeQDC[i][1]+anodeQDC[i][2]+anodeQDC[i][3]);
+	}
+	outData.reconComX = (debugData.reconDetComX[0] + debugData.reconDetComX[1]) / 2;
+	outData.reconComY = (debugData.reconDetComY[0] + debugData.reconDetComY[1]) / 2;
+	
+	if(outputDebug){
+		// Perform CFD on digitized anode waveforms.
+		for(size_t i = 0; i < 4; i++){
+			debugData.anodePhase[0][i] = anodeResponseL[i].analyzePolyCFD() + targetTimeOffset; // left
+			debugData.anodePhase[1][i] = anodeResponseR[i].analyzePolyCFD() + targetTimeOffset; // right
+		}
+
+		G4ThreeVector nCenterMass(debugData.nComX, debugData.nComY, debugData.nComZ);
+		G4ThreeVector nIncidentPos(debugData.nEnterPosX, debugData.nEnterPosY, debugData.nEnterPosZ);
+		G4ThreeVector nExitPos(debugData.nExitPosX, debugData.nExitPosY, debugData.nExitPosZ);
+
+		// Compute the neutron scatter center-of-mass.
+		nCenterMass = (1/debugData.neutronWeight)*nCenterMass;
+	
+		// Convert the neutron incident/exit positions to the frame of the detector.
+		nIncidentPos = nIncidentPos;
+		nExitPos = nExitPos;
+
+		// Now in the rotated frame of the detector.
+		debugData.nComX = nCenterMass.getX();
+		debugData.nComY = nCenterMass.getY();
+		debugData.nComZ = nCenterMass.getZ();
+		debugData.nEnterPosX = nIncidentPos.getX();
+		debugData.nEnterPosY = nIncidentPos.getY();
+		debugData.nEnterPosZ = nIncidentPos.getZ();
+		debugData.nExitPosX = nExitPos.getX();
+		debugData.nExitPosY = nExitPos.getY();
+		debugData.nExitPosZ = nExitPos.getZ();
+	}
+
+	// Compute the light balance (Z).
+	outData.lightBalance = (debugData.pulseQDC[0]-debugData.pulseQDC[1])/(debugData.pulseQDC[0]+debugData.pulseQDC[1]);
+
+	// Compute "bar" variables.
+	outData.barTOF = (debugData.pulsePhase[0]+debugData.pulsePhase[1])/2;
+	outData.barQDC = std::sqrt(debugData.pulseQDC[0]*debugData.pulseQDC[1]);
+	outData.barMaxADC = std::sqrt(debugData.pulseMax[0]*debugData.pulseMax[1]);
+	outData.photonComX = (debugData.photonDetComX[0] + debugData.photonDetComX[1]) / 2;
+	outData.photonComY = (debugData.photonDetComY[0] + debugData.photonDetComY[1]) / 2;
+
+	// Get the segment of the detector where the photon CoM occurs.
+	cmL->getCenterSegment(debugData.centerOfMassColumn[0], debugData.centerOfMassRow[0]);
+	cmR->getCenterSegment(debugData.centerOfMassColumn[1], debugData.centerOfMassRow[1]);		
+
+	// Update photon statistics.
+	numPhotonsTotal += outData.nPhotonsTot;
+	numPhotonsDetTotal += outData.nPhotonsDet;
+
+	return true;
+}
+
+bool nDetRunAction::processStartDetector(userAddDetector* det, double &startTime){
+	if(!processDetector(det)) // No detected photons, do not process
+		return false;
+		
+	// Return the time-of-flight from the start detector
+	startTime = outData.barTOF;
+		
+	return true;
+}
+
 void nDetRunAction::process(){
 	while(this->scatterEvent()){
 	}
@@ -212,177 +402,37 @@ void nDetRunAction::process(){
 			debugData.photonsProd.push_back(counter->getPhotonCount(i));
 	}
 
-	// Get the time offset due to straggling in the target (if applicable)
-	double targetTimeOffset = source->GetTargetTimeOffset();
-	
 	short detID = 0;
-	for(std::vector<userAddDetector>::iterator iter = userDetectors.begin(); iter != userDetectors.end(); iter++){
-		if(iter->empty()){ // Skip events with no detected photons
-			detID++;
-			continue;
-		}
-
-		// Get pointers to the CoM calculators
-		centerOfMass *cmL = iter->getCenterOfMassL();
-		centerOfMass *cmR = iter->getCenterOfMassR();
-
-		debugData.nPhotons[0] += cmL->getNumDetected();
-		debugData.nPhotons[1] += cmR->getNumDetected();
-		
-		// Compute the total number of detected photons
-		outData.nPhotonsDet += cmL->getNumDetected() + cmR->getNumDetected();
+	if(!startDetector){ // Un-triggered mode (default)
+		for(std::vector<userAddDetector>::iterator iter = userDetectors.begin(); iter != userDetectors.end(); iter++){
+			if(!processDetector(&(*iter))){ // Skip the start detector because we already processed it
+				detID++;
+				continue;
+			}
 			
-		// Check for valid bar detection
-		if(cmL->getNumDetected() > 0 && cmR->getNumDetected() > 0)
-			evtData.goodEvent = true;
-			
-		// Compute the photon detection efficiency
-		outData.nPhotonsTot = stacking->GetNumPhotonsProduced();
-		if(outData.nPhotonsTot > 0)
-			outData.photonDetEff = outData.nPhotonsDet/(double)outData.nPhotonsTot;
-		else
-			outData.photonDetEff = -1;			
-
-		// Get the photon center-of-mass positions
-		G4ThreeVector centerL = cmL->getCenter();
-		G4ThreeVector centerR = cmR->getCenter();
-		debugData.photonDetComX[0] = centerL.getX(); debugData.photonDetComX[1] = centerR.getX(); 
-		debugData.photonDetComY[0] = centerL.getY(); debugData.photonDetComY[1] = centerR.getY(); 
-		//debugData.photonDetComZ[0] = centerL.getZ(); debugData.photonDetComZ[1] = centerR.getZ(); 
-
-		// Get photon arrival times at the PMTs
-		debugData.photonMinTime[0] = cmL->getMinArrivalTime();
-		debugData.photonAvgTime[0] = cmL->getAvgArrivalTime();
-
-		debugData.photonMinTime[1] = cmR->getMinArrivalTime();
-		debugData.photonAvgTime[1] = cmR->getAvgArrivalTime();
-		
-		pmtResponse *pmtL = cmL->getPmtResponse();
-		pmtResponse *pmtR = cmR->getPmtResponse();
-
-		// "Digitize" the light pulses.
-		pmtL->digitize();
-		pmtR->digitize();
-		
-		// Check for saturated pulse.
-		if(pmtL->getPulseIsSaturated() || pmtR->getPulseIsSaturated()){
-			Display::WarningPrint("One or more PMT's traces have saturated! Recommend lowering the gain.", "nDetRunAction");
-		}
-		
-		// Copy the trace into the trace vector.
-		if(outputTraces){
-			pmtL->copyTrace(traceData.left);
-			pmtR->copyTrace(traceData.right);
-			traceData.mult++;
+			// Push data onto the output branch for multiple detectors
+			if(userDetectors.size() > 1)
+				multData.Append(outData, detID++);
 		}		
-		
-		// Do some light pulse analysis
-		debugData.pulsePhase[0] = pmtL->analyzePolyCFD() + targetTimeOffset;
-		debugData.pulseQDC[0] = pmtL->integratePulseFromMaximum();
-		debugData.pulseMax[0] = pmtL->getMaximum();
-		debugData.pulseMaxTime[0] = pmtL->getMaximumTime();
-		debugData.pulseArrival[0] = pmtL->getWeightedPhotonArrivalTime();
-
-		debugData.pulsePhase[1] = pmtR->analyzePolyCFD() + targetTimeOffset;
-		debugData.pulseQDC[1] = pmtR->integratePulseFromMaximum();
-		debugData.pulseMax[1] = pmtR->getMaximum();
-		debugData.pulseMaxTime[1] = pmtR->getMaximumTime();
-		debugData.pulseArrival[1] = pmtR->getWeightedPhotonArrivalTime();		
-
-		// Print the digitized traces.
-		if(pmtL->getPrintTrace() || pmtR->getPrintTrace()){
-			size_t traceLength = pmtL->getPulseLength();
-			unsigned short *traceL = pmtL->getDigitizedPulse();
-			unsigned short *traceR = pmtR->getDigitizedPulse();
-			std::cout << "***********************************************************\n";
-			std::cout << "* PhotonsTot     : " << outData.nPhotonsTot << std::endl;
-			std::cout << "* PhotonsDet     : " << outData.nPhotonsDet << std::endl;
-			std::cout << "* MaxIndex       : " << pmtL->getMaximumIndex() << "\t" << pmtR->getMaximumIndex() << std::endl;
-			std::cout << "* Baseline       : " << pmtL->getBaseline() << "\t" << pmtR->getBaseline() << std::endl;	
-			std::cout << "* Maximum        : " << pmtL->getMaximum() << "\t" << pmtR->getMaximum() << std::endl;
-			std::cout << "* MaxTime        : " << pmtL->getMaximumTime() << "\t" << pmtR->getMaximumTime() << std::endl;
-			std::cout << "* WeightedArrival: " << pmtL->getWeightedPhotonArrivalTime() << "\t" << pmtR->getWeightedPhotonArrivalTime() << std::endl;
-			std::cout << "* MinimumArrival : " << pmtL->getMinimumPhotonArrivalTime() << "\t" << pmtR->getMinimumPhotonArrivalTime() << std::endl;
-			std::cout << "***********************************************************\n";
-
-			int adcClockTick = pmtL->getAdcClockTick();
-			for(size_t i = 0; i < traceLength; i++){
-				std::cout << i*adcClockTick << "\t" << traceL[i] << "\t" << traceR[i] << std::endl;
+	}
+	else{ // Start triggered mode
+		double startTime;
+		if(processStartDetector(startDetector, startTime)){ // Check for valid start signal
+			for(std::vector<userAddDetector>::iterator iter = userDetectors.begin(); iter != userDetectors.end(); iter++){
+				// Skip the start detector because we already processed it
+				if(&(*iter) != startDetector && !processDetector(&(*iter))){ // Skip events with no detected photons
+					detID++;
+					continue;
+				}
+				
+				// Update the time-of-flight of the event
+				outData.barTOF = outData.barTOF - startTime;
+				
+				// Push data onto the output branch for multiple detectors
+				if(userDetectors.size() > 1)
+					multData.Append(outData, detID++);
 			}
 		}
-		
-		// Get the digitizer response of the anodes.
-		pmtResponse *anodeResponseL = cmL->getAnodeResponse();
-		pmtResponse *anodeResponseR = cmR->getAnodeResponse();
-
-		// Digitize anode waveforms and integrate.
-		float anodeQDC[2][4];
-		for(size_t i = 0; i < 4; i++){
-			anodeResponseL[i].digitize();
-			anodeResponseR[i].digitize();
-			debugData.anodeQDC[0][i] = anodeResponseL[i].integratePulseFromMaximum();
-			debugData.anodeQDC[1][i] = anodeResponseR[i].integratePulseFromMaximum();
-		}		
-		
-		// Compute the anode positions.
-		for(size_t i = 0; i < 2; i++){
-			debugData.reconDetComX[i] = -((anodeQDC[i][0]+anodeQDC[i][1])-(anodeQDC[i][2]+anodeQDC[i][3]))/(anodeQDC[i][0]+anodeQDC[i][1]+anodeQDC[i][2]+anodeQDC[i][3]);
-			debugData.reconDetComY[i] = ((anodeQDC[i][1]+anodeQDC[i][2])-(anodeQDC[i][3]+anodeQDC[i][0]))/(anodeQDC[i][0]+anodeQDC[i][1]+anodeQDC[i][2]+anodeQDC[i][3]);
-		}
-		outData.reconComX = (debugData.reconDetComX[0] + debugData.reconDetComX[1]) / 2;
-		outData.reconComY = (debugData.reconDetComY[0] + debugData.reconDetComY[1]) / 2;
-		
-		if(outputDebug){
-			// Perform CFD on digitized anode waveforms.
-			for(size_t i = 0; i < 4; i++){
-				debugData.anodePhase[0][i] = anodeResponseL[i].analyzePolyCFD() + targetTimeOffset; // left
-				debugData.anodePhase[1][i] = anodeResponseR[i].analyzePolyCFD() + targetTimeOffset; // right
-			}
-
-			G4ThreeVector nCenterMass(debugData.nComX, debugData.nComY, debugData.nComZ);
-			G4ThreeVector nIncidentPos(debugData.nEnterPosX, debugData.nEnterPosY, debugData.nEnterPosZ);
-			G4ThreeVector nExitPos(debugData.nExitPosX, debugData.nExitPosY, debugData.nExitPosZ);
-
-			// Compute the neutron scatter center-of-mass.
-			nCenterMass = (1/debugData.neutronWeight)*nCenterMass;
-		
-			// Convert the neutron incident/exit positions to the frame of the detector.
-			nIncidentPos = nIncidentPos;
-			nExitPos = nExitPos;
-
-			// Now in the rotated frame of the detector.
-			debugData.nComX = nCenterMass.getX();
-			debugData.nComY = nCenterMass.getY();
-			debugData.nComZ = nCenterMass.getZ();
-			debugData.nEnterPosX = nIncidentPos.getX();
-			debugData.nEnterPosY = nIncidentPos.getY();
-			debugData.nEnterPosZ = nIncidentPos.getZ();
-			debugData.nExitPosX = nExitPos.getX();
-			debugData.nExitPosY = nExitPos.getY();
-			debugData.nExitPosZ = nExitPos.getZ();
-		}
-
-		// Compute the light balance (Z).
-		outData.lightBalance = (debugData.pulseQDC[0]-debugData.pulseQDC[1])/(debugData.pulseQDC[0]+debugData.pulseQDC[1]);
-
-		// Compute "bar" variables.
-		outData.barTOF = (debugData.pulsePhase[0]+debugData.pulsePhase[1])/2;
-		outData.barQDC = std::sqrt(debugData.pulseQDC[0]*debugData.pulseQDC[1]);
-		outData.barMaxADC = std::sqrt(debugData.pulseMax[0]*debugData.pulseMax[1]);
-		outData.photonComX = (debugData.photonDetComX[0] + debugData.photonDetComX[1]) / 2;
-		outData.photonComY = (debugData.photonDetComY[0] + debugData.photonDetComY[1]) / 2;
-
-		// Get the segment of the detector where the photon CoM occurs.
-		cmL->getCenterSegment(debugData.centerOfMassColumn[0], debugData.centerOfMassRow[0]);
-		cmR->getCenterSegment(debugData.centerOfMassColumn[1], debugData.centerOfMassRow[1]);		
-
-		// Update photon statistics.
-		numPhotonsTotal += outData.nPhotonsTot;
-		numPhotonsDetTotal += outData.nPhotonsDet;
-		
-		// Push data onto the output branch for multiple detectors
-		if(userDetectors.size() > 1)
-			multData.Append(outData, detID++);
 	}
 	
 	// Write the data (mutex protected, thread safe).

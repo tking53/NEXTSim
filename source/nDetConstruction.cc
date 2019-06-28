@@ -1391,7 +1391,7 @@ G4OpticalSurface *nDetConstruction::getUserOpticalSurface(){
 // class userAddDetector
 ///////////////////////////////////////////////////////////////////////////////
 
-userAddDetector::userAddDetector(nDetConstruction *detector) : assembly_logV(NULL), assembly_physV(NULL), layerSizeX(0), layerSizeY(0), offsetZ(0), parentCopyNum(0), firstSegmentCopyNum(0), lastSegmentCopyNum(0), numColumns(1), numRows(1) {
+userAddDetector::userAddDetector(nDetConstruction *detector) : assembly_logV(NULL), assembly_physV(NULL), layerSizeX(0), layerSizeY(0), offsetZ(0), parentCopyNum(0), firstSegmentCopyNum(0), lastSegmentCopyNum(0), numColumns(1), numRows(1), isStart(false) {
 	assembly_logV = detector->getCurrentAssembly();
 	copyCenterOfMass(*detector->GetCenterOfMassL(), *detector->GetCenterOfMassR());
 }

@@ -389,6 +389,10 @@ class userAddDetector{
 	
 	void setSegmentedDetector(const G4int &col, const G4int &row, const G4int &startCopyNum=0);
 
+	/** Set or unset this detector as a start signal for timing
+	  */
+	void setAsStart(const bool &enabled){ isStart = enabled; }
+
 	void addLayer(const userAddLayer &layer){ userLayers.push_back(layer); }
 
 	void buildAllLayers(nDetConstruction *detector);
@@ -413,6 +417,10 @@ class userAddDetector{
 	
 	bool empty() const { return (cmL.empty() && cmR.empty()); }
 
+	/** Return true if this is a start detector and return false otherwise
+	  */
+	bool getIsStart() const { return isStart; }
+
 	centerOfMass *getCenterOfMassL(){ return &cmL; }
 	
 	centerOfMass *getCenterOfMassR(){ return &cmR; }
@@ -435,6 +443,8 @@ class userAddDetector{
 
 	G4int numColumns; ///< Number of scintillator segment columns
 	G4int numRows; ///< Number of scintillator segment rows
+
+	bool isStart; ///< Flag indicating that this detector is used as a start signal for timing
 
 	G4ThreeVector position; ///< Position of the detector in the lab frame
 	G4RotationMatrix rotation; ///< Rotation of the detector in the lab frame
