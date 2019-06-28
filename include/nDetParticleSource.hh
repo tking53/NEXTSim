@@ -282,6 +282,7 @@ class nDetParticleSource : public G4GeneralParticleSource {
 	G4RotationMatrix detRot; ///< Rotation of the detector used for isotropic sources
 
 	size_t sourceIndex; ///< Current index in the vector of G4SingleParticleSources
+	size_t numSources; ///< Number of currently defined sources
 
 	G4String interpolationMethod; ///< Interpolation method to use for G4SPSEneDistribution class
 

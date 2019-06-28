@@ -41,7 +41,7 @@ nDetParticleSource &nDetParticleSource::getInstance(){
 nDetParticleSource::nDetParticleSource(nDetConstruction *det/*=NULL*/) : G4GeneralParticleSource(), fSourceMessenger(NULL), 
                                                                          unitX(1,0,0), unitY(0,1,0), unitZ(0,0,1), sourceOrigin(0,0,0), beamspotType(0), beamspot(0), beamspot0(0), 
                                                                          rot(), targThickness(0), targEnergyLoss(0), targTimeSlope(0), targTimeOffset(0), beamE0(0), useReaction(false), 
-                                                                         particleRxn(NULL), detPos(), detSize(), detRot(), sourceIndex(0), interpolationMethod("Lin")
+                                                                         particleRxn(NULL), detPos(), detSize(), detRot(), sourceIndex(0), numSources(0), interpolationMethod("Lin")
 {
 	// Set the default particle source.
 	SetNeutronBeam(1.0); // Set a 1 MeV neutron beam by default
@@ -405,19 +405,21 @@ bool nDetParticleSource::AddDiscreteEnergy(const G4String &str){
 }
 
 void nDetParticleSource::AddDiscreteEnergy(const G4double &energy, const G4double &intensity, G4ParticleDefinition *particle/*=NULL*/){
+	if(numSources++ > 1)
+		addNewSource();
 	GetCurrentSource()->SetParticleDefinition((particle ? particle : G4Gamma::GammaDefinition()));
 	SetBeamEnergy(energy*keV);
 	SetCurrentSourceIntensity(intensity/100);
-	addNewSource(0);
 }
 
 void nDetParticleSource::Reset(){
-	if(GetNumberofSource() > 0){
+	if(numSources > 0){
 		ClearAll();
 		allSources.clear();
 	}
 	addNewSource();
 	sourceIndex = 0;
+	numSources = 1;
 }
 
 void nDetParticleSource::UpdateAll(){
