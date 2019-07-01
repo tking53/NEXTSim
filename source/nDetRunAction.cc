@@ -413,7 +413,7 @@ void nDetRunAction::process(){
 			// Push data onto the output branch for multiple detectors
 			if(userDetectors.size() > 1)
 				multData.Append(outData, detID++);
-		}		
+		}
 	}
 	else{ // Start triggered mode
 		double startTime;
@@ -424,7 +424,7 @@ void nDetRunAction::process(){
 					detID++;
 					continue;
 				}
-				
+
 				// Update the time-of-flight of the event
 				outData.barTOF = outData.barTOF - startTime;
 				

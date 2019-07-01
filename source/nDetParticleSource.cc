@@ -38,9 +38,9 @@ nDetParticleSource &nDetParticleSource::getInstance(){
 	return instance;
 }
 
-nDetParticleSource::nDetParticleSource(nDetConstruction *det/*=NULL*/) : G4GeneralParticleSource(), fSourceMessenger(NULL), 
-                                                                         unitX(1,0,0), unitY(0,1,0), unitZ(0,0,1), sourceOrigin(0,0,0), beamspotType(0), beamspot(0), beamspot0(0), 
-                                                                         rot(), targThickness(0), targEnergyLoss(0), targTimeSlope(0), targTimeOffset(0), beamE0(0), useReaction(false), 
+nDetParticleSource::nDetParticleSource(nDetConstruction *det/*=NULL*/) : G4GeneralParticleSource(), fSourceMessenger(NULL), unitX(1,0,0), unitY(0,1,0), unitZ(0,0,1),
+                                                                         sourceOrigin(0,0,0), beamspotType(0), beamspot(0), beamspot0(0), rot(), targThickness(0),targEnergyLoss(0),
+                                                                         targTimeSlope(0), targTimeOffset(0), beamE0(0), useReaction(false), isotropic(false), back2back(false),
                                                                          particleRxn(NULL), detPos(), detSize(), detRot(), sourceIndex(0), numSources(0), interpolationMethod("Lin")
 {
 	// Set the default particle source.
@@ -226,8 +226,8 @@ void nDetParticleSource::Set60Co(){
 	AddDiscreteEnergy(7.478, 0.0063);
 	AddDiscreteEnergy(347.14, 0.0075);
 	AddDiscreteEnergy(826.10, 0.0076);
-	AddDiscreteEnergy(1173.228, 99.85);
-	AddDiscreteEnergy(1332.492, 99.9826);
+	AddDiscreteEnergy(1173.228, 99.85, true);
+	AddDiscreteEnergy(1332.492, 99.9826, true);
 	AddDiscreteEnergy(2158.57, 0.00120);
 }
 
@@ -268,7 +268,7 @@ void nDetParticleSource::Set241Am(){
 
 void nDetParticleSource::Set90Sr(){
 	Reset();
-	AddDiscreteEnergy(195.8, 100, G4Electron::ElectronDefinition());
+	AddDiscreteEnergy(195.8, 100, false, G4Electron::ElectronDefinition());
 }
 
 void nDetParticleSource::SetNeutronBeam(const double &energy_){
@@ -404,12 +404,19 @@ bool nDetParticleSource::AddDiscreteEnergy(const G4String &str){
 	return true;
 }
 
-void nDetParticleSource::AddDiscreteEnergy(const G4double &energy, const G4double &intensity, G4ParticleDefinition *particle/*=NULL*/){
+void nDetParticleSource::AddDiscreteEnergy(const G4double &energy, const G4double &intensity, const bool &isPair/*=false*/, G4ParticleDefinition *particle/*=NULL*/){
 	if(numSources++ > 1)
 		addNewSource();
 	GetCurrentSource()->SetParticleDefinition((particle ? particle : G4Gamma::GammaDefinition()));
 	SetBeamEnergy(energy*keV);
 	SetCurrentSourceIntensity(intensity/100);
+	if(isPair){ // Only pairs of energy levels supported for now
+		if(b2bEnergy[0] < 0)
+			b2bEnergy[0] = energy*keV;
+		else if(b2bEnergy[1] < 0)
+			b2bEnergy[1] = energy*keV;
+		back2back = true;
+	}
 }
 
 void nDetParticleSource::Reset(){
@@ -420,6 +427,9 @@ void nDetParticleSource::Reset(){
 	addNewSource();
 	sourceIndex = 0;
 	numSources = 1;
+	back2back = false;
+	b2bEnergy[0] = -1;
+	b2bEnergy[1] = -1;
 }
 
 void nDetParticleSource::UpdateAll(){
@@ -534,48 +544,61 @@ double nDetParticleSource::Print(const size_t &Nsamples/*=1*/){
 	return retval;
 }
 
+void nDetParticleSource::generateIsotropic(G4PrimaryVertex *vertex){
+	G4PrimaryParticle *particle = vertex->GetPrimary();
+	G4ThreeVector direction = particle->GetMomentumDirection();	
+
+	// We don't really use a true isotropic source because that would be really slow.
+	// Generate a random point inside the volume of the detector in the frame of the detector.
+	G4ThreeVector vRxnDet;
+	if(useReaction && targThickness > 0){ // Use psuedo-realistic target energy loss.
+		double reactionDepth = targThickness*G4UniformRand();
+		G4ThreeVector reactionPoint = vertex->GetPosition()+(-targThickness/2+reactionDepth)*direction;
+		vRxnDet = detPos - reactionPoint;
+		vertex->SetPosition(reactionPoint.x(), reactionPoint.y(), reactionPoint.z()); // Set the reaction point inside the target.
+		particleRxn->SetEbeam(beamE0-targEnergyLoss*reactionDepth); // Set the energy of the projectile at the time of the reaction.
+		targTimeOffset = targTimeSlope*(reactionDepth - 0.5*targThickness); // Compute the global time offset due to the target.
+	}
+	else{
+		vRxnDet = detPos;
+	}
+	
+	// Get the vector from the center of the detector to a uniformly sampled point inside its volume.
+	G4ThreeVector insideDet((detSize.getX()/2)*(2*G4UniformRand()-1), (detSize.getY()/2)*(2*G4UniformRand()-1), (detSize.getZ()/2)*(2*G4UniformRand()-1));
+
+	// Transform to the frame of the detector.
+	insideDet *= detRot;
+
+	// Compute the direction of the particle emitted from the source.
+	G4ThreeVector dirPrime = vRxnDet + insideDet;
+	dirPrime *= (1/dirPrime.mag());
+	particle->SetMomentumDirection(dirPrime);
+	
+	// Compute the particle energy.
+	if(useReaction){
+		double theta = std::acos(direction.dot(dirPrime));
+		double energy = particleRxn->sample(theta);
+		particle->SetKineticEnergy(energy);
+	}	
+}
+
 void nDetParticleSource::GeneratePrimaries(G4Event* anEvent){
 	// Enable the mutex lock to protect file access.
 	generatorLock.lock();
 	
 	GeneratePrimaryVertex(anEvent);
-	if(useReaction || isotropic){ // Generate particles psuedo-isotropically
-		G4PrimaryVertex *vertex = anEvent->GetPrimaryVertex(0);
-		G4PrimaryParticle *particle = vertex->GetPrimary();
-		G4ThreeVector direction = particle->GetMomentumDirection();	
-	
-		// We don't really use a true isotropic source because that would be really slow.
-		// Generate a random point inside the volume of the detector in the frame of the detector.
-		G4ThreeVector vRxnDet;
-		if(useReaction && targThickness > 0){ // Use psuedo-realistic target energy loss.
-			double reactionDepth = targThickness*G4UniformRand();
-			G4ThreeVector reactionPoint = vertex->GetPosition()+(-targThickness/2+reactionDepth)*direction;
-			vRxnDet = detPos - reactionPoint;
-			vertex->SetPosition(reactionPoint.x(), reactionPoint.y(), reactionPoint.z()); // Set the reaction point inside the target.
-			particleRxn->SetEbeam(beamE0-targEnergyLoss*reactionDepth); // Set the energy of the projectile at the time of the reaction.
-			targTimeOffset = targTimeSlope*(reactionDepth - 0.5*targThickness); // Compute the global time offset due to the target.
-		}
-		else{
-			vRxnDet = detPos;
-		}
-		
-		// Get the vector from the center of the detector to a uniformly sampled point inside its volume.
-		G4ThreeVector insideDet((detSize.getX()/2)*(2*G4UniformRand()-1), (detSize.getY()/2)*(2*G4UniformRand()-1), (detSize.getZ()/2)*(2*G4UniformRand()-1));
+	if(useReaction || isotropic) // Generate particles psuedo-isotropically
+		generateIsotropic(anEvent->GetPrimaryVertex(0));
 
-		// Transform to the frame of the detector.
-		insideDet *= detRot;
-
-		// Compute the direction of the particle emitted from the source.
-		G4ThreeVector dirPrime = vRxnDet + insideDet;
-		dirPrime *= (1/dirPrime.mag());
-		particle->SetMomentumDirection(dirPrime);
-		
-		// Compute the particle energy.
-		if(useReaction){
-			double theta = std::acos(direction.dot(dirPrime));
-			double energy = particleRxn->sample(theta);
-			particle->SetKineticEnergy(energy);
-		}
+	if(back2back){ // Generate another back-to-back particle (e.g. 60Co)
+		GeneratePrimaryVertex(anEvent);
+		G4PrimaryParticle *particle = anEvent->GetPrimaryVertex(1)->GetPrimary();
+		particle->SetMomentumDirection(-particle->GetMomentumDirection());
+		double kE = anEvent->GetPrimaryVertex(0)->GetPrimary()->GetKineticEnergy();
+		if(kE == b2bEnergy[0])
+			particle->SetKineticEnergy(b2bEnergy[1]);
+		else if(kE == b2bEnergy[1])
+			particle->SetKineticEnergy(b2bEnergy[0]);
 	}
 	
 	// Disable the mutex lock to open access to the file.
