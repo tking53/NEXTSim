@@ -12,6 +12,16 @@
 
 #define ADC_CLOCK_TICK 4 // ns
 
+TGraph *copyTGraph(TGraph *g){
+	TGraph *retval = new TGraph(g->GetN());
+	double x, y;
+	for(int i = 0; i < g->GetN(); i++){
+		g->GetPoint(i, x, y);
+		retval->SetPoint(i, x, y);
+	}
+	return retval;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // class spectralResponse
 ///////////////////////////////////////////////////////////////////////////////
@@ -29,7 +39,7 @@ void spectralResponse::getRange(double &min_, double &max_){
 void spectralResponse::copy(spectralResponse *other){
 	this->close();
 	
-	spectrum = new TGraph(*other->getSpectrum());
+	spectrum = copyTGraph(other->getSpectrum());
 	extrapolateLow = new TF1(*other->getExtrapolateLow());
 	extrapolateHigh = new TF1(*other->getExtrapolateHigh());
 	other->getRange(xmin, xmax);
@@ -87,7 +97,7 @@ void spectralResponse::scanSpectrum(){
 }
 
 void spectralResponse::close(){
-	if(spectrum) 
+	if(spectrum)
 		delete spectrum;
 	if(extrapolateLow)
 		delete extrapolateLow;
