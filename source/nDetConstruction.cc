@@ -77,7 +77,8 @@ nDetConstruction::nDetConstruction(){
 	fTrapezoidLength = 0;
 	fDiffuserLength = 0;
 	fDetectorThickness = 0.24*inch;
-	SiPM_dimension=3*mm;    
+	pmtWidth = 3*mm;
+	pmtHeight = 3*mm;
 
 	currentLayerSizeX = 0;
 	currentLayerSizeY = 0;
@@ -145,9 +146,6 @@ G4VPhysicalVolume* nDetConstruction::ConstructDetector(){
 		// Generate all user-defined layers.
 		iter->buildAllLayers(this);
 
-		// Attach PMTs.
-		constructPSPmts();
-
 		// Place the detector into the world.
 		iter->placeDetector(expHall_logV);
 	}
@@ -192,7 +190,7 @@ void nDetConstruction::UpdateGeometry(){
 	G4RunManager::GetRunManager()->ReinitializeGeometry();
 
 	if(PmtIsSegmented())
-		setSegmentedPmt(fNumColumnsPmt, fNumRowsPmt, SiPM_dimension*2, SiPM_dimension*2);
+		setSegmentedPmt(fNumColumnsPmt, fNumRowsPmt, pmtWidth, pmtHeight);
 
 	// Update the particle source
 	nDetParticleSource::getInstance().SetDetector(this);
@@ -220,6 +218,29 @@ void nDetConstruction::AddGeometry(const G4String &geom){
 		buildRectangle();
 	else if(geom == "test")
 		buildTestAssembly();
+		
+	// Attach PMTs.
+	constructPSPmts();
+}
+
+void nDetConstruction::SetPmtDimension(const G4String &input){
+	// Expects a space-delimited string of the form:
+	//  "setPmtDimensions <sizeX> [sizeY]"
+	std::vector<std::string> args;
+	unsigned int Nargs = split_str(input, args);
+	if(Nargs < 1){
+		std::cout << " nDetConstruction: Invalid number of arguments given to ::SetPmtDimension(). Expected 1, received " << Nargs << ".\n";
+		std::cout << " nDetConstruction:  SYNTAX: setPmtDimensions <sizeX> [sizeY]\n";
+		return;
+	}
+	G4double sizeX = strtod(args.at(0).c_str(), NULL);
+	G4double sizeY = (Nargs >= 2 ? strtod(args.at(1).c_str(), NULL) : -1);
+	SetPmtDimension(sizeX, sizeY);
+}
+
+void nDetConstruction::SetPmtDimension(const G4double &width, const G4double &height/*=-1*/){
+	pmtWidth = width;
+	pmtHeight = (height > 0 ? height : width);
 }
 
 void nDetConstruction::setSegmentedPmt(const short &col_, const short &row_, const double &width_, const double &height_){
@@ -919,7 +940,7 @@ void nDetConstruction::buildEllipse(){
 	const G4double angle = 60*deg;
 
 	// Width of the detector (defined by the trapezoid length and SiPM dimensions).
-	fDetectorWidth = 2*(SiPM_dimension+(fTrapezoidLength/std::tan(angle)))*mm;
+	fDetectorWidth = 2*(pmtWidth/2+(fTrapezoidLength/std::tan(angle)))*mm;
 	G4double deltaWidth = fMylarThickness/std::sin(angle);
 
 	// Construct the assembly bounding box.
@@ -927,8 +948,8 @@ void nDetConstruction::buildEllipse(){
 	constructAssembly(assemblyBoundingBox);
 
 	// Create the geometry.
-	G4Trd *innerTrapezoid = new G4Trd("innerTrapezoid", fDetectorWidth/2, SiPM_dimension, fDetectorThickness/2, SiPM_dimension, fTrapezoidLength/2);
-	G4Trd *outerTrapezoid = new G4Trd("outerTrapezoid", fDetectorWidth/2+deltaWidth, SiPM_dimension+deltaWidth, fDetectorThickness/2+deltaWidth, SiPM_dimension+deltaWidth, fTrapezoidLength/2);
+	G4Trd *innerTrapezoid = new G4Trd("innerTrapezoid", fDetectorWidth/2, pmtWidth/2, fDetectorThickness/2, pmtHeight/2, fTrapezoidLength/2);
+	G4Trd *outerTrapezoid = new G4Trd("outerTrapezoid", fDetectorWidth/2+deltaWidth, pmtWidth/2+deltaWidth, fDetectorThickness/2+deltaWidth, pmtHeight/2+deltaWidth, fTrapezoidLength/2);
 	G4Box *innerBody = new G4Box("innerBody", fDetectorWidth/2, fDetectorThickness/2, fDetectorLength/2);
 	G4Box *outerBody = new G4Box("outerBody", fDetectorWidth/2+deltaWidth, fDetectorThickness/2+deltaWidth, fDetectorLength/2);
 
@@ -965,7 +986,7 @@ void nDetConstruction::buildEllipse(){
 	currentDetector->setCurrentOffsetZ(currentOffsetZ);	
 	
 	// Directly modify the size of the grease layer.
-	currentLayerSizeX = 2*SiPM_dimension;
+	currentLayerSizeX = pmtWidth;
 
     // Reflective wrapping.
     if(fMylarThickness > 0)
@@ -1056,7 +1077,7 @@ void nDetConstruction::constructPSPmts(){
 	if(fGreaseThickness > 0){
 		G4double greaseZ = currentOffsetZ + fGreaseThickness/2;
 	
-		G4Box* grease_solidV = new G4Box("window_solidV", SiPM_dimension, SiPM_dimension, fGreaseThickness/2);
+		G4Box* grease_solidV = new G4Box("window_solidV", pmtWidth/2, pmtHeight/2, fGreaseThickness/2);
 		G4LogicalVolume *grease_logV = new G4LogicalVolume(grease_solidV, fGrease, "grease_logV");
 		
 		grease_logV->SetVisAttributes(grease_VisAtt);
@@ -1079,7 +1100,7 @@ void nDetConstruction::constructPSPmts(){
 	if(fWindowThickness > 0){ // The quartz window
 		G4double windowZ = currentOffsetZ + fGreaseThickness + fWindowThickness/2;
 	
-		G4Box* window_solidV = new G4Box("window_solidV", SiPM_dimension, SiPM_dimension, fWindowThickness/2);
+		G4Box* window_solidV = new G4Box("window_solidV", pmtWidth/2, pmtHeight/2, fWindowThickness/2);
 		G4LogicalVolume *window_logV = new G4LogicalVolume(window_solidV, fSiO2, "window_logV");
 		
 		window_logV->SetVisAttributes(window_VisAtt);
@@ -1090,8 +1111,8 @@ void nDetConstruction::constructPSPmts(){
 
 	// Build the wrapping.
 	if(fMylarThickness > 0 && wrappingThickness > 0){
-		G4Box *boundingBox = new G4Box("", SiPM_dimension, SiPM_dimension, wrappingThickness/2);
-		G4Box *wrappingBox = new G4Box("", SiPM_dimension + fMylarThickness, SiPM_dimension + fMylarThickness, wrappingThickness/2);
+		G4Box *boundingBox = new G4Box("", pmtWidth/2, pmtHeight/2, wrappingThickness/2);
+		G4Box *wrappingBox = new G4Box("", pmtWidth/2 + fMylarThickness, pmtHeight/2 + fMylarThickness, wrappingThickness/2);
 		
 		G4SubtractionSolid *greaseWrapping = new G4SubtractionSolid("", wrappingBox, boundingBox);
 		G4LogicalVolume *greaseWrapping_logV = new G4LogicalVolume(greaseWrapping, getUserSurfaceMaterial(), "greaseWrapping_logV");
@@ -1115,7 +1136,7 @@ void nDetConstruction::constructPSPmts(){
 	}
 	
     // The photon sensitive surface
-    G4Box *sensitive_solidV = new G4Box(name+"_solidV", SiPM_dimension, SiPM_dimension, fSensitiveThickness/2);
+    G4Box *sensitive_solidV = new G4Box(name+"_solidV", pmtWidth/2, pmtHeight/2, fSensitiveThickness/2);
     G4LogicalVolume *sensitive_logV = new G4LogicalVolume(sensitive_solidV, fSil, name+"_logV");
     sensitive_logV->SetVisAttributes(sensitive_VisAtt);
     
@@ -1140,8 +1161,8 @@ void nDetConstruction::constructPSPmts(){
 	}*/
     
     // Move the current offset past the PMT
-	currentLayerSizeX = 2*SiPM_dimension;
-	currentLayerSizeY = 2*SiPM_dimension;
+	currentLayerSizeX = pmtWidth;
+	currentLayerSizeY = pmtHeight;
     currentOffsetZ += fGreaseThickness + fWindowThickness + fSensitiveThickness;
 }
 
@@ -1219,7 +1240,7 @@ void nDetConstruction::applyDiffuserLayer(const G4double &x, const G4double &y, 
 }
 
 void nDetConstruction::applyLightGuide(){
-	this->applyLightGuide(currentLayerSizeX, 2*SiPM_dimension, currentLayerSizeY, 2*SiPM_dimension, fTrapezoidLength);
+	this->applyLightGuide(currentLayerSizeX, pmtWidth, currentLayerSizeY, pmtHeight, fTrapezoidLength);
 }
 
 void nDetConstruction::applyLightGuide(const G4double &x2, const G4double &y2){
@@ -1336,8 +1357,8 @@ void nDetConstruction::applyLightGuide(const G4double &x1, const G4double &x2, c
 }
 
 G4ThreeVector nDetConstruction::getPSPmtBoundingBox(){
-	G4double boundingX = std::max(2*SiPM_dimension, fDetectorWidth);
-	G4double boundingY = std::max(2*SiPM_dimension, fDetectorThickness);
+	G4double boundingX = std::max(pmtWidth, fDetectorWidth);
+	G4double boundingY = std::max(pmtHeight, fDetectorThickness);
 	G4double boundingZ = fGreaseThickness + fWindowThickness + fSensitiveThickness;
 
 	if(fDiffuserLength > 0) // Account for light diffusers

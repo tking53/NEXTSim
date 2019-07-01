@@ -26,8 +26,8 @@ void nDetConstructionMessenger::addAllCommands(){
 	addGuidance("Defines the Geometry of the detector");
 	addCandidates("next module ellipse rectangle test");
 
-	addCommand(new G4UIcmdWithADouble("/nDet/detector/setSiPMdimensions", this));
-	addGuidance("Defines the size of the SiPMs in mm");
+	addCommand(new G4UIcmdWithAString("/nDet/detector/setPmtDimensions", this));
+	addGuidance("Defines the size of the SiPMs in mm. SYNTAX: setPmtDimensions <sizeX> [sizeY]");
 
 	addCommand(new G4UIcmdWithADouble("/nDet/detector/setDetectorLength", this));
 	addGuidance("Defines the size of the plastic in cm");
@@ -196,8 +196,7 @@ void nDetConstructionMessenger::SetNewChildValue(G4UIcommand* command, G4String 
 		fDetector->AddGeometry(newValue);
 	}
 	else if(index == 1) {
-		G4double dimensions = command->ConvertToDouble(newValue);
-		fDetector->SetSiPM_dimension(dimensions/2.*mm);
+		fDetector->SetPmtDimension(newValue);
 	}
 	else if(index == 2) {
 		G4double length = command->ConvertToDouble(newValue);

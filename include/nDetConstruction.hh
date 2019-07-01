@@ -15,18 +15,12 @@
 class nDetConstructionMessenger;
 class G4LogicalVolume;
 class G4VPhysicalVolume;
-class SiPMSD;
-class nDetSD;
 class G4Element;
 class G4Material;
 class G4MaterialPropertiesTable;
 class G4OpticalSurface;
-class G4LogicalSkinSurface;
-class G4LogicalBorderSurface;
 class G4VPhysicalVolume;
-class G4AssemblyVolume;
 class G4PVPlacement;
-class G4VSolid;
 class G4Box;
 class G4VisAttributes;
 class G4Step;
@@ -54,7 +48,18 @@ class nDetConstruction : public G4VUserDetectorConstruction{
     
 	void AddGeometry(const G4String &geom);
 
-    void SetSiPM_dimension(G4double dim){ SiPM_dimension = dim; }
+	/** Set the width and height of the PMT optical surface
+	  * @param input Space-delimited string with the format "<width(mm)> [height(mm)]"
+	  *              If the height is not specified, the height will be equal to the width
+	  */
+	void SetPmtDimension(const G4String &input);
+
+	/** Set the width and height of the PMT optical surface
+	  * @param width The width (x-dimension) in mm
+	  * @param height The height (y-dimension) in mm
+	                  If the height is less than or equal to zero, the width is used for the height
+	  */
+    void SetPmtDimension(const G4double &width, const G4double &height=-1);
     
     void SetDetectorLength(G4double val){ fDetectorLength = val; }
     
@@ -173,7 +178,8 @@ private:
     G4double expHallY; ///< Size of the world along the y-axis (in mm)
     G4double expHallZ; ///< Size of the world along the z-axis (in mm)
 
-    G4double SiPM_dimension; ///< Half of the width and height of the PMT (in mm)
+    G4double pmtWidth; ///< The width (x-axis) of the PMT (in mm)
+    G4double pmtHeight; ///< The height (y-axis) of the PMT (in mm)
     G4double fMylarThickness; ///< Thickness of the inner and outer detector wrapping (in mm)
     G4double fGreaseThickness; ///< Thickness of all optical grease layers (in mm)
     G4double fWindowThickness; ///< Thickness of all optical window layers (in mm)
