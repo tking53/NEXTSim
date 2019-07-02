@@ -2,7 +2,7 @@
 # Cory R Thornsberry
 # Simulates a simple rectangular bar with a 1 MeV beam of neutrons
 
-/nDet/detector/setSiPMdimensions 6
+/nDet/detector/setPmtDimensions 6 12
 
 # Mylar and optical grease thickness.
 /nDet/detector/setMylarThickness 0.025
@@ -15,7 +15,7 @@
 # Bar prototype
 /nDet/detector/setDetectorLength 10
 /nDet/detector/setDetectorWidth 0.6
-/nDet/detector/setDetectorThickness 6
+/nDet/detector/setDetectorThickness 12
 /nDet/detector/setWrapping mylar
 
 # Set the position and rotation of the detector in the lab frame.
@@ -32,7 +32,7 @@
 
 # Set the output filename prefix
 /nDet/output/filename bar.root
-/nDet/output/title 6x6x100 mm^3 bar prototype w/ 6x6 mm^2 SiPMs and 1 MeV neutron pencil beam at 1 m (wrapped with mylar)
+/nDet/output/title 6x12x100 mm^3 bar prototype w/ 6x6 mm^2 SiPMs and 1 MeV neutron pencil beam at 1 m (wrapped with mylar)
 /nDet/output/debug true
 
 # Setup information about the PMT response

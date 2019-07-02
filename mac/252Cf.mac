@@ -3,7 +3,7 @@
 # Simulates a NEXT module with 8x4 scintillator cells with a 252Cf neutron source
 
 # Set the size of the PSPmt
-/nDet/detector/setSiPMdimensions 48.5
+/nDet/detector/setPmtDimensions 48.5
 
 # Mylar and optical grease thickness.
 /nDet/detector/setMylarThickness 0.025

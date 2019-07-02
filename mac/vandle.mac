@@ -14,19 +14,19 @@
 /nDet/detector/setDetectorLength 60.0
 /nDet/detector/setDetectorWidth 3.0
 /nDet/detector/setDetectorThickness 30.0
-/nDet/detector/setSiPMdimensions 30.0
+/nDet/detector/setPmtDimensions 30.0
 
 # Medium VANDLE (5x3x120 cm^3)
 #/nDet/detector/setDetectorLength 120.0
 #/nDet/detector/setDetectorWidth 3.0
 #/nDet/detector/setDetectorThickness 50.0
-#/nDet/detector/setSiPMdimensions 30.0
+#/nDet/detector/setPmtDimensions 30.0
 
 # Large VANDLE (5x5x200 cm^3)
 #/nDet/detector/setDetectorLength 200.0
 #/nDet/detector/setDetectorWidth 5.0
 #/nDet/detector/setDetectorThickness 50.0
-#/nDet/detector/setSiPMdimensions 50.0
+#/nDet/detector/setPmtDimensions 50.0
 
 # Set the position and rotation of the detector in the lab frame.
 /nDet/detector/setPosition 100 0 0 cm
@@ -81,5 +81,5 @@
 # RUN CONTROL #
 ###############
 
-/run/beamOn 10000
+#/run/beamOn 10000
 

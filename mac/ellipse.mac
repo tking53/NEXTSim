@@ -2,7 +2,7 @@
 # Cory R Thornsberry
 # Simulates an elliptical bar (football) with a 1 MeV beam of neutrons
 
-/nDet/detector/setSiPMdimensions 6
+/nDet/detector/setPmtDimensions 6
 
 # Mylar and optical grease thickness.
 /nDet/detector/setMylarThickness 0.025
@@ -21,7 +21,7 @@
 
 # Set the position and rotation of the detector in the lab frame.
 /nDet/detector/setPosition 100 0 0 cm
-/nDet/detector/setRotation 0 0 0
+/nDet/detector/setRotation 0 0 90
 
 # Update the detector.
 /nDet/detector/addGeometry ellipse
