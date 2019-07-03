@@ -192,6 +192,9 @@ void nDetParticleSource::SetDetector(const nDetConstruction *det){
 
 void nDetParticleSource::Set252Cf(const size_t &size_/*=150*/, const double &stepSize_/*=0.1*/){
 	Reset(); // Should this always clear the source? CRT
+	
+	// Set to a neutron
+	GetCurrentSource()->SetParticleDefinition(G4Neutron::NeutronDefinition());
 
 	G4SPSEneDistribution *ene = GetCurrentSource()->GetEneDist();
 	ene->SetEnergyDisType("Arb");
