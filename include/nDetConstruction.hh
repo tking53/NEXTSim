@@ -8,16 +8,14 @@
 #include "globals.hh"
 
 #include "gdmlSolid.hh"
-#include "nistDatabase.hh"
 #include "centerOfMass.hh"
+#include "nDetMaterials.hh"
 
 // Class declarations
 class nDetConstructionMessenger;
 class G4LogicalVolume;
 class G4VPhysicalVolume;
-class G4Element;
 class G4Material;
-class G4MaterialPropertiesTable;
 class G4OpticalSurface;
 class G4VPhysicalVolume;
 class G4PVPlacement;
@@ -168,9 +166,12 @@ class nDetConstruction : public G4VUserDetectorConstruction{
 	void AddLightGuide(const G4String &input);
 	
 	void AddDetectorArray(const G4String &input);
-	
-	void SetLightYieldMultiplier(const G4double &input){ fLightYieldScale = input; }
 
+	/** Set the light yield multiplier for scintillator photon production
+	  * @param yield The fraction of the light yield to use for optical photon production in scintillators (default is 1)
+	  */	
+	void SetLightYieldMultiplier(const G4double &yield);
+	
 private:
     nDetConstructionMessenger *fDetectorMessenger;
     
@@ -189,7 +190,6 @@ private:
     G4double fDetectorWidth; ///< Size of the detector along the x-axis (in mm)
     G4double fTrapezoidLength; ///< Thickness of the trapezoids used as light guides (in mm)
     G4double fDiffuserLength; ///< Thickness of straight diffusers (in mm)
-    G4double fLightYieldScale; ///< Scaling parameter used for scintillation light yield (default=1)
 
 	G4double currentLayerSizeX; ///< Size of the current user add layer along the x-axis (in mm)
 	G4double currentLayerSizeY; ///< Size of the current user add layer along the y-axis (in mm)
@@ -209,47 +209,6 @@ private:
 	G4LogicalVolume* expHall_logV; ///< Logical volume of the world
 	G4VPhysicalVolume* expHall_physV; ///< Physical volume of the world
 
-    // Materials and elements
-    G4Element* fH; ///< Hydrogen
-    G4Element* fC; ///< Carbon
-    G4Element* fO; ///< Oxygen
-    G4Element* fF; ///< Flourine
-    G4Element* fSi; ///< Silicon
-    G4Element* fAl; ///< Aluminium
-
-    G4Material* fAir; ///< Material corresponding to air
-    G4Material* fVacuum; ///< Material corresponding to natural vacuum
-    G4Material* fTeflon; ///< Material corresponding to teflon
-    G4Material* fEJ200; ///< Material corresponding to EJ-200 scintillator
-    G4Material* fEJ276; ///< Material corresponding to EJ-276 scintillator
-    G4Material* fGrease; ///< Material corresponding to optical grease
-    G4Material* fSiO2; ///< Material corresponding to quartz
-    G4Material* fSil; ///< Material corresponding to silicon
-    G4Material* fMylar; ///< Material corresponding to aluminized mylar
-    G4Material* fAcrylic; ///< Material corresponding to acrylic
-	G4Material* fAluminum; ///< Material corresponding to aluminum
-
-    // Material table properties
-    G4MaterialPropertiesTable* fAirMPT; ///< Material properties table for air
-    G4MaterialPropertiesTable* fTeflonMPT; ///< Material properties table for teflon
-    G4MaterialPropertiesTable* fEJ200MPT; ///< Material properties table for EJ-200 scintillator
-    G4MaterialPropertiesTable* fEJ276MPT; ///< Material properties table for EJ-276 scintillator
-    G4MaterialPropertiesTable* fGreaseMPT; ///< Material properties table for optical grease
-    G4MaterialPropertiesTable* fSiO2MPT; ///< Material properties table for quartz
-    G4MaterialPropertiesTable* fSilMPT; ///< Material properties table for silicon
-	G4MaterialPropertiesTable* fMylarMPT; ///< Material properties table for aluminized mylar
-	G4MaterialPropertiesTable* fPerfectMPT; ///< Material properties table for a perfect reflector
-	G4MaterialPropertiesTable* fAluminumMPT; ///< Material properties table for aluminum
-	G4MaterialPropertiesTable* fEsrMPT; ///< Material properties table for 3M Enhanced Specular Reflector
-
-    // Optical Surfaces
-    G4OpticalSurface* fTeflonOpticalSurface; ///< Optical surface for teflon
-    G4OpticalSurface* fSiliconPMOpticalSurface; ///< Optical surface for silicon
-    G4OpticalSurface* fMylarOpticalSurface; ///< Optical surface for aluminized mylar
-    G4OpticalSurface* fEsrOpticalSurface; ///< Optical surface for 3M Enhanced Specular Reflector
-	G4OpticalSurface* fPerfectOpticalSurface; ///< Optical surface for a perfect reflector
-	G4OpticalSurface* fGreaseOpticalSurface; ///< Optical surface for optical grease
-
 	// Visual attributes
 	G4VisAttributes *assembly_VisAtt; ///< Visual attributes for the mother assembly
 	G4VisAttributes *sensitive_VisAtt; ///< Visual attributes for the photo-sensitive surface
@@ -260,8 +219,6 @@ private:
 	G4VisAttributes *shadow_VisAtt; ///< Visual attributes for the shadow object
 
 	std::vector<gdmlSolid> solids; ///< Vector of all loaded gdml solids
-
-	nistDatabase nist; ///< Database used for pre-defined NIST element and material lookups
 
 	G4String detectorMaterial; ///< String indicating the material to use for the detector scintillator body
 	G4String wrappingMaterial; ///< String indicating the material to use for the inner and outer detector wrapping
@@ -280,9 +237,9 @@ private:
 	userAddDetector *currentDetector; ///< Pointer to the current detector added by the user
 	G4LogicalVolume *currentAssembly; ///< Pointer to the mother logical volume of the current detector
 
-	bool materialsAreDefined; ///< Flag indicating that the hard-coded materials have been defined
-
 	centerOfMass center[2]; ///< Objects used to compute the detected optical photon center-of-mass position for the left and right PMT
+
+	nDetMaterials materials; ///< 
 
 	// Private constructor.
 	nDetConstruction();
@@ -334,11 +291,17 @@ private:
     
     G4ThreeVector getPSPmtBoundingBox();
     
-    G4Material *getUserDetectorMaterial();
-    
-    G4Material *getUserSurfaceMaterial();
-    
-    G4OpticalSurface *getUserOpticalSurface();
+	/** Get a pointer to the user-defined scintillator material
+	  */
+	G4Material* getUserDetectorMaterial();
+
+	/** Get a pointer to the user-defined surface material
+	  */
+	G4Material* getUserSurfaceMaterial();
+
+	/** Get a pointer to the user-defined optical surface
+	  */
+	G4OpticalSurface* getUserOpticalSurface();
 };
 
 ///////////////////////////////////////////////////////////////////////////////
