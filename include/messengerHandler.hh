@@ -9,11 +9,11 @@
 class G4UIcommand;
 class G4UIdirectory;
 
-/*! \class cmdSearchPair
- *  \brief Class used link a formatted command path to a G4UIcommand object
- *  \author Cory R. Thornsberry (cthornsb@vols.utk.edu)
- *  \date May 31, 2019
-*/
+/** @class cmdSearchPair
+  *  @brief Links a formatted command path to a G4UIcommand object
+  *  @author Cory R. Thornsberry (cthornsb@vols.utk.edu)
+  *  @date Dec 4, 2018
+  */
 
 class cmdSearchPair{
   public:
@@ -38,11 +38,11 @@ class cmdSearchPair{
 	bool operator == (const cmdSearchPair &other) const { return (this->command == other.command); }
 };
 
-/*! \class messengerHandler
- *  \brief Class used to manage all commands needed for the user to interface with NEXTSim
- *  \author Cory R. Thornsberry (cthornsb@vols.utk.edu)
- *  \date May 31, 2019
-*/
+/** @class messengerHandler
+  * @brief Manages all commands needed for the user to interface with NEXTSim
+  * @author Cory R. Thornsberry (cthornsb@vols.utk.edu)
+  * @date Dec 4, 2019
+  */
 
 class messengerHandler : public G4UImessenger {
   public:

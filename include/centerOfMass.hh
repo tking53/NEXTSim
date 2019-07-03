@@ -10,14 +10,16 @@
 
 class G4Step;
 
-/*! \class centerOfMass
-	\brief Class which computes detected photon center-of-mass position in 3d space.
-
-	This class is used to compute the center-of-mass for photons which are detected
-	by an optical photon sensitive surface. The center-of-mass is computed by dividing
-	the sum of all detected photon positions (in 3d space) by the sum of all of their
-	"weights".
-*/
+/** @class centerOfMass
+  * @brief Computes detected photon center-of-mass position in 3d space.
+  * @author Cory R. Thornsberry (cthornsb@vols.utk.edu)
+  * @date Nov 2, 2018
+  * 
+  * This class is used to compute the center-of-mass for photons which are detected
+  * by an optical photon sensitive surface. The center-of-mass is computed by dividing
+  * the sum of all detected photon positions (in 3d space) by the sum of all of their
+  * "weights".
+  */
 
 class centerOfMass{
   public:

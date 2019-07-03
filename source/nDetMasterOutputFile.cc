@@ -264,6 +264,7 @@ bool nDetMasterOutputFile::writeInfoToFile(const std::string &name, const std::s
 		fFile->cd();
 		TNamed named(name.c_str(), value.c_str());
 		named.Write();
+		return true;
 	}
 	return false;
 }
