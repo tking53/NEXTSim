@@ -6,5 +6,5 @@ nDetTrackingAction::nDetTrackingAction(nDetRunAction *run) : runAction(run) {
 nDetTrackingAction::~nDetTrackingAction(){
 }
 
-void nDetTrackingAction::PreUserTrackingAction(const G4Track* aTrack){
+void nDetTrackingAction::PreUserTrackingAction(const G4Track*){
 }
