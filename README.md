@@ -1,11 +1,12 @@
 # NEXTSim README
 
-[Cory R. Thornsberry](cthornsb@vols.utk.edu)
+[Cory R. Thornsberry](https://github.com/cthornsb)
 
-Last updated: June 13, 2019
+Last updated: July 3, 2019
 
 This README gives basic information on how to install NEXTSim from source. For more information
-on using the program, see the [NEXTSim Wiki](https://github.com/cthornsb/NEXTSim/wiki).
+on using the program, see the [NEXTSim Wiki](https://github.com/cthornsb/NEXTSim/wiki). For detailed
+information on changes to the master branch, see the [changelog](https://github.com/cthornsb/NEXTSim/wiki/Changelog).
 
 ## Authors
 
