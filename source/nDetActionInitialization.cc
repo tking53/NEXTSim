@@ -28,7 +28,7 @@ userActionManager::userActionManager(const nDetActionInitialization* init, bool 
 	if(verboseMode) runAction->toggleVerboseMode();
 	
 	// Link all actions back to run control thread
-	runAction->setActions(eventAction, stackingAction, trackingAction, steppingAction);
+	runAction->setActions(this);
 }
 
 nDetActionInitialization::nDetActionInitialization(bool verboseMode/*=false*/) : verbose(verboseMode) { 

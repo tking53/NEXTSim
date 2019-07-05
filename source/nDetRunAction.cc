@@ -1,10 +1,3 @@
-//
-// $Id: nDetRunAction.cc,v1.0 Sept., 2015 $
-// Written by Dr. Xiaodong Zhang
-// 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
 #include "time.h"
 
 #include "G4Timer.hh"
@@ -23,14 +16,10 @@
 
 const double KINETIC_ENERGY_THRESHOLD = 0.001; // MeV
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
 /// Returns the dot product of two vectors i.e. v1 * v2
 double dotProduct(const G4ThreeVector &v1, const G4ThreeVector &v2){
 	return (v1.getX()*v2.getX() + v1.getY()*v2.getY() + v1.getZ()*v2.getZ());
 }
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 primaryTrackInfo::primaryTrackInfo(const G4Step *step){
 	this->setValues(step->GetTrack());
@@ -48,9 +37,8 @@ bool primaryTrackInfo::compare(const G4Track *rhs){
 }
 
 double primaryTrackInfo::getAngle(const G4Track *rhs){
-	G4ThreeVector dir2 = rhs->GetMomentumDirection();
-	if(this->pos == rhs->GetPosition())
-		angle = getAngle(dir2);
+	if(compare(rhs))
+		angle = getAngle(rhs->GetMomentumDirection());
 	else
 		angle = -1;
 	return angle;
@@ -78,13 +66,13 @@ void primaryTrackInfo::setValues(const G4Track *track){
 	plength = track->GetTrackLength();
 	part = track->GetParticleDefinition();
 	
+	std::cout << " Mass=" << track->GetDynamicParticle()->GetMass() << std::endl;
+	
 	copyNum = track->GetTouchable()->GetCopyNumber();
 	trackID = track->GetTrackID();
 	atomicMass = part->GetAtomicMass();
 	inScint = false;
 }
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 nDetRunAction::nDetRunAction(){
 	timer = new G4Timer;
@@ -114,13 +102,9 @@ nDetRunAction::nDetRunAction(){
 	data.setDataAddresses(&evtData, &outData, &multData, &debugData, &traceData);
 }
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
 nDetRunAction::~nDetRunAction(){
 	delete timer;
 }
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void nDetRunAction::BeginOfRunAction(const G4Run* aRun)
 {
@@ -173,8 +157,6 @@ void nDetRunAction::BeginOfRunAction(const G4Run* aRun)
 	// Set the total number of events
 	outputFile->setTotalEvents(aRun->GetNumberOfEventToBeProcessed());
 }
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void nDetRunAction::EndOfRunAction(const G4Run* aRun)
 {
@@ -450,11 +432,11 @@ void nDetRunAction::process(){
 	if(stepping) stepping->Reset();
 }
 
-void nDetRunAction::setActions(nDetEventAction *event_, nDetStackingAction *stacking_, nDetTrackingAction *tracking_, nDetSteppingAction *stepping_){
-	eventAction = event_;
-	stacking = stacking_;
-	tracking = tracking_;
-	stepping = stepping_;
+void nDetRunAction::setActions(userActionManager *action){
+	eventAction = action->getEventAction();
+	stacking = action->getStackingAction();
+	tracking = action->getTrackingAction();
+	stepping = action->getSteppingAction();
 
 	// Get the photon counter
 	counter = stacking->GetCounter();
@@ -529,9 +511,8 @@ bool nDetRunAction::scatterEvent(){
 	// Add the deposited energy to the total.
 	evtData.nDepEnergy += priTrack->dkE;
 
-	G4ThreeVector vertex = priTrack->pos;
-
 	if(verbose){
+		G4ThreeVector vertex = priTrack->pos;
 		std::cout << " id=" << priTrack->trackID << " "; priTrack->print();	
 		std::cout << "	pos=(" << vertex.getX() << ", " << vertex.getY() << ", " << vertex.getZ() << ")\n";
 		std::cout << "	dE=" << priTrack->dkE << ", dE2=" << priTrack->kE << ", size=" << primaryTracks.size() << std::endl;
@@ -539,6 +520,7 @@ bool nDetRunAction::scatterEvent(){
 
 	if(outputDebug){
 		G4int segCol, segRow;
+		G4ThreeVector vertex = priTrack->pos;
 		getSegmentFromCopyNum(priTrack->copyNum, segCol, segRow);
 		debugData.Append(vertex.getX(), vertex.getY(), vertex.getZ(), priTrack->angle, priTrack->plength, (priTrack->gtime - debugData.nEnterTime), 
 		                 priTrack->dkE, segCol, segRow, 0, priTrack->atomicMass, priTrack->inScint);
@@ -576,10 +558,10 @@ void nDetRunAction::initializeNeutron(const G4Step *step){
 	}
 }
 
-void nDetRunAction::scatterNeutron(const G4Step *step){
+bool nDetRunAction::scatterNeutron(const G4Step *step){
 	double dE = -1*(step->GetPostStepPoint()->GetKineticEnergy()-step->GetPreStepPoint()->GetKineticEnergy());
-	G4Track *track = step->GetTrack();
 	if(dE > 0){
+		G4Track *track = step->GetTrack();
 		primaryTracks.push_back(step);
 		if(outputDebug){
 			primaryTracks.back().getAngle(prevDirection);
@@ -596,7 +578,9 @@ void nDetRunAction::scatterNeutron(const G4Step *step){
 			if(verbose) 
 				std::cout << "OT: final kE=0 (absorbed)" << std::endl;
 		}
+		return true;
 	}
+	return false;
 }
 
 void nDetRunAction::finalizeNeutron(const G4Step *step){
@@ -611,5 +595,3 @@ void nDetRunAction::finalizeNeutron(const G4Step *step){
 	if(verbose) 
 		std::cout << "OT: final kE=" << track->GetKineticEnergy() << std::endl;
 }
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
