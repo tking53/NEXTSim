@@ -237,9 +237,10 @@ class Reaction {
 	
 	/** Get the ejectile energy for a given lab angle
 	  * @param theta The lab angle of outgoing ejectile particle (in radians)
+	  * @param lab Flag indicating that the input angle is measured in the lab frame
 	  * @return The energy of the ejectile particle (in MeV)
 	  */
-	double sample(const double &theta);
+	double sample(const double &theta, const bool &lab=true);
 };
 
 #endif

@@ -66,8 +66,6 @@ void primaryTrackInfo::setValues(const G4Track *track){
 	plength = track->GetTrackLength();
 	part = track->GetParticleDefinition();
 	
-	std::cout << " Mass=" << track->GetDynamicParticle()->GetMass() << std::endl;
-	
 	copyNum = track->GetTouchable()->GetCopyNumber();
 	trackID = track->GetTrackID();
 	atomicMass = part->GetAtomicMass();

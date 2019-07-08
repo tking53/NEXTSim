@@ -280,8 +280,11 @@ void Reaction::Print(){
 }
 
 // Sample the ejectile energy distribution (in radians). 
-double Reaction::sample(const double &theta){
-	this->SetLabAngle(theta);
+double Reaction::sample(const double &theta, const bool &lab/*=true*/){
+	if(lab)
+		this->SetLabAngle(theta);
+	else
+		this->SetComAngle(theta);
 	if(ejectPart.v[1] >= 0.0) // Multiple solutions.
 		return (G4UniformRand() >= 0.5 ? ejectPart.E[1] : ejectPart.E[0]);
 	return ejectPart.E[0];
