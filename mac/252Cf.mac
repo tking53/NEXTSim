@@ -79,8 +79,8 @@
 # Available source types: 137Cs 60Co 133Ba 241Am 90Sr 252Cf
 /nDet/source/type 252Cf
 
-# Force isotropic source
-/nDet/source/iso true
+# Set isotropic source (0=off, 1=psuedo, 2=realistic)
+/nDet/source/iso 1
 
 # Set the energy distribution sampling range (in MeV)
 #/nDet/source/range 1.175 1.225 0

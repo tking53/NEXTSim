@@ -75,7 +75,9 @@
 
 #/nDet/source/spot 25
 #/nDet/source/spot 15
-#/nDet/source/iso true
+
+# Set isotropic source (0=off, 1=psuedo, 2=realistic)
+#/nDet/source/iso 1
 
 ###############
 # RUN CONTROL #
