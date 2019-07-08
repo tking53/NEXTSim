@@ -687,6 +687,11 @@ void nDetParticleSource::setBeamProfile(G4SingleParticleSource *src){
 // class nDetPrimaryGeneratorAction
 ///////////////////////////////////////////////////////////////////////////////
 
+nDetPrimaryGeneratorAction::nDetPrimaryGeneratorAction() : G4VUserPrimaryGeneratorAction() { 
+	source = &nDetParticleSource::getInstance();
+}
+
 void nDetPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent){
-	nDetParticleSource::getInstance().GeneratePrimaries(anEvent);
+	// Generate a primary particle (mutex protected)
+	source->GeneratePrimaries(anEvent);
 }

@@ -21,18 +21,18 @@ class Reaction;
 class nDetParticleSourceMessenger;
 class nDetConstruction;
 
-/*! \class nDetParticleSource
- *  \brief Wrapper of G4GeneralParticleSource class for added convenience
- *  \author Cory R. Thornsberry (cthornsb@vols.utk.edu)
- *  \date June 5, 2019
- *
- *  The G4GeneralParticleSource class is unwieldy to use, so this class offers
- *  methods which make it easier for the user to define sources and beams of
- *  particles by defining methods in a more transparent way. 
- *  
- *  NOTE: The user  may still interact with the general particle source on a 
- *  low level via macro commands.
-*/
+/** @class nDetParticleSource
+  * @brief Wrapper of G4GeneralParticleSource class for added convenience
+  * @author Cory R. Thornsberry (cthornsb@vols.utk.edu)
+  * @date June 5, 2019
+  *
+  * The G4GeneralParticleSource class is unwieldy to use, so this class offers
+  * methods which make it easier for the user to define sources and beams of
+  * particles by defining methods in a more transparent way. 
+  * 
+  * NOTE: The user  may still interact with the general particle source on a 
+  * low level via macro commands.
+  */
 
 class nDetParticleSource : public G4GeneralParticleSource {
   public:
@@ -247,6 +247,7 @@ class nDetParticleSource : public G4GeneralParticleSource {
 	double Print(const size_t &Nsamples=1);
 
 	/** Generate primary particles
+	  * @note This method is mutex protected for safe multi-threading
 	  * @param anEvent Pointer to the current event
 	  */
 	virtual void GeneratePrimaries(G4Event* anEvent);
@@ -326,16 +327,34 @@ class nDetParticleSource : public G4GeneralParticleSource {
 	void generateIsotropic(G4PrimaryVertex *vertex);
 };
 
+/** @class nDetPrimaryGeneratorAction
+  * @brief Wrapper of G4VUserPrimaryGeneratorAction class for use as NEXTSim primary generator action
+  * @author Cory R. Thornsberry (cthornsb@vols.utk.edu)
+  * @date June 5, 2019
+  *
+  * This class is necessary because the actual primary particle generator class (nDetParticleSource)
+  * is a singleton and the program will crash when Geant attempts to delete it. This class is not
+  * associated with the singleton class and only uses a pointer to the instance of the singleton.
+  */
+
 class nDetPrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction{
   public:
-	nDetPrimaryGeneratorAction() : G4VUserPrimaryGeneratorAction() { }
+	/** Default constructor
+	  */
+	nDetPrimaryGeneratorAction();
 	
+	/** Destructor
+	  */
 	~nDetPrimaryGeneratorAction(){ }
 	
 	/** Generate primary particles
+	  * @note The particle generator method nDetParticleSource::GeneratePrimaries() is mutex protected for safe multi-threading
 	  * @param anEvent Pointer to the current event
 	  */
 	virtual void GeneratePrimaries(G4Event* anEvent);
+	
+  private:
+	nDetParticleSource *source; ///< Pointer to the primary particle generator singleton
 };
 
 #endif
