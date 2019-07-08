@@ -35,9 +35,8 @@ void nDetParticleSourceMessenger::addAllCommands(){
 	addGuidance("Set the shape of the beamspot");
 	addCandidates("point circle annulus ellipse square rectangle vertical horizontal gauss");
 
-	addCommand(new G4UIcmdWithAString("/nDet/source/iso", this));
-	addGuidance("Set the source to psuedo-isotropic mode");
-	addCandidates("true false");
+	addCommand(new G4UIcmdWithAnInteger("/nDet/source/iso", this));
+	addGuidance("Set the source isotropic mode (0=off, 1=psuedo, 2=realistic)");
 	
 	addCommand(new G4UIcmdWith3Vector("/nDet/source/range", this));
 	addGuidance("Set the energy range of a continuous distribution source");
@@ -78,7 +77,7 @@ void nDetParticleSourceMessenger::SetNewChildValue(G4UIcommand* command, G4Strin
 	else if(index == 5)
 		fAction->SetBeamspotType(newValue);
 	else if(index == 6)
-		fAction->SetIsotropicMode((newValue == "true") ? true : false);
+		fAction->SetIsotropicMode(G4UIcommand::ConvertToInt(newValue));
 	else if(index == 7){
 		G4ThreeVector vec = G4UIcommand::ConvertTo3Vector(newValue);
 		fAction->SetEnergyLimits(vec.getX(), vec.getY());

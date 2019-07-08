@@ -131,10 +131,11 @@ class nDetParticleSource : public G4GeneralParticleSource {
 	  */
 	void SetDetector(const nDetConstruction *det);
 
-	/** Enable or disable isotropic source mode
-	  * @param state_ Flag indicating whether the source is isotropic (true) or not (false)
+	/** Set the source isotropy mode
+	  * @note 0=off, 1=psuedo, 2=realistic
+	  * @param mode The isotropy mode of the source
 	  */
-	void SetIsotropicMode(bool state_=true){ isotropic = state_; }
+	void SetIsotropicMode(const G4int &mode){ isotropic = (mode == 1 || mode == 2); realIsotropic = (mode == 2); }
 
 	/** Enable or disable true isotropic source mode
 	  * @param state_ Flag indicating whether the source is truly isotropic (true) or not (false)

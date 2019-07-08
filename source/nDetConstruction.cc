@@ -213,9 +213,7 @@ void nDetConstruction::AddGeometry(const G4String &geom){
 		buildTestAssembly();
 	
 	// Set true isotropic source mode for multiple detectors
-	if(userDetectors.size() == 1)
-		nDetParticleSource::getInstance().SetRealIsotropicMode(false);
-	else
+	if(userDetectors.size() > 1)
 		nDetParticleSource::getInstance().SetRealIsotropicMode(true);
 	
 	// Attach PMTs.
