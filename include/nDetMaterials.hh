@@ -10,6 +10,12 @@ class G4Material;
 class G4MaterialPropertiesTable;
 class G4OpticalSurface;
 
+/** @class nDetMaterials
+  * @brief Geant materials and elements used for detector construction
+  * @author Cory R. Thornsberry (cthornsb@vols.utk.edu)
+  * @date July 3, 2019
+  */
+
 class nDetMaterials{
   public:
     // Materials and elements
@@ -70,14 +76,35 @@ class nDetMaterials{
 	bool materialsAreDefined() const { return isInitialized; }
 
 	/** Get a pointer to the scintillator material corresponding to @a name
+	  * 
+	  * Valid material names are shown in the table below
+	  * | Name  | Description |
+	  * |-------|-------------|
+	  * | ej200 | <a href="https://eljentechnology.com/products/plastic-scintillators/ej-200-ej-204-ej-208-ej-212">Eljen EJ-200</a> plastic scintillator
+	  * | ej276 | <a href="https://eljentechnology.com/products/plastic-scintillators/ej-276">Eljen EJ-276</a> plastic scintillator
+	  *
+	  * @return A pointer to the scintillator material if the name is valid or a pointer to EJ200 if it is invalid
 	  */
 	G4Material* getUserDetectorMaterial(const G4String &name);
 
 	/** Get a pointer to the surface material corresponding to @a name
+	  *
+	  * Valid material names are shown in the table below
+	  * | Name    | Description |
+	  * |---------|-------------|
+	  * | mylar   | Aluminized mylar (80% mylar, 20% aluminum by mass)
+	  * | teflon  | Polytetrafluoroethylene (C2F4)n (PTFE)
+	  * | esr     | <a href="https://www.3m.com/3M/en_US/company-us/all-3m-products/~/3M-Enhanced-Specular-Reflector-3M-ESR-/?N=5002385+3293061534&rt=rud">3M Enhanced Specular Reflector</a>
+	  * | silicon | Natural silicon (from the NIST database)
+	  * | perfect | Perfect optical reflector (reflectivity = 1, specular spike = 1)
+	  * 
+	  * @return A pointer to the surface material if the name is valid or a pointer to Mylar if it is invalid
 	  */
 	G4Material* getUserSurfaceMaterial(const G4String &name);
 
 	/** Get a pointer to the optical surface corresponding to @a name
+	  * @note See getUserSurfaceMaterial() for a description of valid optical surface names
+	  * @return A pointer to the optical surface if the name is valid or a pointer to Mylar optical surface if it is invalid	
 	  */
 	G4OpticalSurface* getUserOpticalSurface(const G4String &name);
 
