@@ -450,9 +450,8 @@ private:
 	  * | width     | The width of the grease layer (in mm)
 	  * | height    | The height of the grease layer (in mm)
 	  * | thickness | The thickness of the grease layer (in mm). If not specified, @a fGreaseThickness is used
-	  * @return True if the user provides the correct number of arguments and return false otherwise
 	  */
-	bool applyGreaseLayer(const G4String &input);
+	void applyGreaseLayer(const G4String &input);
 
 	/** Apply a grease layer to the current detector assembly
 	  * @param x The width of the grease layer (in mm)
@@ -473,9 +472,8 @@ private:
 	  * | height    | The height of the diffuser layer (in mm)
 	  * | thickness | The thickness of the diffuser layer (in mm)
 	  * | material  | Not used
-	  * @return True if the user provides the correct number of arguments and return false otherwise
 	  */
-	bool applyDiffuserLayer(const G4String &input);
+	void applyDiffuserLayer(const G4String &input);
 
 	/** Apply a straight light diffuser layer (quartz) to the current detector assembly
 	  * @param x The width of the diffuser layer (in mm)
@@ -499,9 +497,8 @@ private:
 	  * | height2   | The height of the small side of the trapezoid (in mm)
 	  * | thickness | The thickness of the light-guide layer (in mm)
 	  * | material  | Not used
-	  * @return True if the user provides the correct number of arguments and return false otherwise
 	  */
-	bool applyLightGuide(const G4String &input);
+	void applyLightGuide(const G4String &input);
 
 	/** Apply a trapezoidal light guide layer (quartz) to the current detector assembly reducing the current detector width and height
 	  * down to a user specified width and height

@@ -797,7 +797,7 @@ void nDetConstruction::applyGreaseLayer(){
 	this->applyGreaseLayer(currentLayerSizeX, currentLayerSizeY);
 }
 
-bool nDetConstruction::applyGreaseLayer(const G4String &input){
+void nDetConstruction::applyGreaseLayer(const G4String &input){
 	// Expects a space-delimited string of the form:
 	//  "addGreaseLayer width(mm) height(mm) thickness(mm)"
 	std::vector<std::string> args;
@@ -805,7 +805,7 @@ bool nDetConstruction::applyGreaseLayer(const G4String &input){
 	if(Nargs < 2){
 		std::cout << " nDetConstruction: Invalid number of arguments given to ::applyGreaseLayer(). Expected 2, received " << Nargs << ".\n";
 		std::cout << " nDetConstruction:  SYNTAX: addGreaseLayer <width> <height> [thickness]\n";
-		return false;
+		return;
 	}
 	double width = strtod(args.at(0).c_str(), NULL);
 	double height = strtod(args.at(1).c_str(), NULL);
@@ -813,7 +813,6 @@ bool nDetConstruction::applyGreaseLayer(const G4String &input){
 		this->applyGreaseLayer(width, height, strtod(args.at(2).c_str(), NULL));
 	else
 		this->applyGreaseLayer(width, height);
-	return true;
 }
 
 void nDetConstruction::applyGreaseLayer(const G4double &x, const G4double &y, double thickness/*=0*/){
@@ -836,7 +835,7 @@ void nDetConstruction::applyDiffuserLayer(){
 	this->applyDiffuserLayer(currentLayerSizeX, currentLayerSizeY, fDiffuserLength);
 }
 
-bool nDetConstruction::applyDiffuserLayer(const G4String &input){
+void nDetConstruction::applyDiffuserLayer(const G4String &input){
 	// Expects a space-delimited string of the form:
 	//  "addDiffuserLayer width(mm) height(mm) thickness(mm) material"
 	std::vector<std::string> args;
@@ -844,13 +843,12 @@ bool nDetConstruction::applyDiffuserLayer(const G4String &input){
 	if(Nargs < 3){
 		std::cout << " nDetConstruction: Invalid number of arguments given to ::applyDiffuserLayer(). Expected 3, received " << Nargs << ".\n";
 		std::cout << " nDetConstruction:  SYNTAX: addDiffuserLayer <width> <height> <thickness> [material=G4_SILICON_DIOXIDE]\n";
-		return false;
+		return;
 	}
 	double width = strtod(args.at(0).c_str(), NULL);
 	double height = strtod(args.at(1).c_str(), NULL);
 	double thickness = strtod(args.at(2).c_str(), NULL);
 	this->applyDiffuserLayer(width, height, thickness);
-	return true;
 }
 
 void nDetConstruction::applyDiffuserLayer(const G4double &x, const G4double &y, const double &thickness){
@@ -876,7 +874,7 @@ void nDetConstruction::applyLightGuide(const G4double &x2, const G4double &y2){
 	this->applyLightGuide(currentLayerSizeX, x2, currentLayerSizeY, y2, fTrapezoidLength);
 }
 
-bool nDetConstruction::applyLightGuide(const G4String &input){
+void nDetConstruction::applyLightGuide(const G4String &input){
 	// Expects a space-delimited string of the form:
 	//  "addLightGuide width1(mm) width2(mm) height1(mm) height2(mm) thickness(mm) material"
 	std::vector<std::string> args;
@@ -884,7 +882,7 @@ bool nDetConstruction::applyLightGuide(const G4String &input){
 	if(Nargs < 5){
 		std::cout << " nDetConstruction: Invalid number of arguments given to ::applyLightGuide(). Expected 5, received " << Nargs << ".\n";
 		std::cout << " nDetConstruction:  SYNTAX: addLightGuide <width1> <width2> <height1> <height2> <thickness> [material=G4_SILICON_DIOXIDE]\n";
-		return false;
+		return;
 	}
 	double width1 = strtod(args.at(0).c_str(), NULL);
 	double width2 = strtod(args.at(1).c_str(), NULL);
@@ -892,7 +890,6 @@ bool nDetConstruction::applyLightGuide(const G4String &input){
 	double height2 = strtod(args.at(3).c_str(), NULL);
 	double thickness = strtod(args.at(4).c_str(), NULL);
 	this->applyLightGuide(width1, width2, height1, height2, thickness);
-	return true;
 }
 
 void nDetConstruction::applyLightGuide(const G4double &x1, const G4double &x2, const G4double &y1, const G4double &y2, const double &thickness){
