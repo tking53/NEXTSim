@@ -421,6 +421,12 @@ private:
 	  */
 	void buildRectangle();
 	
+	/** Build a single-segment cylindrical detectector
+	  *
+	  * The parameter @a fDetectorWidth is used as the diameter of the cylindrical body, @a fDetectorheight is not used
+	  */
+	void buildCylinder();
+	
 	/** Build test assembly
 	  * @note Not currently implemented
 	  */

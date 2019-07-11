@@ -24,7 +24,7 @@ void nDetConstructionMessenger::addAllCommands(){
 
 	addCommand(new G4UIcmdWithAString("/nDet/detector/addGeometry", this));
 	addGuidance("Defines the Geometry of the detector");
-	addCandidates("next module ellipse rectangle test");
+	addCandidates("next module ellipse rectangle cylinder test");
 
 	addCommand(new G4UIcmdWithAString("/nDet/detector/setPmtDimensions", this));
 	addGuidance("Defines the size of the SiPMs in mm. SYNTAX: setPmtDimensions <sizeX> [sizeY]");

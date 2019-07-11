@@ -14,6 +14,7 @@
 #include "G4LogicalVolumeStore.hh"
 #include "G4PhysicalVolumeStore.hh"
 
+#include "G4Tubs.hh"
 #include "G4Box.hh"
 #include "G4Trd.hh"
 #include "G4Sphere.hh"
@@ -209,6 +210,8 @@ bool nDetConstruction::AddGeometry(const G4String &geom){
 		buildEllipse();
 	else if(geom == "rectangle")
 		buildRectangle();
+	else if(geom == "cylinder")
+		buildCylinder();
 	else if(geom == "test")
 		buildTestAssembly();
 	else // Geometry name not recognized
@@ -635,22 +638,50 @@ void nDetConstruction::buildRectangle(){
 	scintBody_physV.push_back(plateBody_physV);
 
 	// Build the wrapping.
-	G4PVPlacement *plateWrapping_physV = NULL;
 	if(fMylarThickness > 0){
-		G4Box *plateBoundingBox = new G4Box("", fDetectorWidth/2, fDetectorThickness/2, fDetectorLength/2);
 		G4Box *plateWrappingBox = new G4Box("", fDetectorWidth/2 + fMylarThickness, fDetectorThickness/2 + fMylarThickness, fDetectorLength/2);
-
-		G4SubtractionSolid *plateWrapping = new G4SubtractionSolid("", plateWrappingBox, plateBoundingBox);
+		G4SubtractionSolid *plateWrapping = new G4SubtractionSolid("", plateWrappingBox, plateBody);
 		G4LogicalVolume *plateWrapping_logV = new G4LogicalVolume(plateWrapping, getUserSurfaceMaterial(), "plateWrapping_logV");
 		plateWrapping_logV->SetVisAttributes(wrapping_VisAtt);
 		
 		// Place the wrapping around the scintillator.
-		plateWrapping_physV = new G4PVPlacement(0, G4ThreeVector(0, 0, 0), plateWrapping_logV, "Wrapping", currentAssembly, true, 0, fCheckOverlaps);		
+		G4PVPlacement *plateWrapping_physV = new G4PVPlacement(0, G4ThreeVector(0, 0, 0), plateWrapping_logV, "Wrapping", currentAssembly, true, 0, fCheckOverlaps);	
+		
+		// Reflective wrapping.
+		new G4LogicalBorderSurface("Wrapping", plateBody_physV, plateWrapping_physV, getUserOpticalSurface());
 	}
+}
 
-    // Reflective wrapping.
-    if(fMylarThickness > 0)
-	    new G4LogicalBorderSurface("Wrapping", plateBody_physV, plateWrapping_physV, getUserOpticalSurface());
+void nDetConstruction::buildCylinder(){
+	// Make sure the height and width match
+	fDetectorThickness = fDetectorWidth;
+
+	// Construct the assembly bounding box
+	G4ThreeVector assemblyBoundingBox;
+	constructAssembly(assemblyBoundingBox);
+
+    G4Tubs *cylinderBody = new G4Tubs("", 0, fDetectorWidth/2, fDetectorLength/2, 0, 2*pi);
+    G4LogicalVolume *cylinderBody_logV = new G4LogicalVolume(cylinderBody, getUserDetectorMaterial(), "cylinderBody_logV");
+    cylinderBody_logV->SetVisAttributes(scint_VisAtt);
+
+	// Place the scintillator inside the assembly.
+	G4PVPlacement *cylinderBody_physV = new G4PVPlacement(0, G4ThreeVector(0, 0, 0), cylinderBody_logV, "Scint", currentAssembly, true, 0, fCheckOverlaps);
+
+	scintBody_physV.push_back(cylinderBody_physV);
+
+	// Build the wrapping.
+	if(fMylarThickness > 0){
+		G4Tubs *cylinderWrappingBox = new G4Tubs("", 0, fDetectorWidth/2 + fMylarThickness, fDetectorLength/2, 0, 2*pi);
+		G4SubtractionSolid *cylinderWrapping = new G4SubtractionSolid("", cylinderWrappingBox, cylinderBody);
+		G4LogicalVolume *cylinderWrapping_logV = new G4LogicalVolume(cylinderWrapping, getUserSurfaceMaterial(), "cylinderWrapping_logV");
+		cylinderWrapping_logV->SetVisAttributes(wrapping_VisAtt);
+		
+		// Place the wrapping around the scintillator.
+		G4PVPlacement *cylinderWrapping_physV = new G4PVPlacement(0, G4ThreeVector(0, 0, 0), cylinderWrapping_logV, "Wrapping", currentAssembly, true, 0, fCheckOverlaps);	
+		
+		// Reflective wrapping.
+		new G4LogicalBorderSurface("Wrapping", cylinderBody_physV, cylinderWrapping_physV, getUserOpticalSurface());
+	}
 }
 
 void nDetConstruction::buildTestAssembly(){
