@@ -69,6 +69,7 @@ nDetConstruction::nDetConstruction(){
 
 	fCheckOverlaps = false;
 	fPolishedInterface = true;
+	fSquarePMTs = true;
 	fMylarThickness = 0;
 	fGreaseThickness = 0.1*mm;
 	fWindowThickness = 0.1*mm;
@@ -220,7 +221,7 @@ bool nDetConstruction::AddGeometry(const G4String &geom){
 	// Set true isotropic source mode for multiple detectors
 	if(userDetectors.size() > 1)
 		nDetParticleSource::getInstance().SetRealIsotropicMode(true);
-	
+
 	// Attach PMTs.
 	constructPSPmts();
 	
@@ -735,7 +736,11 @@ void nDetConstruction::constructPSPmts(){
 	if(fGreaseThickness > 0){
 		G4double greaseZ = currentOffsetZ + fGreaseThickness/2;
 	
-		G4Box* grease_solidV = new G4Box("window_solidV", pmtWidth/2, pmtHeight/2, fGreaseThickness/2);
+		G4CSGSolid *grease_solidV;
+		if(fSquarePMTs)
+			grease_solidV = new G4Box("window_solidV", pmtWidth/2, pmtHeight/2, fGreaseThickness/2);
+		else
+			grease_solidV = new G4Tubs("window_solidV", 0, pmtWidth/2, fGreaseThickness/2, 0, 2*pi);
 		G4LogicalVolume *grease_logV = new G4LogicalVolume(grease_solidV, materials.fGrease, "grease_logV");
 		
 		grease_logV->SetVisAttributes(grease_VisAtt);
@@ -758,7 +763,11 @@ void nDetConstruction::constructPSPmts(){
 	if(fWindowThickness > 0){ // The quartz window
 		G4double windowZ = currentOffsetZ + fGreaseThickness + fWindowThickness/2;
 	
-		G4Box* window_solidV = new G4Box("window_solidV", pmtWidth/2, pmtHeight/2, fWindowThickness/2);
+		G4CSGSolid *window_solidV;
+		if(fSquarePMTs)
+			window_solidV = new G4Box("window_solidV", pmtWidth/2, pmtHeight/2, fWindowThickness/2);
+		else
+			window_solidV = new G4Tubs("window_solidV", 0, pmtWidth/2, fWindowThickness/2, 0, 2*pi);
 		G4LogicalVolume *window_logV = new G4LogicalVolume(window_solidV, materials.fSiO2, "window_logV");
 		
 		window_logV->SetVisAttributes(window_VisAtt);
@@ -769,8 +778,16 @@ void nDetConstruction::constructPSPmts(){
 
 	// Build the wrapping.
 	if(fMylarThickness > 0 && wrappingThickness > 0){
-		G4Box *boundingBox = new G4Box("", pmtWidth/2, pmtHeight/2, wrappingThickness/2);
-		G4Box *wrappingBox = new G4Box("", pmtWidth/2 + fMylarThickness, pmtHeight/2 + fMylarThickness, wrappingThickness/2);
+		G4CSGSolid *boundingBox;
+		G4CSGSolid *wrappingBox;
+		if(fSquarePMTs){
+			boundingBox = new G4Box("", pmtWidth/2, pmtHeight/2, wrappingThickness/2);
+			wrappingBox = new G4Box("", pmtWidth/2 + fMylarThickness, pmtHeight/2 + fMylarThickness, wrappingThickness/2);
+		}
+		else{
+			boundingBox = new G4Tubs("", 0, pmtWidth/2, wrappingThickness/2, 0, 2*pi);
+			wrappingBox = new G4Tubs("", 0, pmtWidth/2 + fMylarThickness, wrappingThickness/2, 0, 2*pi);
+		}
 		
 		G4SubtractionSolid *greaseWrapping = new G4SubtractionSolid("", wrappingBox, boundingBox);
 		G4LogicalVolume *greaseWrapping_logV = new G4LogicalVolume(greaseWrapping, getUserSurfaceMaterial(), "greaseWrapping_logV");
@@ -794,7 +811,11 @@ void nDetConstruction::constructPSPmts(){
 	}
 	
     // The photon sensitive surface
-    G4Box *sensitive_solidV = new G4Box(name+"_solidV", pmtWidth/2, pmtHeight/2, fSensitiveThickness/2);
+    G4CSGSolid *sensitive_solidV;
+    if(fSquarePMTs)
+		sensitive_solidV = new G4Box(name+"_solidV", pmtWidth/2, pmtHeight/2, fSensitiveThickness/2);
+	else
+		sensitive_solidV = new G4Tubs(name+"_solidV", 0, pmtWidth/2, fSensitiveThickness/2, 0, 2*pi);
     G4LogicalVolume *sensitive_logV = new G4LogicalVolume(sensitive_solidV, materials.fSilicon, name+"_logV");
     sensitive_logV->SetVisAttributes(sensitive_VisAtt);
     

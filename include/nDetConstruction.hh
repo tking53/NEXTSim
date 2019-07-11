@@ -62,7 +62,7 @@ class nDetConstruction : public G4VUserDetectorConstruction{
 	G4VPhysicalVolume* ConstructDetector();
 
 	/** Add a detector geometry to the list of detectors
-	  * @param geom String containing the name of the geometry type (next, module, ellipse, rectangle, test)
+	  * @param geom String containing the name of the geometry type (next, module, ellipse, rectangle, cylinder, test)
 	  * @return True if the specified type is recognized and return false otherwise
 	  */
 	bool AddGeometry(const G4String &geom);
@@ -196,6 +196,11 @@ class nDetConstruction : public G4VUserDetectorConstruction{
 	/** Enable or disable a polished optical interface between the edge of the detector and the optical grease layer
 	  */
 	void SetPolishedInterface(const bool &state){ fPolishedInterface = state; }
+
+	/** Enable or disable square PMTs
+	  * @note If set to false, the PMTs will be circular
+	  */
+	void SetSquarePMTs(const bool &state){ fSquarePMTs = state; }
 
 	/** Get the length (Z) of the detector (in mm)
 	  */
@@ -358,6 +363,7 @@ private:
 	G4bool fPolishedInterface; /*!< Flag indicating that a polished interface should be used between scintillators and optical grease
 	                                otherwise a Lambertian surface will be used for the optical interface */
 	G4bool fCheckOverlaps; ///< Flag indicating that Geant should check for overlaps between all placed objects
+	G4bool fSquarePMTs; ///< Flag indicating that the added PMTs are square. If set to false, the PMTs will be circular, and the parameter @a pmtWidth will be used as the diameter
 
 	G4LogicalVolume* expHall_logV; ///< Logical volume of the world
 	G4VPhysicalVolume* expHall_physV; ///< Physical volume of the world

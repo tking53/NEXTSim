@@ -132,6 +132,10 @@ void nDetConstructionMessenger::addAllCommands(){
 	addCommand(new G4UIcmdWithoutParameter("/nDet/detector/setStart", this));
 	addGuidance("Mark the current detector as a start detector");
 
+	addCommand(new G4UIcmdWithAString("/nDet/detector/setSquarePmt", this));
+	addGuidance("Enable or disable square PMTs (enabled by default). If disabled, circular PMTs will be used");
+	addCandidates("true false");
+
 ///////////////////////////////////////////////////////////////////////////////
 // PMT & digitizer commands
 ///////////////////////////////////////////////////////////////////////////////
@@ -316,74 +320,77 @@ void nDetConstructionMessenger::SetNewChildValue(G4UIcommand* command, G4String 
 		fDetector->getCurrentDetector()->setAsStart(true);
 	}
 	else if(index == 35){
+		fDetector->SetSquarePMTs((newValue == "true") ? true : false);
+	}
+	else if(index == 36){
 		G4double val = command->ConvertToDouble(newValue);
 		prL->setRisetime(val);
 		prR->setRisetime(val);
 	}
-	else if(index == 36){
+	else if(index == 37){
 		G4double val = command->ConvertToDouble(newValue);
 		prL->setFalltime(val);
 		prR->setFalltime(val);
 	}
-	else if(index == 37){
+	else if(index == 38){
 		G4double val = command->ConvertToDouble(newValue);
 		prL->setGain(val);
 		prR->setGain(val);
 	}
-	else if(index == 38){
+	else if(index == 39){
 		G4double val = command->ConvertToDouble(newValue);
 		prL->setBaselinePercentage(val);
 		prR->setBaselinePercentage(val);
 	}
-	else if(index == 39){
+	else if(index == 40){
 		G4double val = command->ConvertToDouble(newValue);
 		prL->setBaselineJitterPercentage(val);
 		prR->setBaselineJitterPercentage(val);
 	}
-	else if(index == 40){
+	else if(index == 41){
 		G4double val = command->ConvertToDouble(newValue);
 		prL->setPolyCfdFraction(val);
 		prR->setPolyCfdFraction(val);
 	}
-	else if(index == 41){
+	else if(index == 42){
 		G4double val = command->ConvertToDouble(newValue);
 		prL->setTraceDelay(val);
 		prR->setTraceDelay(val);
 	}
-	else if(index == 42){
+	else if(index == 43){
 		G4double val = command->ConvertToDouble(newValue);
 		prL->setPulseLengthInNanoSeconds(val);
 		prR->setPulseLengthInNanoSeconds(val);
 	}
-	else if(index == 43){
+	else if(index == 44){
 		G4double val = command->ConvertToDouble(newValue);
 		prL->setTransitTimeSpread(val);
 		prR->setTransitTimeSpread(val);
 	}
-	else if(index == 44){
+	else if(index == 45){
 		G4int val = command->ConvertToInt(newValue);
 		prL->setPulseIntegralLow(val);
 	}
-	else if(index == 45){
+	else if(index == 46){
 		G4int val = command->ConvertToInt(newValue);
 		prL->setPulseIntegralHigh(val);
 		prR->setPulseIntegralHigh(val);
 	}
-	else if(index == 46){
+	else if(index == 47){
 		G4int val = command->ConvertToInt(newValue);
 		prL->setBitRange(val);
 		prR->setBitRange(val);
 	}
-	else if(index == 47){
+	else if(index == 48){
 		G4int val = command->ConvertToInt(newValue);
 		prL->setFunctionType(val);
 		prR->setFunctionType(val);
 	}
-	else if(index == 48){
+	else if(index == 49){
 		prL->setPrintTrace((newValue == "true") ? true : false);
 		prR->setPrintTrace((newValue == "true") ? true : false);
 	}
-	else if(index == 49){
+	else if(index == 50){
 		prL->print(); // Only show the left side, because they're both the same
 	}
 }
