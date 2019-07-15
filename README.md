@@ -26,11 +26,12 @@ information on changes to the master branch, see the [changelog](https://github.
 
 - Recommended Prerequisites:
 	- [ccmake](https://cmake.org/cmake/help/latest/manual/ccmake.1.html)
-		- The command `sudo apt-get install cmake-curses-gui` works on Ubuntu
+		- Use `sudo apt-get install cmake-curses-gui` on Ubuntu
 	- [Environment Modules](http://modules.sourceforge.net/)
 	
 - Optional Prerequisites:
 	- [SimpleScan](https://github.com/cthornsb/SimplePixieScan) needed for nextSim output converter
+		- Build option `-DBUILD_SHARED=ON` is required
 
 ```bash
 git clone https://github.com/cthornsb/NEXTSim
@@ -99,7 +100,7 @@ NEXTSim/install/bin
 From there you may make symbolic links as required, or if you
 prefer you may use the NEXTSim module file
 
-To installing the NEXTSim module file, the module file must
+To install the NEXTSim module file, the module file must
 be copied to one of your module paths.
 
 ```bash
