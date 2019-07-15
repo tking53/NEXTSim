@@ -191,7 +191,7 @@ void gdmlSolid::setLogicalBorders(const G4String &borderName, G4OpticalSurface *
 void gdmlSolid::setLogicalBorders(const G4String &borderName, G4OpticalSurface *surface, const std::vector<G4PVPlacement*> &phys){
 	for(std::vector<G4PVPlacement*>::const_iterator iter1 = phys.begin(); iter1 != phys.end(); iter1++){ 
 		for(std::vector<G4PVPlacement*>::const_iterator iter2 = phys.begin(); iter2 != phys.end(); iter2++){
-			if(iter1 == iter2) continue; // No border with itself.
+			if((*iter1) == (*iter2)) continue; // No border with itself.
 			new G4LogicalBorderSurface(borderName, (*iter1), (*iter2), surface);
 		}
 	}
@@ -206,7 +206,7 @@ void gdmlSolid::setLogicalBorders(const G4String &borderName, G4OpticalSurface *
 void gdmlSolid::setLogicalBorders(const G4String &borderName, G4OpticalSurface *surface, const std::vector<G4PVPlacement*> &p1, const std::vector<G4PVPlacement*> &p2){
 	for(std::vector<G4PVPlacement*>::const_iterator iter1 = p1.begin(); iter1 != p1.end(); iter1++){ 
 		for(std::vector<G4PVPlacement*>::const_iterator iter2 = p2.begin(); iter2 != p2.end(); iter2++){
-			if(iter1 == iter2) continue; // No border with itself.
+			if((*iter1) == (*iter2)) continue; // No border with itself.
 			new G4LogicalBorderSurface(borderName, (*iter1), (*iter2), surface);
 		}
 	}
