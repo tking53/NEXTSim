@@ -57,6 +57,9 @@ nDetConstruction::nDetConstruction(){
 	expHall_logV = NULL;
 	expHall_physV = NULL;
 
+	currentDetector = NULL;
+	currentAssembly = NULL;
+
 	fNumColumns = 1;
 	fNumRows = 1;
 	fNumColumnsPmt = -1;
@@ -141,6 +144,9 @@ G4VPhysicalVolume* nDetConstruction::ConstructDetector(){
 		// Generate all user-defined layers.
 		iter->buildAllLayers(this);
 
+		// Attach PMTs.
+		constructPSPmts();
+
 		// Place the detector into the world.
 		iter->placeDetector(expHall_logV);
 	}
@@ -221,9 +227,6 @@ bool nDetConstruction::AddGeometry(const G4String &geom){
 	// Set true isotropic source mode for multiple detectors
 	if(userDetectors.size() > 1)
 		nDetParticleSource::getInstance().SetRealIsotropicMode(true);
-
-	// Attach PMTs.
-	constructPSPmts();
 	
 	return true;
 }
@@ -329,9 +332,9 @@ void nDetConstruction::buildExpHall()
   expHall_physV = new G4PVPlacement(0, G4ThreeVector(0, 0, 0), expHall_logV, "expHall_physV",0,false,0);
  
   return;
-} // end of buildExpHall function
+}
 
-void nDetConstruction::loadGDML(const G4String &input){
+gdmlSolid *nDetConstruction::loadGDML(const G4String &input){
 	// Expects a space-delimited string of the form:
 	//  "filename posX(cm) posY(cm) posZ(cm) rotX(deg) rotY(deg) rotZ(deg) material"
 	std::vector<std::string> args;
@@ -339,14 +342,14 @@ void nDetConstruction::loadGDML(const G4String &input){
 	if(Nargs < 8){
 		std::cout << " nDetConstruction: Invalid number of arguments given to ::loadGDML(). Expected 8, received " << Nargs << ".\n";
 		std::cout << " nDetConstruction:  SYNTAX: loadGDML <filename> <posX> <posY> <posZ> <rotX> <rotY> <rotZ> <matString>\n";
-		return;
+		return NULL;
 	}
 	G4ThreeVector position(strtod(args.at(1).c_str(), NULL)*cm, strtod(args.at(2).c_str(), NULL)*cm, strtod(args.at(3).c_str(), NULL)*cm);
 	G4ThreeVector rotation(strtod(args.at(4).c_str(), NULL)*deg, strtod(args.at(5).c_str(), NULL)*deg, strtod(args.at(6).c_str(), NULL)*deg);
-	loadGDML(args.at(0), position, rotation, args.at(7));
+	return loadGDML(args.at(0), position, rotation, args.at(7));
 }
 
-G4LogicalVolume *nDetConstruction::loadGDML(const G4String &fname, const G4ThreeVector &position, const G4ThreeVector &rotation, const G4String &material){
+gdmlSolid *nDetConstruction::loadGDML(const G4String &fname, const G4ThreeVector &position, const G4ThreeVector &rotation, const G4String &material){
 	solids.push_back(gdmlSolid());
 	gdmlSolid *currentSolid = &solids.back();
 	currentSolid->read(fname, material, fCheckOverlaps);
@@ -354,14 +357,10 @@ G4LogicalVolume *nDetConstruction::loadGDML(const G4String &fname, const G4Three
 	currentSolid->setPosition(position);
 	std::cout << " nDetConstruction: Loaded GDML model (name=" << currentSolid->getName() << ") with size x=" << currentSolid->getWidth() << " mm, y=" << currentSolid->getThickness() << " mm, z=" << currentSolid->getLength() << " mm\n";
 	
-	// Place loaded model into the assembly.
-	if(currentSolid->isLoaded())
-		currentSolid->placeSolid(currentAssembly, fCheckOverlaps);
-	
-	return currentSolid->getLogicalVolume();
+	return currentSolid;
 }
 
-void nDetConstruction::loadLightGuide(const G4String &input){
+gdmlSolid *nDetConstruction::loadLightGuide(const G4String &input){
 	// Expects a space-delimited string of the form:
 	//  "filename rotX(deg) rotY(deg) rotZ(deg) material"
 	std::vector<std::string> args;
@@ -369,13 +368,13 @@ void nDetConstruction::loadLightGuide(const G4String &input){
 	if(Nargs < 5){
 		std::cout << " nDetConstruction: Invalid number of arguments given to ::loadGDML(). Expected 5, received " << Nargs << ".\n";
 		std::cout << " nDetConstruction:  SYNTAX: loadGDML <filename> <rotX> <rotY> <rotZ> <matString>\n";
-		return;
+		return NULL;
 	}
 	G4ThreeVector rotation(strtod(args.at(1).c_str(), NULL)*deg, strtod(args.at(2).c_str(), NULL)*deg, strtod(args.at(3).c_str(), NULL)*deg);
-	loadLightGuide(args.at(0), rotation, args.at(4), materials.fMylarOpSurf);
+	return loadLightGuide(args.at(0), rotation, args.at(4), materials.fMylarOpSurf);
 }
 
-G4LogicalVolume *nDetConstruction::loadLightGuide(const G4String &fname, const G4ThreeVector &rotation, const G4String &material, G4OpticalSurface *surface){
+gdmlSolid *nDetConstruction::loadLightGuide(const G4String &fname, const G4ThreeVector &rotation, const G4String &material, G4OpticalSurface *surface){
 	solids.push_back(gdmlSolid());
 	gdmlSolid *currentSolid = &solids.back();
 	currentSolid->read(fname, material, fCheckOverlaps);
@@ -402,27 +401,48 @@ G4LogicalVolume *nDetConstruction::loadLightGuide(const G4String &fname, const G
 	currentOffsetZ += currentSolid->getLength();
 	fTrapezoidLength = currentSolid->getLength()*mm;
 
-	return currentSolid->getLogicalVolume();
+	return currentSolid;
+}
+
+void nDetConstruction::LoadGDML(const G4String &input){
+	gdmlSolid *model = loadGDML(input);
+	if(model->isLoaded()) // Check that the model was loaded correctly
+		new G4PVPlacement(model->getRotation(), *model->getPosition(), model->getLogicalVolume(), model->getName(), expHall_logV, true, 0, fCheckOverlaps);
 }
 
 void nDetConstruction::AddGDML(const G4String &input){
-	currentDetector->addLayer(userAddLayer(input, &nDetConstruction::loadGDML));
+	if(currentDetector)
+		currentDetector->addLayer(userAddLayer(input, &nDetConstruction::applyGDML));
+	else
+		Display::ErrorPrint("Cannot add GDML component before a detector is defined!", "nDetConstruction");
 }
 
 void nDetConstruction::AddLightGuideGDML(const G4String &input){
-	currentDetector->addLayer(userAddLayer(input, &nDetConstruction::loadLightGuide));
+	if(currentDetector)
+		currentDetector->addLayer(userAddLayer(input, &nDetConstruction::applyGDMLlightGuide));
+	else
+		Display::ErrorPrint("Cannot add GDML light-guide before a detector is defined!", "nDetConstruction");
 }
 
 void nDetConstruction::AddGrease(const G4String &input){
-	currentDetector->addLayer(userAddLayer(input, &nDetConstruction::applyGreaseLayer));
+	if(currentDetector)
+		currentDetector->addLayer(userAddLayer(input, &nDetConstruction::applyGreaseLayer));
+	else
+		Display::ErrorPrint("Cannot add grease layer before a detector is defined!", "nDetConstruction");
 }
 
 void nDetConstruction::AddDiffuser(const G4String &input){
-	currentDetector->addLayer(userAddLayer(input, &nDetConstruction::applyDiffuserLayer));
+	if(currentDetector)
+		currentDetector->addLayer(userAddLayer(input, &nDetConstruction::applyDiffuserLayer));
+	else
+		Display::ErrorPrint("Cannot add diffuser layer before a detector is defined!", "nDetConstruction");
 }
 
 void nDetConstruction::AddLightGuide(const G4String &input){
-	currentDetector->addLayer(userAddLayer(input, &nDetConstruction::applyLightGuide));
+	if(currentDetector)
+		currentDetector->addLayer(userAddLayer(input, &nDetConstruction::applyLightGuide));
+	else
+		Display::ErrorPrint("Cannot add light-guide before a detector is defined!", "nDetConstruction");
 }
 
 void nDetConstruction::AddDetectorArray(const G4String &input){
@@ -843,6 +863,14 @@ void nDetConstruction::constructPSPmts(){
 	currentLayerSizeX = pmtWidth;
 	currentLayerSizeY = pmtHeight;
     currentOffsetZ += fGreaseThickness + fWindowThickness + fSensitiveThickness;
+}
+
+void nDetConstruction::applyGDML(const G4String &input){
+	loadGDML(input);
+}
+
+void nDetConstruction::applyGDMLlightGuide(const G4String &input){
+	loadLightGuide(input);
 }
 
 void nDetConstruction::applyGreaseLayer(){

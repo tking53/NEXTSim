@@ -290,12 +290,17 @@ class nDetConstruction : public G4VUserDetectorConstruction{
 	  */	
 	void UpdateGeometry();
 
-	/** Load a GDML model from a file using parameters from a space-delimited input string and place it into the assembly
+	/** Load a GDML model from a file using parameters from a space-delimited input string and place it into the world volume
+	  * @note See loadGDML(const G4String &) for input string syntax
+	  */
+	void LoadGDML(const G4String &input);
+
+	/** Load a GDML model from a file using parameters from a space-delimited input string and place it into the current detector assembly
 	  * @note See loadGDML(const G4String &) for input string syntax
 	  */
 	void AddGDML(const G4String &input);
 
-	/** Load a light guide model from a file using parameters from a space-delimited input string and place it into the assembly
+	/** Load a light guide model from a file using parameters from a space-delimited input string and place it into the current detector assembly
 	  * @note See loadLightGuide(const G4String &) for input string syntax
 	  */
 	void AddLightGuideGDML(const G4String &input);
@@ -451,6 +456,16 @@ private:
 	  */
 	void constructPSPmts();
 
+	/** Load a model from a GDML file using parameters from a space-delimited input string and place it into the assembly
+	  * @note See loadGDML(const G4String &input) for input string syntax
+	  */
+	void applyGDML(const G4String &input);
+
+	/** Load a light-guide model from a GDML file using parameters from a space-delimited input string and place it into the assembly
+	  * @note See loadLightGuide(const G4String &input) for input string syntax
+	  */
+	void applyGDMLlightGuide(const G4String &input);
+
 	/** Apply a grease layer to the current detector assembly using the current detector width and height
 	  */
 	void applyGreaseLayer();
@@ -536,18 +551,18 @@ private:
 	  * | posX(Y,Z) | X, Y, and Z position of the center of the model (in mm)
 	  * | rotX(Y,Z) | Rotation about the X, Y, and Z axes (in degrees)
 	  * | matString | The NIST database name of the material to use for the model
-	  * @return True if the user provides the correct number of arguments and return false otherwise
+	  * @return A pointer to the gdmlSolid containing the model
 	  */
-	void loadGDML(const G4String &input);
+	gdmlSolid *loadGDML(const G4String &input);
 
 	/** Load a GDML model from a file and place it into the assembly
 	  * @param fname Filename of the input GDML file
 	  * @param position Vector containing the position of the model (in mm)
 	  * @param rotation Vector containing the rotation about the X, Y, and Z axes (in degrees)
 	  * @param material String containing the name of the Geant material to use for the model
-	  * @return A pointer to the logical volume of the model
+	  * @return A pointer to the gdmlSolid containing the model
 	  */
-	G4LogicalVolume *loadGDML(const G4String &fname, const G4ThreeVector &position, const G4ThreeVector &rotation, const G4String &material);
+	gdmlSolid *loadGDML(const G4String &fname, const G4ThreeVector &position, const G4ThreeVector &rotation, const G4String &material);
 
 	/** Load a light guide model from a file using parameters from a space-delimited input string and place it into the assembly
 	  *
@@ -560,8 +575,9 @@ private:
 	  * | filename  | Filename of the input GDML file
 	  * | rotX(Y,Z) | Rotation about the X, Y, and Z axes (in degrees)
 	  * | matString | The NIST database name of the material to use for the model
+	  * @return A pointer to the gdmlSolid containing the model
 	  */
-	void loadLightGuide(const G4String &input);
+	gdmlSolid *loadLightGuide(const G4String &input);
 
 	/** Load a GDML light guide model from a file and place it into the assembly
 	  * 
@@ -570,9 +586,9 @@ private:
 	  * @param fname Filename of the input GDML file
 	  * @param rotation Vector containing the rotation about the X, Y, and Z axes (in degrees)
 	  * @param material String containing the name of the Geant material to use for the model
-	  * @return A pointer to the logical volume of the model
+	  * @return A pointer to the gdmlSolid containing the model
 	  */
-	G4LogicalVolume *loadLightGuide(const G4String &fname, const G4ThreeVector &rotation, const G4String &material, G4OpticalSurface *surface);
+	gdmlSolid *loadLightGuide(const G4String &fname, const G4ThreeVector &rotation, const G4String &material, G4OpticalSurface *surface);
 
 	/** Get a vector containing the X, Y, and Z size of the PMT bounding box
 	  */	

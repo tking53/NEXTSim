@@ -110,7 +110,7 @@ void nDetConstructionMessenger::addAllCommands(){
 	addGuidance("Add a trapezoidal light-guide to the assembly (all units in mm). SYNTAX: addLightGuide <width1> <width2> <height1> <height2> <thickness> [material=G4_SILICON_DIOXIDE]");	
 
 	addCommand(new G4UIcmdWithAString("/nDet/detector/loadLightGuide", this));
-	addGuidance("Load a light-guide from a GDML geometry file. SYNTAX: loadGDML <filename> <rotX> <rotY> <rotZ> <matString>");
+	addGuidance("Load a light-guide from a GDML geometry file. SYNTAX: loadLightGuide <filename> <rotX> <rotY> <rotZ> <matString>");
 
 	addCommand(new G4UIcmdWithAString("/nDet/detector/setMaterial", this));
 	addGuidance("Set the material to use for detector construction.");
@@ -252,7 +252,7 @@ void nDetConstructionMessenger::SetNewChildValue(G4UIcommand* command, G4String 
 		fDetector->setPmtGainMatrix(newValue.c_str());
 	}
 	else if(index == 15){
-		fDetector->AddGDML(newValue);
+		fDetector->LoadGDML(newValue);
 	}
 	else if(index == 16){
 		G4double val = command->ConvertToDouble(newValue);
