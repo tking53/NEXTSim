@@ -264,9 +264,9 @@ class nDetRunAction : public G4UserRunAction
     unsigned long long numPhotonsTotal; ///< Total number of simulated optical photons (thread-local)
     unsigned long long numPhotonsDetTotal; ///< Total number of detected optical photons (thread-local)
 
-	userAddDetector *startDetector; ///< Pointer to the detector used as a start signal for timing
+	nDetDetector *startDetector; ///< Pointer to the detector used as a start signal for timing
 
-	std::vector<userAddDetector> userDetectors; ///< Vector of detectors added by the user
+	std::vector<nDetDetector> userDetectors; ///< Vector of detectors added by the user
 
 	/** Pop a primary scatter off the stack. Set all initial event conditions if this is the first scatter
 	  * @return True if the stack of primary scatters is not empty after popping off a scatter and return false otherwise
@@ -274,17 +274,17 @@ class nDetRunAction : public G4UserRunAction
 	bool scatterEvent();
 	
 	/** Process a single event for a single detector
-	  * @param det Pointer to the userAddDetector to process
+	  * @param det Pointer to the nDetDetector to process
 	  * @return True if the detector has detected optical photons and return false otherwise
 	  */
-	bool processDetector(userAddDetector* det);
+	bool processDetector(nDetDetector* det);
 	
 	/** Process a single event for a single start detector
-	  * @param det Pointer to the userAddDetector to process
+	  * @param det Pointer to the nDetDetector to process
 	  * @param startTime Time-of-flight of the start detector event
 	  * @return True if the detector has detected optical photons and return false otherwise
 	  */
-	bool processStartDetector(userAddDetector* det, double &startTime);
+	bool processStartDetector(nDetDetector* det, double &startTime);
 };
 
 #endif

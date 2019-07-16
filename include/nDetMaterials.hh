@@ -9,6 +9,7 @@ class G4Element;
 class G4Material;
 class G4MaterialPropertiesTable;
 class G4OpticalSurface;
+class G4VisAttributes;
 
 /** @class nDetMaterials
   * @brief Geant materials and elements used for detector construction
@@ -58,6 +59,15 @@ class nDetMaterials{
     G4OpticalSurface* fEsrOpSurf; ///< Optical surface for 3M Enhanced Specular Reflector
 	G4OpticalSurface* fPerfectOpSurf; ///< Optical surface for a perfect reflector
 	G4OpticalSurface* fGreaseOpSurf; ///< Optical surface for optical grease
+
+	// Visual attributes
+	G4VisAttributes *visAssembly; ///< Visual attributes for the mother assembly
+	G4VisAttributes *visSensitive; ///< Visual attributes for the photo-sensitive surface
+	G4VisAttributes *visWindow; ///< Visual attributes for the optical window
+	G4VisAttributes *visGrease; ///< Visual attributes for the optical grease
+	G4VisAttributes *visWrapping; ///< Visual attributes for the inner/outer detector wrappint
+	G4VisAttributes *visScint; ///< Visual attributes for the scintillator material
+	G4VisAttributes *visShadow; ///< Visual attributes for the shadow object
 	
 	/** Default constructor
 	  */
@@ -133,5 +143,5 @@ class nDetMaterials{
 	  */
 	void defineScintillators();
 };
-	
+
 #endif

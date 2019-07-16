@@ -3,6 +3,7 @@
 #include "G4MaterialPropertiesTable.hh"
 #include "G4OpticalSurface.hh"
 #include "G4SystemOfUnits.hh"
+#include "G4VisAttributes.hh"
 
 #include "nDetMaterials.hh"
 
@@ -100,6 +101,33 @@ G4Material* nDetMaterials::searchForMaterial(const G4String &name){
 
 void nDetMaterials::defineMaterials(){
 	if(isInitialized) return;
+
+	/////////////////////////////////////////////////////////////////
+	// Visual Attributes
+	/////////////////////////////////////////////////////////////////
+
+	visAssembly = new G4VisAttributes();
+
+	visSensitive = new G4VisAttributes(G4Colour(0.75, 0.75, 0.75)); // grey
+	visSensitive->SetForceSolid(true);
+
+	visWindow = new G4VisAttributes(G4Colour(0.0, 1.0, 1.0)); // cyan	
+
+	visGrease = new G4VisAttributes(G4Colour(1.0, 0.0, 0.0)); // red
+
+	visWrapping = new G4VisAttributes();
+	visWrapping->SetColor(1, 0, 1, 0.5); // Alpha=50%
+	visWrapping->SetForceSolid(true);
+
+	visScint = new G4VisAttributes(G4Colour(0.0, 0.0, 1.0)); // blue
+
+	visShadow = new G4VisAttributes();
+	visShadow->SetColor(0, 1, 0, 0.5); // green, Alpha=50%
+	visShadow->SetForceSolid(true);	
+
+	/////////////////////////////////////////////////////////////////
+	// Elements & Molecular Components
+	/////////////////////////////////////////////////////////////////
 
 	// Elements
 	fH = nist.searchForElement("H");

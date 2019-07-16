@@ -3,7 +3,7 @@
 
 #include "nDetParticleSource.hh"
 #include "nDetParticleSourceMessenger.hh"
-#include "nDetConstruction.hh"
+#include "nDetDetector.hh"
 #include "nDetRunAction.hh"
 #include "cmcalc.hh"
 #include "termColors.hh"
@@ -38,10 +38,10 @@ nDetParticleSource &nDetParticleSource::getInstance(){
 	return instance;
 }
 
-nDetParticleSource::nDetParticleSource(nDetConstruction *det/*=NULL*/) : G4GeneralParticleSource(), fSourceMessenger(NULL), unitX(1,0,0), unitY(0,1,0), unitZ(0,0,1),
-                                                                         sourceOrigin(0,0,0), beamspotType(0), beamspot(0), beamspot0(0), rot(), targThickness(0),targEnergyLoss(0),
-                                                                         targTimeSlope(0), targTimeOffset(0), beamE0(0), useReaction(false), isotropic(false), back2back(false), realIsotropic(false),
-                                                                         particleRxn(NULL), detPos(), detSize(), detRot(), sourceIndex(0), numSources(0), interpolationMethod("Lin")
+nDetParticleSource::nDetParticleSource(nDetDetector *det/*=NULL*/) : G4GeneralParticleSource(), fSourceMessenger(NULL), unitX(1,0,0), unitY(0,1,0), unitZ(0,0,1),
+                                                                     sourceOrigin(0,0,0), beamspotType(0), beamspot(0), beamspot0(0), rot(), targThickness(0),targEnergyLoss(0),
+                                                                     targTimeSlope(0), targTimeOffset(0), beamE0(0), useReaction(false), isotropic(false), back2back(false), realIsotropic(false),
+                                                                     particleRxn(NULL), detPos(), detSize(), detRot(), sourceIndex(0), numSources(0), interpolationMethod("Lin")
 {
 	// Set the default particle source.
 	SetNeutronBeam(1.0); // Set a 1 MeV neutron beam by default
@@ -184,7 +184,7 @@ void nDetParticleSource::SetEnergyLimits(const double &Elow_, const double &Ehig
 	GetCurrentSource()->GetEneDist()->SetEmax(Ehigh_*MeV);
 }
 
-void nDetParticleSource::SetDetector(const nDetConstruction *det){
+void nDetParticleSource::SetDetector(const nDetDetector *det){
 	detPos = det->GetDetectorPos();
 	detSize = det->GetDetectorSize();
 	detRot = det->GetDetectorRot();

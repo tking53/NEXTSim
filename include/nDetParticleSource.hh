@@ -19,7 +19,7 @@ class nDetParticleSource;
 class Reaction;
 
 class nDetParticleSourceMessenger;
-class nDetConstruction;
+class nDetDetector;
 
 /** @class nDetParticleSource
   * @brief Wrapper of G4GeneralParticleSource class for added convenience
@@ -129,7 +129,7 @@ class nDetParticleSource : public G4GeneralParticleSource {
 	/** Set information about the size and position of the detector for isotropic sources
 	  * @param det Pointer to the detector
 	  */
-	void SetDetector(const nDetConstruction *det);
+	void SetDetector(const nDetDetector *det);
 
 	/** Set the source isotropy mode
 	  * @note 0=off, 1=psuedo, 2=realistic
@@ -304,7 +304,7 @@ class nDetParticleSource : public G4GeneralParticleSource {
 
 	/** Default constructor (private for singleton class)
 	  */
-	nDetParticleSource(nDetConstruction *det=NULL);
+	nDetParticleSource(nDetDetector *det=NULL);
 
 	/** Get the next G4SingleParticleSource in the vector of all sources
 	  * @return A pointer to the next source (starting from the zeroth) or return NULL if the end of the vector has been reached

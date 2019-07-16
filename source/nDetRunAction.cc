@@ -170,8 +170,8 @@ void nDetRunAction::updateDetector(nDetConstruction *det){
 	
 	// Search for a start detector. Currently only one start is supported, break after finding the first one
 	startDetector = NULL;
-	for(std::vector<userAddDetector>::iterator iter = userDetectors.begin(); iter != userDetectors.end(); iter++){
-		if(iter->getIsStart()){
+	for(std::vector<nDetDetector>::iterator iter = userDetectors.begin(); iter != userDetectors.end(); iter++){
+		if(iter->GetIsStart()){
 			startDetector = &(*iter);
 			 break;
 		}
@@ -179,7 +179,7 @@ void nDetRunAction::updateDetector(nDetConstruction *det){
 }
 
 G4int nDetRunAction::checkCopyNumber(const G4int &num) const {
-	for(std::vector<userAddDetector>::const_iterator iter = userDetectors.begin(); iter != userDetectors.end(); iter++){
+	for(std::vector<nDetDetector>::const_iterator iter = userDetectors.begin(); iter != userDetectors.end(); iter++){
 		if(iter->checkCopyNumber(num))
 			return iter->getParentCopyNumber();
 	}
@@ -187,14 +187,14 @@ G4int nDetRunAction::checkCopyNumber(const G4int &num) const {
 }
 
 bool nDetRunAction::getSegmentFromCopyNum(const G4int &copyNum, G4int &col, G4int &row) const {
-	for(std::vector<userAddDetector>::const_iterator iter = userDetectors.begin(); iter != userDetectors.end(); iter++){
+	for(std::vector<nDetDetector>::const_iterator iter = userDetectors.begin(); iter != userDetectors.end(); iter++){
 		if(iter->getSegmentFromCopyNum(copyNum, col, row))
 			return true;
 	}
 	return false;
 }
 
-bool nDetRunAction::processDetector(userAddDetector* det){
+bool nDetRunAction::processDetector(nDetDetector* det){
 	if(!det || det->empty()) // No detected photons, do not process
 		return false;
 
@@ -362,7 +362,7 @@ bool nDetRunAction::processDetector(userAddDetector* det){
 	return true;
 }
 
-bool nDetRunAction::processStartDetector(userAddDetector* det, double &startTime){
+bool nDetRunAction::processStartDetector(nDetDetector* det, double &startTime){
 	if(!processDetector(det)) // No detected photons, do not process
 		return false;
 		
@@ -384,7 +384,7 @@ void nDetRunAction::process(){
 
 	short detID = 0;
 	if(!startDetector){ // Un-triggered mode (default)
-		for(std::vector<userAddDetector>::iterator iter = userDetectors.begin(); iter != userDetectors.end(); iter++){
+		for(std::vector<nDetDetector>::iterator iter = userDetectors.begin(); iter != userDetectors.end(); iter++){
 			if(!processDetector(&(*iter))){ // Skip the start detector because we already processed it
 				detID++;
 				continue;
@@ -398,7 +398,7 @@ void nDetRunAction::process(){
 	else{ // Start triggered mode
 		double startTime;
 		if(processStartDetector(startDetector, startTime)){ // Check for valid start signal
-			for(std::vector<userAddDetector>::iterator iter = userDetectors.begin(); iter != userDetectors.end(); iter++){
+			for(std::vector<nDetDetector>::iterator iter = userDetectors.begin(); iter != userDetectors.end(); iter++){
 				// Skip the start detector because we already processed it
 				if(&(*iter) != startDetector && !processDetector(&(*iter))){ // Skip events with no detected photons
 					detID++;
@@ -422,7 +422,7 @@ void nDetRunAction::process(){
 	data.clear();
 
 	// Clear all statistics.
-	for(std::vector<userAddDetector>::iterator iter = userDetectors.begin(); iter != userDetectors.end(); iter++)
+	for(std::vector<nDetDetector>::iterator iter = userDetectors.begin(); iter != userDetectors.end(); iter++)
 		iter->clear();
 	
 	if(stacking) stacking->Reset();
@@ -453,7 +453,7 @@ bool nDetRunAction::AddDetectedPhoton(const G4Step *step, const double &mass/*=1
 	G4RotationMatrix *detRot;
 	centerOfMass *hitDetPmtL;
 	centerOfMass *hitDetPmtR;
-	for(std::vector<userAddDetector>::iterator iter = userDetectors.begin(); iter != userDetectors.end(); iter++){
+	for(std::vector<nDetDetector>::iterator iter = userDetectors.begin(); iter != userDetectors.end(); iter++){
 		if(iter->checkPmtCopyNumber(copyNum, isLeft)){
 			foundMatch = true;
 			detPos = iter->getPosition();

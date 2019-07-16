@@ -1,3 +1,6 @@
+#ifndef GDML_SOLID_HH
+#define GDML_SOLID_HH
+
 #include <vector>
 #include <string>
 
@@ -280,3 +283,5 @@ class gdmlSolid{
 	
 	G4ThreeVector size; ///< Size of the parent volume along the x, y, and z axes
 };
+
+#endif
