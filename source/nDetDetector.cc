@@ -67,10 +67,17 @@ void nDetDetectorParams::SetRotation(const G4ThreeVector &rotation){
 
 nDetDetector::nDetDetector(nDetConstruction *detector, nDetMaterials *matptr) : nDetDetectorParams(detector->GetDetectorParameters()),
                                                                                 assembly_logV(NULL), assembly_physV(NULL), layerSizeX(0), layerSizeY(0), offsetZ(0),
-	                                                                            parentCopyNum(0), firstSegmentCopyNum(0), lastSegmentCopyNum(0), numColumns(1), numRows(1), 
+	                                                                            parentCopyNum(0), firstSegmentCopyNum(0), lastSegmentCopyNum(0), 
 	                                                                            checkOverlaps(false), geomType(GEOM_RECTANGLE), materials(matptr) 
 {
 	copyCenterOfMass(*detector->GetCenterOfMassL(), *detector->GetCenterOfMassR());
+}
+
+nDetDetector::~nDetDetector(){
+	/*for(std::vector<userAddLayer*>::iterator iter = userLayers.begin(); iter != userLayers.end(); iter++){
+		delete (*iter); // This causes a seg-fault
+	}
+	userLayers.clear();*/
 }
 
 void nDetDetector::getCurrentOffset(G4double &x_, G4double &y_, G4double &z_){
@@ -91,9 +98,9 @@ void nDetDetector::setCurrentOffset(const G4double &x_, const G4double &y_, cons
 }
 
 void nDetDetector::buildAllLayers(){
-	for(std::vector<userAddLayer>::iterator iter = userLayers.begin(); iter != userLayers.end(); iter++){
-		iter->execute(this);
-	}		
+	for(std::vector<userAddLayer*>::iterator iter = userLayers.begin(); iter != userLayers.end(); iter++){
+		(*iter)->construct(this);
+	}	
 }
 
 void nDetDetector::placeDetector(G4LogicalVolume *parent){
@@ -118,29 +125,29 @@ bool nDetDetector::checkPmtCopyNumber(const G4int &num, bool &isLeft) const {
 
 bool nDetDetector::getSegmentFromCopyNum(const G4int &copyNum, G4int &col, G4int &row) const {
 	if(!this->checkCopyNumber(copyNum)) return false;
-	col = (copyNum-firstSegmentCopyNum) / numRows;
-	row = (copyNum-firstSegmentCopyNum) % numRows;
+	col = (copyNum-firstSegmentCopyNum) / fNumRows;
+	row = (copyNum-firstSegmentCopyNum) % fNumRows;
 	return true;
 }
 
 void nDetDetector::addGDML(const G4String &input){
-	addLayer(userAddLayer(input, &nDetDetector::applyGDML));
+	addLayer(new gdmlLayer(input));
 }
 
 void nDetDetector::addLightGuideGDML(const G4String &input){
-	addLayer(userAddLayer(input, &nDetDetector::applyGDMLlightGuide));
+	addLayer(new gdmlLightGuideLayer(input));
 }
 
 void nDetDetector::addGreaseLayer(const G4String &input){
-	addLayer(userAddLayer(input, &nDetDetector::applyGreaseLayer));
+	addLayer(new greaseLayer(input));
 }
 
 void nDetDetector::addDiffuserLayer(const G4String &input){
-	addLayer(userAddLayer(input, &nDetDetector::applyDiffuserLayer));
+	addLayer(new diffuserLayer(input));
 }
 
 void nDetDetector::addLightGuideLayer(const G4String &input){
-	addLayer(userAddLayer(input, &nDetDetector::applyLightGuide));
+	addLayer(new lightGuideLayer(input));
 }
 
 bool nDetDetector::setGeometry(const G4String &geom){
@@ -186,14 +193,25 @@ void nDetDetector::construct(){
 }
 
 G4LogicalVolume *nDetDetector::constructAssembly(){
+	// Calculate the dimensions of the detector
 	G4double assemblyLength = fDetectorLength + 2*(fGreaseThickness+fWindowThickness+fSensitiveThickness);
 	G4double assemblyWidth = fDetectorWidth + 2*fWrappingThickness;
-	G4double assemblyThickness = fDetectorHeight + 2*fWrappingThickness;
+	G4double assemblyHeight = fDetectorHeight + 2*fWrappingThickness;
 
-	//assemblyWidth = std::max(assemblyWidth, pmtBoundingBox.getX());
-	//assemblyThickness = std::max(assemblyThickness, pmtBoundingBox.getY());
+	// Account for the additional component layers
+	for(std::vector<userAddLayer*>::iterator iter = userLayers.begin(); iter != userLayers.end(); iter++){
+		if(!(*iter)->decodeString()){
+			std::cout << " nDetDetector: Invalid number of arguments given to ::decodeString(). Expected " << (*iter)->getNumRequiredArgs() << " but received " << (*iter)->getNumSuppliedArgs() << ".\n";
+			std::cout << " nDetDetector:  SYNTAX: " << (*iter)->syntaxStr() << std::endl;
+			continue;
+		}
+		std::max(assemblyWidth, (*iter)->getSizeX());
+		std::max(assemblyHeight, (*iter)->getSizeY());
+		assemblyLength += 2*(*iter)->getSizeZ();
+	}
 
-	G4Box *assembly = new G4Box("assembly", assemblyWidth/2, assemblyThickness/2, assemblyLength/2);
+	// Build the assembly box
+	G4Box *assembly = new G4Box("assembly", assemblyWidth/2, assemblyHeight/2, assemblyLength/2);
 	assembly_logV = new G4LogicalVolume(assembly, materials->fAir, "assembly_logV");
 	assembly_logV->SetVisAttributes(materials->visAssembly);
 
@@ -560,34 +578,8 @@ void nDetDetector::constructPSPmts(){
     offsetZ += fGreaseThickness + fWindowThickness + fSensitiveThickness;
 }
 
-void nDetDetector::applyGDML(const G4String &input){
-	loadGDML(input);
-}
-
-void nDetDetector::applyGDMLlightGuide(const G4String &input){
-	loadLightGuide(input);
-}
-
 void nDetDetector::applyGreaseLayer(){
 	this->applyGreaseLayer(layerSizeX, layerSizeY);
-}
-
-void nDetDetector::applyGreaseLayer(const G4String &input){
-	// Expects a space-delimited string of the form:
-	//  "addGreaseLayer width(mm) height(mm) thickness(mm)"
-	std::vector<std::string> args;
-	unsigned int Nargs = split_str(input, args);
-	if(Nargs < 2){
-		std::cout << " nDetDetector: Invalid number of arguments given to ::applyGreaseLayer(). Expected 2, received " << Nargs << ".\n";
-		std::cout << " nDetDetector:  SYNTAX: addGreaseLayer <width> <height> [thickness]\n";
-		return;
-	}
-	double width = strtod(args.at(0).c_str(), NULL);
-	double height = strtod(args.at(1).c_str(), NULL);
-	if(Nargs >= 3)
-		this->applyGreaseLayer(width, height, strtod(args.at(2).c_str(), NULL));
-	else
-		this->applyGreaseLayer(width, height);
 }
 
 void nDetDetector::applyGreaseLayer(const G4double &x, const G4double &y, double thickness/*=0*/){
@@ -610,22 +602,6 @@ void nDetDetector::applyDiffuserLayer(){
 	this->applyDiffuserLayer(layerSizeX, layerSizeY, fDiffuserLength);
 }
 
-void nDetDetector::applyDiffuserLayer(const G4String &input){
-	// Expects a space-delimited string of the form:
-	//  "addDiffuserLayer width(mm) height(mm) thickness(mm) material"
-	std::vector<std::string> args;
-	unsigned int Nargs = split_str(input, args);
-	if(Nargs < 3){
-		std::cout << " nDetDetector: Invalid number of arguments given to ::applyDiffuserLayer(). Expected 3, received " << Nargs << ".\n";
-		std::cout << " nDetDetector:  SYNTAX: addDiffuserLayer <width> <height> <thickness> [material=G4_SILICON_DIOXIDE]\n";
-		return;
-	}
-	double width = strtod(args.at(0).c_str(), NULL);
-	double height = strtod(args.at(1).c_str(), NULL);
-	double thickness = strtod(args.at(2).c_str(), NULL);
-	this->applyDiffuserLayer(width, height, thickness);
-}
-
 void nDetDetector::applyDiffuserLayer(const G4double &x, const G4double &y, const double &thickness){
     if(thickness > 0){ // Build the light diffusers (if needed)
         G4Box *lightDiffuser = new G4Box("lightDiffuser", x/2, y/2, thickness/2);
@@ -646,24 +622,6 @@ void nDetDetector::applyLightGuide(){
 
 void nDetDetector::applyLightGuide(const G4double &x2, const G4double &y2){
 	this->applyLightGuide(layerSizeX, x2, layerSizeY, y2, fTrapezoidLength);
-}
-
-void nDetDetector::applyLightGuide(const G4String &input){
-	// Expects a space-delimited string of the form:
-	//  "addLightGuide width1(mm) width2(mm) height1(mm) height2(mm) thickness(mm) material"
-	std::vector<std::string> args;
-	unsigned int Nargs = split_str(input, args);
-	if(Nargs < 5){
-		std::cout << " nDetDetector: Invalid number of arguments given to ::applyLightGuide(). Expected 5, received " << Nargs << ".\n";
-		std::cout << " nDetDetector:  SYNTAX: addLightGuide <width1> <width2> <height1> <height2> <thickness> [material=G4_SILICON_DIOXIDE]\n";
-		return;
-	}
-	double width1 = strtod(args.at(0).c_str(), NULL);
-	double width2 = strtod(args.at(1).c_str(), NULL);
-	double height1 = strtod(args.at(2).c_str(), NULL);
-	double height2 = strtod(args.at(3).c_str(), NULL);
-	double thickness = strtod(args.at(4).c_str(), NULL);
-	this->applyLightGuide(width1, width2, height1, height2, thickness);
 }
 
 void nDetDetector::applyLightGuide(const G4double &x1, const G4double &x2, const G4double &y1, const G4double &y2, const double &thickness){
@@ -708,78 +666,40 @@ void nDetDetector::applyLightGuide(const G4double &x1, const G4double &x2, const
 	}
 }
 
-gdmlSolid *nDetDetector::loadGDML(const G4String &input){
-	// Expects a space-delimited string of the form:
-	//  "filename posX(cm) posY(cm) posZ(cm) rotX(deg) rotY(deg) rotZ(deg) material"
-	std::vector<std::string> args;
-	unsigned int Nargs = split_str(input, args);
-	if(Nargs < 8){
-		std::cout << " nDetDetector: Invalid number of arguments given to ::loadGDML(). Expected 8, received " << Nargs << ".\n";
-		std::cout << " nDetDetector:  SYNTAX: loadGDML <filename> <posX> <posY> <posZ> <rotX> <rotY> <rotZ> <matString>\n";
-		return NULL;
-	}
-	G4ThreeVector pos(strtod(args.at(1).c_str(), NULL)*cm, strtod(args.at(2).c_str(), NULL)*cm, strtod(args.at(3).c_str(), NULL)*cm);
-	G4ThreeVector rot(strtod(args.at(4).c_str(), NULL)*deg, strtod(args.at(5).c_str(), NULL)*deg, strtod(args.at(6).c_str(), NULL)*deg);
-	return loadGDML(args.at(0), pos, rot, args.at(7));
-}
+void nDetDetector::loadGDML(gdmlSolid *solid){
+	if(!solid || !solid->isLoaded()) 
+		return;
 
-gdmlSolid *nDetDetector::loadGDML(const G4String &fname, const G4ThreeVector &pos, const G4ThreeVector &rot, const G4String &material){
-	solids.push_back(gdmlSolid());
-	gdmlSolid *currentSolid = &solids.back();
-	currentSolid->read(fname, material, checkOverlaps);
-	currentSolid->setRotation(rot);
-	currentSolid->setPosition(pos);
-	std::cout << " nDetDetector: Loaded GDML model (name=" << currentSolid->getName() << ") with size x=" << currentSolid->getWidth() << " mm, y=" << currentSolid->getThickness() << " mm, z=" << currentSolid->getLength() << " mm\n";
+	std::cout << " nDetDetector: Loaded GDML model (name=" << solid->getName() << ") with size x=" << solid->getWidth() << " mm, y=" << solid->getThickness() << " mm, z=" << solid->getLength() << " mm\n";
 	
 	// Place loaded model into the assembly.
-	if(currentSolid->isLoaded())
-		currentSolid->placeSolid(assembly_logV, checkOverlaps);
-	
-	return currentSolid;
+	solid->placeSolid(assembly_logV, checkOverlaps);
 }
 
-gdmlSolid *nDetDetector::loadLightGuide(const G4String &input){
-	// Expects a space-delimited string of the form:
-	//  "filename rotX(deg) rotY(deg) rotZ(deg) material"
-	std::vector<std::string> args;
-	unsigned int Nargs = split_str(input, args);
-	if(Nargs < 5){
-		std::cout << " nDetConstruction: Invalid number of arguments given to ::loadGDML(). Expected 5, received " << Nargs << ".\n";
-		std::cout << " nDetConstruction:  SYNTAX: loadLightGuide <filename> <rotX> <rotY> <rotZ> <matString>\n";
-		return NULL;
-	}
-	G4ThreeVector rot(strtod(args.at(1).c_str(), NULL)*deg, strtod(args.at(2).c_str(), NULL)*deg, strtod(args.at(3).c_str(), NULL)*deg);
-	return loadLightGuide(args.at(0), rot, args.at(4), materials->fMylarOpSurf);
-}
+void nDetDetector::loadLightGuide(gdmlSolid *solid, const G4ThreeVector &rotation){
+	if(!solid || !solid->isLoaded()) 
+		return;
 
-gdmlSolid *nDetDetector::loadLightGuide(const G4String &fname, const G4ThreeVector &rot, const G4String &material, G4OpticalSurface *surface){
-	solids.push_back(gdmlSolid());
-	gdmlSolid *currentSolid = &solids.back();
-	currentSolid->read(fname, material, checkOverlaps);
-	currentSolid->setLogicalBorders("InnerWrapping", surface);
-	currentSolid->setRotation(rot);
+	// Set internal reflectors
+	solid->setLogicalBorders("InnerWrapping", materials->fEsrOpSurf);
 
-	G4double trapezoidZ = offsetZ + currentSolid->getLength()/2;
-	std::cout << " nDetConstruction: Loaded GDML model (name=" << currentSolid->getName() << ") with size x=" << currentSolid->getWidth() << " mm, y=" << currentSolid->getThickness() << " mm, z=" << currentSolid->getLength() << " mm\n";
+	G4double trapezoidZ = offsetZ + solid->getLength()/2;
+	std::cout << " nDetConstruction: Loaded GDML model (name=" << solid->getName() << ") with size x=" << solid->getWidth() << " mm, y=" << solid->getThickness() << " mm, z=" << solid->getLength() << " mm\n";
 
 	// Place loaded model into the assembly.
-	if(currentSolid->isLoaded()){
-		// Place the light-guide on the positive z side.
-		currentSolid->setPosition(G4ThreeVector(0, 0, trapezoidZ));
-		currentSolid->placeSolid(assembly_logV, checkOverlaps);
-		
-		// And on the negative z side.
-		G4RotationMatrix *trapRot = new G4RotationMatrix();
-		trapRot->rotateX(rot.getX()-CLHEP::pi);
-		currentSolid->placeSolid(trapRot, G4ThreeVector(0, 0, -trapezoidZ), assembly_logV, checkOverlaps);
-	}
+	// Place the light-guide on the positive z side.
+	solid->setPosition(G4ThreeVector(0, 0, trapezoidZ));
+	solid->placeSolid(assembly_logV, checkOverlaps);
+	
+	// And on the negative z side.
+	G4RotationMatrix *trapRot = new G4RotationMatrix();
+	trapRot->rotateX(rotation.getX()-CLHEP::pi);
+	solid->placeSolid(trapRot, G4ThreeVector(0, 0, -trapezoidZ), assembly_logV, checkOverlaps);
 
-	layerSizeX = currentSolid->getWidth();
-	layerSizeY = currentSolid->getThickness();
-	offsetZ += currentSolid->getLength();
-	fTrapezoidLength = currentSolid->getLength()*mm;
-
-	return currentSolid;
+	layerSizeX = solid->getWidth();
+	layerSizeY = solid->getThickness();
+	offsetZ += solid->getLength();
+	fTrapezoidLength = solid->getLength()*mm;
 }
 
 G4Material* nDetDetector::getUserDetectorMaterial(){
@@ -792,4 +712,135 @@ G4Material* nDetDetector::getUserSurfaceMaterial(){
 
 G4OpticalSurface* nDetDetector::getUserOpticalSurface(){
 	return materials->getUserOpticalSurface(wrappingMaterial);
+}
+
+bool greaseLayer::decodeString(){
+	// Expects a space-delimited string of the form:
+	//  "addGreaseLayer width(mm) height(mm) thickness(mm)"
+	std::vector<std::string> args;
+	nUserArgs = split_str(argStr, args);
+	if(nUserArgs < nReqArgs)
+		return false;
+	x = strtod(args.at(0).c_str(), NULL);
+	y = strtod(args.at(1).c_str(), NULL);
+	if(nUserArgs >= 3)
+		thickness = strtod(args.at(2).c_str(), NULL);
+	size = G4ThreeVector(x, y, thickness);
+	return true;
+}
+
+void greaseLayer::construct(nDetDetector *obj){
+	obj->applyGreaseLayer(x, y, thickness);
+}
+
+std::string greaseLayer::syntaxStr() const {
+	return std::string("addGreaseLayer <width> <height> [thickness]");
+}
+
+bool diffuserLayer::decodeString(){
+	// Expects a space-delimited string of the form:
+	//  "addDiffuserLayer width(mm) height(mm) thickness(mm) material"
+	std::vector<std::string> args;
+	nUserArgs = split_str(argStr, args);
+	if(nUserArgs < nReqArgs)
+		return false;
+	x = strtod(args.at(0).c_str(), NULL);
+	y = strtod(args.at(1).c_str(), NULL);
+	thickness = strtod(args.at(2).c_str(), NULL);
+	size = G4ThreeVector(x, y, thickness);
+	return true;
+}
+
+void diffuserLayer::construct(nDetDetector *obj){
+	obj->applyDiffuserLayer(x, y, thickness);
+}
+
+std::string diffuserLayer::syntaxStr() const {
+	return std::string("addDiffuserLayer <width> <height> <thickness> [material=G4_SILICON_DIOXIDE]");
+}
+
+bool lightGuideLayer::decodeString(){
+	// Expects a space-delimited string of the form:
+	//  "addLightGuide width1(mm) width2(mm) height1(mm) height2(mm) thickness(mm) material"
+	std::vector<std::string> args;
+	nUserArgs = split_str(argStr, args);
+	if(nUserArgs < nReqArgs)
+		return false;
+	x1 = strtod(args.at(0).c_str(), NULL);
+	x2 = strtod(args.at(1).c_str(), NULL);
+	y1 = strtod(args.at(2).c_str(), NULL);
+	y2 = strtod(args.at(3).c_str(), NULL);
+	thickness = strtod(args.at(4).c_str(), NULL);
+	size = G4ThreeVector(std::max(x1, x2), std::max(y1, y2), thickness);
+	return true;
+}
+
+void lightGuideLayer::construct(nDetDetector *obj){
+	obj->applyLightGuide(x1, x2, y1, y2, thickness);
+}
+
+std::string lightGuideLayer::syntaxStr() const {
+	return std::string("addLightGuide <width1> <width2> <height1> <height2> <thickness> [material=G4_SILICON_DIOXIDE]");
+}
+
+bool gdmlLayer::decodeString(){
+	// Expects a space-delimited string of the form:
+	//  "filename posX(cm) posY(cm) posZ(cm) rotX(deg) rotY(deg) rotZ(deg) material"
+	std::vector<std::string> args;
+	nUserArgs = split_str(argStr, args);
+	if(nUserArgs < nReqArgs)
+		return false;
+		
+	filename = args.at(0);
+	position = G4ThreeVector(strtod(args.at(1).c_str(), NULL)*cm, strtod(args.at(2).c_str(), NULL)*cm, strtod(args.at(3).c_str(), NULL)*cm);
+	rotation = G4ThreeVector(strtod(args.at(4).c_str(), NULL)*deg, strtod(args.at(5).c_str(), NULL)*deg, strtod(args.at(6).c_str(), NULL)*deg);
+	material = args.at(7);
+
+	// Load the model
+	solid.read(filename, material, false);
+	solid.setRotation(rotation);
+	solid.setPosition(position);
+
+	// Get the size of the model
+	size = G4ThreeVector(solid.getWidth(), solid.getThickness(), solid.getLength());
+	
+	return true;
+}
+
+void gdmlLayer::construct(nDetDetector *obj){
+	obj->loadGDML(&solid);
+}
+
+std::string gdmlLayer::syntaxStr() const {
+	return std::string("loadGDML <filename> <posX> <posY> <posZ> <rotX> <rotY> <rotZ> <matString>");
+}
+
+bool gdmlLightGuideLayer::decodeString(){
+	// Expects a space-delimited string of the form:
+	//  "filename rotX(deg) rotY(deg) rotZ(deg) material"
+	std::vector<std::string> args;
+	nUserArgs = split_str(argStr, args);
+	if(nUserArgs < nReqArgs)
+		return false;
+
+	filename = args.at(0);
+	rotation = G4ThreeVector(strtod(args.at(1).c_str(), NULL)*deg, strtod(args.at(2).c_str(), NULL)*deg, strtod(args.at(3).c_str(), NULL)*deg);
+	material = args.at(4);
+
+	// Load the model
+	solid.read(filename, material, false);
+	solid.setRotation(rotation);
+	
+	// Get the size of the model
+	size = G4ThreeVector(solid.getWidth(), solid.getThickness(), solid.getLength());
+	
+	return true;
+}
+
+void gdmlLightGuideLayer::construct(nDetDetector *obj){
+	obj->loadLightGuide(&solid, rotation);
+}
+
+std::string gdmlLightGuideLayer::syntaxStr() const {
+	return std::string("loadLightGuide <filename> <rotX> <rotY> <rotZ> <matString>");
 }

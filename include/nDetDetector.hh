@@ -256,7 +256,7 @@ class nDetDetector : public nDetDetectorParams {
 	  */
 	nDetDetector() : nDetDetectorParams(),
 	                 assembly_logV(NULL), assembly_physV(NULL), layerSizeX(0), layerSizeY(0), offsetZ(0),
-	                 parentCopyNum(0), firstSegmentCopyNum(0), lastSegmentCopyNum(0), numColumns(1), numRows(1), 
+	                 parentCopyNum(0), firstSegmentCopyNum(0), lastSegmentCopyNum(0),
 	                 checkOverlaps(false), geomType(GEOM_RECTANGLE), materials(NULL) { }
 	
 	/** Detector constructor
@@ -264,6 +264,10 @@ class nDetDetector : public nDetDetectorParams {
 	  * @param matptr Pointer to the Geant materials handler class which will be used for detector construction
 	  */
 	nDetDetector(nDetConstruction *detector, nDetMaterials *matptr);
+
+	/** Destructor
+	  */
+	~nDetDetector();
 	
 	/** Get a pointer to the logical volume of the detector assembly
 	  */
@@ -300,11 +304,6 @@ class nDetDetector : public nDetDetectorParams {
 	  */
 	void setCheckOverlaps(const bool &enabled){ checkOverlaps = enabled; }
 	
-	/** Copy all detector attributes
-	  * @param det The detector attributes to be copied
-	  */
-	//void setDetectorAttributes(const nDetDetectorParams &det){ params = det; }
-	
 	/** Set the position and the rotation of this detector
 	  * @param pos The position of the center of the detector (in mm)
 	  * @param rot The rotation matrix
@@ -339,7 +338,7 @@ class nDetDetector : public nDetDetectorParams {
 	/** Add a user defined layer to the queue
 	  * @note When buildAllLayers() is called, the layers will be added on a first-in-first-out basis
 	  */
-	void addLayer(const userAddLayer &layer){ userLayers.push_back(layer); }
+	void addLayer(userAddLayer *layer){ userLayers.push_back(layer); }
 
 	/** Add all layers added by addLayer() to the detector construction
 	  */
@@ -493,6 +492,63 @@ class nDetDetector : public nDetDetectorParams {
 	  */
 	void addMirroredComponents(G4PVPlacement* &phys1, G4PVPlacement* &phys2, G4LogicalVolume *volume, const G4double &offset, const G4String &name="", G4RotationMatrix *rot=NULL);
 
+	/** Apply a grease layer to the current detector assembly using the current detector width and height
+	  */
+	void applyGreaseLayer();
+
+	/** Apply a grease layer to the current detector assembly
+	  * @param x The width of the grease layer (in mm)
+	  * @param y The height of the grease layer (in mm)
+	  * @param thickness The thickness of the grease layer (in mm). If not specified, @a fGreaseThickness is used
+	  */
+	void applyGreaseLayer(const G4double &x, const G4double &y, double thickness=0);
+
+	/** Apply a straight light diffuser layer (quartz) to the current detector assembly using the current detector width and height
+	  */
+	void applyDiffuserLayer();
+
+	/** Apply a straight light diffuser layer (quartz) to the current detector assembly
+	  * @param x The width of the diffuser layer (in mm)
+	  * @param y The height of the diffuser layer (in mm)
+	  * @param thickness The thickness of the diffuser layer (in mm)
+	  */
+	void applyDiffuserLayer(const G4double &x, const G4double &y, const double &thickness);
+
+	/** Apply a trapezoidal light guide layer (quartz) to the current detector assembly reducing the current detector width and height
+	  * down to the width and height of the PMT
+	  */
+	void applyLightGuide();
+
+	/** Apply a trapezoidal light guide layer (quartz) to the current detector assembly reducing the current detector width and height
+	  * down to a user specified width and height
+	  * @param x2 The width of the small side of the trapezoid (in mm)
+	  * @param y2 The height of the amll side of the trapezoid (in mm)
+	  */
+	void applyLightGuide(const G4double &x2, const G4double &y2);
+
+	/** Apply a trapezoidal light guide layer (quartz) to the current detector assembly
+	  * @param x1 The width of the large side of the trapezoid (in mm)
+	  * @param x2 The width of the small side of the trapezoid (in mm)
+	  * @param y1 The height of the large side of the trapezoid (in mm)
+	  * @param y2 The height of the amll side of the trapezoid (in mm)
+	  * @param thickness The thickness of the light guide (in mm)
+	  */
+	void applyLightGuide(const G4double &x1, const G4double &x2, const G4double &y1, const G4double &y2, const double &thickness);
+
+	/** Load a GDML model from a file and place it into the assembly
+	  * @param solid Pointer to a gdml model loaded from a file
+	  */
+	void loadGDML(gdmlSolid *solid);
+
+	/** Load a GDML light guide model from a file and place it into the assembly
+	  * 
+	  * This method performs the same as loadGDML() except that it also defines logical border surfaces on all intersecting faces
+	  *
+	  * @param solid Pointer to a gdml model loaded from a file
+	  * @param rotation Rotation of the gdml model about the X, Y, and Z axes (all in radians)
+	  */
+	void loadLightGuide(gdmlSolid *solid, const G4ThreeVector &rotation);
+
   private:
 	G4LogicalVolume *assembly_logV; ///< Pointer to the logical volume of the mother of the detector
 	G4PVPlacement* assembly_physV; ///< Pointer to the physical volume of the mother of the detector
@@ -505,11 +561,6 @@ class nDetDetector : public nDetDetectorParams {
 	G4int firstSegmentCopyNum; ///< Copy number of the first scintillator segment
 	G4int lastSegmentCopyNum; ///< Copy number of the last scintillator segment
 
-	G4int numColumns; ///< Number of scintillator segment columns
-	G4int numRows; ///< Number of scintillator segment rows
-
-	//nDetDetectorParams params; ///< Physical detector attributes including position, rotation, size, etc
-
 	bool checkOverlaps; ///< Flag indicating that Geant should check for overlaps between all placed objects
 
 	int geomType; ///< Integer value indicating the of the detector geometry
@@ -519,12 +570,10 @@ class nDetDetector : public nDetDetectorParams {
 	centerOfMass cmL; ///< Center-of-mass calculator for the left PMT
 	centerOfMass cmR; ///< Center-of-mass calculator for the right PMT
 
-	std::vector<userAddLayer> userLayers; ///< Vector of all layers added by the user
+	std::vector<userAddLayer*> userLayers; ///< Vector of all layers added by the user
 
 	std::vector<G4PVPlacement*> scintBody_physV; ///< Vector of all physical volumes of all scintillator segments
 
-	std::vector<gdmlSolid> solids; ///< Vector of all loaded gdml solids
-	
 	/** Build a segmented detector module
 	  *
 	  * The detector will have @a fNumColumns columns (horizontal) and @a fNumRows rows (vertical). If @a fWrappingThickness is
@@ -563,140 +612,6 @@ class nDetDetector : public nDetDetectorParams {
 	  */
 	void constructPSPmts();
 
-	/** Load a model from a GDML file using parameters from a space-delimited input string and place it into the assembly
-	  * @note See loadGDML(const G4String &input) for input string syntax
-	  */
-	void applyGDML(const G4String &input);
-
-	/** Load a light-guide model from a GDML file using parameters from a space-delimited input string and place it into the assembly
-	  * @note See loadLightGuide(const G4String &input) for input string syntax
-	  */
-	void applyGDMLlightGuide(const G4String &input);
-
-	/** Apply a grease layer to the current detector assembly using the current detector width and height
-	  */
-	void applyGreaseLayer();
-
-	/** Apply a grease layer to the current detector assembly using dimensions from a space-delimited input string
-	  * @note String syntax: <width> <height> [thickness]
-	  * | Parameter | Description |
-	  * |-----------|-------------|
-	  * | width     | The width of the grease layer (in mm)
-	  * | height    | The height of the grease layer (in mm)
-	  * | thickness | The thickness of the grease layer (in mm). If not specified, @a fGreaseThickness is used
-	  */
-	void applyGreaseLayer(const G4String &input);
-
-	/** Apply a grease layer to the current detector assembly
-	  * @param x The width of the grease layer (in mm)
-	  * @param y The height of the grease layer (in mm)
-	  * @param thickness The thickness of the grease layer (in mm). If not specified, @a fGreaseThickness is used
-	  */
-	void applyGreaseLayer(const G4double &x, const G4double &y, double thickness=0);
-
-	/** Apply a straight light diffuser layer (quartz) to the current detector assembly using the current detector width and height
-	  */
-	void applyDiffuserLayer();
-
-	/** Apply a straight light diffuser layer (quartz) to the current detector assembly using dimensions from a space-delimited input string
-	  * @note String syntax: <width> <height> <thickness> [material=G4_SILICON_DIOXIDE]
-	  * | Parameter | Description |
-	  * |-----------|-------------|
-	  * | width     | The width of the diffuser layer (in mm)
-	  * | height    | The height of the diffuser layer (in mm)
-	  * | thickness | The thickness of the diffuser layer (in mm)
-	  * | material  | Not used
-	  */
-	void applyDiffuserLayer(const G4String &input);
-
-	/** Apply a straight light diffuser layer (quartz) to the current detector assembly
-	  * @param x The width of the diffuser layer (in mm)
-	  * @param y The height of the diffuser layer (in mm)
-	  * @param thickness The thickness of the diffuser layer (in mm)
-	  */
-	void applyDiffuserLayer(const G4double &x, const G4double &y, const double &thickness);
-
-	/** Apply a trapezoidal light guide layer (quartz) to the current detector assembly reducing the current detector width and height
-	  * down to the width and height of the PMT
-	  */
-	void applyLightGuide();
-
-	/** Apply a trapezoidal light guide layer (quartz) to the current detector assembly using dimensions from a space-delimited input string
-	  * @note String syntax: <width1> <width2> <height1> <height2> <thickness> [material=G4_SILICON_DIOXIDE]
-	  * | Parameter | Description |
-	  * |-----------|-------------|
-	  * | width1    | The width of the large side of the trapezoid (in mm)
-	  * | width2    | The width of the small side of the trapezoid (in mm)
-	  * | height1   | The height of the large side of the trapezoid (in mm)
-	  * | height2   | The height of the small side of the trapezoid (in mm)
-	  * | thickness | The thickness of the light-guide layer (in mm)
-	  * | material  | Not used
-	  */
-	void applyLightGuide(const G4String &input);
-
-	/** Apply a trapezoidal light guide layer (quartz) to the current detector assembly reducing the current detector width and height
-	  * down to a user specified width and height
-	  * @param x2 The width of the small side of the trapezoid (in mm)
-	  * @param y2 The height of the amll side of the trapezoid (in mm)
-	  */
-	void applyLightGuide(const G4double &x2, const G4double &y2);
-
-	/** Apply a trapezoidal light guide layer (quartz) to the current detector assembly
-	  * @param x1 The width of the large side of the trapezoid (in mm)
-	  * @param x2 The width of the small side of the trapezoid (in mm)
-	  * @param y1 The height of the large side of the trapezoid (in mm)
-	  * @param y2 The height of the amll side of the trapezoid (in mm)
-	  * @param thickness The thickness of the light guide (in mm)
-	  */
-	void applyLightGuide(const G4double &x1, const G4double &x2, const G4double &y1, const G4double &y2, const double &thickness);
-
-	/** Load a GDML model from a file using parameters from a space-delimited input string and place it into the assembly
-	  * @note String syntax: <filename> <posX> <posY> <posZ> <rotX> <rotY> <rotZ> <matString>
-	  * | Parameter | Description |
-	  * |-----------|-------------|
-	  * | filename  | Filename of the input GDML file
-	  * | posX(Y,Z) | X, Y, and Z position of the center of the model (in mm)
-	  * | rotX(Y,Z) | Rotation about the X, Y, and Z axes (in degrees)
-	  * | matString | The NIST database name of the material to use for the model
-	  * @return A pointer to the gdmlSolid containing the model
-	  */
-	gdmlSolid *loadGDML(const G4String &input);
-
-	/** Load a GDML model from a file and place it into the assembly
-	  * @param fname Filename of the input GDML file
-	  * @param position Vector containing the position of the model (in mm)
-	  * @param rotation Vector containing the rotation about the X, Y, and Z axes (in degrees)
-	  * @param material String containing the name of the Geant material to use for the model
-	  * @return A pointer to the gdmlSolid containing the model
-	  */
-	gdmlSolid *loadGDML(const G4String &fname, const G4ThreeVector &position, const G4ThreeVector &rotation, const G4String &material);
-
-	/** Load a light guide model from a file using parameters from a space-delimited input string and place it into the assembly
-	  *
-	  * This method performs the same as loadGDML() except that it also defines logical border surfaces on all
-	  * intersecting faces and automatically places the model into the assembly at the current layer position
-	  *
-	  * @note String syntax: <filename> <rotX> <rotY> <rotZ> <matString>
-	  * | Parameter | Description |
-	  * |-----------|-------------|
-	  * | filename  | Filename of the input GDML file
-	  * | rotX(Y,Z) | Rotation about the X, Y, and Z axes (in degrees)
-	  * | matString | The NIST database name of the material to use for the model
-	  * @return A pointer to the gdmlSolid containing the model
-	  */
-	gdmlSolid *loadLightGuide(const G4String &input);
-
-	/** Load a GDML light guide model from a file and place it into the assembly
-	  * 
-	  * This method performs the same as loadGDML() except that it also defines logical border surfaces on all intersecting faces
-	  *
-	  * @param fname Filename of the input GDML file
-	  * @param rotation Vector containing the rotation about the X, Y, and Z axes (in degrees)
-	  * @param material String containing the name of the Geant material to use for the model
-	  * @return A pointer to the gdmlSolid containing the model
-	  */
-	gdmlSolid *loadLightGuide(const G4String &fname, const G4ThreeVector &rotation, const G4String &material, G4OpticalSurface *surface);
-
 	/** Get a pointer to the user-defined scintillator material
 	  */
 	G4Material* getUserDetectorMaterial();
@@ -720,28 +635,237 @@ class userAddLayer{
   public:
 	/** Default constructor
 	  */
-	userAddLayer() : argStr(), ptr(NULL) { }
+	userAddLayer() : argStr(), size(), nReqArgs(0) { }
+
+	/** User input constructor
+	  * @param arg_ Argument string from the input macro
+	  */
+	userAddLayer(const G4String &arg_) : argStr(arg_), size(), nReqArgs(0) { }
 
 	/** Function pointer constructor
 	  * @param arg_ Argument string from the input macro
 	  * @param ptr_ Pointer to a nDetDetector member function taking a const G4String as an argument.
 	  *             This is the function which will be executed when execute() is called
 	  */	
-	userAddLayer(const G4String &arg_, void (nDetDetector::* ptr_)(const G4String &)) : argStr(arg_), ptr(ptr_) { }
+	userAddLayer(const G4String &arg_, const int &nargs_) : argStr(arg_), size(), nReqArgs(nargs_) { }
 
-	/** Execute the function pointer
-	  * @param obj Pointer to an nDetDetector object which is used to call the function pointer
+	/** Destructor
 	  */
-	void execute(nDetDetector *obj){ (obj->*ptr)(argStr); }
+	virtual ~userAddLayer(){ }
+
+	/** Get the size of the layer along the X-axis (in mm)
+	  */
+	G4double getSizeX() const { return size.getX(); }
+	
+	/** Get the size of the layer along the Y-axis (in mm)
+	  */
+	G4double getSizeY() const { return size.getY(); }
+
+	/** Get the size of the layer along the Z-axis (in mm)
+	  */
+	G4double getSizeZ() const { return size.getZ(); }
 
 	/** Return the argument string from the input macro
 	  */
 	G4String dump() const { return argStr; }
 
-  private:
+	/** Get the number of arguments expected from the user input string
+	  */
+	unsigned int getNumRequiredArgs() const { return nReqArgs; }
+
+	/** Get the number of arguments passed to decodeString()
+	  */
+	unsigned int getNumSuppliedArgs() const { return nUserArgs; }
+
+	/** Read a user input string and decode the relevant values
+	  */
+	virtual bool decodeString() = 0;
+	
+	/** Construct the layer volume and place it into a detector
+	  */
+	virtual void construct(nDetDetector *obj) = 0;
+
+	/** Return a string containing proper input string syntax
+	  */
+	virtual std::string syntaxStr() const = 0;
+
+  protected:
 	G4String argStr; ///< Argument string from the macro supplied by the user
 
-	void (nDetDetector::* ptr)(const G4String &); ///< Pointer to a nDetDetector member function taking a const G4String as an argument
+	G4ThreeVector size; ///< X, Y, and Z dimensions of the volume
+
+	unsigned int nReqArgs; ///< The number of required user arguments which are expected
+	unsigned int nUserArgs; ///< The number of user arguments passed to decodeString()
+};
+
+class greaseLayer : public userAddLayer {
+  public:
+	greaseLayer(const G4String &arg_) : userAddLayer(arg_, 2), x(0), y(0), thickness(0) { }
+
+	/** Destructor
+	  */	
+	~greaseLayer(){ }
+	
+	/** Apply a grease layer to the current detector assembly using dimensions from a space-delimited input string
+	  * @note String syntax: <width> <height> [thickness]
+	  * | Parameter | Description |
+	  * |-----------|-------------|
+	  * | width     | The width of the grease layer (in mm)
+	  * | height    | The height of the grease layer (in mm)
+	  * | thickness | The thickness of the grease layer (in mm). If not specified, @a fGreaseThickness is used
+	  */
+	bool decodeString();
+
+	void construct(nDetDetector *obj);
+
+	/** Return a string containing proper input string syntax
+	  */
+	std::string syntaxStr() const ;
+
+  private:
+	G4double x; ///< Width of the diffuser (in mm)
+	G4double y; ///< Height of the diffuser (in mm)
+	G4double thickness; ///< Thickness of the diffuser (in mm)	
+};
+
+class diffuserLayer : public userAddLayer {
+  public:
+	diffuserLayer(const G4String &arg_) : userAddLayer(arg_, 3), x(0), y(0), thickness(0), matName("G4_SILICON_DIOXIDE") { }
+
+	/** Destructor
+	  */	
+	~diffuserLayer(){ }
+	
+	/** Apply a straight light diffuser layer (quartz) to the current detector assembly using dimensions from a space-delimited input string
+	  * @note String syntax: <width> <height> <thickness> [material=G4_SILICON_DIOXIDE]
+	  * | Parameter | Description |
+	  * |-----------|-------------|
+	  * | width     | The width of the diffuser layer (in mm)
+	  * | height    | The height of the diffuser layer (in mm)
+	  * | thickness | The thickness of the diffuser layer (in mm)
+	  * | material  | Not used
+	  */
+	bool decodeString();
+
+	void construct(nDetDetector *obj);
+
+	/** Return a string containing proper input string syntax
+	  */
+	std::string syntaxStr() const ;
+
+  private:
+	G4double x; ///< Width of the diffuser (in mm)
+	G4double y; ///< Height of the diffuser (in mm)
+	G4double thickness; ///< Thickness of the diffuser (in mm)
+	G4String matName; ///< Name of the Geant NIST database material
+};
+
+class lightGuideLayer : public userAddLayer {
+  public:
+	lightGuideLayer(const G4String &arg_) : userAddLayer(arg_, 5), x1(0), x2(0), y1(0), y2(0), thickness(0), matName("G4_SILICON_DIOXIDE") { }
+
+	/** Destructor
+	  */
+	lightGuideLayer(){ }
+
+	/** Apply a trapezoidal light guide layer (quartz) to the current detector assembly using dimensions from a space-delimited input string
+	  * @note String syntax: <width1> <width2> <height1> <height2> <thickness> [material=G4_SILICON_DIOXIDE]
+	  * | Parameter | Description |
+	  * |-----------|-------------|
+	  * | width1    | The width of the large side of the trapezoid (in mm)
+	  * | width2    | The width of the small side of the trapezoid (in mm)
+	  * | height1   | The height of the large side of the trapezoid (in mm)
+	  * | height2   | The height of the small side of the trapezoid (in mm)
+	  * | thickness | The thickness of the light-guide layer (in mm)
+	  * | material  | Not used
+	  */
+	bool decodeString();
+
+	void construct(nDetDetector *obj);
+
+	/** Return a string containing proper input string syntax
+	  */
+	std::string syntaxStr() const ;
+
+  private:
+	G4double x1; ///< Width of the large side of the trapezoid (in mm)
+	G4double x2; ///< Width of the small side of the trapezoid (in mm)
+	G4double y1; ///< Height of the large side of the trapezoid (in mm)
+	G4double y2; ///< Height of the small side of the trapezoid (in mm)
+	G4double thickness; ///< Thickness of the trapezoid (in mm)
+	G4String matName; ///< Name of the Geant NIST database material
+};
+
+class gdmlLayer : public userAddLayer {
+  public:
+	gdmlLayer(const G4String &arg_) : userAddLayer(arg_, 8) { }
+
+	/** Destructor
+	  */	
+	~gdmlLayer(){ }
+
+	/** Load a GDML model from a file using parameters from a space-delimited input string and place it into the assembly
+	  * @note String syntax: <filename> <posX> <posY> <posZ> <rotX> <rotY> <rotZ> <matString>
+	  * | Parameter | Description |
+	  * |-----------|-------------|
+	  * | filename  | Filename of the input GDML file
+	  * | posX(Y,Z) | X, Y, and Z position of the center of the model (in mm)
+	  * | rotX(Y,Z) | Rotation about the X, Y, and Z axes (in degrees)
+	  * | matString | The NIST database name of the material to use for the model
+	  * @return A pointer to the gdmlSolid containing the model
+	  */
+	bool decodeString();
+
+	void construct(nDetDetector *obj);
+
+	/** Return a string containing proper input string syntax
+	  */
+	std::string syntaxStr() const ;
+
+  private:
+	G4String filename; ///< Path to the input GDML file
+	G4String material; ///< NIST database name of the material to use for the model
+	G4ThreeVector position; ///< X, Y, and Z position of the center of the model (all in mm)
+	G4ThreeVector rotation; ///< Rotation about the X, Y, and Z axes (all in degrees)
+
+	gdmlSolid solid; ///< Solid model loaded from an external gdml file
+};
+
+class gdmlLightGuideLayer : public userAddLayer {
+  public:
+	gdmlLightGuideLayer(const G4String &arg_) : userAddLayer(arg_, 5) { }
+
+	/** Destructor
+	  */	
+	~gdmlLightGuideLayer(){ }
+
+	/** Load a light guide model from a file using parameters from a space-delimited input string and place it into the assembly
+	  *
+	  * This method performs the same as loadGDML() except that it also defines logical border surfaces on all
+	  * intersecting faces and automatically places the model into the assembly at the current layer position
+	  *
+	  * @note String syntax: <filename> <rotX> <rotY> <rotZ> <matString>
+	  * | Parameter | Description |
+	  * |-----------|-------------|
+	  * | filename  | Filename of the input GDML file
+	  * | rotX(Y,Z) | Rotation about the X, Y, and Z axes (in degrees)
+	  * | matString | The NIST database name of the material to use for the model
+	  * @return A pointer to the gdmlSolid containing the model
+	  */
+	bool decodeString();
+
+	void construct(nDetDetector *obj);
+
+	/** Return a string containing proper input string syntax
+	  */
+	std::string syntaxStr() const ;
+	
+  private:
+	G4String filename; ///< Path to the input GDML file
+	G4String material; ///< NIST database name of the material to use for the model
+	G4ThreeVector rotation; ///< Rotation about the X, Y, and Z axes (all in degrees)
+  
+	gdmlSolid solid; ///< Solid model loaded from an external gdml file
 };
 
 #endif
