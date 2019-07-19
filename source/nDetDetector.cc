@@ -11,6 +11,7 @@
 #include "G4Tubs.hh"
 #include "G4Box.hh"
 #include "G4Trd.hh"
+#include "G4Cons.hh"
 #include "G4Sphere.hh"
 
 #include "nDetDetector.hh"
@@ -152,6 +153,8 @@ void nDetDetector::addLightGuideLayer(const G4String &input){
 }
 
 bool nDetDetector::setGeometry(const G4String &geom){
+	SetSquarePMTs(true);
+
 	// Build the detector.
 	if(geom == "next" || geom == "module")
 		geomType = GEOM_MODULE;
@@ -159,8 +162,10 @@ bool nDetDetector::setGeometry(const G4String &geom){
 		geomType = GEOM_ELLIPSE;
 	else if(geom == "rectangle")
 		geomType = GEOM_RECTANGLE;
-	else if(geom == "cylinder")
+	else if(geom == "cylinder"){
 		geomType = GEOM_CYLINDER;
+		SetSquarePMTs(false);
+	}
 	else if(geom == "test")
 		geomType = GEOM_TEST;
 	else // Geometry name not recognized
@@ -487,11 +492,7 @@ void nDetDetector::constructPSPmts(){
 	if(fGreaseThickness > 0){
 		G4double greaseZ = offsetZ + fGreaseThickness/2;
 	
-		G4CSGSolid *grease_solidV;
-		if(fSquarePMTs)
-			grease_solidV = new G4Box("window_solidV", pmtWidth/2, pmtHeight/2, fGreaseThickness/2);
-		else
-			grease_solidV = new G4Tubs("window_solidV", 0, pmtWidth/2, fGreaseThickness/2, 0, 2*CLHEP::pi);
+		G4CSGSolid *grease_solidV = getVolume("window_solidV", pmtWidth, pmtHeight, fGreaseThickness);
 		G4LogicalVolume *grease_logV = new G4LogicalVolume(grease_solidV, materials->fGrease, "grease_logV");
 		
 		grease_logV->SetVisAttributes(materials->visGrease);
@@ -513,11 +514,7 @@ void nDetDetector::constructPSPmts(){
 	if(fWindowThickness > 0){ // The quartz window
 		G4double windowZ = offsetZ + fGreaseThickness + fWindowThickness/2;
 	
-		G4CSGSolid *window_solidV;
-		if(fSquarePMTs)
-			window_solidV = new G4Box("window_solidV", pmtWidth/2, pmtHeight/2, fWindowThickness/2);
-		else
-			window_solidV = new G4Tubs("window_solidV", 0, pmtWidth/2, fWindowThickness/2, 0, 2*CLHEP::pi);
+		G4CSGSolid *window_solidV = getVolume("window_solidV", pmtWidth, pmtHeight, fWindowThickness);
 		G4LogicalVolume *window_logV = new G4LogicalVolume(window_solidV, materials->fSiO2, "window_logV");
 		
 		window_logV->SetVisAttributes(materials->visWindow);
@@ -527,16 +524,8 @@ void nDetDetector::constructPSPmts(){
 
 	// Build the wrapping.
 	if(WrappingEnabled() && wrappingThickness > 0){
-		G4CSGSolid *boundingBox;
-		G4CSGSolid *wrappingBox;
-		if(fSquarePMTs){
-			boundingBox = new G4Box("", pmtWidth/2, pmtHeight/2, wrappingThickness/2);
-			wrappingBox = new G4Box("", pmtWidth/2 + fWrappingThickness, pmtHeight/2 + fWrappingThickness, wrappingThickness/2);
-		}
-		else{
-			boundingBox = new G4Tubs("", 0, pmtWidth/2, wrappingThickness/2, 0, 2*CLHEP::pi);
-			wrappingBox = new G4Tubs("", 0, pmtWidth/2 + fWrappingThickness, wrappingThickness/2, 0, 2*CLHEP::pi);
-		}
+		G4CSGSolid *boundingBox = getVolume("", pmtWidth, pmtHeight, wrappingThickness);
+		G4CSGSolid *wrappingBox = getVolume("", pmtWidth + 2*fWrappingThickness, pmtHeight + 2*fWrappingThickness, wrappingThickness);
 		
 		G4SubtractionSolid *greaseWrapping = new G4SubtractionSolid("", wrappingBox, boundingBox);
 		G4LogicalVolume *greaseWrapping_logV = new G4LogicalVolume(greaseWrapping, getUserSurfaceMaterial(), "greaseWrapping_logV");
@@ -560,11 +549,7 @@ void nDetDetector::constructPSPmts(){
 	}
 	
     // The photon sensitive surface
-    G4CSGSolid *sensitive_solidV;
-    if(fSquarePMTs)
-		sensitive_solidV = new G4Box(name+"_solidV", pmtWidth/2, pmtHeight/2, fSensitiveThickness/2);
-	else
-		sensitive_solidV = new G4Tubs(name+"_solidV", 0, pmtWidth/2, fSensitiveThickness/2, 0, 2*CLHEP::pi);
+    G4CSGSolid *sensitive_solidV = getVolume(name+"_solidV", pmtWidth, pmtHeight, fSensitiveThickness);
     G4LogicalVolume *sensitive_logV = new G4LogicalVolume(sensitive_solidV, materials->fSilicon, name+"_logV");
     sensitive_logV->SetVisAttributes(materials->visSensitive);
     
@@ -579,6 +564,24 @@ void nDetDetector::constructPSPmts(){
     offsetZ += fGreaseThickness + fWindowThickness + fSensitiveThickness;
 }
 
+G4CSGSolid *nDetDetector::getVolume(const G4String &name, const G4double &width, const G4double &height, const G4double &length){
+	G4CSGSolid *retval;
+	if(fSquarePMTs)
+		retval = new G4Box(name, width/2, height/2, length/2);
+	else
+		retval = new G4Tubs(name, 0, width/2, length/2, 0, 2*CLHEP::pi);
+	return retval;
+}
+
+G4CSGSolid *nDetDetector::getLightGuideVolume(const G4String &name, const G4double &w1, const double &w2, const double &h1, const double &h2, const G4double &length){
+	G4CSGSolid *retval;
+	if(fSquarePMTs)
+		retval = new G4Trd(name, w1/2, w2/2, h1/2, h2/2, length/2);
+	else
+		retval = new G4Cons(name, 0, w1/2, 0, w2/2, length/2, 0, 2*CLHEP::pi);
+	return retval;
+}
+
 void nDetDetector::applyGreaseLayer(){
 	this->applyGreaseLayer(layerSizeX, layerSizeY);
 }
@@ -586,13 +589,15 @@ void nDetDetector::applyGreaseLayer(){
 void nDetDetector::applyGreaseLayer(const G4double &x, const G4double &y, double thickness/*=0*/){
 	if(thickness <= 0)
 		thickness = fGreaseThickness;
-    if(thickness > 0){
-	    G4Box *grease_solidV = new G4Box("grease", x/2, y/2, thickness/2);
-	    G4LogicalVolume *grease_logV = new G4LogicalVolume(grease_solidV, materials->fGrease, "grease_logV");
-	    grease_logV->SetVisAttributes(materials->visGrease);
+	if(thickness > 0){
+		G4CSGSolid *grease_solidV = getVolume("grease", x, y, thickness);
+		G4LogicalVolume *grease_logV = new G4LogicalVolume(grease_solidV, materials->fGrease, "grease_logV");
+		grease_logV->SetVisAttributes(materials->visGrease);
 
+		// Add the optical grease to the assembly
 		addMirroredComponents(grease_logV, offsetZ+thickness/2, "Grease");
 
+		// Offset the other layers to account for the layer of optical grease
 		layerSizeX = x;
 		layerSizeY = y;
 		offsetZ += thickness;
@@ -604,17 +609,18 @@ void nDetDetector::applyDiffuserLayer(){
 }
 
 void nDetDetector::applyDiffuserLayer(const G4double &x, const G4double &y, const double &thickness){
-    if(thickness > 0){ // Build the light diffusers (if needed)
-        G4Box *lightDiffuser = new G4Box("lightDiffuser", x/2, y/2, thickness/2);
-        G4LogicalVolume *lightDiffuserLog = new G4LogicalVolume(lightDiffuser, materials->fSiO2, "lightDiffuser_logV");
+	if(thickness > 0){ // Build the light diffusers (if needed)
+		G4CSGSolid *lightDiffuser = getVolume("lightDiffuser", x, y, thickness);
+		G4LogicalVolume *lightDiffuserLog = new G4LogicalVolume(lightDiffuser, materials->fSiO2, "lightDiffuser_logV");
 
+		// Add the optical grease to the assembly
 		addMirroredComponents(lightDiffuserLog, offsetZ+thickness/2, "Diffuser");
-        
-    	// Offset the other layers to account for the light-diffuser and another layer of grease.
+
+		// Offset the other layers to account for the light-diffuser
 		layerSizeX = x;
 		layerSizeY = y;
-    	offsetZ += thickness;
-    }
+		offsetZ += thickness;
+	}
 }
 
 void nDetDetector::applyLightGuide(){
@@ -638,29 +644,33 @@ void nDetDetector::applyLightGuide(const G4double &x1, const G4double &x2, const
         std::string trapName = "Acrylic";
         
         // Build the light-guide.
-	    G4Trd *lightGuide = new G4Trd("lightGuide", x1/2, x2/2, y1/2, y2/2, thickness/2);
+        G4CSGSolid *lightGuide = getLightGuideVolume("lightGuide", x1, x2, y1, y2, thickness);
 	    G4LogicalVolume *lightGuideLog = new G4LogicalVolume(lightGuide, materials->fSiO2, "lightGuide_logV");	
 
+		G4RotationMatrix *rightRotation = new G4RotationMatrix();
+		rightRotation->rotateX(CLHEP::pi);
+
 		// Place the light guides.
-		G4PVPlacement *trapPhysicalL, *trapPhysicalR;
-		addMirroredComponents(trapPhysicalL, trapPhysicalR, lightGuideLog, trapezoidZ, trapName);
+		G4PVPlacement *trapPhysicalL = addLeftComponent(lightGuideLog, trapezoidZ, trapName);
+		G4PVPlacement *trapPhysicalR = addRightComponent(lightGuideLog, trapezoidZ, trapName, rightRotation);
 
 		// Build the wrapping.
 		if(WrappingEnabled()){
-			G4Trd *wrappingSolid = new G4Trd("wrapping", x1/2+deltaX, x2/2+deltaY, y1/2+deltaX, y2/2+deltaY, thickness/2);
+			G4CSGSolid *wrappingSolid = getLightGuideVolume("wrapping", x1+2*deltaX, x2+2*deltaY, y1+2*deltaX, y2+2*deltaY, thickness);
 			G4SubtractionSolid *wrapping = new G4SubtractionSolid("wrapping", wrappingSolid, lightGuide);
 			G4LogicalVolume *wrapping_logV = new G4LogicalVolume(wrapping, getUserSurfaceMaterial(), "wrapping_logV");		
 			wrapping_logV->SetVisAttributes(materials->visWrapping);
 
 			// Place the wrapping around the light guides.
-			G4PVPlacement *trapWrappingR, *trapWrappingL;
-			addMirroredComponents(trapWrappingL, trapWrappingR, wrapping_logV, trapezoidZ, trapName);
+			G4PVPlacement *trapWrappingL = addLeftComponent(wrapping_logV, trapezoidZ, trapName);
+			G4PVPlacement *trapWrappingR = addRightComponent(wrapping_logV, trapezoidZ, trapName, rightRotation);
 		
 			// Reflective wrapping.
 			new G4LogicalBorderSurface("Wrapping", trapPhysicalL, trapWrappingL, getUserOpticalSurface());
 			new G4LogicalBorderSurface("Wrapping", trapPhysicalR, trapWrappingR, getUserOpticalSurface());
 		}
 		
+		// Offset the other layers to account for the light-guide
 		layerSizeX = x2;
 		layerSizeY = y2;
     	offsetZ += thickness;

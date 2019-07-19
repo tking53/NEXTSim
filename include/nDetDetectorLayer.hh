@@ -12,7 +12,7 @@ class nDetDetector;
 /** @class nDetDetectorLayer
   * @brief Component layers which are added to detector assemblies
   * @author Cory R. Thornsberry (cthornsb@vols.utk.edu)
-  * @date July 10, 2019
+  * @date July 18, 2019
   */
 
 class nDetDetectorLayer{
@@ -84,7 +84,7 @@ class nDetDetectorLayer{
 /** @class greaseLayer
   * @brief Component layers which are added to detector assemblies
   * @author Cory R. Thornsberry (cthornsb@vols.utk.edu)
-  * @date July 10, 2019
+  * @date July 18, 2019
   */
 
 class greaseLayer : public nDetDetectorLayer {
@@ -126,7 +126,7 @@ class greaseLayer : public nDetDetectorLayer {
 /** @class diffuserLayer
   * @brief Component layers which are added to detector assemblies
   * @author Cory R. Thornsberry (cthornsb@vols.utk.edu)
-  * @date July 10, 2019
+  * @date July 18, 2019
   */
 
 class diffuserLayer : public nDetDetectorLayer {
@@ -170,7 +170,7 @@ class diffuserLayer : public nDetDetectorLayer {
 /** @class lightGuideLayer
   * @brief Component layers which are added to detector assemblies
   * @author Cory R. Thornsberry (cthornsb@vols.utk.edu)
-  * @date July 10, 2019
+  * @date July 18, 2019
   */
 
 class lightGuideLayer : public nDetDetectorLayer {
@@ -218,7 +218,7 @@ class lightGuideLayer : public nDetDetectorLayer {
 /** @class gdmlLayer
   * @brief Component layers which are added to detector assemblies
   * @author Cory R. Thornsberry (cthornsb@vols.utk.edu)
-  * @date July 10, 2019
+  * @date July 18, 2019
   */
 
 class gdmlLayer : public nDetDetectorLayer {
@@ -265,7 +265,7 @@ class gdmlLayer : public nDetDetectorLayer {
 /** @class gdmlLightGuideLayer
   * @brief Component layers which are added to detector assemblies
   * @author Cory R. Thornsberry (cthornsb@vols.utk.edu)
-  * @date July 10, 2019
+  * @date July 18, 2019
   */
 
 class gdmlLightGuideLayer : public nDetDetectorLayer {

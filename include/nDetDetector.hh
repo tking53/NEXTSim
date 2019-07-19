@@ -11,6 +11,7 @@ class G4LogicalVolume;
 class G4PVPlacement;
 class G4OpticalSurface;
 class G4Material;
+class G4CSGSolid;
 
 class nDetMaterials;
 class nDetConstruction;
@@ -456,7 +457,7 @@ class nDetDetector : public nDetDetectorParams {
 	  */
 	G4PVPlacement *addSegmentToBody(G4LogicalVolume *volume, const G4String &name="", const G4ThreeVector &pos=G4ThreeVector(0,0,0), G4RotationMatrix *rot=NULL);
 
-	/** 
+	/** Add a logical volume to the left side (+z) of the detector assembly
 	  * @param volume Pointer to the logical volume to add to the detector body
 	  * @param offset The position offset along the length axis of the detector (in mm)
 	  * @param name The name of the new physical volume. If the name is blank, the name of the input logical volume will be used
@@ -465,7 +466,7 @@ class nDetDetector : public nDetDetectorParams {
 	  */
 	G4PVPlacement *addLeftComponent(G4LogicalVolume *volume, const G4double &offset, const G4String &name="", G4RotationMatrix *rot=NULL);
 
-	/** 
+	/** Add a logical volume to the right side (-z) of the detector assembly
 	  * @param volume Pointer to the logical volume to add to the detector body
 	  * @param offset The position offset along the length axis of the detector (in mm)
 	  * @param name The name of the new physical volume. If the name is blank, the name of the input logical volume will be used
@@ -474,7 +475,9 @@ class nDetDetector : public nDetDetectorParams {
 	  */
 	G4PVPlacement *addRightComponent(G4LogicalVolume *volume, const G4double &offset, const G4String &name="", G4RotationMatrix *rot=NULL);
 
-	/** 
+	/** Add a logical volume to both the left and right sides of the detector assembly
+	  * @note This method assumes that the input volume is symmetric about the z-axis and, thus, it is
+	  *       not rotated when being placed on the opposite side of the detector assembly
 	  * @param volume Pointer to the logical volume to add to the detector body
 	  * @param offset The position offset along the length axis of the detector (in mm)
 	  * @param name The name of the new physical volume. If the name is blank, the name of the input logical volume will be used
@@ -482,7 +485,9 @@ class nDetDetector : public nDetDetectorParams {
 	  */
 	void addMirroredComponents(G4LogicalVolume *volume, const G4double &offset, const G4String &name="", G4RotationMatrix *rot=NULL);
 
-	/** 
+	/** Add a logical volume to both the left and right sides of the detector assembly and return their physical volumes
+	  *	@note This method assumes that the input volume is symmetric about the z-axis and, thus, it is
+	  *       not rotated when being placed on the opposite side of the detector assembly
 	  * @param phys1 Returned pointer to the physical volume of the left component
 	  * @param phys2 Returned pointer to the physical volume of the right component
 	  * @param volume Pointer to the logical volume to add to the detector body
@@ -611,6 +616,32 @@ class nDetDetector : public nDetDetectorParams {
 	  * a reflective wrapping layer is added around the outside of the PMT if @a fWrappingThickness is greater than zero.
 	  */
 	void constructPSPmts();
+
+	/** Return a geometric solid volume with a specified size
+	  *
+	  * If the class member @a fSquarePMTs is true, then a G4Box is returned, otherwise a G4Tubs is returned
+	  * @note All size parameters are specified as the TOTAL size and not the half-size as with most Geant geometry methods
+	  * @param name The name of the new geometric solid
+	  * @param width The total size along the X-axis (in mm)
+	  * @param height The total size along the Y-axis (in mm)
+	  * @param length The total size along the Z-axis (in mm)
+	  * @return A pointer to the new G4CSGSolid (Constructed Solid Geometry) volume 
+	  */
+	G4CSGSolid *getVolume(const G4String &name, const G4double &width, const G4double &height, const G4double &length);
+
+	/** Return a geometric solid trapezoid or cone with a specified size
+	  *
+	  * If the class member @a fSquarePMTs is true, then a G4Trd is returned, otherwise a G4Cons is returned
+	  * @note All size parameters are specified as the TOTAL size and not the half-size as with most Geant geometry methods
+	  * @param name The name of the new geometric solid
+	  * @param w1 The total size along the X-axis at z = -length/2 (in mm)
+	  * @param w2 The total size along the X-axis at z = +length/2 (in mm)
+	  * @param h1 The total size along the Y-axis at z = -length/2 (in mm)
+	  * @param h2 The total size along the Y-axis at z = +length/2 (in mm)
+	  * @param length The total size along the Z-axis (in mm)
+	  * @return A pointer to the new G4CSGSolid (Constructed Solid Geometry) volume 
+	  */
+	G4CSGSolid *getLightGuideVolume(const G4String &name, const G4double &w1, const double &w2, const double &h1, const double &h2, const G4double &length);
 
 	/** Get a pointer to the user-defined scintillator material
 	  */
