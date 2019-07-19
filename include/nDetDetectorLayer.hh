@@ -82,7 +82,7 @@ class nDetDetectorLayer{
 };
 
 /** @class greaseLayer
-  * @brief Component layers which are added to detector assemblies
+  * @brief Optical grease component layer which is added to a detector assembly
   * @author Cory R. Thornsberry (cthornsb@vols.utk.edu)
   * @date July 18, 2019
   */
@@ -124,7 +124,7 @@ class greaseLayer : public nDetDetectorLayer {
 };
 
 /** @class diffuserLayer
-  * @brief Component layers which are added to detector assemblies
+  * @brief Light diffuser component layer which is added to a detector assembly
   * @author Cory R. Thornsberry (cthornsb@vols.utk.edu)
   * @date July 18, 2019
   */
@@ -168,7 +168,7 @@ class diffuserLayer : public nDetDetectorLayer {
 };
 
 /** @class lightGuideLayer
-  * @brief Component layers which are added to detector assemblies
+  * @brief Light-guide component layer which is added to a detector assembly
   * @author Cory R. Thornsberry (cthornsb@vols.utk.edu)
   * @date July 18, 2019
   */
@@ -216,7 +216,7 @@ class lightGuideLayer : public nDetDetectorLayer {
 };
 
 /** @class gdmlLayer
-  * @brief Component layers which are added to detector assemblies
+  * @brief GDML model which is added to the world at a user-specified location
   * @author Cory R. Thornsberry (cthornsb@vols.utk.edu)
   * @date July 18, 2019
   */
@@ -263,7 +263,7 @@ class gdmlLayer : public nDetDetectorLayer {
 };
 
 /** @class gdmlLightGuideLayer
-  * @brief Component layers which are added to detector assemblies
+  * @brief GDML model component which is added to a detector assembly
   * @author Cory R. Thornsberry (cthornsb@vols.utk.edu)
   * @date July 18, 2019
   */
@@ -280,10 +280,6 @@ class gdmlLightGuideLayer : public nDetDetectorLayer {
 	~gdmlLightGuideLayer(){ }
 
 	/** Load a light guide model from a file using parameters from a space-delimited input string and place it into the assembly
-	  *
-	  * This method performs the same as loadGDML() except that it also defines logical border surfaces on all
-	  * intersecting faces and automatically places the model into the assembly at the current layer position
-	  *
 	  * @note String syntax: <filename> <rotX> <rotY> <rotZ> <matString>
 	  * | Parameter | Description |
 	  * |-----------|-------------|
@@ -295,6 +291,10 @@ class gdmlLightGuideLayer : public nDetDetectorLayer {
 	bool decodeString();
 
 	/** Load the GDML light-guide model and place it into a detector
+	  *
+	  * This method performs the same as gdmlLayer::construct() except that it also defines logical border surfaces on all
+	  * intersecting faces and automatically places the model into the assembly at the current layer position
+	  *
 	  * @param obj A pointer to the detector where the light-guide model will be placed
 	  */
 	void construct(nDetDetector *obj);

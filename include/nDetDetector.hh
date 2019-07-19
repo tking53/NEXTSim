@@ -408,27 +408,27 @@ class nDetDetector : public nDetDetectorParams {
 	pmtResponse *getPmtResponseR(){ return cmR.getPmtResponse(); }
 
 	/** Load a GDML model from a file using parameters from a space-delimited input string and place it into the current detector assembly
-	  * @note See loadGDML(const G4String &) for input string syntax
+	  * @note See gdmlLayer::decodeString() for input string syntax
 	  */
 	void addGDML(const G4String &input);
 
 	/** Load a light guide model from a file using parameters from a space-delimited input string and place it into the current detector assembly
-	  * @note See loadLightGuide(const G4String &) for input string syntax
+	  * @note See gdmlLightGuideLayer::decodeString() for input string syntax
 	  */
 	void addLightGuideGDML(const G4String &input);
 
 	/** Apply a grease layer to the current detector assembly using dimensions from a space-delimited input string
-	  * @note See applyGreaseLayer(const G4String &) for input string syntax
+	  * @note See greaseLayer::decodeString() for input string syntax
 	  */
 	void addGreaseLayer(const G4String &input);
 
 	/** Apply a straight light diffuser layer (quartz) to the current detector assembly using dimensions from a space-delimited input string
-	  * @note See applyDiffuserLayer(const G4String &) for input string syntax
+	  * @note See diffuserLayer::decodeString() for input string syntax
 	  */
 	void addDiffuserLayer(const G4String &input);
 
 	/** Apply a trapezoidal light guide layer (quartz) to the current detector assembly using dimensions from a space-delimited input string
-	  * @note See applyLightGuide(const G4String &) for input string syntax
+	  * @note See lightGuideLayer::decodeString() for input string syntax
 	  */
 	void addLightGuideLayer(const G4String &input);
 
