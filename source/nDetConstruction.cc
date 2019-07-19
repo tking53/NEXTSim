@@ -119,7 +119,7 @@ void nDetConstruction::ClearGeometry(){
 	solids.clear();
 	
 	// Reset the scintillator copy number.
-	params.scintCopyNum = 1;
+	params.SetScintillatorCopyNumber(1);
 }
 
 void nDetConstruction::UpdateGeometry(){
@@ -129,7 +129,7 @@ void nDetConstruction::UpdateGeometry(){
 	G4RunManager::GetRunManager()->ReinitializeGeometry();
 
 	if(params.PmtIsSegmented())
-		setSegmentedPmt(params.fNumColumnsPmt, params.fNumRowsPmt, params.pmtWidth, params.pmtHeight);
+		setSegmentedPmt(params.GetNumPmtColumns(), params.GetNumPmtRows(), params.GetPmtWidth(), params.GetPmtHeight());
 
 	// Update the particle source
 	if(currentDetector)

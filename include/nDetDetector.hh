@@ -29,37 +29,6 @@ enum GEOMTYPES {GEOM_MODULE, GEOM_ELLIPSE, GEOM_RECTANGLE, GEOM_CYLINDER, GEOM_T
   
 class nDetDetectorParams{
   public:
-	G4double pmtWidth; ///< The width (x-axis) of the PMT (in mm)
-	G4double pmtHeight; ///< The height (y-axis) of the PMT (in mm)
-	G4double fWrappingThickness; ///< Thickness of the inner and outer detector wrapping (in mm)
-	G4double fGreaseThickness; ///< Thickness of all optical grease layers (in mm)
-	G4double fWindowThickness; ///< Thickness of all optical window layers (in mm)
-	G4double fSensitiveThickness; ///< Thickness of the optical photon-sensitive surfaces (in mm)
-	G4double fDetectorLength; ///< Size of the detector along the z-axis (in mm)
-	G4double fDetectorHeight; ///< Size of the detector along the y-axis (in mm)
-	G4double fDetectorWidth; ///< Size of the detector along the x-axis (in mm)
-	G4double fTrapezoidLength; ///< Thickness of the trapezoids used as light guides (in mm)
-	G4double fDiffuserLength; ///< Thickness of straight diffusers (in mm)
-	
-	G4int fNumColumns; ///< Current number of scintillator columns (x-axis) for modular detectors
-	G4int fNumRows; ///< Current number of scintillator rows (y-axis) for modular detectors
-	G4int fNumColumnsPmt; ///< Current number of PMT anode columns (x-axis) for PSPmts
-	G4int fNumRowsPmt; ///< Current number of PMT anode rows (y-axis) for PSPmts
-	G4int scintCopyNum; ///< Current scintillator segment copy number
-
-	G4bool fPolishedInterface; /*!< Flag indicating that a polished interface should be used between scintillators and optical grease
-	                                otherwise a Lambertian surface will be used for the optical interface */
-	G4bool fSquarePMTs; ///< Flag indicating that the added PMTs are square. If set to false, the PMTs will be circular, and the parameter @a pmtWidth will be used as the diameter
-	G4bool isStart; ///< Flag indicating that this detector is used as a start signal for timing
-	
-	G4String detectorMaterial; ///< String indicating the material to use for the detector scintillator body
-	G4String wrappingMaterial; ///< String indicating the material to use for the inner and outer detector wrapping
-
-	G4ThreeVector detectorPosition; ///< Position of detector in the lab frame
-	G4RotationMatrix detectorRotation; ///< Rotation of detector in the lab frame
-	
-	nDetDetectorMessenger *fMessenger; ///< Geant messenger to use for this class
-	
 	nDetDetectorParams() : pmtWidth(30), pmtHeight(30), fWrappingThickness(0), fGreaseThickness(0.1), fWindowThickness(0.1), fSensitiveThickness(1), 
 	                   fDetectorLength(600), fDetectorHeight(30), fDetectorWidth(30), fTrapezoidLength(0), fDiffuserLength(0),
 	                   fNumColumns(1), fNumRows(1), fNumColumnsPmt(-1), fNumRowsPmt(-1), scintCopyNum(1), 
@@ -120,6 +89,10 @@ class nDetDetectorParams{
 	/** Set the number of rows for segmented PMTs
 	  */	
 	void SetNumPmtRows(const G4int &val){ fNumRowsPmt = val; }
+	
+	/** Set the current scintillator segment copy number
+	  */
+	void SetScintillatorCopyNumber(const G4int &val){ scintCopyNum = val; }
 	
 	/** Enable or disable a polished optical interface between the edge of the detector and the optical grease layer
 	  */
@@ -220,6 +193,14 @@ class nDetDetectorParams{
 	  */
 	G4int GetNumPmtRows() const { return fNumRowsPmt; }
 
+	/** Get the width of the PMT along the x-axis (in mm)
+	  */
+	G4double GetPmtWidth() const { return pmtWidth; }
+
+	/** Get the height of the PMT along the y-axis (in mm)
+	  */
+	G4double GetPmtHeight() const { return pmtHeight; }
+
 	/** Get the uniform width of scintillator segments for segmented detectors
 	  * @note Assumes segments of uniform width, each with a layer of wrapping between them (if enabled). So the
 	  *       total detector height, @a fDetectorWidth, is equal to fNumColumns*segmentWidth+(fNumColumns-1)*fWrappingThickness
@@ -243,6 +224,38 @@ class nDetDetectorParams{
 	/** Return true if the wrapping thickness is positive and non-zero and return false otherwise
 	  */
 	bool WrappingEnabled() const { return (fWrappingThickness > 0); }
+
+  protected:
+	G4double pmtWidth; ///< The width (x-axis) of the PMT (in mm)
+	G4double pmtHeight; ///< The height (y-axis) of the PMT (in mm)
+	G4double fWrappingThickness; ///< Thickness of the inner and outer detector wrapping (in mm)
+	G4double fGreaseThickness; ///< Thickness of all optical grease layers (in mm)
+	G4double fWindowThickness; ///< Thickness of all optical window layers (in mm)
+	G4double fSensitiveThickness; ///< Thickness of the optical photon-sensitive surfaces (in mm)
+	G4double fDetectorLength; ///< Size of the detector along the z-axis (in mm)
+	G4double fDetectorHeight; ///< Size of the detector along the y-axis (in mm)
+	G4double fDetectorWidth; ///< Size of the detector along the x-axis (in mm)
+	G4double fTrapezoidLength; ///< Thickness of the trapezoids used as light guides (in mm)
+	G4double fDiffuserLength; ///< Thickness of straight diffusers (in mm)
+	
+	G4int fNumColumns; ///< Current number of scintillator columns (x-axis) for modular detectors
+	G4int fNumRows; ///< Current number of scintillator rows (y-axis) for modular detectors
+	G4int fNumColumnsPmt; ///< Current number of PMT anode columns (x-axis) for PSPmts
+	G4int fNumRowsPmt; ///< Current number of PMT anode rows (y-axis) for PSPmts
+	G4int scintCopyNum; ///< Current scintillator segment copy number
+
+	G4bool fPolishedInterface; /*!< Flag indicating that a polished interface should be used between scintillators and optical grease
+	                                otherwise a Lambertian surface will be used for the optical interface */
+	G4bool fSquarePMTs; ///< Flag indicating that the added PMTs are square. If set to false, the PMTs will be circular, and the parameter @a pmtWidth will be used as the diameter
+	G4bool isStart; ///< Flag indicating that this detector is used as a start signal for timing
+	
+	G4String detectorMaterial; ///< String indicating the material to use for the detector scintillator body
+	G4String wrappingMaterial; ///< String indicating the material to use for the inner and outer detector wrapping
+
+	G4ThreeVector detectorPosition; ///< Position of detector in the lab frame
+	G4RotationMatrix detectorRotation; ///< Rotation of detector in the lab frame
+	
+	nDetDetectorMessenger *fMessenger; ///< Geant messenger to use for this class
 };
 
 /** @class nDetDetector
