@@ -81,6 +81,11 @@ G4VPhysicalVolume* nDetConstruction::ConstructDetector(){
 		iter->placeDetector(expHall_logV);
 	}
 
+	// Place all external GDML solids
+	for(std::vector<gdmlSolid>::iterator iter = solids.begin(); iter != solids.end(); iter++){
+		iter->placeSolid(expHall_logV);
+	}	
+
 	// Build the shadow bar.
 	if(shadowBarMaterial){
 		G4Box *shadowBox = new G4Box("shadowBox", shadowBarSize.getX()/2, shadowBarSize.getY()/2, shadowBarSize.getZ()/2);
@@ -110,6 +115,9 @@ void nDetConstruction::ClearGeometry(){
 	// Clear previous construction.
 	userDetectors.clear();
 	
+	// Clear all loaded solids.
+	solids.clear();
+	
 	// Reset the scintillator copy number.
 	params.scintCopyNum = 1;
 }
@@ -124,7 +132,8 @@ void nDetConstruction::UpdateGeometry(){
 		setSegmentedPmt(params.fNumColumnsPmt, params.fNumRowsPmt, params.pmtWidth, params.pmtHeight);
 
 	// Update the particle source
-	nDetParticleSource::getInstance().SetDetector(currentDetector);
+	if(currentDetector)
+		nDetParticleSource::getInstance().SetDetector(currentDetector);
 	
 	for(std::vector<nDetDetector>::iterator iter = userDetectors.begin(); iter != userDetectors.end(); iter++){
 		iter->copyCenterOfMass(center[0], center[1]);
@@ -140,9 +149,7 @@ void nDetConstruction::UpdateGeometry(){
 }
 
 void nDetConstruction::LoadGDML(const G4String &input){
-	gdmlSolid *model = loadGDML(input);
-	if(model->isLoaded()) // Check that the model was loaded correctly
-		new G4PVPlacement(model->getRotation(), *model->getPosition(), model->getLogicalVolume(), model->getName(), expHall_logV, true, 0, fCheckOverlaps);
+	loadGDML(input);
 }
 
 gdmlSolid *nDetConstruction::loadGDML(const G4String &input){
@@ -167,11 +174,6 @@ gdmlSolid *nDetConstruction::loadGDML(const G4String &fname, const G4ThreeVector
 	currentSolid->setRotation(rotation);
 	currentSolid->setPosition(position);
 	std::cout << " nDetConstruction: Loaded GDML model (name=" << currentSolid->getName() << ") with size x=" << currentSolid->getWidth() << " mm, y=" << currentSolid->getThickness() << " mm, z=" << currentSolid->getLength() << " mm\n";
-	
-	// Place loaded model into the assembly.
-	if(currentSolid->isLoaded())
-		currentSolid->placeSolid(expHall_logV, fCheckOverlaps);
-	
 	return currentSolid;
 }
 
@@ -188,17 +190,6 @@ bool nDetConstruction::AddGeometry(const G4String &geom){
 		Display::ErrorPrint("User specified un-recognized detector type!", "nDetConstruction");
 		return false;
 	}
-
-	/*currentLayerSizeX = params.fDetectorWidth;
-	currentLayerSizeY = params.fDetectorThickness;
-	currentOffsetZ = params.fDetectorLength/2;
-
-	// Update the position and rotation of the detector.
-	currentDetector->setPositionAndRotation(detectorPosition, detectorRotation);
-	currentDetector->setCurrentOffset(currentLayerSizeX, currentLayerSizeY, currentOffsetZ);*/
-		
-	// Update the detector attributes
-	//currentDetector->setDetectorAttributes(params);
 
 	// Update the detector's copy numbers.
 	currentDetector->setParentCopyNumber(userDetectors.size()-1);

@@ -170,7 +170,7 @@ class nDetConstruction : public G4VUserDetectorConstruction{
 	  * @note String syntax: <geom> <r0> <startTheta> <stopTheta> <Ndet> <br>
 	  * | Parameter  | Description |
 	  * |------------|-------------|
-	  * | geom       | Name of detector geometry (see addGeometry() for valid types)
+	  * | geom       | Name of detector geometry (see nDetDetector::setGeometry() for valid types)
 	  * | startTheta | The angle of the first detector (in degrees)
 	  * | stopTheta  | The angle of the final detector (in degrees)
 	  * | Ndet       | Number of detectors in the array
@@ -218,7 +218,7 @@ class nDetConstruction : public G4VUserDetectorConstruction{
 	  */
 	void buildExpHall();
 
-	/** Load a GDML model from a file using parameters from a space-delimited input string and place it into the assembly
+	/** Load a GDML model from a file using parameters from a space-delimited input string
 	  * @note String syntax: <filename> <posX> <posY> <posZ> <rotX> <rotY> <rotZ> <matString>
 	  * | Parameter | Description |
 	  * |-----------|-------------|
@@ -230,7 +230,10 @@ class nDetConstruction : public G4VUserDetectorConstruction{
 	  */
 	gdmlSolid *loadGDML(const G4String &input);
 
-	/** Load a GDML model from a file and place it into the assembly
+	/** Load a GDML model from a file
+	  *
+	  * The model will not be placed into the setup until ConstructDetector() is called
+	  *
 	  * @param fname Filename of the input GDML file
 	  * @param position Vector containing the position of the model (in mm)
 	  * @param rotation Vector containing the rotation about the X, Y, and Z axes (in degrees)
