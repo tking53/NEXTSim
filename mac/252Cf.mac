@@ -16,6 +16,33 @@
 /nDet/detector/setPmtColumns 8
 /nDet/detector/setPmtRows 8
 
+################
+# OUTPUT SETUP #
+################
+
+# Set the output filename prefix
+/nDet/output/filename next2x2_252Cf_100cm.root
+/nDet/output/title 2x2x10" NExT module 100 cm away from isotropic 252Cf source (mylar, no Cf energy restriction)
+/nDet/output/debug true
+
+# Setup information about the PMT response
+/nDet/output/trace/setRisetime 2
+/nDet/output/trace/setFalltime 20
+/nDet/output/trace/setTimeSpread 0.35
+/nDet/output/trace/setGain 1E4
+/nDet/output/trace/setBaseline 7.5
+/nDet/output/trace/setJitter 0.15
+
+# Setup the PMT light pulse output
+#/nDet/output/trace/enabled true
+/nDet/output/trace/setTraceDelay 60
+/nDet/output/trace/setTraceLength 500
+/nDet/output/trace/setBitRange 16
+
+/nDet/output/trace/setCfdFraction 0.5
+/nDet/output/trace/setIntegralLow 5
+/nDet/output/trace/setIntegralHigh 10
+
 ##################
 # DETECTOR SETUP #
 ##################
@@ -44,33 +71,6 @@
 
 # Load PSPMT spectral response function
 /nDet/detector/setSpectralResponse spectral/hamamatsuH12700A.root
-
-################
-# OUTPUT SETUP #
-################
-
-# Set the output filename prefix
-/nDet/output/filename next2x2_252Cf_100cm.root
-/nDet/output/title 2x2x10" NExT module 100 cm away from isotropic 252Cf source (mylar, no Cf energy restriction)
-/nDet/output/debug true
-
-# Setup information about the PMT response
-/nDet/output/trace/setRisetime 2
-/nDet/output/trace/setFalltime 20
-/nDet/output/trace/setTimeSpread 0.35
-/nDet/output/trace/setGain 1E4
-/nDet/output/trace/setBaseline 7.5
-/nDet/output/trace/setJitter 0.15
-
-# Setup the PMT light pulse output
-#/nDet/output/trace/enabled true
-/nDet/output/trace/setTraceDelay 60
-/nDet/output/trace/setTraceLength 500
-/nDet/output/trace/setBitRange 16
-
-/nDet/output/trace/setCfdFraction 0.5
-/nDet/output/trace/setIntegralLow 5
-/nDet/output/trace/setIntegralHigh 10
 
 ################
 # SOURCE SETUP #

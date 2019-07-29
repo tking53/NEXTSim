@@ -8,25 +8,6 @@
 /nDet/detector/setMylarThickness 0.025
 /nDet/detector/setGreaseThickness 0.1
 
-##################
-# DETECTOR SETUP #
-##################
-
-# Ellipse prototype
-/nDet/detector/setDetectorLength 6
-/nDet/detector/setDetectorThickness 6
-/nDet/detector/setWrapping mylar
-
-/nDet/detector/setTrapezoidLength 2
-
-# Set the position and rotation of the detector in the lab frame.
-/nDet/detector/setPosition 100 0 0 cm
-/nDet/detector/setRotation 0 0 90
-
-# Update the detector.
-/nDet/detector/addGeometry ellipse
-/nDet/detector/update
-
 ################
 # OUTPUT SETUP #
 ################
@@ -52,6 +33,25 @@
 /nDet/output/trace/setCfdFraction 0.5
 /nDet/output/trace/setIntegralLow 5
 /nDet/output/trace/setIntegralHigh 10
+
+##################
+# DETECTOR SETUP #
+##################
+
+# Ellipse prototype
+/nDet/detector/setDetectorLength 6
+/nDet/detector/setDetectorThickness 6
+/nDet/detector/setWrapping mylar
+
+/nDet/detector/setTrapezoidLength 2
+
+# Set the position and rotation of the detector in the lab frame.
+/nDet/detector/setPosition 100 0 0 cm
+/nDet/detector/setRotation 0 0 90
+
+# Update the detector.
+/nDet/detector/addGeometry ellipse
+/nDet/detector/update
 
 ################
 # SOURCE SETUP #

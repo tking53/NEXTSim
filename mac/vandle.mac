@@ -6,6 +6,32 @@
 /nDet/detector/setMylarThickness 0.025
 /nDet/detector/setGreaseThickness 1
 
+################
+# OUTPUT SETUP #
+################
+
+# Set the output filename prefix
+/nDet/output/filename vandle.root
+/nDet/output/title 3x3x60 cm^3 small VANDLE bar with 1 MeV neutron pencil beam at 1 m (wrapped with mylar)
+/nDet/output/debug true
+
+# Setup information about the PMT response
+/nDet/output/trace/setRisetime 2
+/nDet/output/trace/setFalltime 20
+/nDet/output/trace/setTimeSpread 0.35
+/nDet/output/trace/setGain 2E3
+/nDet/output/trace/setBaseline 7.5
+/nDet/output/trace/setJitter 0.15
+
+# Setup the PMT light pulse output
+/nDet/output/trace/setTraceDelay 60
+/nDet/output/trace/setTraceLength 500
+/nDet/output/trace/setBitRange 16
+
+/nDet/output/trace/setCfdFraction 0.5
+/nDet/output/trace/setIntegralLow 5
+/nDet/output/trace/setIntegralHigh 10
+
 ##################
 # DETECTOR SETUP #
 ##################
@@ -35,32 +61,6 @@
 # Update the detector.
 /nDet/detector/addGeometry rectangle
 /nDet/detector/update
-
-################
-# OUTPUT SETUP #
-################
-
-# Set the output filename prefix
-/nDet/output/filename vandle.root
-/nDet/output/title 3x3x60 cm^3 small VANDLE bar with 1 MeV neutron pencil beam at 1 m (wrapped with mylar)
-/nDet/output/debug true
-
-# Setup information about the PMT response
-/nDet/output/trace/setRisetime 2
-/nDet/output/trace/setFalltime 20
-/nDet/output/trace/setTimeSpread 0.35
-/nDet/output/trace/setGain 2E3
-/nDet/output/trace/setBaseline 7.5
-/nDet/output/trace/setJitter 0.15
-
-# Setup the PMT light pulse output
-/nDet/output/trace/setTraceDelay 60
-/nDet/output/trace/setTraceLength 500
-/nDet/output/trace/setBitRange 16
-
-/nDet/output/trace/setCfdFraction 0.5
-/nDet/output/trace/setIntegralLow 5
-/nDet/output/trace/setIntegralHigh 10
 
 ################
 # SOURCE SETUP #
