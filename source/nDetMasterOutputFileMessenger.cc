@@ -33,7 +33,7 @@ void nDetMasterOutputFileMessenger::addAllCommands(){
 	addGuidance("Enable or disable persistent mode (i.e. to keep the output file open)");
 	addCandidates("true false");
 
-	addCommand(new G4UIcmdWithAString("/nDet/output/trace", this));
+	addCommand(new G4UIcmdWithAString("/nDet/output/recordTrace", this));
 	addGuidance("Enable or disable writing of light pulse to root tree");
 	addCandidates("true false");
 
