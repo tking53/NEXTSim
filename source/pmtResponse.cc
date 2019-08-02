@@ -12,6 +12,8 @@
 
 #define ADC_CLOCK_TICK 4 // ns
 
+const double sqrt2pi = 2.5066282746;
+
 TGraph *copyTGraph(TGraph *g){
 	TGraph *retval = new TGraph(g->GetN());
 	double x, y;
@@ -475,6 +477,9 @@ double pmtResponse::eval(const double &t, const double &dt/*=0*/){
 	else if(functionType == 1){ // "Vandle" function. The risetime is BETA and the decay time is GAMMA.
 		if(t-dt <= 0) return 0;
 		return (100*gain*std::exp((dt-t)*risetime)*(1 - std::exp(-std::pow((t-dt)*falltime,4))));
+	}
+	else if(functionType == 2){ // Normalized gaussian function. The risetime is sigma and the decay time is not used.
+		return gain*((1/(risetime*sqrt2pi))*std::exp(-0.5*std::pow((t-dt)/risetime, 2.0)));
 	}
 	return 0;
 }

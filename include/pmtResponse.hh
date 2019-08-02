@@ -51,9 +51,9 @@ class spectralResponse{
 	  */
 	bool load(const char *fname);
 
-	/** Return the quantum efficiency for a given wavelength
+	/** Interpolate the quantum efficiency for a given wavelength
 	  * @param wavelength Optical photon wavelength (in nm)
-	  * @return 
+	  * @return Return the quantum efficiency for a given wavelength
 	  */
 	double eval(const double &wavelength);
 
@@ -146,6 +146,10 @@ class pmtResponse{
 	  */
 	bool getPrintTrace() const { return printTrace; }
 
+	/** Return true if the anode quantum efficiency will be used, and return false otherwise
+	  */
+	bool getSpectralResponseEnabled() const { return useSpectralResponse; }
+
 	/** Get a pointer to the PMT quantum efficiency spectrum
 	  */
 	spectralResponse *getSpectralResponse(){ return &spec; }
@@ -190,8 +194,16 @@ class pmtResponse{
 	  */
 	void setBitRange(const size_t &len);
 
-	/** Set the single photon response function type
-	  * @param type The single photon response function to use [0=double exponential, 1=vandle function]
+	/** Set the single photon response function type. The available function types with their usage of the fall time and rise time 
+	  * parameters (set by setFalltime() and setRisetime() respectively) are described in the table below
+	  *
+	  * | Type        | Description | Fall Time | Rise Time |
+	  * |-------------|-------------|-----------|-----------|
+	  * | 0 (default) | [Double exponential function](https://iopscience.iop.org/article/10.1088/0031-9155/54/21/004) | Decay time of pulse (in ns) | Rise time of pulse (in ns) |
+	  * | 1           | [Vandle function](https://www.sciencedirect.com/science/article/pii/S0168900213015672) | Gamma (in ns) | Beta (in ns) |
+	  * | 2           | Normalized gaussian | Not used | Sigma (in ns) |
+	  *
+	  * @param type The single photon response function to use
 	  */
 	void setFunctionType(const int &type){ functionType = type; }
 
@@ -280,7 +292,7 @@ class pmtResponse{
 	  */
 	double integratePulseFromMaximum();
 
-	/** Perform traditional CFD analysis on the waveform using <a href="https://www.xia.com/Papers/TimeRes_DigConstFracDiscrimination.pdf">XIA CFD Algorithm</a>
+	/** Perform traditional CFD analysis on the waveform using [XIA CFD Algorithm](https://www.xia.com/Papers/TimeRes_DigConstFracDiscrimination.pdf)
 	  * @param F_ The CFD crossing point as a function of the pulse height
 	  * @param D_ CFD delay length (in ADC clock ticks)
 	  * @param L_ Running average length (in ADC clock ticks)
@@ -387,6 +399,11 @@ class pmtResponse{
 	std::vector<double> arrivalTimes; ///< Vector of all photon arrival times
 	std::vector<double> photonWeights; ///< Vector of the gain of all photon detections
 	
+	/** Evaluate the single-photon-response function for a given time and time offset
+	  * @param t The time to along the pulse at which to evaluate the single-photon-response function (in ns)
+	  * @param dt The offset of the pulse along the time axis (in ns)
+	  * @return The value of the single-photon-response function at the user specified time
+	  */
 	double eval(const double &t, const double &dt=0);
 	
 	/** Compute the baseline and maximum of the light pulse
