@@ -3,6 +3,7 @@
 
 #include "G4Step.hh"
 
+#include "nDetDetector.hh"
 #include "centerOfMass.hh"
 #include "vertilon.hh"
 
@@ -88,11 +89,11 @@ double centerOfMass::setActiveAreaHeight(const double &height_){
 	return activeHeight;
 }
 
-void centerOfMass::setSegmentedPmt(const short &col_, const short &row_, const double &width_, const double &height_){
-	Ncol = col_;
-	Nrow = row_;
-	activeWidth = width_;
-	activeHeight = height_;
+void centerOfMass::setSegmentedPmt(const nDetDetectorParams *params){
+	Ncol = params->GetNumPmtColumns();
+	Nrow = params->GetNumPmtRows();
+	activeWidth = params->GetPmtWidth();
+	activeHeight = params->GetPmtHeight();
 	pixelWidth = activeWidth / Ncol;
 	pixelHeight = activeHeight / Nrow;
 	

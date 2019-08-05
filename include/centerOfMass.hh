@@ -9,6 +9,7 @@
 #include "pmtResponse.hh"
 
 class G4Step;
+class nDetDetectorParams;
 
 /** @class centerOfMass
   * @brief Computes detected photon center-of-mass position in 3d space.
@@ -168,12 +169,9 @@ class centerOfMass{
 	double setActiveAreaHeight(const double &height_);
 
 	/** Set a segmented PMT
-	  * @param col_ Number of anode columns
-	  * @param row_ Number of anode rows
-	  * @param width_ The width of the active photon detection area (in mm)
-	  * @param height_ The height of the active photon detection area (in mm)
+	  * @param params Pointer to detector parameter object
 	  */	
-	void setSegmentedPmt(const short &col_, const short &row_, const double &width_, const double &height_);
+	void setSegmentedPmt(const nDetDetectorParams *params);
 	
 	/** Load the anode quantum efficiency spectrum from a root file
 	  * @param fname Path to file containing anode quantum efficiency spectrum

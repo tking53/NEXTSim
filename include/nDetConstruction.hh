@@ -61,26 +61,20 @@ class nDetConstruction : public G4VUserDetectorConstruction{
 	bool AddGeometry(const G4String &geom);
 
 	/** Setup segmented PMTs
-	  * @param col_ Number of columns (along the width)
-	  * @param row_ Number of rows (along the height)
-	  * @param width_ Width of the active area of the photo-sensitive surface (in mm)
-	  * @param height_ Height of the active area of the photo-sensitive surface (in mm)
 	  */
-	void setSegmentedPmt(const short &col_, const short &row_, const double &width_, const double &height_);
+	void setSegmentedPmt();
 
 	/** Load PMT quantum efficiency spectrum from a file
 	  * @note See centerOfMass::loadSpectralResponse() for information on required file contents
 	  * @param fname Path to file containing anode quantum efficiency spectrum
-	  * @return True if the quantum efficiency is loaded correctly and return false otherwise
 	  */
-	bool setPmtSpectralResponse(const char *fname);
+	void setPmtSpectralResponse(const std::string &fname){ spectralResponseFilename = fname; }
 
 	/** Load segmented PMT anode gain matrix from a file
 	  * @note See centerOfMass::loadGainMatrix() for information on required file contents
 	  * @param fname Path to file containing a matrix of anode gain percentages
-	  * @return True if the anode gain matrix is loaded correctly and return false otherwise
 	  */
-	bool setPmtGainMatrix(const char *fname);
+	void setPmtGainMatrix(const std::string &fname){ gainMatrixFilename = fname; }
 
 	/** Set the X, Y, and Z size of the shadow bar (all in mm)
 	  */
@@ -210,6 +204,9 @@ class nDetConstruction : public G4VUserDetectorConstruction{
 
 	nDetMaterials materials; ///< Object containing all Geant materials and elements which will be used in detector construction
 
+	std::string gainMatrixFilename; ///< Path to the anode gain matrix
+	std::string spectralResponseFilename; ///< Path to the anode quantum efficiency
+
 	/** Default constructor. Private for singleton class
 	  */
 	nDetConstruction();
@@ -241,6 +238,16 @@ class nDetConstruction : public G4VUserDetectorConstruction{
 	  * @return A pointer to the gdmlSolid containing the model
 	  */
 	gdmlSolid *loadGDML(const G4String &fname, const G4ThreeVector &position, const G4ThreeVector &rotation, const G4String &material);
+	
+	/** Load PMT quantum efficiency spectrum from a file
+	  * @return True if the quantum efficiency is loaded correctly and return false otherwise
+	  */
+	bool loadPmtSpectralResponse();
+
+	/** Load segmented PMT anode gain matrix from a file
+	  * @return True if the anode gain matrix is loaded correctly and return false otherwise
+	  */
+	bool loadPmtGainMatrix();
 };
 
 #endif

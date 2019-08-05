@@ -128,15 +128,38 @@ void nDetConstruction::UpdateGeometry(){
 	G4RunManager::GetRunManager()->GeometryHasBeenModified();
 	G4RunManager::GetRunManager()->ReinitializeGeometry();
 
-	if(params.PmtIsSegmented())
-		setSegmentedPmt(params.GetNumPmtColumns(), params.GetNumPmtRows(), params.GetPmtWidth(), params.GetPmtHeight());
-
+	// Segment the PMT photo-sensitive surface
+	if(params.PmtIsSegmented()){
+		setSegmentedPmt();
+		if(!gainMatrixFilename.empty())
+			loadPmtGainMatrix();
+	}
+	
+	// Load the anode quantum efficiency
+	if(!spectralResponseFilename.empty())
+		loadPmtSpectralResponse();
+	
 	// Update the particle source
 	if(currentDetector)
 		nDetParticleSource::getInstance().SetDetector(currentDetector);
-	
+
 	for(std::vector<nDetDetector>::iterator iter = userDetectors.begin(); iter != userDetectors.end(); iter++){
 		iter->copyCenterOfMass(center[0], center[1]);
+
+		if(params.PmtIsSegmented()){
+			iter->getCenterOfMassL()->setSegmentedPmt(&params);
+			iter->getCenterOfMassR()->setSegmentedPmt(&params);	
+
+			// Copy the PMT anode gain matrix
+			iter->getCenterOfMassL()->copyGainMatrix(&center[0]);
+			iter->getCenterOfMassR()->copyGainMatrix(&center[1]);
+		}
+	
+		// Copy the PMT anode quantum efficiency curve
+		if(iter->getCenterOfMassL()->getPmtResponse()->getSpectralResponseEnabled())
+			iter->getCenterOfMassL()->copySpectralResponse(&center[0]);
+		if(iter->getCenterOfMassR()->getPmtResponse()->getSpectralResponseEnabled())
+			iter->getCenterOfMassR()->copySpectralResponse(&center[1]);
 	}
 	
 	// Update the detector lists of all user run actions
@@ -201,39 +224,29 @@ bool nDetConstruction::AddGeometry(const G4String &geom){
 	return true;
 }
 
-void nDetConstruction::setSegmentedPmt(const short &col_, const short &row_, const double &width_, const double &height_){
-	center[0].setSegmentedPmt(col_, row_, width_, height_);
-	center[1].setSegmentedPmt(col_, row_, width_, height_);
-	for(std::vector<nDetDetector>::iterator iter = userDetectors.begin(); iter != userDetectors.end(); iter++){
-		iter->getCenterOfMassL()->setSegmentedPmt(col_, row_, width_, height_);
-		iter->getCenterOfMassR()->setSegmentedPmt(col_, row_, width_, height_);
-	}
-	std::cout << " nDetConstruction: Set segmented PMTs with WxH=(" << width_ << " x " << height_ << ") and " << col_ << " columns and " << row_ << " rows.\n";
+void nDetConstruction::setSegmentedPmt(){
+	center[0].setSegmentedPmt(&params);
+	center[1].setSegmentedPmt(&params);
+	std::cout << " nDetConstruction: Set segmented PMTs with WxH=(" << params.GetPmtWidth() << " x " << params.GetPmtHeight() << ") and " << params.GetNumPmtColumns() << " columns and " << params.GetNumPmtRows() << " rows.\n";
 }
 
-bool nDetConstruction::setPmtSpectralResponse(const char *fname){
-	if(!(center[0].loadSpectralResponse(fname) && center[1].loadSpectralResponse(fname))){
+bool nDetConstruction::loadPmtSpectralResponse(){
+	if(!(center[0].loadSpectralResponse(spectralResponseFilename.c_str()) && center[1].loadSpectralResponse(spectralResponseFilename.c_str()))){
 		Display::ErrorPrint("Failed to load PMT spectral response from file!", "nDetConstruction");
 		return false;
 	}
-	for(std::vector<nDetDetector>::iterator iter = userDetectors.begin(); iter != userDetectors.end(); iter++){
-		iter->getCenterOfMassL()->copySpectralResponse(&center[0]);
-		iter->getCenterOfMassR()->copySpectralResponse(&center[1]);
-	}
 	std::cout << " nDetConstruction: Successfully loaded PMT spectral response function\n";
+	spectralResponseFilename = ""; // Unset the filename so that it will not be loaded again later
 	return true;
 }
 
-bool nDetConstruction::setPmtGainMatrix(const char *fname){
-	if(!(center[0].loadGainMatrix(fname) && center[1].loadGainMatrix(fname))){
+bool nDetConstruction::loadPmtGainMatrix(){
+	if(!(center[0].loadGainMatrix(gainMatrixFilename.c_str()) && center[1].loadGainMatrix(gainMatrixFilename.c_str()))){
 		Display::ErrorPrint("Failed to load PMT anode gain matrix from file!", "nDetConstruction");
 		return false;
 	}
-	for(std::vector<nDetDetector>::iterator iter = userDetectors.begin(); iter != userDetectors.end(); iter++){
-		iter->getCenterOfMassL()->copyGainMatrix(&center[0]);
-		iter->getCenterOfMassR()->copyGainMatrix(&center[1]);
-	}
 	std::cout << " nDetConstruction: Successfully loaded PMT anode gain matrix\n";
+	gainMatrixFilename = ""; // Unset the filename so that it will not be loaded again later
 	return true;
 }
 

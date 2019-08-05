@@ -3,20 +3,17 @@
 
 #include <vector>
 
-class TGraph;
-class TF1;
-
-/*! \class spectralResponse
- *  \brief Class used to interpolate PMT anode quantum efficiency from an input spectrum.
- *  \author Cory R. Thornsberry (cthornsb@vols.utk.edu)
- *  \date May 23, 2019
-*/
+/** @class spectralResponse
+  * @brief Class used to interpolate PMT anode quantum efficiency from an input spectrum.
+  * @author Cory R. Thornsberry (cthornsb@vols.utk.edu)
+  * @date May 23, 2019
+  */
 
 class spectralResponse{
   public:
 	/** Default constructor
 	  */
-	spectralResponse() : spectrum(NULL), extrapolateLow(NULL), extrapolateHigh(NULL), xmin(0), xmax(0) { }
+	spectralResponse() : xmin(0), xmax(0), size(0) { }
 
 	/** Destructor
 	  */
@@ -26,19 +23,19 @@ class spectralResponse{
 	  * @param min_ The minimum wavelength defined in the spectrum (in nm)
 	  * @param max_ The maximum wavelength defined in the spectrum (in nm)
 	  */
-	void getRange(double &min_, double &max_);
+	void getRange(double &min_, double &max_) const ;
 
-	/** Get a pointer to the quantum efficiency spectrum TGraph
+	/** Get a vector containing all wavelengths contained in the spectrum (in nm)
 	  */
-	TGraph *getSpectrum(){ return spectrum; }
+	std::vector<double> getWavelength() const { return wavelength; }
+	
+	/** Get a vector containing all quantum efficiencies contained in the spectrum (in percent)
+	  */
+	std::vector<double> getPercentage() const { return percentage; }
 
-	/** Get a pointer to the TF1 used to extrapolate below the minimum wavelenth in the quantum efficiency spectrum
-	  */	
-	TF1 *getExtrapolateLow(){ return extrapolateLow; }
-
-	/** Get a pointer to the TF1 used to extrapolate above the maximum wavelenth in the quantum efficiency spectrum
-	  */	
-	TF1 *getExtrapolateHigh(){ return extrapolateHigh; }
+	/** Get the number of elements in the spectrum
+	  */
+	size_t getSize() const { return size; }
 
 	/** Copy the quantum efficiency spectrum from another spectralResponse object
 	  * @param other Pointer to another spectralResponse from which the spectrum will be copied
@@ -46,40 +43,36 @@ class spectralResponse{
 	void copy(spectralResponse *other);
 
 	/** Load the quantum efficiency spectrum from a root file
-	  * @param fname Path to a root file containing a TGraph named 'spec' and two TF1s named 'exlow' and 'exhigh'
+	  * @param fname Path to a root file containing a TGraph named 'spec' or to an ascii file with two columns of values
 	  * @return True if all objects are loaded successfully and return false otherwise
 	  */
-	bool load(const char *fname);
+	bool load(const std::string &fname);
 
 	/** Interpolate the quantum efficiency for a given wavelength
 	  * @param wavelength Optical photon wavelength (in nm)
 	  * @return Return the quantum efficiency for a given wavelength
 	  */
-	double eval(const double &wavelength);
+	double eval(const double &wavelength) const ;
 
   private:
-	TGraph *spectrum; ///< Pointer to a TGraph containing the PMT quantum efficiency spectrum (i.e. percentage vs. photon wavelength in nm)
-	
-	TF1 *extrapolateLow; ///< Pointer to a TF1 used to extrapolate below the minimum wavelenth in the quantum efficiency spectrum
-	TF1 *extrapolateHigh; ///< Pointer to a TF1 used to extrapolate above the maximum wavelenth in the quantum efficiency spectrum
-	
 	double xmin; ///< Minimum optical photon wavelenth defined in the quantum efficiency spectrum (in nm)
 	double xmax; ///< Maximum optical photon wavelenth defined in the quantum efficiency spectrum (in nm)
+	
+	size_t size; ///< The number of elements in the spectrum
 
-	/** Scan the spectrum and set the minimum and maximum defined optical photon wavelengths
-	  */	
-	void scanSpectrum();
+	std::vector<double> wavelength; ///< The vector of all wavelength values (in nm)
+	std::vector<double> percentage; ///< The vector of all quantum efficiencies (in percent)
 
 	/** Delete the spectrum and clear all values
 	  */	
-	void close();
+	void clear();
 };
 
-/*! \class pmtResponse
- *  \brief Class used to simulate the light response due to detection of multiple optical photons.
- *  \author Cory R. Thornsberry (cthornsb@vols.utk.edu)
- *  \date May 23, 2019
-*/
+/** @class pmtResponse
+  * @brief Class used to simulate the light response due to detection of multiple optical photons.
+  * @author Cory R. Thornsberry (cthornsb@vols.utk.edu)
+  * @date May 23, 2019
+  */
 
 class pmtResponse{
   public:

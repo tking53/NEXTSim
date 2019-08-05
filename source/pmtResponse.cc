@@ -4,7 +4,6 @@
 
 #include "TFile.h"
 #include "TGraph.h"
-#include "TF1.h"
 
 #include "Randomize.hh"
 
@@ -14,14 +13,15 @@
 
 const double sqrt2pi = 2.5066282746;
 
-TGraph *copyTGraph(TGraph *g){
-	TGraph *retval = new TGraph(g->GetN());
+void copyTGraph(TGraph *g, std::vector<double> &xvec, std::vector<double> &yvec){
 	double x, y;
+	xvec.clear();
+	yvec.clear();
 	for(int i = 0; i < g->GetN(); i++){
 		g->GetPoint(i, x, y);
-		retval->SetPoint(i, x, y);
+		xvec.push_back(x);
+		yvec.push_back(y);
 	}
-	return retval;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -30,86 +30,86 @@ TGraph *copyTGraph(TGraph *g){
 
 /// Destructor.
 spectralResponse::~spectralResponse(){
-	this->close();
+	clear();
 }
 
-void spectralResponse::getRange(double &min_, double &max_){
+void spectralResponse::getRange(double &min_, double &max_) const {
 	min_ = xmin;
 	max_ = xmax;
 }
 
 void spectralResponse::copy(spectralResponse *other){
-	this->close();
-	
-	spectrum = copyTGraph(other->getSpectrum());
-	extrapolateLow = new TF1(*other->getExtrapolateLow());
-	extrapolateHigh = new TF1(*other->getExtrapolateHigh());
-	other->getRange(xmin, xmax);
+	clear();
+	wavelength = other->getWavelength();
+	percentage = other->getPercentage();
+	xmin = wavelength.front();
+	xmax = wavelength.back();
+	size = wavelength.size();
 }
 
 /// Load response function from a file.
-bool spectralResponse::load(const char *fname){
-	this->close();
+bool spectralResponse::load(const std::string &fname){
+	clear();
 
-	TFile *f = new TFile(fname, "READ");
-	if(!f->IsOpen()) return false;
-	TGraph *g1 = (TGraph*)f->Get("spec");
-	if(!g1){
+	if(fname.find(".root") != std::string::npos){ // Root file. Expects a TGraph named "spec"
+		TFile *f = new TFile(fname.c_str(), "READ");
+		if(!f->IsOpen()) return false;
+		TGraph *g1 = (TGraph*)f->Get("spec");
+		if(!g1){
+			f->Close();
+			return false;
+		}
+		copyTGraph(g1, wavelength, percentage);
+	
+		xmin = wavelength.front();
+		xmax = wavelength.back();
+		size = wavelength.size();
+	
 		f->Close();
-		return false;
+		delete f;	
 	}
-	spectrum = (TGraph*)g1->Clone("spec");
-	
-	TF1 *f1 = (TF1*)f->Get("exlow");
-	TF1 *f2 = (TF1*)f->Get("exhigh");
-	
-	if(f1) extrapolateLow = new TF1(*f1);
-	if(f2) extrapolateHigh = new TF1(*f2);
-	
-	this->scanSpectrum();
-	
-	f->Close();
-	delete f;
+	else{ // Ascii file
+		std::ifstream f(fname.c_str());
+		if(!f.good()) return false;
+		double xval, yval;
+		while(true){
+			f >> xval >> yval;
+			if(f.eof())
+				break;
+			wavelength.push_back(xval);
+			percentage.push_back(yval);
+		}
+		
+		xmin = wavelength.front();
+		xmax = wavelength.back();
+		size = wavelength.size();
+		
+		f.close();
+	}
 	
 	return true;
 }
 
 /// Return the PMT quantum efficiency for a given wavelength.
-double spectralResponse::eval(const double &wavelength){
-	if(wavelength < xmin){ // Attempt to extrapolate toward smaller wavelengths.
-		if(!extrapolateLow) return 0;
-		return extrapolateLow->Eval(wavelength);
-	}
-	else if(wavelength <= xmax){ // Interpolate the distribution.
-		return spectrum->Eval(wavelength);
-	}
-	else{ // Attempt to extrapolate toward larger wavelengths.
-		if(!extrapolateHigh) return 0;
-		return extrapolateHigh->Eval(wavelength);
+double spectralResponse::eval(const double &lambda_) const {
+	if(size == 0) return 0;
+	if(lambda_ >= xmin && lambda_ <= xmax){ // Interpolate the distribution.
+		for(size_t i = 0; i < size-1; i++){
+			if(lambda_ == wavelength.at(i))
+				return percentage.at(i);
+			else if(lambda_ > wavelength.at(i) && lambda_ <= wavelength.at(i+1))
+				return (percentage.at(i)+(percentage.at(i+1)-percentage.at(i))*(lambda_-wavelength.at(i))/(wavelength.at(i+1)-wavelength.at(i)));
+		}
 	}
 	return 0;
 }
 
-void spectralResponse::scanSpectrum(){
-	double x, y;
-	spectrum->GetPoint(0, x, y);
-	xmin = x;
-	spectrum->GetPoint(spectrum->GetN()-1, x, y);
-	xmax = x;
-}
-
-void spectralResponse::close(){
-	if(spectrum)
-		delete spectrum;
-	if(extrapolateLow)
-		delete extrapolateLow;
-	if(extrapolateHigh) 
-		delete extrapolateHigh;
-	spectrum = NULL;
-	extrapolateLow = NULL;
-	extrapolateHigh = NULL;
+void spectralResponse::clear(){
+	wavelength.clear();
+	percentage.clear();
 	xmin = 0;
 	xmax = 0;
+	size = 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
