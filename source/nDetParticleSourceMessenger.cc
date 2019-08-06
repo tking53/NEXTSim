@@ -42,16 +42,16 @@ void nDetParticleSourceMessenger::addAllCommands(){
 	addGuidance("Set the energy range of a continuous distribution source");
 	
 	addCommand(new G4UIcmdWithAString("/nDet/source/reaction", this));
-	addGuidance("Load a reaction file");
+	addGuidance("Load a reaction file. SYNTAX: reaction <filename>");
 
 	addCommand(new G4UIcmdWithAString("/nDet/source/edist", this));
-	addGuidance("Read the source energy distribution from an ascii file");
+	addGuidance("Read the source energy distribution from an ascii file. SYNTAX: edist <filename>");
 	
 	addCommand(new G4UIcmdWithAString("/nDet/source/addLevel", this));
 	addGuidance("Add a discrete energy level to the current source. SYNTAX: addLevel <energy(keV)> [intensity] [particle]");
 	
 	addCommand(new G4UIcmdWithAString("/nDet/source/test", this));
-	addGuidance("Simulate a specified number of events and write particle energies to an output file");
+	addGuidance("Simulate a specified number of events and write particle energies to an output file. SYNTAX: test <filename> <Nevents>");
 
 	addCommand(new G4UIcmdWithoutParameter("/nDet/source/reset", this));
 	addGuidance("Reset the source and clear all defined energy levels");
@@ -59,6 +59,12 @@ void nDetParticleSourceMessenger::addAllCommands(){
 	addCommand(new G4UIcmdWithAString("/nDet/source/inter", this));
 	addGuidance("Set the default interpolation method for user defined energy distributions");
 	addCandidates("Lin Log Exp Spline");
+	
+	addCommand(new G4UIcmdWithADouble("/nDet/source/setEnergy", this));
+	addGuidance("Set the current energy level to mono-energetic and set the energy (in MeV)");
+
+	addCommand(new G4UIcmdWithAString("/nDet/source/setGaussianEnergy", this));
+	addGuidance("Set the current energy level to a gaussian distribution and set the energy and sigma. SYNTAX: setGaussianEnergy <E(MeV)> <dE(MeV)>");
 }
 
 void nDetParticleSourceMessenger::SetNewChildValue(G4UIcommand* command, G4String newValue){ 
@@ -100,4 +106,8 @@ void nDetParticleSourceMessenger::SetNewChildValue(G4UIcommand* command, G4Strin
 	else if(index == 13){
 		fAction->SetInterpolationMethod(newValue);
 	}
+	else if(index == 14)
+		fAction->SetBeamEnergy(G4UIcommand::ConvertToDouble(newValue));
+	else if(index == 15)
+		fAction->SetBeamEnergySigma(newValue);
 }

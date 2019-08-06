@@ -64,8 +64,30 @@ nDetParticleSource::~nDetParticleSource(){
 }
 
 void nDetParticleSource::SetBeamEnergy(const G4double &energy){
-	GetCurrentSource()->GetEneDist()->SetEnergyDisType("Mono");
-	GetCurrentSource()->GetEneDist()->SetMonoEnergy(energy);	
+		GetCurrentSource()->GetEneDist()->SetEnergyDisType("Mono");
+		GetCurrentSource()->GetEneDist()->SetMonoEnergy(energy);
+}
+
+bool nDetParticleSource::SetBeamEnergySigma(const G4String &str){
+	// Expects a space-delimited string of the form:
+	//  "E(MeV) dE(MeV)"
+	std::vector<std::string> args;
+	unsigned int Nargs = split_str(str, args);
+	if(Nargs < 2){
+		std::cout << " nDetConstruction: Invalid number of arguments given to ::SetBeamEnergySigma(). Expected 2, received " << Nargs << ".\n";
+		std::cout << " nDetConstruction:  SYNTAX: <E> <dE>\n";
+		return false;
+	}
+	double energy = strtod(args.at(0).c_str(), NULL);
+	double sigma = strtod(args.at(1).c_str(), NULL);
+	SetBeamEnergySigma(energy, sigma);
+	return true;
+}
+
+void nDetParticleSource::SetBeamEnergySigma(const G4double &energy, const G4double &dE){
+	GetCurrentSource()->GetEneDist()->SetEnergyDisType("Gauss");
+	GetCurrentSource()->GetEneDist()->SetMonoEnergy(energy);
+	GetCurrentSource()->GetEneDist()->SetBeamSigmaInE(dE);
 }
 
 void nDetParticleSource::SetSourcePosition(const G4ThreeVector &position){

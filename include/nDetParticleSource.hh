@@ -65,6 +65,21 @@ class nDetParticleSource : public G4GeneralParticleSource {
 	  */	
 	void SetBeamEnergy(const G4double &energy);	
 
+	/** Sets the source to a gaussian energy distribution and specified sigma using parameters from a space-delimited string
+	  * @note String syntax: <E> <dE>
+	  * | Parameter | Description |
+	  * |-----------|-------------|
+	  * | E         | The mean energy of the gaussian distribution (in MeV)
+	  * | dE        | The sigma of the gaussian distribution (in MeV)
+	  */
+	bool SetBeamEnergySigma(const G4String &str);
+
+	/** Sets the source to a gaussian energy distribution with a specified sigma
+	  * @param energy The mean of the gaussian distribution of the particle energy (in MeV)
+	  * @param dE The sigma of the gaussian distribution of the particle energy (in MeV)
+	  */
+	void SetBeamEnergySigma(const G4double &energy, const G4double &dE);
+
 	/** Sets the position of the center of the source
 	  * @param position The position of the center of the source (in mm)
 	  */	
