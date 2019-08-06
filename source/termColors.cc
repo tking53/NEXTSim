@@ -44,7 +44,7 @@ std::string Display::ErrorStr(const std::string &str){
 
 std::string Display::InfoStr(const std::string &str){
 	if (hasColorTerm)
-		return (DkBlue + str + Reset);
+		return (BtBlue + str + Reset);
 	return str;
 }
 
@@ -75,7 +75,7 @@ void Display::ErrorPrint(const std::string &str, const std::string &name/*=""*/)
 }
 
 void Display::InfoPrint(const std::string &str, const std::string &name/*=""*/){
-	std::cout << DkBlue << "[INFO]";
+	std::cout << BtBlue << "[INFO]";
 	if(!name.empty())
 		std::cout << " " << name << ":";
 	std::cout << " " << str << Reset << std::endl;

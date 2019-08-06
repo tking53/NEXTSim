@@ -138,6 +138,10 @@ class nDetMasterOutputFile{
 	  */
 	bool closeRootFile();
 
+	/** Print a status message to stdout
+	  */
+	void printMessage(const G4String &msg) const ;
+
   private:
 	std::mutex fileLock; ///< Mutex lock for thread-safe TTree filling
 

@@ -191,6 +191,10 @@ bool nDetMasterOutputFile::closeRootFile(){
 	return true;
 }
 
+void nDetMasterOutputFile::printMessage(const G4String &msg) const {
+	Display::InfoPrint(msg);
+}
+
 bool nDetMasterOutputFile::fillBranch(const nDetDataPack &pack){
 	if(!outputEnabled) return false;
 

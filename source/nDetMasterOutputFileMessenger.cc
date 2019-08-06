@@ -47,6 +47,9 @@ void nDetMasterOutputFileMessenger::addAllCommands(){
 	addCommand(new G4UIcmdWithAString("/nDet/output/badEvents", this));
 	addGuidance("Enable or disable writing of non-detection events to the output file");
 	addCandidates("true false");
+	
+	addCommand(new G4UIcmdWithAString("/nDet/output/message", this));
+	addGuidance("Print a status message to stdout");
 }
 	
 void nDetMasterOutputFileMessenger::SetNewChildValue(G4UIcommand *command, G4String newValue){
@@ -80,5 +83,8 @@ void nDetMasterOutputFileMessenger::SetNewChildValue(G4UIcommand *command, G4Str
 	}
 	else if(index == 8){
 		fOutputFile->setOutputBadEvents((newValue == "true") ? true : false);
+	}
+	else if(index == 9){
+		fOutputFile->printMessage(newValue);
 	}
 }
