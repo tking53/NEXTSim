@@ -20,10 +20,34 @@
 #include "nDetDetectorMessenger.hh"
 #include "optionHandler.hh" // split_str
 
+///////////////////////////////////////////////////////////////////////////////
+// class nDetDetectorParams
+///////////////////////////////////////////////////////////////////////////////
+
 void nDetDetectorParams::InitializeMessenger(){
 	if(fMessenger) 
 		return;
 	fMessenger = new nDetDetectorMessenger(this);
+}
+
+void nDetDetectorParams::SetDetectorWidth(const G4double &val){ 
+	fDetectorWidth = val; 
+	constantWidth = true;
+}
+
+void nDetDetectorParams::SetDetectorHeight(const G4double &val){ 
+	fDetectorHeight = val; 
+	constantHeight = true;
+}
+
+void nDetDetectorParams::SetSegmentWidth(const G4double &val){
+	fSegmentWidth = val;
+	constantWidth = false;
+}
+
+void nDetDetectorParams::SetSegmentHeight(const G4double &val){
+	fSegmentHeight = val;
+	constantHeight = false;
 }
 
 void nDetDetectorParams::SetPmtDimension(const G4String &input){
@@ -66,6 +90,65 @@ void nDetDetectorParams::SetRotation(const G4ThreeVector &rotation){
 	detectorRotation.rotateZ(rotation.getZ()*deg);  
 }
 
+void nDetDetectorParams::SetUnsegmented(){
+	fSegmentWidth = 0;
+	fSegmentHeight = 0;
+	fNumColumns = 1;
+	fNumRows = 1;
+	constantWidth = true;
+	constantHeight = true;
+}
+
+void nDetDetectorParams::Print() const {
+	G4ThreeVector rowX = detectorRotation.rowX();
+	G4ThreeVector rowY = detectorRotation.rowY();
+	G4ThreeVector rowZ = detectorRotation.rowZ();
+	std::cout << " Address              = " << this << std::endl;
+	std::cout << " Detector Length (Z)  = " << fDetectorLength << " mm\n";
+	std::cout << " Detector Size (X, Y) = " << fDetectorWidth << " x " << fDetectorHeight << " mm^2\n";
+	std::cout << " Pmt Size      (X, Y) = " << pmtWidth << " x " << pmtHeight << " mm^2\n";
+	std::cout << " Grease Thickness     = " << fGreaseThickness << " mm\n";
+	std::cout << " Window Thickness     = " << fWindowThickness << " mm\n";
+	std::cout << " Sensitive Thickness  = " << fSensitiveThickness << " mm\n";
+	std::cout << " Wrapping Thickness   = " << fWrappingThickness << " mm\n";
+	std::cout << " Trapezoid Length     = " << fTrapezoidLength << " mm\n";
+	std::cout << " Diffuser Length      = " << fDiffuserLength << " mm\n";
+	std::cout << " Wrapping Material    = \"" << wrappingMaterial << "\"\n";
+	std::cout << " Detector Material    = \"" << detectorMaterial << "\"\n";
+	std::cout << " CopyNum  = " << scintCopyNum << std::endl;
+	std::cout << " Position = (x=" << detectorPosition.getX() << ", y=" << detectorPosition.getY() << ", z=" << detectorPosition.getZ() << ")\n";
+	std::cout << " Unit X   = (" << rowX.getX() << ", " << rowX.getY() << ", " << rowX.getZ() << ")\n";
+	std::cout << " Unit Y   = (" << rowY.getX() << ", " << rowY.getY() << ", " << rowY.getZ() << ")\n";
+	std::cout << " Unit Z   = (" << rowZ.getX() << ", " << rowZ.getY() << ", " << rowZ.getZ() << ")\n";
+	std::cout << " Polished    : " << (fPolishedInterface ? "YES" : "NO") << std::endl;
+	std::cout << " Square      : " << (fSquarePMTs ? "YES" : "NO") << std::endl;
+	std::cout << " Start       : " << (isStart ? "YES" : "NO") << std::endl;
+	if(IsSegmented() || PmtIsSegmented())
+		std::cout << " Segmentation:\n";
+	if(IsSegmented()){
+		std::cout << "  Detector Segments (X, Y) = " << fNumColumns << " x " << fNumRows << std::endl;
+		std::cout << "  Cell Size         (X, Y) = " << fSegmentWidth << " x " << fSegmentHeight << " mm^2\n";
+	}
+	if(PmtIsSegmented()){
+		std::cout << "  Pmt Segments      (X, Y) = " << fNumColumnsPmt << " x " << fNumRowsPmt << "\n";
+	}
+}
+
+void nDetDetectorParams::UpdateSize(){
+	if(constantWidth)
+		fSegmentWidth = (fDetectorWidth-(fNumColumns-1)*fWrappingThickness)/fNumColumns;
+	else
+		fDetectorWidth = fSegmentWidth*fNumColumns + (fNumColumns-1)*fWrappingThickness;
+
+	if(constantHeight)
+		fSegmentHeight = (fDetectorHeight-(fNumRows-1)*fWrappingThickness)/fNumRows;
+	else
+		fDetectorHeight = fSegmentHeight*fNumRows + (fNumRows-1)*fWrappingThickness;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// class nDetDetector
+///////////////////////////////////////////////////////////////////////////////
 
 nDetDetector::nDetDetector(nDetConstruction *detector, nDetMaterials *matptr) : nDetDetectorParams(detector->GetDetectorParameters()),
                                                                                 assembly_logV(NULL), assembly_physV(NULL), layerSizeX(0), layerSizeY(0), offsetZ(0),
@@ -174,6 +257,9 @@ bool nDetDetector::setGeometry(const G4String &geom){
 }
 
 void nDetDetector::construct(){
+	// Update the size of the assembly in the event it has changed
+	UpdateSize(); 
+
 	// Build the assembly volume
 	constructAssembly();
 
@@ -190,7 +276,7 @@ void nDetDetector::construct(){
 		buildTestAssembly();
 	else // Geometry not recognized. Do nothing
 		return;
-	
+
 	// Generate all user-defined layers.
 	buildAllLayers();
 
@@ -253,7 +339,7 @@ void nDetDetector::addMirroredComponents(G4PVPlacement* &phys1, G4PVPlacement* &
 void nDetDetector::buildModule(){
 	const G4double cellWidth = GetSegmentWidth();
 	const G4double cellHeight = GetSegmentHeight();
-
+	
 	// Get the number of rows and columns for this segmented detector
 	int Ncol = fNumColumns;
 	int Nrow = fNumRows;
@@ -365,6 +451,9 @@ void nDetDetector::buildModule(){
 void nDetDetector::buildEllipse(){
 	const G4double angle = 60*deg;
 
+	// Disable segmented detector
+	SetUnsegmented();
+
 	// Width of the detector (defined by the trapezoid length and SiPM dimensions).
 	fDetectorWidth = 2*(pmtWidth/2+(fTrapezoidLength/std::tan(angle)))*mm;
 	G4double deltaWidth = fWrappingThickness/std::sin(angle);
@@ -415,7 +504,10 @@ void nDetDetector::buildEllipse(){
 }
 
 void nDetDetector::buildRectangle(){
-    G4Box *plateBody = new G4Box("", fDetectorWidth/2, fDetectorHeight/2, fDetectorLength/2);
+	// Disable segmented detector
+	SetUnsegmented();
+
+	G4Box *plateBody = new G4Box("", fDetectorWidth/2, fDetectorHeight/2, fDetectorLength/2);
     G4LogicalVolume *plateBody_logV = new G4LogicalVolume(plateBody, getUserDetectorMaterial(), "plateBody_logV");
     plateBody_logV->SetVisAttributes(materials->visScint);
 
@@ -445,6 +537,9 @@ void nDetDetector::buildRectangle(){
 }
 
 void nDetDetector::buildCylinder(){
+	// Disable segmented detector
+	SetUnsegmented();
+
 	// Make sure the height and width match
 	fDetectorHeight = fDetectorWidth;
 

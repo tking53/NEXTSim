@@ -176,6 +176,10 @@ class nDetConstruction : public G4VUserDetectorConstruction{
 	  */	
 	void SetLightYieldMultiplier(const G4double &yield);
 	
+	/** Print detailed information about all defined detectors
+	  */
+	void PrintAllDetectors() const ;
+	
   private:
 	nDetConstructionMessenger *fDetectorMessenger; ///< Geant messenger to use for this class
 	

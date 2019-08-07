@@ -66,6 +66,9 @@ void nDetConstructionMessenger::addAllCommands(){
 	addCommand(new G4UIcmdWithAString("/nDet/detector/addArray", this));
 	addGuidance("Add an array of multiple detectors. SYNTAX: addArray <geom> <r0> <startTheta> <stopTheta> <Ndet>");
 
+	addCommand(new G4UIcmdWithoutParameter("/nDet/detector/print", this));
+	addGuidance("Mark the current detector as a start detector");
+
 	///////////////////////////////////////////////////////////////////////////////
 	// PMT & digitizer commands
 	///////////////////////////////////////////////////////////////////////////////
@@ -167,10 +170,13 @@ void nDetConstructionMessenger::SetNewChildValue(G4UIcommand* command, G4String 
 	else if(index == 13){
 		fDetector->AddDetectorArray(newValue);
 	}
+	else if(index == 14){
+		fDetector->PrintAllDetectors();
+	}
 	else{ // Digitizer command
 		pmtResponse *prL = fDetector->GetPmtResponseL();
 		pmtResponse *prR = fDetector->GetPmtResponseR();
-		index = index - 14;
+		index = index - 15;
 		if(index == 0){
 			G4double val = command->ConvertToDouble(newValue);
 			prL->setRisetime(val);

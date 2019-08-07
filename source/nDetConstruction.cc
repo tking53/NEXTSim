@@ -341,3 +341,13 @@ void nDetConstruction::AddDetectorArray(const G4String &input){
 void nDetConstruction::SetLightYieldMultiplier(const G4double &yield){ 
 	materials.setLightYield(yield);
 }
+
+void nDetConstruction::PrintAllDetectors() const {
+	int detCount = 0;
+	for(std::vector<nDetDetector>::const_iterator iter = userDetectors.begin(); iter != userDetectors.end(); iter++){
+		std::cout << "***********************************************************\n";
+		std::cout << " Detector ID          = " << detCount++ << std::endl;
+		iter->Print();
+	}
+	std::cout << "***********************************************************\n";
+}

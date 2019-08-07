@@ -29,11 +29,14 @@ enum GEOMTYPES {GEOM_MODULE, GEOM_ELLIPSE, GEOM_RECTANGLE, GEOM_CYLINDER, GEOM_T
   
 class nDetDetectorParams{
   public:
+	/** Default constructor
+	  */
 	nDetDetectorParams() : pmtWidth(30), pmtHeight(30), fWrappingThickness(0), fGreaseThickness(0.1), fWindowThickness(0.1), fSensitiveThickness(1), 
-	                   fDetectorLength(600), fDetectorHeight(30), fDetectorWidth(30), fTrapezoidLength(0), fDiffuserLength(0),
+	                   fDetectorLength(600), fDetectorHeight(30), fDetectorWidth(30), fTrapezoidLength(0), fDiffuserLength(0), fSegmentWidth(0), fSegmentHeight(0),
 	                   fNumColumns(1), fNumRows(1), fNumColumnsPmt(-1), fNumRowsPmt(-1), scintCopyNum(1), 
 	                   fPolishedInterface(true), fSquarePMTs(true), isStart(false), 
 	                   detectorMaterial("ej200"), wrappingMaterial("mylar"),
+	                   constantWidth(true), constantHeight(true),
 	                   fMessenger(NULL) { }
 	                   
 	/** Initialize the detector parameter messenger for this class
@@ -44,35 +47,47 @@ class nDetDetectorParams{
 
 	/** Set the length (Z) of the detector (in mm)
 	  */
-	void SetDetectorLength(G4double val){ fDetectorLength = val; }
+	void SetDetectorLength(const G4double &val){ fDetectorLength = val; }
 
 	/** Set the width (X) of the detector (in mm)
 	  */
-	void SetDetectorWidth(G4double val){ fDetectorWidth = val; }   
+	void SetDetectorWidth(const G4double &val);
 
 	/** Set the height (Y) of the detector (in mm)
 	  */
-	void SetDetectorHeight(G4double val){ fDetectorHeight = val; }   
+	void SetDetectorHeight(const G4double &val);
+
+	/** Set the width (X) of scintillator segments for segmented detector (in mm)
+	  * @note If @a val <= 0, assumes segments of uniform width, each with a layer of wrapping between them (if enabled). So the
+	  *       total detector height, @a fDetectorWidth, is equal to fNumColumns*segmentWidth+(fNumColumns-1)*fWrappingThickness
+	  */
+	void SetSegmentWidth(const G4double &val);
+
+	/** Set the height (Y) of scintillator segments for segmented detector (in mm)
+	  * @note If @a val <= 0, assumes segments of uniform height, each with a layer of wrapping between them (if enabled). So the
+	  *       total detector height, @a fDetectorHeight, is equal to fNumRows*segmentHeight+(fNumRows-1)*fWrappingThickness
+	  */
+	void SetSegmentHeight(const G4double &val);
 
 	/** Set the length of the trapezoidal light-guide (in mm)
 	  */
-	void SetTrapezoidLength(G4double val){ fTrapezoidLength = val; }
+	void SetTrapezoidLength(const G4double &val){ fTrapezoidLength = val; }
 
 	/** Set the length of the light diffuser (in mm)
 	  */
-	void SetDiffuserLength(G4double val){ fDiffuserLength = val; }
+	void SetDiffuserLength(const G4double &val){ fDiffuserLength = val; }
 
 	/** Set the thickness of the inner and outer reflective wrapping (in mm)
 	  */
-	void SetMylarThickness(G4double val){ fWrappingThickness = val; }
+	void SetMylarThickness(const G4double &val){ fWrappingThickness = val; }
 
 	/** Set the thickness of optical grease layers (in mm)
 	  */
-	void SetGreaseThickness(G4double val){ fGreaseThickness = val; }
+	void SetGreaseThickness(const G4double &val){ fGreaseThickness = val; }
 
 	/** Set the thickness of the PMT quartz windows (in mm)
 	  */
-	void SetWindowThickness(G4double val){ fWindowThickness = val; }
+	void SetWindowThickness(const G4double &val){ fWindowThickness = val; }
 
 	/** Set the number of columns for segmented detectors
 	  */
@@ -149,6 +164,10 @@ class nDetDetectorParams{
 	  */
 	void SetAsStart(const bool &enabled){ isStart = enabled; }
 
+	/** Set this detector as non-segmented
+	  */
+	void SetUnsegmented();
+
 	/** Get the length (Z) of the detector (in mm)
 	  */
 	G4double GetDetectorLength() const { return fDetectorLength; }
@@ -201,21 +220,21 @@ class nDetDetectorParams{
 	  */
 	G4double GetPmtHeight() const { return pmtHeight; }
 
-	/** Get the uniform width of scintillator segments for segmented detectors
-	  * @note Assumes segments of uniform width, each with a layer of wrapping between them (if enabled). So the
-	  *       total detector height, @a fDetectorWidth, is equal to fNumColumns*segmentWidth+(fNumColumns-1)*fWrappingThickness
+	/** Get the uniform width of scintillator segments for segmented detectors (in mm)
 	  */
-	G4double GetSegmentWidth() const { return (fDetectorWidth-(fNumColumns-1)*fWrappingThickness)/fNumColumns; }
+	G4double GetSegmentWidth() const { return fSegmentWidth; }
 
-	/** Get the uniform height of scintillator segments for segmented detectors
-	  * @note Assumes segments of uniform height, each with a layer of wrapping between them (if enabled). So the
-	  *       total detector height, @a fDetectorHeight, is equal to fNumRows*segmentHeight+(fNumRows-1)*fWrappingThickness
+	/** Get the uniform height of scintillator segments for segmented detectors (in mm)
 	  */	
-	G4double GetSegmentHeight() const { return (fDetectorHeight-(fNumRows-1)*fWrappingThickness)/fNumRows; }
+	G4double GetSegmentHeight() const { return fSegmentHeight; }
 
 	/** Return true if this is a start detector and return false otherwise
 	  */
 	bool GetIsStart() const { return isStart; }
+
+	/** Return true if the detector is segmented and return false otherwise
+	  */
+	bool IsSegmented() const { return (fNumColumns > 1 || fNumRows > 1); }
 
 	/** Return true if the PMT is segmented and return false otherwise
 	  */
@@ -224,6 +243,10 @@ class nDetDetectorParams{
 	/** Return true if the wrapping thickness is positive and non-zero and return false otherwise
 	  */
 	bool WrappingEnabled() const { return (fWrappingThickness > 0); }
+
+	/** Print all detector parameters
+	  */
+	void Print() const ;
 
   protected:
 	G4double pmtWidth; ///< The width (x-axis) of the PMT (in mm)
@@ -237,6 +260,8 @@ class nDetDetectorParams{
 	G4double fDetectorWidth; ///< Size of the detector along the x-axis (in mm)
 	G4double fTrapezoidLength; ///< Thickness of the trapezoids used as light guides (in mm)
 	G4double fDiffuserLength; ///< Thickness of straight diffusers (in mm)
+	G4double fSegmentWidth; ///< Uniform width of scintillator segments for segmented detectors (in mm)
+	G4double fSegmentHeight; ///< Uniform height of scintillator segments for segmented detectors (in mm)
 	
 	G4int fNumColumns; ///< Current number of scintillator columns (x-axis) for modular detectors
 	G4int fNumRows; ///< Current number of scintillator rows (y-axis) for modular detectors
@@ -254,8 +279,15 @@ class nDetDetectorParams{
 
 	G4ThreeVector detectorPosition; ///< Position of detector in the lab frame
 	G4RotationMatrix detectorRotation; ///< Rotation of detector in the lab frame
+
+	bool constantWidth; ///< Flag indicating that the user has specified a constant detector width, i.e. segment width will be variable
+	bool constantHeight; ///< Flag indicating that the user has specified a constant detector height, i.e. segment height will be variable
 	
 	nDetDetectorMessenger *fMessenger; ///< Geant messenger to use for this class
+	
+	/** Update the size of the detector
+	  */
+	void UpdateSize();
 };
 
 /** @class nDetDetector

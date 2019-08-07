@@ -87,6 +87,12 @@ void nDetDetectorMessenger::addAllCommands(){
 	addCommand(new G4UIcmdWithAString("/nDet/detector/setSquarePmt", this));
 	addGuidance("Enable or disable square PMTs (enabled by default). If disabled, circular PMTs will be used");
 	addCandidates("true false");
+
+	addCommand(new G4UIcmdWithADouble("/nDet/detector/setSegmentWidth", this));
+	addGuidance("Set the width of scintillator segments for segmented detectors (in mm)");
+
+	addCommand(new G4UIcmdWithADouble("/nDet/detector/setSegmentHeight", this));
+	addGuidance("Set the height of scintillator segments for segmented detectors (in mm)");
 }
 
 void nDetDetectorMessenger::SetNewChildValue(G4UIcommand* command, G4String newValue){
@@ -174,5 +180,11 @@ void nDetDetectorMessenger::SetNewChildValue(G4UIcommand* command, G4String newV
 	}
 	else if(index == 21){
 		fDetector->SetSquarePMTs((newValue == "true") ? true : false);
+	}
+	else if(index == 22){
+		fDetector->SetSegmentWidth(command->ConvertToDouble(newValue));
+	}
+	else if(index == 23){
+		fDetector->SetSegmentHeight(command->ConvertToDouble(newValue));
 	}
 }
