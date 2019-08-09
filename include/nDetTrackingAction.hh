@@ -24,7 +24,7 @@ class nDetTrackingAction: public G4UserTrackingAction {
 	/** Action to perform before starting processing of a particle track
 	  * @note Currently does nothing
 	  */
-	void PreUserTrackingAction(const G4Track* aTrack){ }
+	void PreUserTrackingAction(const G4Track*){ }
 
 	/** Action to perform after a particle track has been processed
 	  * @note Currently does nothing
