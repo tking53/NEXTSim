@@ -66,8 +66,8 @@ void nDetConstructionMessenger::addAllCommands(){
 	addCommand(new G4UIcmdWithAString("/nDet/detector/addArray", this));
 	addGuidance("Add an array of multiple detectors. SYNTAX: addArray <geom> <r0> <startTheta> <stopTheta> <Ndet>");
 
-	addCommand(new G4UIcmdWithoutParameter("/nDet/detector/print", this));
-	addGuidance("Mark the current detector as a start detector");
+	addCommand(new G4UIcmdWithoutParameter("/nDet/detector/printAll", this));
+	addGuidance("Print construction parameters for all defined detectors");
 
 	///////////////////////////////////////////////////////////////////////////////
 	// PMT & digitizer commands
