@@ -9,21 +9,12 @@ nDetStackingAction::nDetStackingAction(nDetRunAction* run) : runAct(run) {
 	numPhotonsProduced = 0;
 }
 
-nDetStackingAction::~nDetStackingAction(){
-}
-
 G4ClassificationOfNewTrack nDetStackingAction::ClassifyNewTrack(const G4Track * aTrack) {
 	if (aTrack->GetDefinition() == G4OpticalPhoton::OpticalPhotonDefinition()) { // Particle is an optical photon
 		numPhotonsProduced++;
 		counter.addPhoton(aTrack->GetParentID());
 	}
 	return fUrgent;
-}
-
-void nDetStackingAction::NewStage(){
-}
-
-void nDetStackingAction::PrepareNewEvent(){
 }
 
 void nDetStackingAction::Reset(){

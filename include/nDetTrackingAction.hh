@@ -6,21 +6,37 @@
 
 class nDetRunAction;
 
+/** @class nDetTrackingAction
+  * @brief Performs actions which take place at the start and end of processing of a particle track
+  * @date August 9, 2019
+  */
+
 class nDetTrackingAction: public G4UserTrackingAction {
+	public:
+	/** Constructor taking a pointer to a user run action
+	  */
+	nDetTrackingAction(nDetRunAction *run);
 
-public:
-    nDetTrackingAction(nDetRunAction *run);
-    
-    ~nDetTrackingAction();
-    
-    void PreUserTrackingAction(const G4Track* aTrack);
-    
-    void PostUserTrackingAction(const G4Track*){ }
+	/** Destructor
+	  */    
+	~nDetTrackingAction(){ }
 
-    void Reset(){ }
+	/** Action to perform before starting processing of a particle track
+	  * @note Currently does nothing
+	  */
+	void PreUserTrackingAction(const G4Track* aTrack){ }
 
-private:
-    nDetRunAction* runAction; ///< Pointer to the thread-local user run action
+	/** Action to perform after a particle track has been processed
+	  * @note Currently does nothing
+	  */
+	void PostUserTrackingAction(const G4Track*){ }
+
+	/** Reset all class parameters
+	  */
+	void Reset(){ }
+
+	private:
+	nDetRunAction* runAction; ///< Pointer to the thread-local user run action
 };
 
 #endif
