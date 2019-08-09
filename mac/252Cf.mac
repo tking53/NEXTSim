@@ -61,16 +61,15 @@
 /nDet/detector/setPosition 100 0 0 cm
 /nDet/detector/setRotation 0 0 0
 
-# Update the detector.
-/nDet/detector/addGeometry module
-/nDet/detector/update
-
 # Load PSPMT gain matrix 
-# NOTE: This MUST be done AFTER calling '/nDet/detector/update' otherwise it will fail
 /nDet/detector/setGainMatrix gains/hamamatsuH12700A_LA0967.dat
 
 # Load PSPMT spectral response function
 /nDet/detector/setSpectralResponse spectral/hamamatsuH12700A.root
+
+# Update the detector.
+/nDet/detector/addGeometry module
+/nDet/detector/update
 
 ################
 # SOURCE SETUP #
