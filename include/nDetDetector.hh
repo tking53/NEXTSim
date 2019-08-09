@@ -32,11 +32,12 @@ class nDetDetectorParams{
 	/** Default constructor
 	  */
 	nDetDetectorParams() : pmtWidth(30), pmtHeight(30), fWrappingThickness(0), fGreaseThickness(0.1), fWindowThickness(0.1), fSensitiveThickness(1), 
-	                   fDetectorLength(600), fDetectorHeight(30), fDetectorWidth(30), fTrapezoidLength(0), fDiffuserLength(0), fSegmentWidth(0), fSegmentHeight(0),
+	                   fDetectorLength(600), fDetectorHeight(30), fDetectorWidth(30), fTrapezoidLength(0), fTrapezoidAngle(60), fDiffuserLength(0), fSegmentWidth(0), fSegmentHeight(0),
 	                   fNumColumns(1), fNumRows(1), fNumColumnsPmt(-1), fNumRowsPmt(-1), scintCopyNum(1), 
 	                   fPolishedInterface(true), fSquarePMTs(true), isStart(false), 
 	                   detectorMaterial("ej200"), wrappingMaterial("mylar"),
 	                   constantWidth(true), constantHeight(true),
+	                   geomType(GEOM_RECTANGLE),
 	                   fMessenger(NULL) { }
 	                   
 	/** Initialize the detector parameter messenger for this class
@@ -72,6 +73,13 @@ class nDetDetectorParams{
 	/** Set the length of the trapezoidal light-guide (in mm)
 	  */
 	void SetTrapezoidLength(const G4double &val){ fTrapezoidLength = val; }
+
+	/** Set the angle of the trapezoidal light-guide for elliptical detectors (in degrees)
+	  * 
+	  * @note The trapezoid angle is defined with respect to the edge of the rectangular body, meaning that
+	  *       the angle should be > 0 and < 90 degrees. Angles outside of this range will be ignored.
+	  */
+	void SetTrapezoidAngle(const G4double &val){ if(val > 0 && val < 90) fTrapezoidAngle = val; }
 
 	/** Set the length of the light diffuser (in mm)
 	  */
@@ -258,8 +266,9 @@ class nDetDetectorParams{
 	G4double fDetectorLength; ///< Size of the detector along the z-axis (in mm)
 	G4double fDetectorHeight; ///< Size of the detector along the y-axis (in mm)
 	G4double fDetectorWidth; ///< Size of the detector along the x-axis (in mm)
-	G4double fTrapezoidLength; ///< Thickness of the trapezoids used as light guides (in mm)
-	G4double fDiffuserLength; ///< Thickness of straight diffusers (in mm)
+	G4double fTrapezoidLength; ///< Length of the trapezoids used as light guides (in mm)
+	G4double fTrapezoidAngle; ///< Angle of the trapezoidal light-guide for elliptical detectors (in degrees)
+	G4double fDiffuserLength; ///< Length of straight diffusers (in mm)
 	G4double fSegmentWidth; ///< Uniform width of scintillator segments for segmented detectors (in mm)
 	G4double fSegmentHeight; ///< Uniform height of scintillator segments for segmented detectors (in mm)
 	
@@ -282,6 +291,8 @@ class nDetDetectorParams{
 
 	bool constantWidth; ///< Flag indicating that the user has specified a constant detector width, i.e. segment width will be variable
 	bool constantHeight; ///< Flag indicating that the user has specified a constant detector height, i.e. segment height will be variable
+
+	int geomType; ///< Integer value indicating the of the detector geometry
 	
 	nDetDetectorMessenger *fMessenger; ///< Geant messenger to use for this class
 	
@@ -303,7 +314,7 @@ class nDetDetector : public nDetDetectorParams {
 	nDetDetector() : nDetDetectorParams(),
 	                 assembly_logV(NULL), assembly_physV(NULL), layerSizeX(0), layerSizeY(0), offsetZ(0),
 	                 parentCopyNum(0), firstSegmentCopyNum(0), lastSegmentCopyNum(0),
-	                 checkOverlaps(false), geomType(GEOM_RECTANGLE), materials(NULL) { }
+	                 checkOverlaps(false), materials(NULL) { }
 	
 	/** Detector constructor
 	  * @param detector Pointer to a nDetConstruction object where the current detector is defined
@@ -613,8 +624,6 @@ class nDetDetector : public nDetDetectorParams {
 
 	bool checkOverlaps; ///< Flag indicating that Geant should check for overlaps between all placed objects
 
-	int geomType; ///< Integer value indicating the of the detector geometry
-	
 	nDetMaterials *materials; ///< Pointer to the NEXTSim Geant materials container
 
 	centerOfMass cmL; ///< Center-of-mass calculator for the left PMT
@@ -636,7 +645,7 @@ class nDetDetector : public nDetDetectorParams {
 	  * 
 	  * The parameter @a fDetectorLength is used as the length of the central rectangular body while @a fTrapezoidLength is
 	  * used for the length of the trapezoids on either side. The total detector length is equal to 2*fTrapezoidLength+fDetectorLength.
-	  * The internal trapezoid angle is 60 degrees (hard-coded).
+	  * The internal trapezoid angle is equal to @a fTrapezoidAngle
 	  */	
 	void buildEllipse();
 

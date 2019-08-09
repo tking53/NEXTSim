@@ -44,6 +44,7 @@
 /nDet/detector/setWrapping mylar
 
 /nDet/detector/setTrapezoidLength 2
+/nDet/detector/setTrapezoidAngle 45
 
 # Set the position and rotation of the detector in the lab frame.
 /nDet/detector/setPosition 100 0 0 cm

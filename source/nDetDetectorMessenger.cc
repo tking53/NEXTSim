@@ -93,6 +93,9 @@ void nDetDetectorMessenger::addAllCommands(){
 
 	addCommand(new G4UIcmdWithADouble("/nDet/detector/setSegmentHeight", this));
 	addGuidance("Set the height of scintillator segments for segmented detectors (in mm)");
+
+	addCommand(new G4UIcmdWithADouble("/nDet/detector/setTrapezoidAngle", this));
+	addGuidance("Defines the angle of the trapezoidal part of ellipse wrt the edge of the rectangular body (in degrees)");
 }
 
 void nDetDetectorMessenger::SetNewChildValue(G4UIcommand* command, G4String newValue){
@@ -186,5 +189,8 @@ void nDetDetectorMessenger::SetNewChildValue(G4UIcommand* command, G4String newV
 	}
 	else if(index == 23){
 		fDetector->SetSegmentHeight(command->ConvertToDouble(newValue));
+	}
+	else if(index == 24){
+		fDetector->SetTrapezoidAngle(command->ConvertToDouble(newValue));
 	}
 }

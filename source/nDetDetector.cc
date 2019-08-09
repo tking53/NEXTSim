@@ -115,6 +115,7 @@ void nDetDetectorParams::Print() const {
 	std::cout << " Diffuser Length      = " << fDiffuserLength << " mm\n";
 	std::cout << " Wrapping Material    = \"" << wrappingMaterial << "\"\n";
 	std::cout << " Detector Material    = \"" << detectorMaterial << "\"\n";
+	std::cout << " Geometry Type        = " << geomType << "\n";
 	std::cout << " CopyNum  = " << scintCopyNum << std::endl;
 	std::cout << " Position = (x=" << detectorPosition.getX() << ", y=" << detectorPosition.getY() << ", z=" << detectorPosition.getZ() << ")\n";
 	std::cout << " Unit X   = (" << rowX.getX() << ", " << rowX.getY() << ", " << rowX.getZ() << ")\n";
@@ -144,6 +145,17 @@ void nDetDetectorParams::UpdateSize(){
 		fSegmentHeight = (fDetectorHeight-(fNumRows-1)*fWrappingThickness)/fNumRows;
 	else
 		fDetectorHeight = fSegmentHeight*fNumRows + (fNumRows-1)*fWrappingThickness;
+
+	// Disable segmented detector
+	if(geomType != GEOM_MODULE)
+		SetUnsegmented();
+	
+	// Special processing for ellipse type	
+	if(geomType == GEOM_ELLIPSE){
+		// Width of the detector (defined by the trapezoid length, trapezoid angle, and SiPM dimensions).
+		fDetectorWidth = 2*(pmtWidth/2+(fTrapezoidLength/std::tan(fTrapezoidAngle*deg)))*mm;
+		fDetectorLength += 2*fTrapezoidLength;
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -153,7 +165,7 @@ void nDetDetectorParams::UpdateSize(){
 nDetDetector::nDetDetector(nDetConstruction *detector, nDetMaterials *matptr) : nDetDetectorParams(detector->GetDetectorParameters()),
                                                                                 assembly_logV(NULL), assembly_physV(NULL), layerSizeX(0), layerSizeY(0), offsetZ(0),
 	                                                                            parentCopyNum(0), firstSegmentCopyNum(0), lastSegmentCopyNum(0), 
-	                                                                            checkOverlaps(false), geomType(GEOM_RECTANGLE), materials(matptr) 
+	                                                                            checkOverlaps(false), materials(matptr) 
 {
 	copyCenterOfMass(*detector->GetCenterOfMassL(), *detector->GetCenterOfMassR());
 }
@@ -449,26 +461,20 @@ void nDetDetector::buildModule(){
 }
 
 void nDetDetector::buildEllipse(){
-	const G4double angle = 60*deg;
-
-	// Disable segmented detector
-	SetUnsegmented();
-
-	// Width of the detector (defined by the trapezoid length and SiPM dimensions).
-	fDetectorWidth = 2*(pmtWidth/2+(fTrapezoidLength/std::tan(angle)))*mm;
-	G4double deltaWidth = fWrappingThickness/std::sin(angle);
+	const G4double deltaWidth = fWrappingThickness/std::sin(fTrapezoidAngle*deg);
+	const G4double bodyLength = fDetectorLength - 2*fTrapezoidLength;
 
 	// Create the geometry.
 	G4Trd *innerTrapezoid = new G4Trd("innerTrapezoid", fDetectorWidth/2, pmtWidth/2, fDetectorHeight/2, pmtHeight/2, fTrapezoidLength/2);
 	G4Trd *outerTrapezoid = new G4Trd("outerTrapezoid", fDetectorWidth/2+deltaWidth, pmtWidth/2+deltaWidth, fDetectorHeight/2+deltaWidth, pmtHeight/2+deltaWidth, fTrapezoidLength/2);
-	G4Box *innerBody = new G4Box("innerBody", fDetectorWidth/2, fDetectorHeight/2, fDetectorLength/2);
-	G4Box *outerBody = new G4Box("outerBody", fDetectorWidth/2+deltaWidth, fDetectorHeight/2+deltaWidth, fDetectorLength/2);
+	G4Box *innerBody = new G4Box("innerBody", fDetectorWidth/2, fDetectorHeight/2, bodyLength/2);
+	G4Box *outerBody = new G4Box("outerBody", fDetectorWidth/2+deltaWidth, fDetectorHeight/2+deltaWidth, bodyLength/2);
 
 	// Build the detector body using unions.
 	G4RotationMatrix *trapRot = new G4RotationMatrix;
 	trapRot->rotateY(180*deg);
-	G4UnionSolid *scintBody1 = new G4UnionSolid("", innerBody, innerTrapezoid, 0, G4ThreeVector(0, 0, +fDetectorLength/2+fTrapezoidLength/2));
-	G4UnionSolid *scintBody2 = new G4UnionSolid("scint", scintBody1, innerTrapezoid, trapRot, G4ThreeVector(0, 0, -fDetectorLength/2-fTrapezoidLength/2));
+	G4UnionSolid *scintBody1 = new G4UnionSolid("", innerBody, innerTrapezoid, 0, G4ThreeVector(0, 0, +bodyLength/2+fTrapezoidLength/2));
+	G4UnionSolid *scintBody2 = new G4UnionSolid("scint", scintBody1, innerTrapezoid, trapRot, G4ThreeVector(0, 0, -bodyLength/2-fTrapezoidLength/2));
 	G4LogicalVolume *scint_logV = new G4LogicalVolume(scintBody2, getUserDetectorMaterial(), "scint_logV");	
     scint_logV->SetVisAttributes(materials->visScint);
 
@@ -480,8 +486,8 @@ void nDetDetector::buildEllipse(){
 	// Build the wrapping.
 	G4PVPlacement *ellipseWrapping_physV = NULL;
 	if(WrappingEnabled()){
-		G4UnionSolid *wrappingBody1 = new G4UnionSolid("", outerBody, outerTrapezoid, 0, G4ThreeVector(0, 0, +fDetectorLength/2+fTrapezoidLength/2));
-		G4UnionSolid *wrappingBody2 = new G4UnionSolid("", wrappingBody1, outerTrapezoid, trapRot, G4ThreeVector(0, 0, -fDetectorLength/2-fTrapezoidLength/2));
+		G4UnionSolid *wrappingBody1 = new G4UnionSolid("", outerBody, outerTrapezoid, 0, G4ThreeVector(0, 0, +bodyLength/2+fTrapezoidLength/2));
+		G4UnionSolid *wrappingBody2 = new G4UnionSolid("", wrappingBody1, outerTrapezoid, trapRot, G4ThreeVector(0, 0, -bodyLength/2-fTrapezoidLength/2));
 		G4SubtractionSolid *wrappingBody3 = new G4SubtractionSolid("wrapping", wrappingBody2, scintBody2);
 		G4LogicalVolume *wrapping_logV = new G4LogicalVolume(wrappingBody3, getUserSurfaceMaterial(), "wrapping_logV");		
 		wrapping_logV->SetVisAttributes(materials->visWrapping);
@@ -493,7 +499,7 @@ void nDetDetector::buildEllipse(){
 	// Account for the trapezoids and update the layer width/height
 	layerSizeX = fDetectorWidth;
 	layerSizeY = fDetectorHeight;
-	offsetZ = fDetectorLength/2 + fTrapezoidLength;
+	offsetZ = fDetectorLength/2;
 	
 	// Directly modify the size of the grease layer.
 	layerSizeX = pmtWidth;
@@ -504,9 +510,6 @@ void nDetDetector::buildEllipse(){
 }
 
 void nDetDetector::buildRectangle(){
-	// Disable segmented detector
-	SetUnsegmented();
-
 	G4Box *plateBody = new G4Box("", fDetectorWidth/2, fDetectorHeight/2, fDetectorLength/2);
     G4LogicalVolume *plateBody_logV = new G4LogicalVolume(plateBody, getUserDetectorMaterial(), "plateBody_logV");
     plateBody_logV->SetVisAttributes(materials->visScint);
@@ -537,9 +540,6 @@ void nDetDetector::buildRectangle(){
 }
 
 void nDetDetector::buildCylinder(){
-	// Disable segmented detector
-	SetUnsegmented();
-
 	// Make sure the height and width match
 	fDetectorHeight = fDetectorWidth;
 
