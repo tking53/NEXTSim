@@ -43,9 +43,14 @@ nDetConstruction::nDetConstruction(){
 
 	fCheckOverlaps = false;
 
-	expHallX = 10*m;
-	expHallY = 10*m;
-	expHallZ = 10*m;
+	// Set the default size of the experimental hall
+	expHallSize = G4ThreeVector(10*m, 10*m, 10*m);
+
+	expHallMaterial = "air";
+	expHallFloorMaterial = "";
+
+	expHallFloorThickness = 0;
+	expHallFloorCenterY = 0;
 
 	shadowBarMaterial = NULL;
 	
@@ -171,6 +176,25 @@ void nDetConstruction::UpdateGeometry(){
 	}
 }
 
+bool nDetConstruction::SetWorldFloor(const G4String &input){
+	// Expects a space-delimited string of the form:
+	//  "centerY(cm) thickness(cm) [material=G4_CONCRETE]"
+	std::vector<std::string> args;
+	unsigned int Nargs = split_str(input, args);
+	if(Nargs < 2){
+		std::cout << " nDetConstruction: Invalid number of arguments given to ::SetWorldFloor(). Expected 2, received " << Nargs << ".\n";
+		std::cout << " nDetConstruction:  SYNTAX: <centerY> <thickness> [material=G4_CONCRETE]\n";
+		return false;
+	}
+	expHallFloorCenterY = strtod(args.at(0).c_str(), NULL)*cm;
+	expHallFloorThickness = strtod(args.at(1).c_str(), NULL)*cm;
+	if(Nargs < 3) // Defaults to concrete
+		expHallFloorMaterial = "G4_CONCRETE";
+	else
+		expHallFloorMaterial = args.at(2);
+	return true;
+}
+
 void nDetConstruction::LoadGDML(const G4String &input){
 	loadGDML(input);
 }
@@ -267,14 +291,39 @@ bool nDetConstruction::SetShadowBarMaterial(const G4String &material){
 
 void nDetConstruction::buildExpHall()
 {
-  G4Box* expHall_solidV = new G4Box("expHall_solidV", expHallX, expHallY, expHallZ);
+	G4Box* expHall_solidV = new G4Box("expHall_solidV", expHallSize.getX()/2, expHallSize.getY()/2, expHallSize.getZ()/2);
 
-  expHall_logV  = new G4LogicalVolume(expHall_solidV, materials.fAir, "expHall_logV", 0, 0, 0);
-  expHall_logV->SetVisAttributes(G4VisAttributes::Invisible);
+	G4Material *expHallFill = materials.searchForMaterial(expHallMaterial);
+	if(!expHallFill){ // Use the default material, if
+		Display::WarningPrint("Failed to find user-specified world material!", "nDetConstruction");
+		Display::WarningPrint(" Defaulting to filling world volume with air", "nDetConstruction");
+		expHallFill = materials.fAir;
+	}
 
-  expHall_physV = new G4PVPlacement(0, G4ThreeVector(0, 0, 0), expHall_logV, "expHall_physV",0,false,0);
- 
-  return;
+	expHall_logV  = new G4LogicalVolume(expHall_solidV, expHallFill, "expHall_logV", 0, 0, 0);
+	expHall_logV->SetVisAttributes(G4VisAttributes::Invisible);
+
+	expHall_physV = new G4PVPlacement(0, G4ThreeVector(0, 0, 0), expHall_logV, "expHall_physV",0,false,0);
+
+	// Add a floor to the experimental hall (disabled by default)
+	if(!expHallFloorMaterial.empty() && expHallFloorThickness > 0){
+		G4Material *floorMaterial = materials.searchForMaterial(expHallFloorMaterial);
+		if(expHallFloorMaterial){
+			G4Box *floorBox = new G4Box("floor", expHallSize.getX()/2, expHallFloorThickness/2, expHallSize.getZ()/2);
+			G4LogicalVolume *floorBox_logV = new G4LogicalVolume(floorBox, floorMaterial, "floorBox_logV");
+			floorBox_logV->SetVisAttributes(materials.visShadow);
+			expHall_logV->SetVisAttributes(materials.visAssembly);
+			new G4PVPlacement(NULL, G4ThreeVector(0, -expHallFloorCenterY, 0), floorBox_logV, "floorBox_physV", expHall_logV, 0, 0, false);
+		}
+		else{
+			Display::WarningPrint("Failed to find user-specified floor material!", "nDetConstruction");
+			Display::WarningPrint(" Disabling the use of a floor", "nDetConstruction");
+			expHallFloorMaterial = "";
+			expHallFloorThickness = 0;
+		}
+	}
+
+	return;
 }
 
 void nDetConstruction::AddGDML(const G4String &input){

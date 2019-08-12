@@ -124,6 +124,8 @@ class nDetMaterials{
 	void setLightYield(const G4double &yield);
 
 	/** Search for a material name in the NIST database
+	  * @note If the specified name corresponds to a pre-defined material, a pointer to that material is returned.
+	  *       Otherwise the name is searched for within the Geant NIST material database.
 	  */
 	G4Material* searchForMaterial(const G4String &name);
 

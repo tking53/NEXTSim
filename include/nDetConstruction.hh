@@ -89,6 +89,16 @@ class nDetConstruction : public G4VUserDetectorConstruction{
 	  * @return True if the material exists in the database and return false otherwise
 	  */
 	bool SetShadowBarMaterial(const G4String &material);
+
+	/** Set the bounding box size of the experimental hall along the X, Y, and Z axes (all in mm)
+	  * @note The new world size will take effect the next time ConstructDetector() is called
+	  */
+	void SetWorldSize(const G4ThreeVector &size){ expHallSize = size; }
+
+	/** Set the name of the material to use to fill the experimental hall
+	  * @note Defaults to "air" which corresponds to nDetMaterials::fAir
+	  */
+	void SetWorldMaterial(const G4String &material){ expHallMaterial = material; }
 	
 	/** Get a pointer to the messenger used for this class
 	  */
@@ -130,6 +140,17 @@ class nDetConstruction : public G4VUserDetectorConstruction{
 	  */	
 	void UpdateGeometry();
 
+	/** Setup a floor for the bottom of the experimental hall using parameters from a space-delimited input string
+	  * @note String syntax: <centerY> <thickness> [material=G4_CONCRETE]
+	  * | Parameter | Description |
+	  * |-----------|-------------|
+	  * | centerY   | The vertical distance to the center of the floor with respect to the world origin (in cm)
+	  * | thickness | The thickness of the floor slab (in cm)
+	  * | material  | The name of the material to use (default=G4_CONCRETE)
+	  * @return True if the correct number of arguments are found in the input string and return false otherwise
+	  */
+	bool SetWorldFloor(const G4String &input);
+
 	/** Load a GDML model from a file using parameters from a space-delimited input string and place it into the world volume
 	  * @note See nDetDetector::addGDML(const G4String &) for input string syntax
 	  */
@@ -165,6 +186,7 @@ class nDetConstruction : public G4VUserDetectorConstruction{
 	  * | Parameter  | Description |
 	  * |------------|-------------|
 	  * | geom       | Name of detector geometry (see nDetDetector::setGeometry() for valid types)
+	  * | r0         | Radius of the center of the detectors (in cm)
 	  * | startTheta | The angle of the first detector (in degrees)
 	  * | stopTheta  | The angle of the final detector (in degrees)
 	  * | Ndet       | Number of detectors in the array
@@ -183,9 +205,7 @@ class nDetConstruction : public G4VUserDetectorConstruction{
   private:
 	nDetConstructionMessenger *fDetectorMessenger; ///< Geant messenger to use for this class
 	
-	G4double expHallX; ///< Size of the world along the x-axis (in mm)
-	G4double expHallY; ///< Size of the world along the y-axis (in mm)
-	G4double expHallZ; ///< Size of the world along the z-axis (in mm)
+	G4ThreeVector expHallSize; ///< Size of the experimental hall along the X, Y, and Z axes (all in mm)
 
 	nDetDetectorParams params; ///< Physical attributes of the current detector assembly
 
@@ -210,6 +230,12 @@ class nDetConstruction : public G4VUserDetectorConstruction{
 
 	std::string gainMatrixFilename; ///< Path to the anode gain matrix
 	std::string spectralResponseFilename; ///< Path to the anode quantum efficiency
+
+	G4String expHallMaterial; ///< The name of the material which fills the experimental hall
+	G4String expHallFloorMaterial;
+
+	G4double expHallFloorThickness;
+	G4double expHallFloorCenterY;
 
 	/** Default constructor. Private for singleton class
 	  */

@@ -40,13 +40,13 @@ void nDetConstructionMessenger::addAllCommands(){
 	addGuidance("Load a GDML geometry file for testing. SYNTAX: loadGDML <filename> <posX> <posY> <posZ> <rotX> <rotY> <rotZ> <matString>");
 	
 	addCommand(new G4UIcmdWith3VectorAndUnit("/nDet/detector/setShadowBarSize", this));
-	addGuidance("Set the size of a shadow-bar.");
+	addGuidance("Set the size of a shadow-bar");
 
 	addCommand(new G4UIcmdWith3VectorAndUnit("/nDet/detector/setShadowBarPos", this));
-	addGuidance("Set the position of the shadow-bar.");
+	addGuidance("Set the position of the shadow-bar");
 	
 	addCommand(new G4UIcmdWithAString("/nDet/detector/addShadowBar", this));
-	addGuidance("Set the shadow-bar material to use.");	
+	addGuidance("Set the shadow-bar material to use");	
 
 	addCommand(new G4UIcmdWithAString("/nDet/detector/addGreaseLayer", this));
 	addGuidance("Add a layer of optical grease (all units in mm). SYNTAX: addGreaseLayer <width> <height> [thickness]");	
@@ -68,7 +68,22 @@ void nDetConstructionMessenger::addAllCommands(){
 
 	addCommand(new G4UIcmdWithoutParameter("/nDet/detector/printAll", this));
 	addGuidance("Print construction parameters for all defined detectors");
+	
+	///////////////////////////////////////////////////////////////////////////////
+	// World commands
+	///////////////////////////////////////////////////////////////////////////////
 
+	addDirectory("/nDet/world/", "Simulation world control");
+
+	addCommand(new G4UIcmdWith3VectorAndUnit("/nDet/world/setWorldSize", this));
+	addGuidance("Set the bounding box size of the simulation world along the X, Y, and Z axes");
+
+	addCommand(new G4UIcmdWithAString("/nDet/world/setWorldFill", this));
+	addGuidance("Set the name of the material to use to fill the simulation world");
+	
+	addCommand(new G4UIcmdWithAString("/nDet/world/setWorldFloor", this));
+	addGuidance("Setup a rectangular floor slab for the bottom of the simulation world. SYNTAX: setWorldFloor <centerY> <thickness> [material=G4_CONCRETE]");
+	
 	///////////////////////////////////////////////////////////////////////////////
 	// PMT & digitizer commands
 	///////////////////////////////////////////////////////////////////////////////
@@ -173,10 +188,19 @@ void nDetConstructionMessenger::SetNewChildValue(G4UIcommand* command, G4String 
 	else if(index == 14){
 		fDetector->PrintAllDetectors();
 	}
+	else if(index == 15){
+		fDetector->SetWorldSize(command->ConvertToDimensioned3Vector(newValue));
+	}
+	else if(index == 16){
+		fDetector->SetWorldMaterial(newValue);
+	}
+	else if(index == 17){
+		fDetector->SetWorldFloor(newValue);
+	}
 	else{ // Digitizer command
 		pmtResponse *prL = fDetector->GetPmtResponseL();
 		pmtResponse *prR = fDetector->GetPmtResponseR();
-		index = index - 15;
+		index = index - 18;
 		if(index == 0){
 			G4double val = command->ConvertToDouble(newValue);
 			prL->setRisetime(val);

@@ -93,9 +93,30 @@ void nDetMaterials::setLightYield(const G4double &yield){
 	if(scintsAreDefined) // Re-define the scintillators as the light yield has changed
 		defineScintillators();
 }
-	
 
 G4Material* nDetMaterials::searchForMaterial(const G4String &name){
+	if(name == "air")
+		return fAir;
+	else if(name == "vacuum")
+		return fVacuum;
+	else if(name == "teflon")
+		return fTeflon;
+	else if(name == "ej200")
+		return fEJ200;
+	else if(name == "ej276")
+		return fEJ276;
+	else if(name == "grease")
+		return fGrease;
+	else if(name == "quartz")
+		return fSiO2;
+	else if(name == "silicon")
+		return fSilicon;
+	else if(name == "mylar")
+		return fMylar;
+	else if(name == "acrylic")
+		return fAcrylic;
+	else if(name == "aluminum")
+		return fAluminum;
 	return nist.searchForMaterial(name);
 }
 
