@@ -6,6 +6,7 @@
 #include "G4SolidStore.hh"
 #include "G4LogicalVolumeStore.hh"
 #include "G4PhysicalVolumeStore.hh"
+#include "G4SubtractionSolid.hh"
 #include "G4Box.hh"
 
 #include "G4GeometryManager.hh"
@@ -310,10 +311,19 @@ void nDetConstruction::buildExpHall()
 		G4Material *floorMaterial = materials.searchForMaterial(expHallFloorMaterial);
 		if(expHallFloorMaterial){
 			G4Box *floorBox = new G4Box("floor", expHallSize.getX()/2, expHallFloorThickness/2, expHallSize.getZ()/2);
-			G4LogicalVolume *floorBox_logV = new G4LogicalVolume(floorBox, floorMaterial, "floorBox_logV");
-			floorBox_logV->SetVisAttributes(materials.visShadow);
+			G4LogicalVolume *floor_logV;
+			if(expHallFloorPitSize.getX() > 0 && expHallFloorPitSize.getX() > 0 && expHallFloorPitSize.getX() > 0){ // Dig a pit
+				G4double pitCenterOffsetY = 0.5*(expHallFloorThickness - expHallFloorPitSize.getY());
+				G4Box *pitBox = new G4Box("pitBox", expHallFloorPitSize.getX()/2, expHallFloorPitSize.getY()/2, expHallFloorPitSize.getZ()/2);
+				G4SubtractionSolid *floorWithPit = new G4SubtractionSolid("floorWithPit", floorBox, pitBox, NULL, G4ThreeVector(0, pitCenterOffsetY, 0));
+				floor_logV = new G4LogicalVolume(floorWithPit, floorMaterial, "floor_logV");
+			}
+			else{
+				floor_logV = new G4LogicalVolume(floorBox, floorMaterial, "floor_logV");
+			}
+			floor_logV->SetVisAttributes(materials.visShadow);
 			expHall_logV->SetVisAttributes(materials.visAssembly);
-			new G4PVPlacement(NULL, G4ThreeVector(0, -(expHallFloorSurfaceY+expHallFloorThickness/2), 0), floorBox_logV, "floorBox_physV", expHall_logV, 0, 0, false);
+			new G4PVPlacement(NULL, G4ThreeVector(0, -(expHallFloorSurfaceY+expHallFloorThickness/2), 0), floor_logV, "floorBox_physV", expHall_logV, 0, 0, false);
 		}
 		else{
 			Display::WarningPrint("Failed to find user-specified floor material!", "nDetConstruction");

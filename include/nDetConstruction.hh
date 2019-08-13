@@ -99,6 +99,10 @@ class nDetConstruction : public G4VUserDetectorConstruction{
 	  * @note Defaults to "air" which corresponds to nDetMaterials::fAir
 	  */
 	void SetWorldMaterial(const G4String &material){ expHallMaterial = material; }
+
+	/** Set the size of the pit in the floor of the experimental hall
+	  */
+	void SetWorldFloorPitSize(const G4ThreeVector &size){ expHallFloorPitSize = size; }
 	
 	/** Get a pointer to the messenger used for this class
 	  */
@@ -232,10 +236,12 @@ class nDetConstruction : public G4VUserDetectorConstruction{
 	std::string spectralResponseFilename; ///< Path to the anode quantum efficiency
 
 	G4String expHallMaterial; ///< The name of the material which fills the experimental hall
-	G4String expHallFloorMaterial;
+	G4String expHallFloorMaterial; ///< The name of the material which comprises the floor of the experimental hall
 
-	G4double expHallFloorThickness;
-	G4double expHallFloorSurfaceY;
+	G4double expHallFloorThickness; ///< Thickness of the floor of the experimental hall (in mm)
+	G4double expHallFloorSurfaceY; ///< Vertical distance to the surface of the floor of the experimental hall (with respect to the origin, in mm)
+
+	G4ThreeVector expHallFloorPitSize; ///< The size of the floor pit along the X, Y, and Z axes (all in mm)
 
 	/** Default constructor. Private for singleton class
 	  */
