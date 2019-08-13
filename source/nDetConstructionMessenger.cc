@@ -82,7 +82,7 @@ void nDetConstructionMessenger::addAllCommands(){
 	addGuidance("Set the name of the material to use to fill the simulation world");
 	
 	addCommand(new G4UIcmdWithAString("/nDet/world/setWorldFloor", this));
-	addGuidance("Setup a rectangular floor slab for the bottom of the simulation world. SYNTAX: setWorldFloor <centerY> <thickness> [material=G4_CONCRETE]");
+	addGuidance("Setup a rectangular floor slab for the bottom of the simulation world. SYNTAX: setWorldFloor <surfaceY> <thickness> [material=G4_CONCRETE]");
 	
 	///////////////////////////////////////////////////////////////////////////////
 	// PMT & digitizer commands

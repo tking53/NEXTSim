@@ -141,10 +141,10 @@ class nDetConstruction : public G4VUserDetectorConstruction{
 	void UpdateGeometry();
 
 	/** Setup a floor for the bottom of the experimental hall using parameters from a space-delimited input string
-	  * @note String syntax: <centerY> <thickness> [material=G4_CONCRETE]
+	  * @note String syntax: <surfaceY> <thickness> [material=G4_CONCRETE]
 	  * | Parameter | Description |
 	  * |-----------|-------------|
-	  * | centerY   | The vertical distance to the center of the floor with respect to the world origin (in cm)
+	  * | surfaceY  | The vertical distance to the surface of the floor with respect to the world origin (in cm)
 	  * | thickness | The thickness of the floor slab (in cm)
 	  * | material  | The name of the material to use (default=G4_CONCRETE)
 	  * @return True if the correct number of arguments are found in the input string and return false otherwise
@@ -235,7 +235,7 @@ class nDetConstruction : public G4VUserDetectorConstruction{
 	G4String expHallFloorMaterial;
 
 	G4double expHallFloorThickness;
-	G4double expHallFloorCenterY;
+	G4double expHallFloorSurfaceY;
 
 	/** Default constructor. Private for singleton class
 	  */

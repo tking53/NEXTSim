@@ -50,7 +50,7 @@ nDetConstruction::nDetConstruction(){
 	expHallFloorMaterial = "";
 
 	expHallFloorThickness = 0;
-	expHallFloorCenterY = 0;
+	expHallFloorSurfaceY = 0;
 
 	shadowBarMaterial = NULL;
 	
@@ -186,7 +186,7 @@ bool nDetConstruction::SetWorldFloor(const G4String &input){
 		std::cout << " nDetConstruction:  SYNTAX: <centerY> <thickness> [material=G4_CONCRETE]\n";
 		return false;
 	}
-	expHallFloorCenterY = strtod(args.at(0).c_str(), NULL)*cm;
+	expHallFloorSurfaceY = strtod(args.at(0).c_str(), NULL)*cm;
 	expHallFloorThickness = strtod(args.at(1).c_str(), NULL)*cm;
 	if(Nargs < 3) // Defaults to concrete
 		expHallFloorMaterial = "G4_CONCRETE";
@@ -313,7 +313,7 @@ void nDetConstruction::buildExpHall()
 			G4LogicalVolume *floorBox_logV = new G4LogicalVolume(floorBox, floorMaterial, "floorBox_logV");
 			floorBox_logV->SetVisAttributes(materials.visShadow);
 			expHall_logV->SetVisAttributes(materials.visAssembly);
-			new G4PVPlacement(NULL, G4ThreeVector(0, -expHallFloorCenterY, 0), floorBox_logV, "floorBox_physV", expHall_logV, 0, 0, false);
+			new G4PVPlacement(NULL, G4ThreeVector(0, -(expHallFloorSurfaceY+expHallFloorThickness/2), 0), floorBox_logV, "floorBox_physV", expHall_logV, 0, 0, false);
 		}
 		else{
 			Display::WarningPrint("Failed to find user-specified floor material!", "nDetConstruction");
