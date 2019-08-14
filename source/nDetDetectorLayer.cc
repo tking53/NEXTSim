@@ -8,13 +8,9 @@
 // class greaseLayer
 ///////////////////////////////////////////////////////////////////////////////
 
-bool greaseLayer::decodeString(){
+bool greaseLayer::decodeArgs(){
 	// Expects a space-delimited string of the form:
 	//  "addGreaseLayer width(mm) height(mm) thickness(mm)"
-	std::vector<std::string> args;
-	nUserArgs = split_str(argStr, args);
-	if(nUserArgs < nReqArgs)
-		return false;
 	x = strtod(args.at(0).c_str(), NULL);
 	y = strtod(args.at(1).c_str(), NULL);
 	if(nUserArgs >= 3)
@@ -35,13 +31,13 @@ std::string greaseLayer::syntaxStr() const {
 // class diffuserLayer
 ///////////////////////////////////////////////////////////////////////////////
 
-bool diffuserLayer::decodeString(){
+diffuserLayer::diffuserLayer(const G4String &arg_) : nDetWorldObject(arg_, 3), x(0), y(0), thickness(0) { 
+	material = "G4_SILICON_DIOXIDE"; 
+}
+
+bool diffuserLayer::decodeArgs(){
 	// Expects a space-delimited string of the form:
 	//  "addDiffuserLayer width(mm) height(mm) thickness(mm) material"
-	std::vector<std::string> args;
-	nUserArgs = split_str(argStr, args);
-	if(nUserArgs < nReqArgs)
-		return false;
 	x = strtod(args.at(0).c_str(), NULL);
 	y = strtod(args.at(1).c_str(), NULL);
 	thickness = strtod(args.at(2).c_str(), NULL);
@@ -61,13 +57,13 @@ std::string diffuserLayer::syntaxStr() const {
 // class lightGuideLayer
 ///////////////////////////////////////////////////////////////////////////////
 
-bool lightGuideLayer::decodeString(){
+lightGuideLayer::lightGuideLayer(const G4String &arg_) : nDetWorldObject(arg_, 5), x1(0), x2(0), y1(0), y2(0), thickness(0) { 
+	material = "G4_SILICON_DIOXIDE"; 
+}
+
+bool lightGuideLayer::decodeArgs(){
 	// Expects a space-delimited string of the form:
 	//  "addLightGuide width1(mm) width2(mm) height1(mm) height2(mm) thickness(mm) material"
-	std::vector<std::string> args;
-	nUserArgs = split_str(argStr, args);
-	if(nUserArgs < nReqArgs)
-		return false;
 	x1 = strtod(args.at(0).c_str(), NULL);
 	x2 = strtod(args.at(1).c_str(), NULL);
 	y1 = strtod(args.at(2).c_str(), NULL);
@@ -89,22 +85,17 @@ std::string lightGuideLayer::syntaxStr() const {
 // class gdmlLayer
 ///////////////////////////////////////////////////////////////////////////////
 
-bool gdmlLayer::decodeString(){
+bool gdmlLayer::decodeArgs(){
 	// Expects a space-delimited string of the form:
 	//  "filename posX(cm) posY(cm) posZ(cm) rotX(deg) rotY(deg) rotZ(deg) material"
-	std::vector<std::string> args;
-	nUserArgs = split_str(argStr, args);
-	if(nUserArgs < nReqArgs)
-		return false;
-		
 	filename = args.at(0);
 	position = G4ThreeVector(strtod(args.at(1).c_str(), NULL)*cm, strtod(args.at(2).c_str(), NULL)*cm, strtod(args.at(3).c_str(), NULL)*cm);
-	rotation = G4ThreeVector(strtod(args.at(4).c_str(), NULL)*deg, strtod(args.at(5).c_str(), NULL)*deg, strtod(args.at(6).c_str(), NULL)*deg);
+	rotVector = G4ThreeVector(strtod(args.at(4).c_str(), NULL)*deg, strtod(args.at(5).c_str(), NULL)*deg, strtod(args.at(6).c_str(), NULL)*deg);
 	material = args.at(7);
 
 	// Load the model
 	solid.read(filename, material, false);
-	solid.setRotation(rotation);
+	solid.setRotation(rotVector);
 	solid.setPosition(position);
 
 	// Get the size of the model
@@ -125,21 +116,16 @@ std::string gdmlLayer::syntaxStr() const {
 // class gdmlLightGuideLayer
 ///////////////////////////////////////////////////////////////////////////////
 
-bool gdmlLightGuideLayer::decodeString(){
+bool gdmlLightGuideLayer::decodeArgs(){
 	// Expects a space-delimited string of the form:
 	//  "filename rotX(deg) rotY(deg) rotZ(deg) material"
-	std::vector<std::string> args;
-	nUserArgs = split_str(argStr, args);
-	if(nUserArgs < nReqArgs)
-		return false;
-
 	filename = args.at(0);
-	rotation = G4ThreeVector(strtod(args.at(1).c_str(), NULL)*deg, strtod(args.at(2).c_str(), NULL)*deg, strtod(args.at(3).c_str(), NULL)*deg);
+	rotVector = G4ThreeVector(strtod(args.at(1).c_str(), NULL)*deg, strtod(args.at(2).c_str(), NULL)*deg, strtod(args.at(3).c_str(), NULL)*deg);
 	material = args.at(4);
 
 	// Load the model
 	solid.read(filename, material, false);
-	solid.setRotation(rotation);
+	solid.setRotation(rotVector);
 	
 	// Get the size of the model
 	size = G4ThreeVector(solid.getWidth(), solid.getThickness(), solid.getLength());
@@ -148,7 +134,7 @@ bool gdmlLightGuideLayer::decodeString(){
 }
 
 void gdmlLightGuideLayer::construct(nDetDetector *obj){
-	obj->loadLightGuide(&solid, rotation);
+	obj->loadLightGuide(&solid, rotVector);
 }
 
 std::string gdmlLightGuideLayer::syntaxStr() const {

@@ -6,80 +6,9 @@
 #include "globals.hh"
 
 #include "gdmlSolid.hh"
+#include "nDetWorldObject.hh"
 
 class nDetDetector;
-
-/** @class nDetDetectorLayer
-  * @brief Component layers which are added to detector assemblies
-  * @author Cory R. Thornsberry (cthornsb@vols.utk.edu)
-  * @date July 18, 2019
-  */
-
-class nDetDetectorLayer{
-  public:
-	/** Default constructor
-	  */
-	nDetDetectorLayer() : argStr(), size(), nReqArgs(0), nUserArgs(0) { }
-
-	/** User input constructor
-	  * @param arg_ Argument string from the input macro
-	  */
-	nDetDetectorLayer(const G4String &arg_) : argStr(arg_), size(), nReqArgs(0), nUserArgs(0) { }
-
-	/** Function pointer constructor
-	  * @param arg_ Argument string from the input macro
-	  * @param nargs_ The number of arguments which are required from the user input string
-	  */	
-	nDetDetectorLayer(const G4String &arg_, const int &nargs_) : argStr(arg_), size(), nReqArgs(nargs_), nUserArgs(0) { }
-
-	/** Destructor
-	  */
-	virtual ~nDetDetectorLayer(){ }
-
-	/** Get the size of the layer along the X-axis (in mm)
-	  */
-	G4double getSizeX() const { return size.getX(); }
-	
-	/** Get the size of the layer along the Y-axis (in mm)
-	  */
-	G4double getSizeY() const { return size.getY(); }
-
-	/** Get the size of the layer along the Z-axis (in mm)
-	  */
-	G4double getSizeZ() const { return size.getZ(); }
-
-	/** Return the argument string from the input macro
-	  */
-	G4String dump() const { return argStr; }
-
-	/** Get the number of arguments expected from the user input string
-	  */
-	unsigned int getNumRequiredArgs() const { return nReqArgs; }
-
-	/** Get the number of arguments passed to decodeString()
-	  */
-	unsigned int getNumSuppliedArgs() const { return nUserArgs; }
-
-	/** Read a user input string and decode the relevant values
-	  */
-	virtual bool decodeString() = 0;
-	
-	/** Construct the layer volume and place it into a detector
-	  */
-	virtual void construct(nDetDetector *obj) = 0;
-
-	/** Return a string containing proper input string syntax
-	  */
-	virtual std::string syntaxStr() const = 0;
-
-  protected:
-	G4String argStr; ///< Argument string from the macro supplied by the user
-
-	G4ThreeVector size; ///< X, Y, and Z dimensions of the volume
-
-	unsigned int nReqArgs; ///< The number of required user arguments which are expected
-	unsigned int nUserArgs; ///< The number of user arguments passed to decodeString()
-};
 
 /** @class greaseLayer
   * @brief Optical grease component layer which is added to a detector assembly
@@ -87,12 +16,12 @@ class nDetDetectorLayer{
   * @date July 18, 2019
   */
 
-class greaseLayer : public nDetDetectorLayer {
+class greaseLayer : public nDetWorldObject {
   public:
 	/** User input constructor
 	  * @param arg_ Argument string from the input macro
 	  */
-	greaseLayer(const G4String &arg_) : nDetDetectorLayer(arg_, 2), x(0), y(0), thickness(0) { }
+	greaseLayer(const G4String &arg_) : nDetWorldObject(arg_, 2), x(0), y(0), thickness(0) { }
 
 	/** Destructor
 	  */	
@@ -106,7 +35,7 @@ class greaseLayer : public nDetDetectorLayer {
 	  * | height    | The height of the grease layer (in mm)
 	  * | thickness | The thickness of the grease layer (in mm). If not specified, @a fGreaseThickness is used
 	  */
-	bool decodeString();
+	bool decodeArgs();
 
 	/** Construct the grease layer volume and place it into a detector
 	  * @param obj A pointer to the detector where the grease layer will be placed
@@ -129,12 +58,12 @@ class greaseLayer : public nDetDetectorLayer {
   * @date July 18, 2019
   */
 
-class diffuserLayer : public nDetDetectorLayer {
+class diffuserLayer : public nDetWorldObject {
   public:
 	/** User input constructor
 	  * @param arg_ Argument string from the input macro
 	  */
-	diffuserLayer(const G4String &arg_) : nDetDetectorLayer(arg_, 3), x(0), y(0), thickness(0), matName("G4_SILICON_DIOXIDE") { }
+	diffuserLayer(const G4String &arg_);
 
 	/** Destructor
 	  */	
@@ -149,7 +78,7 @@ class diffuserLayer : public nDetDetectorLayer {
 	  * | thickness | The thickness of the diffuser layer (in mm)
 	  * | material  | Not used
 	  */
-	bool decodeString();
+	bool decodeArgs();
 
 	/** Construct the diffuser layer volume and place it into a detector
 	  * @param obj A pointer to the detector where the diffuser will be placed
@@ -164,7 +93,6 @@ class diffuserLayer : public nDetDetectorLayer {
 	G4double x; ///< Width of the diffuser (in mm)
 	G4double y; ///< Height of the diffuser (in mm)
 	G4double thickness; ///< Thickness of the diffuser (in mm)
-	G4String matName; ///< Name of the Geant NIST database material
 };
 
 /** @class lightGuideLayer
@@ -173,12 +101,12 @@ class diffuserLayer : public nDetDetectorLayer {
   * @date July 18, 2019
   */
 
-class lightGuideLayer : public nDetDetectorLayer {
+class lightGuideLayer : public nDetWorldObject {
   public:
 	/** User input constructor
 	  * @param arg_ Argument string from the input macro
 	  */
-	lightGuideLayer(const G4String &arg_) : nDetDetectorLayer(arg_, 5), x1(0), x2(0), y1(0), y2(0), thickness(0), matName("G4_SILICON_DIOXIDE") { }
+	lightGuideLayer(const G4String &arg_);
 
 	/** Destructor
 	  */
@@ -195,7 +123,7 @@ class lightGuideLayer : public nDetDetectorLayer {
 	  * | thickness | The thickness of the light-guide layer (in mm)
 	  * | material  | Not used
 	  */
-	bool decodeString();
+	bool decodeArgs();
 
 	/** Construct the light-guide layer volume and place it into a detector
 	  * @param obj A pointer to the detector where the light-guide will be placed
@@ -212,7 +140,6 @@ class lightGuideLayer : public nDetDetectorLayer {
 	G4double y1; ///< Height of the large side of the trapezoid (in mm)
 	G4double y2; ///< Height of the small side of the trapezoid (in mm)
 	G4double thickness; ///< Thickness of the trapezoid (in mm)
-	G4String matName; ///< Name of the Geant NIST database material
 };
 
 /** @class gdmlLayer
@@ -221,12 +148,12 @@ class lightGuideLayer : public nDetDetectorLayer {
   * @date July 18, 2019
   */
 
-class gdmlLayer : public nDetDetectorLayer {
+class gdmlLayer : public nDetWorldObject {
   public:
 	/** User input constructor
 	  * @param arg_ Argument string from the input macro
 	  */
-	gdmlLayer(const G4String &arg_) : nDetDetectorLayer(arg_, 8) { }
+	gdmlLayer(const G4String &arg_) : nDetWorldObject(arg_, 8) { }
 
 	/** Destructor
 	  */	
@@ -242,7 +169,7 @@ class gdmlLayer : public nDetDetectorLayer {
 	  * | matString | The NIST database name of the material to use for the model
 	  * @return A pointer to the gdmlSolid containing the model
 	  */
-	bool decodeString();
+	bool decodeArgs();
 
 	/** Load the GDML model and place it into a detector
 	  * @param obj A pointer to the detector where the model will be placed
@@ -255,9 +182,8 @@ class gdmlLayer : public nDetDetectorLayer {
 
   private:
 	G4String filename; ///< Path to the input GDML file
-	G4String material; ///< NIST database name of the material to use for the model
-	G4ThreeVector position; ///< X, Y, and Z position of the center of the model (all in mm)
-	G4ThreeVector rotation; ///< Rotation about the X, Y, and Z axes (all in degrees)
+
+	G4ThreeVector rotVector; ///< The rotation angles about the X, Y, and Z axes (all in degrees)
 
 	gdmlSolid solid; ///< Solid model loaded from an external gdml file
 };
@@ -268,12 +194,12 @@ class gdmlLayer : public nDetDetectorLayer {
   * @date July 18, 2019
   */
 
-class gdmlLightGuideLayer : public nDetDetectorLayer {
+class gdmlLightGuideLayer : public nDetWorldObject {
   public:
 	/** User input constructor
 	  * @param arg_ Argument string from the input macro
 	  */
-	gdmlLightGuideLayer(const G4String &arg_) : nDetDetectorLayer(arg_, 5) { }
+	gdmlLightGuideLayer(const G4String &arg_) : nDetWorldObject(arg_, 5) { }
 
 	/** Destructor
 	  */	
@@ -288,7 +214,7 @@ class gdmlLightGuideLayer : public nDetDetectorLayer {
 	  * | matString | The NIST database name of the material to use for the model
 	  * @return A pointer to the gdmlSolid containing the model
 	  */
-	bool decodeString();
+	bool decodeArgs();
 
 	/** Load the GDML light-guide model and place it into a detector
 	  *
@@ -305,8 +231,8 @@ class gdmlLightGuideLayer : public nDetDetectorLayer {
 	
   private:
 	G4String filename; ///< Path to the input GDML file
-	G4String material; ///< NIST database name of the material to use for the model
-	G4ThreeVector rotation; ///< Rotation about the X, Y, and Z axes (all in degrees)
+  
+	G4ThreeVector rotVector; ///< The rotation angles about the X, Y, and Z axes (all in degrees)
   
 	gdmlSolid solid; ///< Solid model loaded from an external gdml file
 };

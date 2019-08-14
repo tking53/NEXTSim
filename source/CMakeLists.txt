@@ -13,7 +13,7 @@ set(NextSimCoreSources nDetRunAction.cc nDetActionInitialization.cc nDetEventAct
                        messengerHandler.cc centerOfMass.cc pmtResponse.cc cmcalc.cc photonCounter.cc nistDatabase.cc)
 
 set(NextSimOutputSources nDetMasterOutputFile.cc nDetMasterOutputFileMessenger.cc nDetDataPack.cc)
-set(NextSimDetectorSources nDetMaterials.cc nDetConstruction.cc nDetConstructionMessenger.cc nDetDetector.cc nDetDetectorMessenger.cc nDetDetectorLayer.cc gdmlSolid.cc)
+set(NextSimDetectorSources nDetMaterials.cc nDetConstruction.cc nDetConstructionMessenger.cc nDetWorldObject.cc nDetDetector.cc nDetDetectorMessenger.cc nDetDetectorLayer.cc gdmlSolid.cc)
 set(NextSimGeneratorSources nDetParticleSource.cc nDetParticleSourceMessenger.cc)
 set(NextSimPeripheralSources optionHandler.cc termColors.cc)
 

@@ -171,7 +171,7 @@ nDetDetector::nDetDetector(nDetConstruction *detector, nDetMaterials *matptr) : 
 }
 
 nDetDetector::~nDetDetector(){
-	/*for(std::vector<nDetDetectorLayer*>::iterator iter = userLayers.begin(); iter != userLayers.end(); iter++){
+	/*for(std::vector<nDetWorldObject*>::iterator iter = userLayers.begin(); iter != userLayers.end(); iter++){
 		delete (*iter); // This causes a seg-fault
 	}
 	userLayers.clear();*/
@@ -195,7 +195,7 @@ void nDetDetector::setCurrentOffset(const G4double &x_, const G4double &y_, cons
 }
 
 void nDetDetector::buildAllLayers(){
-	for(std::vector<nDetDetectorLayer*>::iterator iter = userLayers.begin(); iter != userLayers.end(); iter++){
+	for(std::vector<nDetWorldObject*>::iterator iter = userLayers.begin(); iter != userLayers.end(); iter++){
 		(*iter)->construct(this);
 	}	
 }
@@ -303,7 +303,7 @@ G4LogicalVolume *nDetDetector::constructAssembly(){
 	G4double assemblyHeight = fDetectorHeight + 2*fWrappingThickness;
 
 	// Account for the additional component layers
-	for(std::vector<nDetDetectorLayer*>::iterator iter = userLayers.begin(); iter != userLayers.end(); iter++){
+	for(std::vector<nDetWorldObject*>::iterator iter = userLayers.begin(); iter != userLayers.end(); iter++){
 		if(!(*iter)->decodeString()){
 			std::cout << " nDetDetector: Invalid number of arguments given to ::decodeString(). Expected " << (*iter)->getNumRequiredArgs() << " but received " << (*iter)->getNumSuppliedArgs() << ".\n";
 			std::cout << " nDetDetector:  SYNTAX: " << (*iter)->syntaxStr() << std::endl;
@@ -543,7 +543,7 @@ void nDetDetector::buildCylinder(){
 	// Make sure the height and width match
 	fDetectorHeight = fDetectorWidth;
 
-    G4Tubs *cylinderBody = new G4Tubs("", 0, fDetectorWidth/2, fDetectorLength/2, 0, 2*CLHEP::pi);
+    G4Tubs *cylinderBody = new G4Tubs("scintBody", 0, fDetectorWidth/2, fDetectorLength/2, 0, 2*CLHEP::pi);
     G4LogicalVolume *cylinderBody_logV = new G4LogicalVolume(cylinderBody, getUserDetectorMaterial(), "cylinderBody_logV");
     cylinderBody_logV->SetVisAttributes(materials->visScint);
 
@@ -554,7 +554,7 @@ void nDetDetector::buildCylinder(){
 
 	// Build the wrapping.
 	if(WrappingEnabled()){
-		G4Tubs *cylinderWrappingBox = new G4Tubs("", 0, fDetectorWidth/2 + fWrappingThickness, fDetectorLength/2, 0, 2*CLHEP::pi);
+		G4Tubs *cylinderWrappingBox = new G4Tubs("outerWrapping", 0, fDetectorWidth/2 + fWrappingThickness, fDetectorLength/2, 0, 2*CLHEP::pi);
 		G4SubtractionSolid *cylinderWrapping = new G4SubtractionSolid("", cylinderWrappingBox, cylinderBody);
 		G4LogicalVolume *cylinderWrapping_logV = new G4LogicalVolume(cylinderWrapping, getUserSurfaceMaterial(), "cylinderWrapping_logV");
 		cylinderWrapping_logV->SetVisAttributes(materials->visWrapping);

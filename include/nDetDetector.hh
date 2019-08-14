@@ -16,7 +16,7 @@ class G4CSGSolid;
 class nDetMaterials;
 class nDetConstruction;
 class nDetDetectorMessenger;
-class nDetDetectorLayer;
+class nDetWorldObject;
 class gdmlSolid;
 
 enum GEOMTYPES {GEOM_MODULE, GEOM_ELLIPSE, GEOM_RECTANGLE, GEOM_CYLINDER, GEOM_TEST};
@@ -395,7 +395,7 @@ class nDetDetector : public nDetDetectorParams {
 	/** Add a user defined layer to the queue
 	  * @note When buildAllLayers() is called, the layers will be added on a first-in-first-out basis
 	  */
-	void addLayer(nDetDetectorLayer *layer){ userLayers.push_back(layer); }
+	void addLayer(nDetWorldObject *layer){ userLayers.push_back(layer); }
 
 	/** Add all layers added by addLayer() to the detector construction
 	  */
@@ -629,7 +629,7 @@ class nDetDetector : public nDetDetectorParams {
 	centerOfMass cmL; ///< Center-of-mass calculator for the left PMT
 	centerOfMass cmR; ///< Center-of-mass calculator for the right PMT
 
-	std::vector<nDetDetectorLayer*> userLayers; ///< Vector of all layers added by the user
+	std::vector<nDetWorldObject*> userLayers; ///< Vector of all layers added by the user
 
 	std::vector<G4PVPlacement*> scintBody_physV; ///< Vector of all physical volumes of all scintillator segments
 
