@@ -51,7 +51,7 @@ void nDetWorld::buildExpHall(nDetMaterials *materials){
 		expHallFill = materials->fAir;
 	}
 
-	logV = new G4LogicalVolume(solidV, expHallFill, "logV", 0, 0, 0);
+	logV = new G4LogicalVolume(solidV, expHallFill, "expHallLogV", 0, 0, 0);
 	logV->SetVisAttributes(G4VisAttributes::Invisible);
 
 	// Add a floor to the experimental hall (disabled by default)
@@ -87,7 +87,31 @@ void nDetWorld::buildExpHall(nDetMaterials *materials){
 	}
 
 	// Place the experimental hall into the world
-	physV = new G4PVPlacement(0, G4ThreeVector(0, 0, 0), logV, "physV", 0, false, 0);
+	physV = new G4PVPlacement(0, G4ThreeVector(0, 0, 0), logV, "expHallPhysV", 0, false, 0);
 
 	return;
+}
+
+nDetWorldPrimitive *nDetWorld::addNewPrimitive(const G4String &str){
+	nDetWorldPrimitive *obj = new nDetWorldPrimitive(str);
+	obj->decodeString();
+	if(!obj->decodeString()){
+		std::cout << " nDetWorld: Invalid number of arguments given to ::addNewPrimitive(). Expected at least " << obj->getNumRequiredArgs() << " but received " << obj->getNumSuppliedArgs() << ".\n";
+		std::cout << " nDetWorld:  SYNTAX: " << obj->syntaxStr() << std::endl;
+		delete obj;
+		return NULL;
+	}
+	objects.push_back(obj);
+	return obj;
+}
+
+void nDetWorld::listAllPrimitives(){
+	nDetWorldPrimitive dummy("");
+	dummy.listAllPrimitives();
+}
+
+void nDetWorld::reset(){
+	for(auto obj : objects)
+		delete obj;
+	objects.clear();
 }

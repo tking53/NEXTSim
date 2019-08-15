@@ -7,7 +7,7 @@
 
 #include "G4ThreeVector.hh"
 
-class nDetWorldObject;
+class nDetWorldPrimitive;
 class nDetWorldMessenger;
 class nDetMaterials;
 
@@ -76,10 +76,19 @@ class nDetWorld{
 	  */
 	void buildExpHall(nDetMaterials *materials);
 
-	/** Reset the experimental setup area
-	  * @note Currently not implemented
+	/** Add a new Geant primitive object to the world
+	  * @param str Space-delimited input string with format specified in nDetWorldPrimitive::decodeArgs()
+	  * @return A pointer to the new object if construction was successful and return NULL if construction failed
 	  */
-	void reset(){ }
+	nDetWorldPrimitive *addNewPrimitive(const G4String &str);
+
+	/** List all available Geant shapes which may be added to the experimental setup area
+	  */
+	void listAllPrimitives();
+
+	/** Reset the experimental setup area and delete all defined primitive objects
+	  */
+	void reset();
 
   private:
 	G4Box *solidV; ///< Geometry of the experimental setup area
@@ -95,7 +104,7 @@ class nDetWorld{
 	G4ThreeVector floorPitSize; ///< The size of the floor pit along the X, Y, and Z axes (all in mm)
 	G4ThreeVector hallSize; ///< Size of the experimental hall along the X, Y, and Z axes (all in mm)
 
-	std::vector<nDetWorldObject*> objects; ///< Vector of objects to add to the experimental setup area
+	std::vector<nDetWorldPrimitive*> objects; ///< Vector of objects to add to the experimental setup area
 	
 	nDetWorldMessenger *messenger; ///< Pointer to the messenger used for this class
 };

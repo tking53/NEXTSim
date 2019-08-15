@@ -154,10 +154,12 @@ class nDetWorldPrimitive : public nDetWorldObject {
 	  * | posX(Y,Z) | X, Y, and Z position of the center of the model (in mm)
 	  * | rotX(Y,Z) | Rotation about the X, Y, and Z axes (in degrees)
 	  * | matString | The NIST database name of the material to use for the model
+	  * | p1 ... pn | Geometrical parameters used by Geant to construct the object. See setShape() for detailed list of parameters
+	  * @return True if the specified shape is valid and all required construction parameters were specified
 	  */
 	virtual bool decodeArgs();
 
-	/** Not implemented
+	/** Does nothing
 	  */
 	virtual void construct(nDetDetector*){ }
 
@@ -170,16 +172,33 @@ class nDetWorldPrimitive : public nDetWorldObject {
 	  * @param materials Pointer to materials object which will be used to look-up the build material
 	  */
 	virtual void placeObject(G4LogicalVolume *parent, nDetMaterials *materials);
-
+	
 	/** Select the type of 3d geometry to build
 	  * @param name The name of the 3d shape
+	  * @note The table below shows the shape names currently available along with their constructor arguments. Required arguments
+	  *       are shown in **bold** while optional arguments are shown in normal text with their default values. Parameter names are
+	  *       taken from the [Geant4 application developers handbook](https://indico.cern.ch/event/679723/contributions/2792554/attachments/1559217/2453758/BookForApplicationDevelopers.pdf).
+	  * | Shape          | Name   | Geant4 Parameters |
+	  * |----------------|--------|-------------------|
+	  * | Box            | box    | __pX__ \| __pY__ \| __pZ__ 
+	  * | Cone           | cone   | __pDz__ \| __pRmax1__ \| __pRmax2__ \| pDPhi=360 \| pRmin1=0 \| pRmin2=0 \| pSPhi=0 
+	  * | Cylinder       | cyl    | __pDz__ \| __pRMax__ \| pDPhi=360 \| pRMin=0 \| pSPhi=0
+	  * | Parallelepiped | para   | __alpha__ \| __dx__ \| __dy__ \| __dz__ \| __phi__ \| __theta__
+	  * | Sphere         | sphere | __pRmax__ \| pDPhi=360 \| pDTheta=360 \| pRmin=0 \| pSPhi=0 \| pSTheta=0
+	  * | Torus          | torus  | __pRmax__ \| __pRtor__ \| pDPhi=360 \| pRmin=0 \| pSPhi=0
+	  * | Trapezoid      | trap   | __dx1__ \| __dx2__ \| __dy1__ \| __dy2__ \| __dz__
+	  * @return True if the specified shape is valid and return false otherwise
 	  */
 	bool setShape(const G4String &name);
+
+	/** List all available Geant shapes which may be added to the experimental setup area
+	  */
+	void listAllPrimitives();
 
   private:
 	/** Geant shape type enum
 	  */
-	enum G4SHAPETYPE {BOX, CYLINDER, CONE, PARALLELEPIPED, TRAPEZOID, SHELL, SPHERE, TORUS};
+	enum G4SHAPETYPE {DEFAULT, BOX, CYLINDER, CONE, PARALLELEPIPED, TRAPEZOID, SHELL, SPHERE, TORUS};
 	
 	std::map<G4String, G4SHAPETYPE> shapeNameMap; ///< Map between 3d shape names and their corresponding enum values
 	
@@ -187,9 +206,15 @@ class nDetWorldPrimitive : public nDetWorldObject {
 	
 	G4SHAPETYPE shapeSelect; ///< 3d shape type selected by the user
 	
+	G4String syntaxOutputString; ///< The string to print when syntaxStr() is called
+	
+	/** Get a string containing all required Geant parameters for building the current shape
+	  */
+	std::string getShapeArgString();
+	
 	/** Clear all user-specified numerical arguments and set them to their default values for the selected geometry type
 	  */
-	void resetAllArgs();
+	void resetAllArgs(const G4SHAPETYPE &shape);
 	
 	/** Check that all required numerical arguments have been set by the user
 	  * @return True if all required arguments for the selected 3d geometry have been set by the user and return false otherwise
@@ -198,7 +223,7 @@ class nDetWorldPrimitive : public nDetWorldObject {
 	
 	/** Build the selected geometry type using size parameters obtained from the user input string
 	  * @param extName The optional name of the object
-	  * @return A pointer to the new geometry object of return NULL in the event of an error
+	  * @return A pointer to the new geometry object or return NULL in the event of an error
 	  */
 	G4CSGSolid *buildGeometry(const G4String &extName="");
 };

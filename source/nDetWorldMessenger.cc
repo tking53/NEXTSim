@@ -1,5 +1,6 @@
 
 #include "G4UIcmdWith3VectorAndUnit.hh"
+#include "G4UIcmdWithoutParameter.hh"
 #include "G4UIcmdWithAString.hh"
 #include "G4UIcmdWithAString.hh"
 
@@ -20,13 +21,19 @@ void nDetWorldMessenger::addAllCommands(){
 
 	addCommand(new G4UIcmdWith3VectorAndUnit("/nDet/world/setWorldPitSize", this));
 	addGuidance("Set the size of the floor pit along the X, Y, and Z axes");
+	
+	addCommand(new G4UIcmdWithAString("/nDet/world/addPrimitive", this));
+	addGuidance("Add a Geant primitive geometry object to the setup area. SYNTAX: addPrimitive <shape> <posX> <posY> <posZ> <rotX> <rotY> <rotZ> <matString> [[p1] ... [pn]]");
+	
+	addCommand(new G4UIcmdWithoutParameter("/nDet/world/listPrimitives", this));
+	addGuidance("List all Geant primitives which may be added to the experimental setup area");
 }
 
 void nDetWorldMessenger::SetNewChildValue(G4UIcommand* command, G4String newValue){
 	size_t index;
 	if(!findCommand(command, newValue, index)) return;
 
-	else if(index == 0){
+	if(index == 0){
 		fWorld->setWorldSize(command->ConvertToDimensioned3Vector(newValue));
 	}
 	else if(index == 1){
@@ -37,5 +44,11 @@ void nDetWorldMessenger::SetNewChildValue(G4UIcommand* command, G4String newValu
 	}
 	else if(index == 3){
 		fWorld->setWorldFloorPitSize(command->ConvertToDimensioned3Vector(newValue));
+	}
+	else if(index == 4){
+		fWorld->addNewPrimitive(newValue);
+	}
+	else if(index == 5){
+		fWorld->listAllPrimitives();
 	}
 }
