@@ -76,20 +76,6 @@ class nDetConstruction : public G4VUserDetectorConstruction{
 	  */
 	void setPmtGainMatrix(const std::string &fname){ gainMatrixFilename = fname; }
 
-	/** Set the X, Y, and Z size of the shadow bar (all in mm)
-	  */
-	void SetShadowBarSize(const G4ThreeVector &size);
-	
-	/** Set the X, Y, and Z position of the center of the shadow bar (all in mm)
-	  */
-	void SetShadowBarPosition(const G4ThreeVector &pos);
-
-	/** Set the material used for the shadow bar
-	  * @param material The NIST database name of the material to use
-	  * @return True if the material exists in the database and return false otherwise
-	  */
-	bool SetShadowBarMaterial(const G4String &material);
-
 	/** Get a pointer to the messenger used for this class
 	  */
 	nDetConstructionMessenger *GetMessenger(){ return fDetectorMessenger; }
@@ -189,10 +175,6 @@ class nDetConstruction : public G4VUserDetectorConstruction{
 	G4bool fCheckOverlaps; ///< Flag indicating that Geant should check for overlaps between all placed objects
 
 	std::vector<gdmlSolid> solids; ///< Vector of all loaded gdml solids
-
-	G4ThreeVector shadowBarSize; ///< Size of the shadow object in 3d space
-	G4ThreeVector shadowBarPos; ///< Position of the shadow object in 3d space
-	G4Material *shadowBarMaterial; ///< Pointer to the material used for the shadow object
 
 	std::vector<nDetDetector> userDetectors; ///< Vector of all detectors added by the user
 	

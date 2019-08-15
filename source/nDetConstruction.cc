@@ -42,8 +42,6 @@ nDetConstruction::nDetConstruction(){
 	fDetectorMessenger = new nDetConstructionMessenger(this);
 
 	fCheckOverlaps = false;
-
-	shadowBarMaterial = NULL;
 	
 	// Initialize the detector parameter messenger
 	params.InitializeMessenger();
@@ -83,14 +81,6 @@ G4VPhysicalVolume* nDetConstruction::ConstructDetector(){
 	for(std::vector<gdmlSolid>::iterator iter = solids.begin(); iter != solids.end(); iter++){
 		iter->placeSolid(expHall->getLogicalVolume());
 	}	
-
-	// Build the shadow bar.
-	if(shadowBarMaterial){
-		G4Box *shadowBox = new G4Box("shadowBox", shadowBarSize.getX()/2, shadowBarSize.getY()/2, shadowBarSize.getZ()/2);
-		G4LogicalVolume *shadowBox_logV = new G4LogicalVolume(shadowBox, shadowBarMaterial, "shadowBox_logV", 0, 0, 0);
-		shadowBox_logV->SetVisAttributes(materials.visShadow);
-		new G4PVPlacement(0, shadowBarPos, shadowBox_logV, "ShadowBar", expHall->getLogicalVolume(), true, 0, fCheckOverlaps);
-	}
 
 	return expHall->getPhysicalVolume();
 }
@@ -245,21 +235,6 @@ bool nDetConstruction::loadPmtGainMatrix(){
 	}
 	std::cout << " nDetConstruction: Successfully loaded PMT anode gain matrix\n";
 	gainMatrixFilename = ""; // Unset the filename so that it will not be loaded again later
-	return true;
-}
-
-void nDetConstruction::SetShadowBarSize(const G4ThreeVector &size){
-	shadowBarSize = size;
-}
-
-void nDetConstruction::SetShadowBarPosition(const G4ThreeVector &pos){
-	shadowBarPos = pos;		
-}
-
-bool nDetConstruction::SetShadowBarMaterial(const G4String &material){
-	shadowBarMaterial = materials.searchForMaterial(material);
-	if(!shadowBarMaterial)
-		return false;
 	return true;
 }
 

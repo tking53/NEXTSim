@@ -1,6 +1,3 @@
-//
-// Created by David Pérez Loureiro on 1/31/17.
-//
 
 #include "nDetConstructionMessenger.hh"
 
@@ -39,15 +36,6 @@ void nDetConstructionMessenger::addAllCommands(){
 	addCommand(new G4UIcmdWithAString("/nDet/detector/loadGDML", this));
 	addGuidance("Load a GDML geometry file for testing. SYNTAX: loadGDML <filename> <posX> <posY> <posZ> <rotX> <rotY> <rotZ> <matString>");
 	
-	addCommand(new G4UIcmdWith3VectorAndUnit("/nDet/detector/setShadowBarSize", this));
-	addGuidance("Set the size of a shadow-bar");
-
-	addCommand(new G4UIcmdWith3VectorAndUnit("/nDet/detector/setShadowBarPos", this));
-	addGuidance("Set the position of the shadow-bar");
-	
-	addCommand(new G4UIcmdWithAString("/nDet/detector/addShadowBar", this));
-	addGuidance("Set the shadow-bar material to use");	
-
 	addCommand(new G4UIcmdWithAString("/nDet/detector/addGreaseLayer", this));
 	addGuidance("Add a layer of optical grease (all units in mm). SYNTAX: addGreaseLayer <width> <height> [thickness]");	
 
@@ -142,41 +130,30 @@ void nDetConstructionMessenger::SetNewChildValue(G4UIcommand* command, G4String 
 		fDetector->LoadGDML(newValue);
 	}
 	else if(index == 5){
-		G4ThreeVector val = command->ConvertToDimensioned3Vector(newValue);
-		fDetector->SetShadowBarSize(val);
-	}
-	else if(index == 6){
-		G4ThreeVector val = command->ConvertToDimensioned3Vector(newValue);
-		fDetector->SetShadowBarPosition(val);
-	}
-	else if(index == 7){
-		fDetector->SetShadowBarMaterial(newValue);
-	}
-	else if(index == 8){
 		fDetector->AddGrease(newValue);
 	}
-	else if(index == 9){
+	else if(index == 6){
 		fDetector->AddDiffuser(newValue);
 	}
-	else if(index == 10){
+	else if(index == 7){
 		fDetector->AddLightGuide(newValue);
 	}
-	else if(index == 11){
+	else if(index == 8){
 		fDetector->AddLightGuideGDML(newValue);
 	}
-	else if(index == 12){
+	else if(index == 9){
 		fDetector->ClearGeometry();
 	}
-	else if(index == 13){
+	else if(index == 10){
 		fDetector->AddDetectorArray(newValue);
 	}
-	else if(index == 14){
+	else if(index == 11){
 		fDetector->PrintAllDetectors();
 	}
 	else{ // Digitizer command
 		pmtResponse *prL = fDetector->GetPmtResponseL();
 		pmtResponse *prR = fDetector->GetPmtResponseR();
-		index = index - 15;
+		index = index - 12;
 		if(index == 0){
 			G4double val = command->ConvertToDouble(newValue);
 			prL->setRisetime(val);
