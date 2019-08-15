@@ -12,6 +12,7 @@ class G4LogicalVolume;
 class G4PVPlacement;
 
 class nDetDetector;
+class nDetMaterials;
 
 /** @class nDetWorldObject
   * @brief User-constructed objects which may be added to the simulation setup area
@@ -95,6 +96,10 @@ class nDetWorldObject{
 	  */
 	virtual std::string syntaxStr() const = 0;
 
+	/** Construct the object and place it into a logical volume
+	  */
+	virtual void placeObject(G4LogicalVolume*, nDetMaterials*){ }
+
   protected:
 	G4String argStr; ///< Argument string from the macro supplied by the user
 
@@ -162,8 +167,9 @@ class nDetWorldPrimitive : public nDetWorldObject {
 
 	/** Construct the object and place it into a logical volume
 	  * @param parent A pointer to the logical volume where the object will be placed
+	  * @param materials Pointer to materials object which will be used to look-up the build material
 	  */
-	void placeObject(G4LogicalVolume *parent);
+	virtual void placeObject(G4LogicalVolume *parent, nDetMaterials *materials);
 
 	/** Select the type of 3d geometry to build
 	  * @param name The name of the 3d shape

@@ -20,6 +20,7 @@
 #include "nDetConstructionMessenger.hh"
 #include "nDetThreadContainer.hh"
 #include "nDetParticleSource.hh"
+#include "nDetWorld.hh"
 #include "termColors.hh"
 #include "optionHandler.hh" // split_str
 
@@ -36,37 +37,28 @@ nDetConstruction &nDetConstruction::getInstance(){
 }
 
 nDetConstruction::nDetConstruction(){
-	expHall_logV = NULL;
-	expHall_physV = NULL;
 	currentDetector = NULL;
 
 	fDetectorMessenger = new nDetConstructionMessenger(this);
 
 	fCheckOverlaps = false;
 
-	// Set the default size of the experimental hall
-	expHallSize = G4ThreeVector(10*m, 10*m, 10*m);
-
-	expHallMaterial = "air";
-	expHallFloorMaterial = "";
-
-	expHallFloorThickness = 0;
-	expHallFloorSurfaceY = 0;
-
 	shadowBarMaterial = NULL;
 	
 	// Initialize the detector parameter messenger
 	params.InitializeMessenger();
+	
+	expHall = new nDetWorld();
 }
 
 nDetConstruction::~nDetConstruction(){
 }
 
 G4VPhysicalVolume* nDetConstruction::Construct(){
-	if(!expHall_physV)
+	if(!expHall->getPhysicalVolume())
 		this->ConstructDetector();
 	
-	return expHall_physV;
+	return expHall->getPhysicalVolume();
 }
 	
 G4VPhysicalVolume* nDetConstruction::ConstructDetector(){
@@ -74,7 +66,7 @@ G4VPhysicalVolume* nDetConstruction::ConstructDetector(){
 		materials.initialize();
 
 	// Build experiment hall.
-	buildExpHall();
+	expHall->buildExpHall(&materials);
 
 	// Place all detectors.
 	for(std::vector<nDetDetector>::iterator iter = userDetectors.begin(); iter != userDetectors.end(); iter++){
@@ -84,12 +76,12 @@ G4VPhysicalVolume* nDetConstruction::ConstructDetector(){
 		iter->construct();
 
 		// Place the detector into the world.
-		iter->placeDetector(expHall_logV);
+		iter->placeDetector(expHall->getLogicalVolume());
 	}
 
 	// Place all external GDML solids
 	for(std::vector<gdmlSolid>::iterator iter = solids.begin(); iter != solids.end(); iter++){
-		iter->placeSolid(expHall_logV);
+		iter->placeSolid(expHall->getLogicalVolume());
 	}	
 
 	// Build the shadow bar.
@@ -97,10 +89,10 @@ G4VPhysicalVolume* nDetConstruction::ConstructDetector(){
 		G4Box *shadowBox = new G4Box("shadowBox", shadowBarSize.getX()/2, shadowBarSize.getY()/2, shadowBarSize.getZ()/2);
 		G4LogicalVolume *shadowBox_logV = new G4LogicalVolume(shadowBox, shadowBarMaterial, "shadowBox_logV", 0, 0, 0);
 		shadowBox_logV->SetVisAttributes(materials.visShadow);
-		new G4PVPlacement(0, shadowBarPos, shadowBox_logV, "ShadowBar", expHall_logV, true, 0, fCheckOverlaps);
+		new G4PVPlacement(0, shadowBarPos, shadowBox_logV, "ShadowBar", expHall->getLogicalVolume(), true, 0, fCheckOverlaps);
 	}
 
-	return expHall_physV;
+	return expHall->getPhysicalVolume();
 }
 
 void nDetConstruction::ClearGeometry(){
@@ -116,7 +108,7 @@ void nDetConstruction::ClearGeometry(){
 	G4PhysicalVolumeStore::GetInstance()->Clean();
 	
 	// Reset the world volume. Why is this needed? CRT
-	expHall_physV = NULL;
+	expHall->reset();
 	
 	// Clear previous construction.
 	userDetectors.clear();
@@ -175,25 +167,6 @@ void nDetConstruction::UpdateGeometry(){
 	for(size_t index = 0; index < container->size(); index++){
 		container->getActionManager(index)->getRunAction()->updateDetector(this);
 	}
-}
-
-bool nDetConstruction::SetWorldFloor(const G4String &input){
-	// Expects a space-delimited string of the form:
-	//  "centerY(cm) thickness(cm) [material=G4_CONCRETE]"
-	std::vector<std::string> args;
-	unsigned int Nargs = split_str(input, args);
-	if(Nargs < 2){
-		std::cout << " nDetConstruction: Invalid number of arguments given to ::SetWorldFloor(). Expected 2, received " << Nargs << ".\n";
-		std::cout << " nDetConstruction:  SYNTAX: <centerY> <thickness> [material=G4_CONCRETE]\n";
-		return false;
-	}
-	expHallFloorSurfaceY = strtod(args.at(0).c_str(), NULL)*cm;
-	expHallFloorThickness = strtod(args.at(1).c_str(), NULL)*cm;
-	if(Nargs < 3) // Defaults to concrete
-		expHallFloorMaterial = "G4_CONCRETE";
-	else
-		expHallFloorMaterial = args.at(2);
-	return true;
 }
 
 void nDetConstruction::LoadGDML(const G4String &input){
@@ -288,52 +261,6 @@ bool nDetConstruction::SetShadowBarMaterial(const G4String &material){
 	if(!shadowBarMaterial)
 		return false;
 	return true;
-}
-
-void nDetConstruction::buildExpHall()
-{
-	G4Box* expHall_solidV = new G4Box("expHall_solidV", expHallSize.getX()/2, expHallSize.getY()/2, expHallSize.getZ()/2);
-
-	G4Material *expHallFill = materials.searchForMaterial(expHallMaterial);
-	if(!expHallFill){ // Use the default material, if
-		Display::WarningPrint("Failed to find user-specified world material!", "nDetConstruction");
-		Display::WarningPrint(" Defaulting to filling world volume with air", "nDetConstruction");
-		expHallFill = materials.fAir;
-	}
-
-	expHall_logV  = new G4LogicalVolume(expHall_solidV, expHallFill, "expHall_logV", 0, 0, 0);
-	expHall_logV->SetVisAttributes(G4VisAttributes::Invisible);
-
-	expHall_physV = new G4PVPlacement(0, G4ThreeVector(0, 0, 0), expHall_logV, "expHall_physV",0,false,0);
-
-	// Add a floor to the experimental hall (disabled by default)
-	if(!expHallFloorMaterial.empty() && expHallFloorThickness > 0){
-		G4Material *floorMaterial = materials.searchForMaterial(expHallFloorMaterial);
-		if(expHallFloorMaterial){
-			G4Box *floorBox = new G4Box("floor", expHallSize.getX()/2, expHallFloorThickness/2, expHallSize.getZ()/2);
-			G4LogicalVolume *floor_logV;
-			if(expHallFloorPitSize.getX() > 0 && expHallFloorPitSize.getX() > 0 && expHallFloorPitSize.getX() > 0){ // Dig a pit
-				G4double pitCenterOffsetY = 0.5*(expHallFloorThickness - expHallFloorPitSize.getY());
-				G4Box *pitBox = new G4Box("pitBox", expHallFloorPitSize.getX()/2, expHallFloorPitSize.getY()/2, expHallFloorPitSize.getZ()/2);
-				G4SubtractionSolid *floorWithPit = new G4SubtractionSolid("floorWithPit", floorBox, pitBox, NULL, G4ThreeVector(0, pitCenterOffsetY, 0));
-				floor_logV = new G4LogicalVolume(floorWithPit, floorMaterial, "floor_logV");
-			}
-			else{
-				floor_logV = new G4LogicalVolume(floorBox, floorMaterial, "floor_logV");
-			}
-			floor_logV->SetVisAttributes(materials.visShadow);
-			expHall_logV->SetVisAttributes(materials.visAssembly);
-			new G4PVPlacement(NULL, G4ThreeVector(0, -(expHallFloorSurfaceY+expHallFloorThickness/2), 0), floor_logV, "floorBox_physV", expHall_logV, 0, 0, false);
-		}
-		else{
-			Display::WarningPrint("Failed to find user-specified floor material!", "nDetConstruction");
-			Display::WarningPrint(" Disabling the use of a floor", "nDetConstruction");
-			expHallFloorMaterial = "";
-			expHallFloorThickness = 0;
-		}
-	}
-
-	return;
 }
 
 void nDetConstruction::AddGDML(const G4String &input){

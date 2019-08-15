@@ -14,10 +14,10 @@
 
 // Class declarations
 class nDetConstructionMessenger;
-class G4LogicalVolume;
+class nDetWorld;
+
 class G4Material;
 class G4VPhysicalVolume;
-class G4PVPlacement;
 
 /** @class nDetConstruction
   * @brief Handles construction of NEXTSim detector setups
@@ -90,20 +90,6 @@ class nDetConstruction : public G4VUserDetectorConstruction{
 	  */
 	bool SetShadowBarMaterial(const G4String &material);
 
-	/** Set the bounding box size of the experimental hall along the X, Y, and Z axes (all in mm)
-	  * @note The new world size will take effect the next time ConstructDetector() is called
-	  */
-	void SetWorldSize(const G4ThreeVector &size){ expHallSize = size; }
-
-	/** Set the name of the material to use to fill the experimental hall
-	  * @note Defaults to "air" which corresponds to nDetMaterials::fAir
-	  */
-	void SetWorldMaterial(const G4String &material){ expHallMaterial = material; }
-
-	/** Set the size of the pit in the floor of the experimental hall
-	  */
-	void SetWorldFloorPitSize(const G4ThreeVector &size){ expHallFloorPitSize = size; }
-	
 	/** Get a pointer to the messenger used for this class
 	  */
 	nDetConstructionMessenger *GetMessenger(){ return fDetectorMessenger; }
@@ -143,17 +129,6 @@ class nDetConstruction : public G4VUserDetectorConstruction{
 	/** Place all detectors into the world and copy the list of detectors to all user run actions
 	  */	
 	void UpdateGeometry();
-
-	/** Setup a floor for the bottom of the experimental hall using parameters from a space-delimited input string
-	  * @note String syntax: <surfaceY> <thickness> [material=G4_CONCRETE]
-	  * | Parameter | Description |
-	  * |-----------|-------------|
-	  * | surfaceY  | The vertical distance to the surface of the floor with respect to the world origin (in cm)
-	  * | thickness | The thickness of the floor slab (in cm)
-	  * | material  | The name of the material to use (default=G4_CONCRETE)
-	  * @return True if the correct number of arguments are found in the input string and return false otherwise
-	  */
-	bool SetWorldFloor(const G4String &input);
 
 	/** Load a GDML model from a file using parameters from a space-delimited input string and place it into the world volume
 	  * @note See nDetDetector::addGDML(const G4String &) for input string syntax
@@ -209,14 +184,9 @@ class nDetConstruction : public G4VUserDetectorConstruction{
   private:
 	nDetConstructionMessenger *fDetectorMessenger; ///< Geant messenger to use for this class
 	
-	G4ThreeVector expHallSize; ///< Size of the experimental hall along the X, Y, and Z axes (all in mm)
-
 	nDetDetectorParams params; ///< Physical attributes of the current detector assembly
 
 	G4bool fCheckOverlaps; ///< Flag indicating that Geant should check for overlaps between all placed objects
-
-	G4LogicalVolume* expHall_logV; ///< Logical volume of the world
-	G4VPhysicalVolume* expHall_physV; ///< Physical volume of the world
 
 	std::vector<gdmlSolid> solids; ///< Vector of all loaded gdml solids
 
@@ -235,21 +205,11 @@ class nDetConstruction : public G4VUserDetectorConstruction{
 	std::string gainMatrixFilename; ///< Path to the anode gain matrix
 	std::string spectralResponseFilename; ///< Path to the anode quantum efficiency
 
-	G4String expHallMaterial; ///< The name of the material which fills the experimental hall
-	G4String expHallFloorMaterial; ///< The name of the material which comprises the floor of the experimental hall
-
-	G4double expHallFloorThickness; ///< Thickness of the floor of the experimental hall (in mm)
-	G4double expHallFloorSurfaceY; ///< Vertical distance to the surface of the floor of the experimental hall (with respect to the origin, in mm)
-
-	G4ThreeVector expHallFloorPitSize; ///< The size of the floor pit along the X, Y, and Z axes (all in mm)
+	nDetWorld *expHall; ///< Pointer to the experimental hall setup area
 
 	/** Default constructor. Private for singleton class
 	  */
 	nDetConstruction();
-
-	/** Build the experiment hall physical and logical volumes
-	  */
-	void buildExpHall();
 
 	/** Load a GDML model from a file using parameters from a space-delimited input string
 	  * @note String syntax: <filename> <posX> <posY> <posZ> <rotX> <rotY> <rotZ> <matString>

@@ -1,6 +1,7 @@
 
 #include "G4PhysicalConstants.hh"
 #include "G4SystemOfUnits.hh"
+#include "G4Material.hh"
 
 #include "G4Box.hh"
 #include "G4Tubs.hh"
@@ -11,6 +12,7 @@
 #include "G4Torus.hh"
 
 #include "nDetWorldObject.hh"
+#include "nDetMaterials.hh"
 #include "optionHandler.hh" // split_str
 #include "termColors.hh"
 
@@ -75,14 +77,22 @@ std::string nDetWorldPrimitive::syntaxStr() const {
 	return std::string("loadGDML <shape> <posX> <posY> <posZ> <rotX> <rotY> <rotZ> <material> [[p1] [p2] ...]");
 }
 
-void nDetWorldPrimitive::placeObject(G4LogicalVolume *parent){ 
+void nDetWorldPrimitive::placeObject(G4LogicalVolume *parent, nDetMaterials *materials){ 
 	if(sizeArgs.empty()){
 		Display::ErrorPrint("No shape has been selected by the user", "nDetWorldPrimitive");
 		return;
 	}
-	buildGeometry();
-	if(geometry)
-		geometry_physV = new G4PVPlacement(&rotation, position, geometry_logV, "", parent, false, 0, true);
+	if(buildGeometry()){
+		G4Material *mat = materials->searchForMaterial(material);
+		if(mat){
+			geometry_logV = new G4LogicalVolume(geometry, mat, "");
+			if(geometry)
+				geometry_physV = new G4PVPlacement(&rotation, position, geometry_logV, "", parent, false, 0, true);
+		}
+		else{
+			Display::ErrorPrint("Failed to find Geant material corresponding to user-specified material name", "nDetWorldPrimitive");
+		}
+	}
 }
 
 bool nDetWorldPrimitive::setShape(const G4String &shapeName){
@@ -227,7 +237,6 @@ G4CSGSolid *nDetWorldPrimitive::buildGeometry(const G4String &extName/*=""*/){
 	if(newObj){
 		if(geometry) delete geometry;
 		geometry = newObj;
-		geometry_logV = new G4LogicalVolume(geometry, NULL, "");
 	}
 	
 	return newObj;

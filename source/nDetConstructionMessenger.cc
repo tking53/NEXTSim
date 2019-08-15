@@ -70,24 +70,6 @@ void nDetConstructionMessenger::addAllCommands(){
 	addGuidance("Print construction parameters for all defined detectors");
 	
 	///////////////////////////////////////////////////////////////////////////////
-	// World commands
-	///////////////////////////////////////////////////////////////////////////////
-
-	addDirectory("/nDet/world/", "Simulation world control");
-
-	addCommand(new G4UIcmdWith3VectorAndUnit("/nDet/world/setWorldSize", this));
-	addGuidance("Set the bounding box size of the simulation world along the X, Y, and Z axes");
-
-	addCommand(new G4UIcmdWithAString("/nDet/world/setWorldFill", this));
-	addGuidance("Set the name of the material to use to fill the simulation world");
-	
-	addCommand(new G4UIcmdWithAString("/nDet/world/setWorldFloor", this));
-	addGuidance("Setup a rectangular floor slab for the bottom of the simulation world. SYNTAX: setWorldFloor <surfaceY> <thickness> [material=G4_CONCRETE]");
-
-	addCommand(new G4UIcmdWith3VectorAndUnit("/nDet/world/setWorldPitSize", this));
-	addGuidance("Set the size of the floor pit along the X, Y, and Z axes");
-	
-	///////////////////////////////////////////////////////////////////////////////
 	// PMT & digitizer commands
 	///////////////////////////////////////////////////////////////////////////////
 
@@ -191,22 +173,10 @@ void nDetConstructionMessenger::SetNewChildValue(G4UIcommand* command, G4String 
 	else if(index == 14){
 		fDetector->PrintAllDetectors();
 	}
-	else if(index == 15){
-		fDetector->SetWorldSize(command->ConvertToDimensioned3Vector(newValue));
-	}
-	else if(index == 16){
-		fDetector->SetWorldMaterial(newValue);
-	}
-	else if(index == 17){
-		fDetector->SetWorldFloor(newValue);
-	}
-	else if(index == 18){
-		fDetector->SetWorldFloorPitSize(command->ConvertToDimensioned3Vector(newValue));
-	}
 	else{ // Digitizer command
 		pmtResponse *prL = fDetector->GetPmtResponseL();
 		pmtResponse *prR = fDetector->GetPmtResponseR();
-		index = index - 19;
+		index = index - 15;
 		if(index == 0){
 			G4double val = command->ConvertToDouble(newValue);
 			prL->setRisetime(val);
