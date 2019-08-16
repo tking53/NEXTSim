@@ -249,7 +249,7 @@ class gdmlSolid{
 	  */
 	void setPosition(const G4ThreeVector &pos_){ position = pos_; }
 
-	/** Set the rotation of the local parent assembly frame about the X, Y, and Z axes (all in radians)
+	/** Set the rotation of the local parent assembly frame about the X, Y, and Z axes (all in degrees)
 	  */
 	void setRotation(const G4ThreeVector &rot_);
 

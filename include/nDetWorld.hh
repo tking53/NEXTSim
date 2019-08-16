@@ -7,9 +7,11 @@
 
 #include "G4ThreeVector.hh"
 
+class nDetWorldObject;
 class nDetWorldPrimitive;
 class nDetWorldMessenger;
 class nDetMaterials;
+class gdmlObject;
 
 class G4Box;
 class G4LogicalVolume;
@@ -86,10 +88,26 @@ class nDetWorld{
 	  */
 	void listAllPrimitives();
 
+	/** Print the list of all user-defined 3d objects in the setup area
+	  */
+	void printDefinedObjects();
+
 	/** Reset the experimental setup area and delete all defined primitive objects
 	  */
 	void reset();
 
+	/** Load a GDML model from a file using parameters from a space-delimited input string
+	  * @note String syntax: <filename> <posX> <posY> <posZ> <rotX> <rotY> <rotZ> <matString>
+	  * | Parameter | Description |
+	  * |-----------|-------------|
+	  * | filename  | Filename of the input GDML file
+	  * | posX(Y,Z) | X, Y, and Z position of the center of the model (in mm)
+	  * | rotX(Y,Z) | Rotation about the X, Y, and Z axes (in degrees)
+	  * | matString | The NIST database name of the material to use for the model
+	  * @return A pointer to the gdmlObject containing the model
+	  */
+	gdmlObject *loadGDML(const G4String &input);
+	
   private:
 	G4Box *solidV; ///< Geometry of the experimental setup area
 	G4LogicalVolume* logV; ///< Logical volume of the experimental setup area
@@ -104,7 +122,7 @@ class nDetWorld{
 	G4ThreeVector floorPitSize; ///< The size of the floor pit along the X, Y, and Z axes (all in mm)
 	G4ThreeVector hallSize; ///< Size of the experimental hall along the X, Y, and Z axes (all in mm)
 
-	std::vector<nDetWorldPrimitive*> objects; ///< Vector of objects to add to the experimental setup area
+	std::vector<nDetWorldObject*> objects; ///< Vector of objects to add to the experimental setup area
 	
 	nDetWorldMessenger *messenger; ///< Pointer to the messenger used for this class
 };

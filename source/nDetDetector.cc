@@ -227,10 +227,6 @@ bool nDetDetector::getSegmentFromCopyNum(const G4int &copyNum, G4int &col, G4int
 	return true;
 }
 
-void nDetDetector::addGDML(const G4String &input){
-	addLayer(new gdmlLayer(input));
-}
-
 void nDetDetector::addLightGuideGDML(const G4String &input){
 	addLayer(new gdmlLightGuideLayer(input));
 }

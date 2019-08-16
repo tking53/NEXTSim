@@ -463,11 +463,6 @@ class nDetDetector : public nDetDetectorParams {
 	  */
 	pmtResponse *getPmtResponseR(){ return cmR.getPmtResponse(); }
 
-	/** Load a GDML model from a file using parameters from a space-delimited input string and place it into the current detector assembly
-	  * @note See gdmlLayer::decodeString() for input string syntax
-	  */
-	void addGDML(const G4String &input);
-
 	/** Load a light guide model from a file using parameters from a space-delimited input string and place it into the current detector assembly
 	  * @note See gdmlLightGuideLayer::decodeString() for input string syntax
 	  */

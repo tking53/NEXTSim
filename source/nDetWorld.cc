@@ -3,6 +3,8 @@
 #include "nDetWorldObject.hh"
 #include "nDetWorldMessenger.hh"
 #include "nDetMaterials.hh"
+
+#include "gdmlSolid.hh"
 #include "optionHandler.hh" // split_str
 #include "termColors.hh"
 
@@ -110,8 +112,33 @@ void nDetWorld::listAllPrimitives(){
 	dummy.listAllPrimitives();
 }
 
+void nDetWorld::printDefinedObjects(){
+	if(!objects.empty()){
+		for(auto obj : objects){
+			std::cout << "***********************************************************\n";
+			obj->print();
+		}
+		std::cout << "***********************************************************\n";
+	}
+	else
+		std::cout << " nDetWorldPrimitive: No 3d primitives are currently defined\n";
+}
+
 void nDetWorld::reset(){
 	for(auto obj : objects)
 		delete obj;
 	objects.clear();
+}
+
+gdmlObject *nDetWorld::loadGDML(const G4String &input){
+	gdmlObject *obj = new gdmlObject(input);
+	obj->decodeString();
+	if(!obj->decodeString()){
+		std::cout << " nDetWorld: Invalid number of arguments given to ::loadGDML(). Expected " << obj->getNumRequiredArgs() << " but received " << obj->getNumSuppliedArgs() << ".\n";
+		std::cout << " nDetWorld:  SYNTAX: " << obj->syntaxStr() << std::endl;
+		delete obj;
+		return NULL;
+	}
+	objects.push_back(obj);
+	return obj;
 }

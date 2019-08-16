@@ -36,6 +36,14 @@ class nDetWorldObject{
 	  */
 	virtual ~nDetWorldObject(){ }
 
+	/** Set the user input string
+	  */
+	void setUserArgString(const G4String &str){ argStr = str; }
+
+	/** Set the number of required arguments
+	  */
+	void setNumRequiredArgs(const int &nargs){ nReqArgs = nargs; }
+
 	/** Return the argument string from the input macro
 	  */
 	G4String dump() const { return argStr; }
@@ -84,6 +92,10 @@ class nDetWorldObject{
 	  */
 	bool decodeString();
 
+	/** Print geometrical information about the currently defined object
+	  */
+	void print();
+
 	/** Read a user input string and decode the relevant values
 	  */
 	virtual bool decodeArgs() = 0;
@@ -98,7 +110,7 @@ class nDetWorldObject{
 
 	/** Construct the object and place it into a logical volume
 	  */
-	virtual void placeObject(G4LogicalVolume*, nDetMaterials*){ }
+	virtual void placeObject(G4LogicalVolume*, nDetMaterials*) = 0;
 
   protected:
 	G4String argStr; ///< Argument string from the macro supplied by the user
@@ -117,6 +129,7 @@ class nDetWorldObject{
 	G4RotationMatrix rotation; ///< The rotation matrix used for the object
 	
 	G4ThreeVector size; ///< The physical size of the object
+	G4ThreeVector rotVector; ///< The rotation angles about the X, Y, and Z axes (all in degrees)
 
 	std::vector<std::string> args; ///< Vector of arguments from the input string
 
@@ -127,10 +140,14 @@ class nDetWorldObject{
 	/** Set the internal rotation matrix using a vector with angles about the X, Y, and Z axes (all in degrees)
 	  */
 	void setRotationMatrix(const G4ThreeVector &vec);
+
+	/** Print specific information about the inherited class object
+	  */
+	virtual void subPrint(){ }
 };
 
 /** @class nDetWorldPrimitive
-  * @brief 
+  * @brief Handler for construction of built-in Geant 3d primitive objects
   * @author Cory R. Thornsberry (cthornsb@vols.utk.edu)
   * @date August 13, 2019
   */
@@ -153,7 +170,7 @@ class nDetWorldPrimitive : public nDetWorldObject {
 	  * | shape     | The name of the 3d shape to build
 	  * | posX(Y,Z) | X, Y, and Z position of the center of the model (in mm)
 	  * | rotX(Y,Z) | Rotation about the X, Y, and Z axes (in degrees)
-	  * | matString | The NIST database name of the material to use for the model
+	  * | material  | The NIST database name of the material to use for the model
 	  * | p1 ... pn | Geometrical parameters used by Geant to construct the object. See setShape() for detailed list of parameters
 	  * @return True if the specified shape is valid and all required construction parameters were specified
 	  */
@@ -172,7 +189,7 @@ class nDetWorldPrimitive : public nDetWorldObject {
 	  * @param materials Pointer to materials object which will be used to look-up the build material
 	  */
 	virtual void placeObject(G4LogicalVolume *parent, nDetMaterials *materials);
-	
+
 	/** Select the type of 3d geometry to build
 	  * @param name The name of the 3d shape
 	  * @note The table below shows the shape names currently available along with their constructor arguments. Required arguments
@@ -226,6 +243,64 @@ class nDetWorldPrimitive : public nDetWorldObject {
 	  * @return A pointer to the new geometry object or return NULL in the event of an error
 	  */
 	G4CSGSolid *buildGeometry(const G4String &extName="");
+
+	/** Print geometrical information about the currently defined object
+	  */
+	virtual void subPrint();
+};
+
+/** @class gdmlObject
+  * @brief GDML model which is added to the world at a user-specified location
+  * @author Cory R. Thornsberry (cthornsb@vols.utk.edu)
+  * @date July 18, 2019
+  */
+
+class gdmlObject : public nDetWorldObject {
+  public:
+	/** User input constructor
+	  * @param arg_ Argument string from the input macro
+	  */
+	gdmlObject(const G4String &arg_) : nDetWorldObject(arg_, 8) { }
+
+	/** Destructor
+	  */	
+	~gdmlObject(){ }
+
+	/** Get a pointer to the GDML solid which stores the physical geometry
+	  */
+	gdmlSolid *getSolid(){ return &solid; }
+
+	/** Load a GDML model from a file using parameters from a space-delimited input string and place it into the assembly
+	  * @note String syntax: <filename> <posX> <posY> <posZ> <rotX> <rotY> <rotZ> <material>
+	  * | Parameter | Description |
+	  * |-----------|-------------|
+	  * | filename  | Filename of the input GDML file
+	  * | posX(Y,Z) | X, Y, and Z position of the center of the model (in mm)
+	  * | rotX(Y,Z) | Rotation about the X, Y, and Z axes (in degrees)
+	  * | material  | The NIST database name of the material to use for the model
+	  * @return A pointer to the gdmlSolid containing the model
+	  */
+	virtual bool decodeArgs();
+
+	/** Load the GDML model and place it into a detector
+	  * @param obj A pointer to the detector where the model will be placed
+	  */
+	virtual void construct(nDetDetector *obj);
+
+	/** Return a string containing proper input string syntax
+	  */
+	virtual std::string syntaxStr() const ;
+
+	/** Construct the object and place it into a logical volume
+	  * @param parent A pointer to the logical volume where the object will be placed
+	  * @param materials Pointer to materials object which will be used to look-up the build material
+	  */
+	virtual void placeObject(G4LogicalVolume *parent, nDetMaterials *materials);
+
+  private:
+	G4String filename; ///< Path to the input GDML file
+
+	gdmlSolid solid; ///< Solid model loaded from an external gdml file
 };
 
 #endif

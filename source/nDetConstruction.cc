@@ -77,11 +77,6 @@ G4VPhysicalVolume* nDetConstruction::ConstructDetector(){
 		iter->placeDetector(expHall->getLogicalVolume());
 	}
 
-	// Place all external GDML solids
-	for(std::vector<gdmlSolid>::iterator iter = solids.begin(); iter != solids.end(); iter++){
-		iter->placeSolid(expHall->getLogicalVolume());
-	}	
-
 	return expHall->getPhysicalVolume();
 }
 
@@ -102,9 +97,6 @@ void nDetConstruction::ClearGeometry(){
 	
 	// Clear previous construction.
 	userDetectors.clear();
-	
-	// Clear all loaded solids.
-	solids.clear();
 	
 	// Reset the scintillator copy number.
 	params.SetScintillatorCopyNumber(1);
@@ -159,35 +151,6 @@ void nDetConstruction::UpdateGeometry(){
 	}
 }
 
-void nDetConstruction::LoadGDML(const G4String &input){
-	loadGDML(input);
-}
-
-gdmlSolid *nDetConstruction::loadGDML(const G4String &input){
-	// Expects a space-delimited string of the form:
-	//  "filename posX(cm) posY(cm) posZ(cm) rotX(deg) rotY(deg) rotZ(deg) material"
-	std::vector<std::string> args;
-	unsigned int Nargs = split_str(input, args);
-	if(Nargs < 8){
-		std::cout << " nDetConstruction: Invalid number of arguments given to ::loadGDML(). Expected 8, received " << Nargs << ".\n";
-		std::cout << " nDetConstruction:  SYNTAX: loadGDML <filename> <posX> <posY> <posZ> <rotX> <rotY> <rotZ> <matString>\n";
-		return NULL;
-	}
-	G4ThreeVector position(strtod(args.at(1).c_str(), NULL)*cm, strtod(args.at(2).c_str(), NULL)*cm, strtod(args.at(3).c_str(), NULL)*cm);
-	G4ThreeVector rotation(strtod(args.at(4).c_str(), NULL)*deg, strtod(args.at(5).c_str(), NULL)*deg, strtod(args.at(6).c_str(), NULL)*deg);
-	return loadGDML(args.at(0), position, rotation, args.at(7));
-}
-
-gdmlSolid *nDetConstruction::loadGDML(const G4String &fname, const G4ThreeVector &position, const G4ThreeVector &rotation, const G4String &material){
-	solids.push_back(gdmlSolid());
-	gdmlSolid *currentSolid = &solids.back();
-	currentSolid->read(fname, material, fCheckOverlaps);
-	currentSolid->setRotation(rotation);
-	currentSolid->setPosition(position);
-	std::cout << " nDetConstruction: Loaded GDML model (name=" << currentSolid->getName() << ") with size x=" << currentSolid->getWidth() << " mm, y=" << currentSolid->getThickness() << " mm, z=" << currentSolid->getLength() << " mm\n";
-	return currentSolid;
-}
-
 bool nDetConstruction::AddGeometry(const G4String &geom){
 	// Add a new detector assembly to the vector of detectors
 	// Copy the detector attributes to the new detector
@@ -236,13 +199,6 @@ bool nDetConstruction::loadPmtGainMatrix(){
 	std::cout << " nDetConstruction: Successfully loaded PMT anode gain matrix\n";
 	gainMatrixFilename = ""; // Unset the filename so that it will not be loaded again later
 	return true;
-}
-
-void nDetConstruction::AddGDML(const G4String &input){
-	if(currentDetector)
-		currentDetector->addGDML(input);
-	else
-		Display::ErrorPrint("Cannot add GDML component before a detector is defined!", "nDetConstruction");
 }
 
 void nDetConstruction::AddLightGuideGDML(const G4String &input){

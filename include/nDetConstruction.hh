@@ -7,7 +7,6 @@
 #include "G4RotationMatrix.hh"
 #include "globals.hh"
 
-#include "gdmlSolid.hh"
 #include "centerOfMass.hh"
 #include "nDetDetector.hh"
 #include "nDetMaterials.hh"
@@ -116,16 +115,6 @@ class nDetConstruction : public G4VUserDetectorConstruction{
 	  */	
 	void UpdateGeometry();
 
-	/** Load a GDML model from a file using parameters from a space-delimited input string and place it into the world volume
-	  * @note See nDetDetector::addGDML(const G4String &) for input string syntax
-	  */
-	void LoadGDML(const G4String &input);
-
-	/** Load a GDML model from a file using parameters from a space-delimited input string and place it into the current detector assembly
-	  * @note See nDetDetector::addGDML(const G4String &) for input string syntax
-	  */
-	void AddGDML(const G4String &input);
-
 	/** Load a light guide model from a file using parameters from a space-delimited input string and place it into the current detector assembly
 	  * @note See nDetDetector::addLightGuideGDML(const G4String &) for input string syntax
 	  */
@@ -174,8 +163,6 @@ class nDetConstruction : public G4VUserDetectorConstruction{
 
 	G4bool fCheckOverlaps; ///< Flag indicating that Geant should check for overlaps between all placed objects
 
-	std::vector<gdmlSolid> solids; ///< Vector of all loaded gdml solids
-
 	std::vector<nDetDetector> userDetectors; ///< Vector of all detectors added by the user
 	
 	nDetDetector *currentDetector; ///< Pointer to the current detector added by the user
@@ -193,30 +180,6 @@ class nDetConstruction : public G4VUserDetectorConstruction{
 	  */
 	nDetConstruction();
 
-	/** Load a GDML model from a file using parameters from a space-delimited input string
-	  * @note String syntax: <filename> <posX> <posY> <posZ> <rotX> <rotY> <rotZ> <matString>
-	  * | Parameter | Description |
-	  * |-----------|-------------|
-	  * | filename  | Filename of the input GDML file
-	  * | posX(Y,Z) | X, Y, and Z position of the center of the model (in mm)
-	  * | rotX(Y,Z) | Rotation about the X, Y, and Z axes (in degrees)
-	  * | matString | The NIST database name of the material to use for the model
-	  * @return A pointer to the gdmlSolid containing the model
-	  */
-	gdmlSolid *loadGDML(const G4String &input);
-
-	/** Load a GDML model from a file
-	  *
-	  * The model will not be placed into the setup until ConstructDetector() is called
-	  *
-	  * @param fname Filename of the input GDML file
-	  * @param position Vector containing the position of the model (in mm)
-	  * @param rotation Vector containing the rotation about the X, Y, and Z axes (in degrees)
-	  * @param material String containing the name of the Geant material to use for the model
-	  * @return A pointer to the gdmlSolid containing the model
-	  */
-	gdmlSolid *loadGDML(const G4String &fname, const G4ThreeVector &position, const G4ThreeVector &rotation, const G4String &material);
-	
 	/** Load PMT quantum efficiency spectrum from a file
 	  * @return True if the quantum efficiency is loaded correctly and return false otherwise
 	  */

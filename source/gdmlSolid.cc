@@ -214,9 +214,9 @@ void gdmlSolid::setLogicalBorders(const G4String &borderName, G4OpticalSurface *
 
 void gdmlSolid::setRotation(const G4ThreeVector &rot_){
 	rotation = G4RotationMatrix();
-	rotation.rotateX(rot_.getX());
-	rotation.rotateY(rot_.getY());
-	rotation.rotateZ(rot_.getZ());
+	rotation.rotateX(rot_.getX()*deg);
+	rotation.rotateY(rot_.getY()*deg);
+	rotation.rotateZ(rot_.getZ()*deg);
 }
 
 void gdmlSolid::rotate(const double &x, const double &y, const double &z){

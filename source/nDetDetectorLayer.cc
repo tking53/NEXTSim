@@ -82,37 +82,6 @@ std::string lightGuideLayer::syntaxStr() const {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// class gdmlLayer
-///////////////////////////////////////////////////////////////////////////////
-
-bool gdmlLayer::decodeArgs(){
-	// Expects a space-delimited string of the form:
-	//  "filename posX(cm) posY(cm) posZ(cm) rotX(deg) rotY(deg) rotZ(deg) material"
-	filename = args.at(0);
-	position = G4ThreeVector(strtod(args.at(1).c_str(), NULL)*cm, strtod(args.at(2).c_str(), NULL)*cm, strtod(args.at(3).c_str(), NULL)*cm);
-	rotVector = G4ThreeVector(strtod(args.at(4).c_str(), NULL)*deg, strtod(args.at(5).c_str(), NULL)*deg, strtod(args.at(6).c_str(), NULL)*deg);
-	material = args.at(7);
-
-	// Load the model
-	solid.read(filename, material, false);
-	solid.setRotation(rotVector);
-	solid.setPosition(position);
-
-	// Get the size of the model
-	size = G4ThreeVector(solid.getWidth(), solid.getThickness(), solid.getLength());
-	
-	return true;
-}
-
-void gdmlLayer::construct(nDetDetector *obj){
-	obj->loadGDML(&solid);
-}
-
-std::string gdmlLayer::syntaxStr() const {
-	return std::string("loadGDML <filename> <posX> <posY> <posZ> <rotX> <rotY> <rotZ> <matString>");
-}
-
-///////////////////////////////////////////////////////////////////////////////
 // class gdmlLightGuideLayer
 ///////////////////////////////////////////////////////////////////////////////
 

@@ -33,9 +33,6 @@ void nDetConstructionMessenger::addAllCommands(){
 	addCommand(new G4UIcmdWithAString("/nDet/detector/setGainMatrix", this));
 	addGuidance("Load segmented PMT anode gain matrix file");
 	
-	addCommand(new G4UIcmdWithAString("/nDet/detector/loadGDML", this));
-	addGuidance("Load a GDML geometry file for testing. SYNTAX: loadGDML <filename> <posX> <posY> <posZ> <rotX> <rotY> <rotZ> <matString>");
-	
 	addCommand(new G4UIcmdWithAString("/nDet/detector/addGreaseLayer", this));
 	addGuidance("Add a layer of optical grease (all units in mm). SYNTAX: addGreaseLayer <width> <height> [thickness]");	
 
@@ -127,33 +124,30 @@ void nDetConstructionMessenger::SetNewChildValue(G4UIcommand* command, G4String 
 		fDetector->setPmtGainMatrix(newValue.c_str());
 	}
 	else if(index == 4){
-		fDetector->LoadGDML(newValue);
-	}
-	else if(index == 5){
 		fDetector->AddGrease(newValue);
 	}
-	else if(index == 6){
+	else if(index == 5){
 		fDetector->AddDiffuser(newValue);
 	}
-	else if(index == 7){
+	else if(index == 6){
 		fDetector->AddLightGuide(newValue);
 	}
-	else if(index == 8){
+	else if(index == 7){
 		fDetector->AddLightGuideGDML(newValue);
 	}
-	else if(index == 9){
+	else if(index == 8){
 		fDetector->ClearGeometry();
 	}
-	else if(index == 10){
+	else if(index == 9){
 		fDetector->AddDetectorArray(newValue);
 	}
-	else if(index == 11){
+	else if(index == 10){
 		fDetector->PrintAllDetectors();
 	}
 	else{ // Digitizer command
 		pmtResponse *prL = fDetector->GetPmtResponseL();
 		pmtResponse *prR = fDetector->GetPmtResponseR();
-		index = index - 12;
+		index = index - 11;
 		if(index == 0){
 			G4double val = command->ConvertToDouble(newValue);
 			prL->setRisetime(val);

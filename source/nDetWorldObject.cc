@@ -11,6 +11,7 @@
 #include "G4Sphere.hh"
 #include "G4Torus.hh"
 
+#include "nDetDetector.hh"
 #include "nDetWorldObject.hh"
 #include "nDetMaterials.hh"
 #include "optionHandler.hh" // split_str
@@ -37,10 +38,27 @@ bool nDetWorldObject::isNumerical(const std::string &str){
 }
 
 void nDetWorldObject::setRotationMatrix(const G4ThreeVector &vec){
+	rotVector = vec;
 	rotation = G4RotationMatrix();
 	rotation.rotateX(vec.getX()*deg);
 	rotation.rotateY(vec.getY()*deg);
 	rotation.rotateZ(vec.getZ()*deg);
+}
+
+void nDetWorldObject::print(){
+	G4ThreeVector rowX = rotation.rowX();
+	G4ThreeVector rowY = rotation.rowY();
+	G4ThreeVector rowZ = rotation.rowZ();
+	std::cout << " Address  = " << this << std::endl;
+	std::cout << " Name     = " << name << std::endl;
+	std::cout << " Material = " << material << std::endl;
+	std::cout << " Size     = (x=" << size.getX() << ", y=" << size.getY() << ", z=" << size.getZ() << ")\n";
+	std::cout << " Position = (x=" << position.getX() << ", y=" << position.getY() << ", z=" << position.getZ() << ")\n";
+	std::cout << " Rotation = (x=" << rotVector.getX() << ", y=" << rotVector.getY() << ", z=" << rotVector.getZ() << ")\n";
+	std::cout << " Unit X   = (" << rowX.getX() << ", " << rowX.getY() << ", " << rowX.getZ() << ")\n";
+	std::cout << " Unit Y   = (" << rowY.getX() << ", " << rowY.getY() << ", " << rowY.getZ() << ")\n";
+	std::cout << " Unit Z   = (" << rowZ.getX() << ", " << rowZ.getY() << ", " << rowZ.getZ() << ")\n";
+	this->subPrint();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -166,6 +184,12 @@ void nDetWorldPrimitive::listAllPrimitives(){
 	// Reset the selected shape, just in case
 	sizeArgs.clear();
 	shapeSelect = DEFAULT;
+}
+
+void nDetWorldPrimitive::subPrint(){
+	for(auto arg : sizeArgs){
+		std::cout << "  " << arg.first << "=" << arg.second << std::endl;
+	}
 }
 
 std::string nDetWorldPrimitive::getShapeArgString(){
@@ -295,15 +319,19 @@ G4CSGSolid *nDetWorldPrimitive::buildGeometry(const G4String &extName/*=""*/){
 	switch(shapeSelect){
 		case BOX:
 			newObj = new G4Box(extName, sizeArgs["pX"]/2, sizeArgs["pY"]/2, sizeArgs["pZ"]/2);
+			size = G4ThreeVector(sizeArgs["pX"], sizeArgs["pY"], sizeArgs["pZ"]);
 			break;
 		case CYLINDER:
 			newObj = new G4Tubs(extName, sizeArgs["pRMin"], sizeArgs["pRMax"], sizeArgs["pDz"]/2, sizeArgs["pSPhi"]*deg, sizeArgs["pDPhi"]*deg);
+			size = G4ThreeVector(sizeArgs["pRMax"]*2, sizeArgs["pRMax"]*2, sizeArgs["pDz"]);
 			break;
 		case CONE:
 			newObj = new G4Cons(extName, sizeArgs["pRMin1"], sizeArgs["pRMax1"], sizeArgs["pRMin2"], sizeArgs["pRMax2"], sizeArgs["pDz"]/2, sizeArgs["pSPhi"]*deg, sizeArgs["pDPhi"]*deg);
+			size = G4ThreeVector(std::max(sizeArgs["pRMax1"], sizeArgs["pRMax2"])*2, std::max(sizeArgs["pRMax1"], sizeArgs["pRMax2"])*2, sizeArgs["pDz"]);
 			break;
 		case PARALLELEPIPED:
 			newObj = new G4Para(extName, sizeArgs["dx"]/2, sizeArgs["dy"]/2, sizeArgs["dz"]/2, sizeArgs["alpha"]*deg, sizeArgs["theta"]*deg, sizeArgs["phi"]*deg);
+			size = G4ThreeVector(sizeArgs["dx"], sizeArgs["dy"], sizeArgs["dz"]); // Probably not correct, I have no idea how to get the size of this thing
 			break;
 		case TRAPEZOID:
 			newObj = new G4Trd(extName, sizeArgs["dx1"]/2, sizeArgs["dx2"]/2, sizeArgs["dy1"]/2, sizeArgs["dy2"]/2, sizeArgs["dz"]/2);
@@ -311,12 +339,15 @@ G4CSGSolid *nDetWorldPrimitive::buildGeometry(const G4String &extName/*=""*/){
 			newObj = new G4Trap(extName, sizeArgs["pDz"]/2, sizeArgs["pTheta"]*deg, sizeArgs["pPhi"]*deg, 
 			                             sizeArgs["pDy1"]/2, sizeArgs["pDx1"]/2, sizeArgs["pDx2"]/2, sizeArgs["pAlp1"]*deg, 
 			                             sizeArgs["pDy2"]/2, sizeArgs["pDx3"]/2, sizeArgs["pDx4"]/2, sizeArgs["pAlp2"]*deg);*/
+			size = G4ThreeVector(std::max(sizeArgs["dx1"], sizeArgs["dx2"])*2, std::max(sizeArgs["dy1"], sizeArgs["dy2"])*2, sizeArgs["dz"]);
 			break;
 		case SPHERE:
 			newObj = new G4Sphere(extName, sizeArgs["pRmin"], sizeArgs["pRmax"], sizeArgs["pSPhi"]*deg, sizeArgs["pDPhi"]*deg, sizeArgs["pSTheta"]*deg, sizeArgs["pDTheta"]*deg);
+			size = G4ThreeVector(sizeArgs["pRmax"]*2, sizeArgs["pRmax"]*2, sizeArgs["pRmax"]*2);
 			break;
 		case TORUS:
 			newObj = new G4Torus(extName, sizeArgs["pRmin"], sizeArgs["pRmax"], sizeArgs["pRtor"], sizeArgs["pSPhi"]*deg, sizeArgs["pDPhi"]*deg);
+			size = G4ThreeVector(sizeArgs["pRtor"]*2 + sizeArgs["pRmax"]*2, sizeArgs["pRtor"]*2 + sizeArgs["pRmax"]*2, sizeArgs["pRmax"]*2);
 			break;
 		default:
 			break;
@@ -328,4 +359,50 @@ G4CSGSolid *nDetWorldPrimitive::buildGeometry(const G4String &extName/*=""*/){
 	}
 	
 	return newObj;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// class gdmlObject
+///////////////////////////////////////////////////////////////////////////////
+
+bool gdmlObject::decodeArgs(){
+	// Expects a space-delimited string of the form:
+	//  "filename posX(cm) posY(cm) posZ(cm) rotX(deg) rotY(deg) rotZ(deg) material"
+	filename = args.at(0);
+	position = G4ThreeVector(strtod(args.at(1).c_str(), NULL)*cm, strtod(args.at(2).c_str(), NULL)*cm, strtod(args.at(3).c_str(), NULL)*cm);
+	setRotationMatrix(G4ThreeVector(strtod(args.at(4).c_str(), NULL), strtod(args.at(5).c_str(), NULL), strtod(args.at(6).c_str(), NULL)));
+	material = args.at(7);
+
+	// Load the model
+	solid.read(filename, material, false);
+	solid.setRotation(rotVector);
+	solid.setPosition(position);
+
+	// Get attributes of the model
+	size = G4ThreeVector(solid.getWidth(), solid.getThickness(), solid.getLength());
+	name = solid.getName();
+
+	// Print some info about the loaded geometry
+	std::cout << " gdmlObject: Loaded GDML model (name=" << name << ") with size x=" << size.getX() << " mm, y=" << size.getY() << " mm, z=" << size.getZ() << " mm\n";
+	
+	return true;
+}
+
+void gdmlObject::construct(nDetDetector *obj){
+	obj->loadGDML(&solid);
+}
+
+std::string gdmlObject::syntaxStr() const {
+	return std::string("loadGDML <filename> <posX> <posY> <posZ> <rotX> <rotY> <rotZ> <material>");
+}
+
+void gdmlObject::placeObject(G4LogicalVolume *parent, nDetMaterials *materials){
+	if(!solid.isLoaded()) 
+		return;
+
+	// Set the visual attributes of the model
+	geometry_logV = solid.getLogicalVolume();
+	
+	// Place loaded model into the assembly.
+	geometry_physV = solid.placeSolid(parent, true);
 }

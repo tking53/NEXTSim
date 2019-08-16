@@ -27,6 +27,12 @@ void nDetWorldMessenger::addAllCommands(){
 	
 	addCommand(new G4UIcmdWithoutParameter("/nDet/world/listPrimitives", this));
 	addGuidance("List all Geant primitives which may be added to the experimental setup area");
+	
+	addCommand(new G4UIcmdWithoutParameter("/nDet/world/printObjects", this));
+	addGuidance("Print information about all user-defined primitive objects in the setup area");
+	
+	addCommand(new G4UIcmdWithAString("/nDet/world/loadGDML", this));
+	addGuidance("Load a GDML geometry from a file and place it in the setup area. SYNTAX: loadGDML <filename> <posX> <posY> <posZ> <rotX> <rotY> <rotZ> <matString>");
 }
 
 void nDetWorldMessenger::SetNewChildValue(G4UIcommand* command, G4String newValue){
@@ -50,5 +56,11 @@ void nDetWorldMessenger::SetNewChildValue(G4UIcommand* command, G4String newValu
 	}
 	else if(index == 5){
 		fWorld->listAllPrimitives();
+	}
+	else if(index == 6){
+		fWorld->printDefinedObjects();
+	}
+	else if(index == 7){
+		fWorld->loadGDML(newValue);
 	}
 }
