@@ -2,25 +2,19 @@
 #include <iostream>
 
 #include <cstdlib>
+#include <sstream>
 
 #include "termColors.hh"
 
 using namespace TermColors;
 
-static const size_t leaderLength = 50;
+const size_t leaderLength = 50;
 
-bool Display::hasColorTerm = true;
-
-void Display::SetColorTerm(){
-#ifdef NOCOLORINTERFACE
-	hasColorTerm = false;
-#else
-	std::string termname = getenv("TERM");
-	
-	if (termname == "xterm")
-		hasColorTerm = true;
-#endif
-}
+std::string Display::fatalStr = BtRed + Flashing + "[FATAL ERROR] ";
+std::string Display::errorStr = DkRed + "[ERROR] ";
+std::string Display::warnStr = DkYellow + "[WARNING] ";
+std::string Display::infoStr = BtBlue + "[INFO] ";
+std::string Display::okayStr = DkGreen + "[OK] ";
 
 void Display::LeaderPrint(const std::string &str){
 	char ch = std::cout.fill();
@@ -30,75 +24,64 @@ void Display::LeaderPrint(const std::string &str){
 	std::cout.fill(ch);
 }
 
-std::string Display::CriticalStr(const std::string &str){
-	if (hasColorTerm)
-		return (std::string(BtRed) + Flashing + str + Reset);
-	return (std::string("###") + str + "###");
+std::string Display::CriticalStr(const std::string &name/*=""*/){
+	if(name.empty())
+		return fatalStr;
+	return (fatalStr + name + ": ");
 }
 
-std::string Display::ErrorStr(const std::string &str){
-	if (hasColorTerm)
-		return (DkRed + str + Reset);
-	return str;
+std::string Display::ErrorStr(const std::string &name/*=""*/){
+	if(name.empty())
+		return errorStr;
+	return (errorStr + name + ": ");
 }
 
-std::string Display::InfoStr(const std::string &str){
-	if (hasColorTerm)
-		return (BtBlue + str + Reset);
-	return str;
+std::string Display::InfoStr(const std::string &name/*=""*/){
+	if(name.empty())
+		return infoStr;
+	return (infoStr + name + ": ");
 }
 
-std::string Display::OkayStr(const std::string &str){
-	if (hasColorTerm)
-		return (DkGreen + str + Reset);
-	return str;
+std::string Display::OkayStr(const std::string &name/*=""*/){
+	if(name.empty())
+		return okayStr;
+	return (okayStr + name + ": ");
 }
 
-std::string Display::WarningStr(const std::string &str){
-	if (hasColorTerm)
-		return (DkYellow + str + Reset);
-	return str;
+std::string Display::WarningStr(const std::string &name/*=""*/){
+	if(name.empty())
+		return warnStr;
+	return (warnStr + name + ": ");
+}
+
+std::string Display::ResetStr(){
+	return Reset;
 }
 
 void Display::CriticalPrint(const std::string &str, const std::string &name/*=""*/){
-	std::cout << BtRed << Flashing << "[CRITICAL ERROR]";
-	if(!name.empty())
-		std::cout << " " << name << ":";
-	std::cout << " " << str << Reset << std::endl;
+	std::cout << CriticalStr(name) << str << Reset << std::endl;
 }
 
 void Display::ErrorPrint(const std::string &str, const std::string &name/*=""*/){
-	std::cout << DkRed << "[ERROR]";
-	if(!name.empty())
-		std::cout << " " << name << ":";
-	std::cout << " " << str << Reset << std::endl;
+	std::cout << ErrorStr(name) << str << Reset << std::endl;
 }
 
 void Display::InfoPrint(const std::string &str, const std::string &name/*=""*/){
-	std::cout << BtBlue << "[INFO]";
-	if(!name.empty())
-		std::cout << " " << name << ":";
-	std::cout << " " << str << Reset << std::endl;
+	std::cout << InfoStr(name) << str << Reset << std::endl;
 }
 
 void Display::OkayPrint(const std::string &str, const std::string &name/*=""*/){
-	std::cout << DkGreen << "[OK]";
-	if(!name.empty())
-		std::cout << " " << name << ":";
-	std::cout << " " << str << Reset << std::endl;
+	std::cout << OkayStr(name) << str << Reset << std::endl;
 }
 
 void Display::WarningPrint(const std::string &str, const std::string &name/*=""*/){
-	std::cout << DkYellow << "[WARNING]";
-	if(!name.empty())
-		std::cout << " " << name << ":";
-	std::cout << " " << str << Reset << std::endl;
+	std::cout << WarningStr(name) << str << Reset << std::endl;
 }
 
 bool Display::StatusPrint(bool errorStatus){
 	if (errorStatus) 
-		std::cout << Display::ErrorStr() << std::endl;
+		std::cout << ErrorStr() << std::endl;
 	else
-		std::cout << Display::OkayStr() << std::endl;
+		std::cout << OkayStr() << std::endl;
 	return errorStatus;
 }
