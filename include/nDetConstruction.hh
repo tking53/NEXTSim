@@ -75,6 +75,10 @@ class nDetConstruction : public G4VUserDetectorConstruction{
 	  */
 	void setPmtGainMatrix(const std::string &fname){ gainMatrixFilename = fname; }
 
+	/** Get a pointer to the NEXTSim materials handler
+	  */
+	nDetMaterials *GetMaterials(){ return &materials; }
+
 	/** Get a pointer to the messenger used for this class
 	  */
 	nDetConstructionMessenger *GetMessenger(){ return fDetectorMessenger; }

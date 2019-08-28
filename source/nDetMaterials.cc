@@ -169,6 +169,14 @@ G4VisAttributes* nDetMaterials::searchForVisualAttributes(const G4String &name){
 	return NULL;
 }
 
+void nDetMaterials::listAll() const {
+	std::cout << "\n Materials:\n";
+	for(auto material : materialList){
+		std::cout << "  " << material.first << std::endl;
+	}
+	std::cout << std::endl;
+}
+
 void nDetMaterials::defineMaterials(){
 	if(isInitialized) return;
 

@@ -1,7 +1,10 @@
 
-#include "nDetConstructionMessenger.hh"
+#include <iostream>
 
+#include "nDetConstructionMessenger.hh"
 #include "nDetConstruction.hh"
+
+#include "G4Material.hh"
 #include "G4UIcommand.hh"
 #include "G4UIcmdWithAString.hh"
 #include "G4UIdirectory.hh"
@@ -53,6 +56,12 @@ void nDetConstructionMessenger::addAllCommands(){
 
 	addCommand(new G4UIcmdWithoutParameter("/nDet/detector/printAll", this));
 	addGuidance("Print construction parameters for all defined detectors");
+
+	addCommand(new G4UIcmdWithoutParameter("/nDet/detector/listMaterials", this));
+	addGuidance("Print all pre-defined materials which are available for use");
+
+	addCommand(new G4UIcmdWithAString("/nDet/detector/searchForMaterial", this));
+	addGuidance("Search for a material in the list of pre-defined NEXTSim materials OR in the NIST database");
 	
 	///////////////////////////////////////////////////////////////////////////////
 	// PMT & digitizer commands
@@ -144,10 +153,16 @@ void nDetConstructionMessenger::SetNewChildValue(G4UIcommand* command, G4String 
 	else if(index == 10){
 		fDetector->PrintAllDetectors();
 	}
+	else if(index == 11){
+		fDetector->GetMaterials()->listAll();
+	}
+	else if(index == 12){
+		fDetector->GetMaterials()->searchForMaterial(newValue);
+	}
 	else{ // Digitizer command
 		pmtResponse *prL = fDetector->GetPmtResponseL();
 		pmtResponse *prR = fDetector->GetPmtResponseR();
-		index = index - 11;
+		index = index - 13;
 		if(index == 0){
 			G4double val = command->ConvertToDouble(newValue);
 			prL->setRisetime(val);

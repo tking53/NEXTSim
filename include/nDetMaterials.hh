@@ -151,6 +151,10 @@ class nDetMaterials{
 	  */	
 	G4VisAttributes* searchForVisualAttributes(const G4String &name);
 
+	/** List all materials in the materials dictionary
+	  */
+	void listAll() const ;
+
   private:
 	bool isInitialized; ///< Flag indicating that all materials have been defined
 	bool scintsAreDefined; ///< Flag indicating that the scintillator materials have been defined
