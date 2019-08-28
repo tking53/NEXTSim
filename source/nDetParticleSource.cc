@@ -405,7 +405,7 @@ bool nDetParticleSource::AddDiscreteEnergy(const G4String &str){
 	unsigned int Nargs = split_str(str, args);
 	if(Nargs < 1){
 		Display::ErrorPrint("Invalid number of arguments given to ::AddDiscreteEnergy().", "nDetParticleSource");
-		Display::ErrorPrint(" SYNTAX: addLevel <energy(keV)> [intensity] [particle]", "nDetParticleSource");
+		Display::ErrorPrint(" SYNTAX: addLevel <energy(keV)> [intensity=100] [particle=gamma]", "nDetParticleSource");
 		return false;
 	}
 	double energy = strtod(args.at(0).c_str(), NULL);
@@ -425,7 +425,7 @@ bool nDetParticleSource::AddDiscreteEnergy(const G4String &str){
 			return false;
 		}
 	}
-	AddDiscreteEnergy(energy, intensity, particle);
+	AddDiscreteEnergy(energy, intensity, false, particle);
 	return true;
 }
 
