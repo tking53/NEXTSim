@@ -15,6 +15,10 @@ class G4VisAttributes;
   * @brief Geant materials and elements used for detector construction
   * @author Cory R. Thornsberry (cthornsb@vols.utk.edu)
   * @date July 3, 2019
+  *
+  * This class is designed as a handler for common Geant materials which are used by
+  * other NEXTSim classes. The materials and elements defined in this class are expandable
+  * by using the nistDatabase class.
   */
 
 class nDetMaterials{
@@ -123,11 +127,29 @@ class nDetMaterials{
 	  */	
 	void setLightYield(const G4double &yield);
 
-	/** Search for a material name in the NIST database
+	/** Search for an element name in the pre-defined dictionary
+	  * @note If the specified name corresponds to a pre-defined element, a pointer to that element is returned.
+	  *       Otherwise the name is searched for within the Geant NIST element database.
+	  * @return A pointer to the Geant element if it is found in the pre-defined dictionary OR the NIST database and return NULL otherwise
+	  */
+	G4Element* searchForElement(const G4String &name);
+	
+	/** Search for a material name in the pre-defined dictionary
 	  * @note If the specified name corresponds to a pre-defined material, a pointer to that material is returned.
 	  *       Otherwise the name is searched for within the Geant NIST material database.
+	  * @return A pointer to the Geant material if it is found in the pre-defined dictionary OR the NIST database and return NULL otherwise
 	  */
 	G4Material* searchForMaterial(const G4String &name);
+
+	/** Search for an optical surface name in the pre-defined dictionary
+	  * @return A pointer to the Geant optical surface if it is found in the pre-defined dictionary and return NULL otherwise
+	  */
+	G4OpticalSurface* searchForOpticalSurface(const G4String &name);
+
+	/** Search for an object visual attributes name in the pre-defined dictionary
+	  * @return A pointer to the Geant visual attributes if it is found in the pre-defined dictionary and return NULL otherwise
+	  */	
+	G4VisAttributes* searchForVisualAttributes(const G4String &name);
 
   private:
 	bool isInitialized; ///< Flag indicating that all materials have been defined
@@ -136,6 +158,14 @@ class nDetMaterials{
     G4double lightYieldScale; ///< Scaling parameter used for scintillation light yield (default=1)	
 
 	nistDatabase nist; ///< Database for pre-defined NIST element and material lookups
+
+	std::map<G4String, G4Element*> elementList;
+	
+	std::map<G4String, G4Material*> materialList;
+	
+	std::map<G4String, G4OpticalSurface*> opticalSurfaceList;
+	
+	std::map<G4String, G4VisAttributes*> visAttributesList;
 
 	/** Define materials and optical surfaces
 	  */

@@ -42,10 +42,42 @@ nDetMaterials::~nDetMaterials(){
 }
 
 void nDetMaterials::initialize(){
-	if(!isInitialized){
-		defineMaterials();
-		defineScintillators();
-	}
+	if(isInitialized) return;
+	
+	defineMaterials();
+	defineScintillators();
+
+	elementList["H"] = fH;
+	elementList["C"] = fC;
+	elementList["O"] = fO;
+	elementList["F"] = fF;
+	elementList["Si"] = fSi;
+	elementList["Al"] = fAl;
+	
+	materialList["air"] = fAir;
+	materialList["vacuum"] = fVacuum;
+	materialList["teflon"] = fTeflon;
+	materialList["grease"] = fGrease;
+	materialList["quartz"] = fSiO2;
+	materialList["silicon"] = fSilicon;
+	materialList["mylar"] = fMylar;
+	materialList["acrylic"] = fAcrylic;
+	materialList["aluminum"] = fAluminum;
+
+	opticalSurfaceList["teflon"] = fTeflonOpSurf;
+	opticalSurfaceList["silicon"] = fSiliconOpSurf;
+	opticalSurfaceList["mylar"] = fMylarOpSurf;
+	opticalSurfaceList["esr"] = fEsrOpSurf;
+	opticalSurfaceList["perfect"] = fPerfectOpSurf;
+	opticalSurfaceList["grease"] = fGreaseOpSurf;
+
+	visAttributesList["assembly"] = visAssembly;
+	visAttributesList["sensitive"] = visSensitive;
+	visAttributesList["window"] = visWindow;
+	visAttributesList["grease"] = visGrease;
+	visAttributesList["wrapping"] = visWrapping;
+	visAttributesList["scint"] = visScint;
+	visAttributesList["shadow"] = visShadow;
 }
 
 G4Material* nDetMaterials::getUserDetectorMaterial(const G4String &name){
@@ -94,30 +126,47 @@ void nDetMaterials::setLightYield(const G4double &yield){
 		defineScintillators();
 }
 
+G4Element* nDetMaterials::searchForElement(const G4String &name){
+	std::map<G4String, G4Element*>::iterator iter = elementList.find(name);
+	if(iter != elementList.end()) // Found element in the dictionary
+		return iter->second;
+		
+	// No element found in the dictionary, search for it in the NIST database
+	G4Element *ptr = nist.searchForElement(name);
+	if(ptr){ // Found element in the database, add it to the dictionary
+		elementList[name] = ptr;
+		return ptr;
+	}
+	
+	return NULL;
+}
+	
 G4Material* nDetMaterials::searchForMaterial(const G4String &name){
-	if(name == "air")
-		return fAir;
-	else if(name == "vacuum")
-		return fVacuum;
-	else if(name == "teflon")
-		return fTeflon;
-	else if(name == "ej200")
-		return fEJ200;
-	else if(name == "ej276")
-		return fEJ276;
-	else if(name == "grease")
-		return fGrease;
-	else if(name == "quartz")
-		return fSiO2;
-	else if(name == "silicon")
-		return fSilicon;
-	else if(name == "mylar")
-		return fMylar;
-	else if(name == "acrylic")
-		return fAcrylic;
-	else if(name == "aluminum")
-		return fAluminum;
-	return nist.searchForMaterial(name);
+	std::map<G4String, G4Material*>::iterator iter = materialList.find(name);
+	if(iter != materialList.end()) // Found material in the dictionary
+		return iter->second;
+	// No material found in the dictionary, search for it in the NIST database
+	G4Material *ptr = nist.searchForMaterial(name);
+	if(ptr){ // Found material in the database, add it to the dictionary
+		materialList[name] = ptr;
+		return ptr;
+	}
+	
+	return NULL;
+}
+
+G4OpticalSurface* nDetMaterials::searchForOpticalSurface(const G4String &name){
+	std::map<G4String, G4OpticalSurface*>::iterator iter = opticalSurfaceList.find(name);
+	if(iter != opticalSurfaceList.end()) // Found optical surface in the dictionary
+		return iter->second;
+	return NULL;
+}
+	
+G4VisAttributes* nDetMaterials::searchForVisualAttributes(const G4String &name){
+	std::map<G4String, G4VisAttributes*>::iterator iter = visAttributesList.find(name);
+	if(iter != visAttributesList.end()) // Found optical surface in the dictionary
+		return iter->second;
+	return NULL;
 }
 
 void nDetMaterials::defineMaterials(){
@@ -521,6 +570,10 @@ void nDetMaterials::defineScintillators(){
     fEJ276MPT->AddProperty("IONSCINTILLATIONYIELD", particleEnergy, ionYield_EJ276, 36)->SetSpline(true);
 
 	fEJ276->SetMaterialPropertiesTable(fEJ276MPT);
+	
+	// Update the material dictionary
+	materialList["ej200"] = fEJ200;
+	materialList["ej276"] = fEJ276;
 	
 	scintsAreDefined = true;
 }
