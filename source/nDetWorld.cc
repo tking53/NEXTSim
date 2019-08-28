@@ -48,8 +48,8 @@ void nDetWorld::buildExpHall(nDetMaterials *materials){
 
 	G4Material *expHallFill = materials->searchForMaterial(fillMaterial);
 	if(!expHallFill){ // Use the default material, if
-		Display::WarningPrint("Failed to find user-specified world material!", "nDetConstruction");
-		Display::WarningPrint(" Defaulting to filling world volume with air", "nDetConstruction");
+		std::cout << Display::WarningStr("nDetWorld") << "Failed to find user-specified world material (" << fillMaterial << ")!" << Display::ResetStr() << std::endl;
+		std::cout << Display::WarningStr("nDetWorld") << " Defaulting to filling world volume with air" << Display::ResetStr() << std::endl;
 		expHallFill = materials->fAir;
 	}
 
@@ -76,8 +76,8 @@ void nDetWorld::buildExpHall(nDetMaterials *materials){
 			new G4PVPlacement(NULL, G4ThreeVector(0, -(floorSurfaceY+floorThickness/2), 0), floor_logV, "floorBox_physV", logV, 0, 0, false);
 		}
 		else{
-			Display::WarningPrint("Failed to find user-specified floor material!", "nDetConstruction");
-			Display::WarningPrint(" Disabling the use of a floor", "nDetConstruction");
+			std::cout << Display::WarningStr("nDetWorld") << "Failed to find user-specified floor material (" << floorMaterial << ")!" << Display::ResetStr() << std::endl;
+			std::cout << Display::WarningStr("nDetWorld") << " Disabling the use of a floor" << Display::ResetStr() << std::endl;
 			floorMaterial = "";
 			floorThickness = 0;
 		}
