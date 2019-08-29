@@ -14,7 +14,7 @@ set(NextSimCoreSources nDetRunAction.cc nDetActionInitialization.cc nDetEventAct
 
 set(NextSimOutputSources nDetMasterOutputFile.cc nDetMasterOutputFileMessenger.cc nDetDataPack.cc)
 set(NextSimDetectorSources nDetMaterials.cc nDetConstruction.cc nDetConstructionMessenger.cc nDetWorld.cc nDetWorldMessenger.cc nDetWorldObject.cc 
-                           nDetDetector.cc nDetDetectorMessenger.cc nDetDetectorLayer.cc gdmlSolid.cc)
+                           nDetDetector.cc nDetDetectorMessenger.cc nDetDetectorLayer.cc gdmlSolid.cc nDetDynamicMaterial.cc)
 set(NextSimGeneratorSources nDetParticleSource.cc nDetParticleSourceMessenger.cc)
 set(NextSimPeripheralSources optionHandler.cc termColors.cc)
 

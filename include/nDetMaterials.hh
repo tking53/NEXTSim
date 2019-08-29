@@ -122,6 +122,10 @@ class nDetMaterials{
 	  */
 	G4OpticalSurface* getUserOpticalSurface(const G4String &name);
 
+	/** Get the current light yield multiplier used for scintillator photon production
+	  */
+	G4double getLightYield() const { return lightYieldScale; }
+
 	/** Set the light yield multiplier for scintillator photon production
 	  * @param yield The fraction of the light yield to use for optical photon production in scintillators (default is 1)
 	  */	
@@ -154,6 +158,12 @@ class nDetMaterials{
 	/** List all materials in the materials dictionary
 	  */
 	void listAll() const ;
+
+	/** Read an input material file and build a new material to add to the list
+	  * @param filename The path to the material file to read
+	  * @return True if the file is read successfully and return false otherwise
+	  */
+	bool buildNewMaterial(const G4String &filename);
 
   private:
 	bool isInitialized; ///< Flag indicating that all materials have been defined

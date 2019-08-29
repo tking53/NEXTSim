@@ -6,6 +6,7 @@
 #include "G4VisAttributes.hh"
 
 #include "nDetMaterials.hh"
+#include "nDetDynamicMaterial.hh"
 
 nDetMaterials::~nDetMaterials(){
 	if(isInitialized){
@@ -175,6 +176,15 @@ void nDetMaterials::listAll() const {
 		std::cout << "  " << material.first << std::endl;
 	}
 	std::cout << std::endl;
+}
+
+bool nDetMaterials::buildNewMaterial(const G4String &filename){
+	nDetDynamicMaterial dmat;
+	dmat.setScalingFactor(lightYieldScale);
+	if(!dmat.read(filename, this))
+		return false;
+	materialList[dmat.getName()] = dmat.getMaterial();
+	return true;
 }
 
 void nDetMaterials::defineMaterials(){

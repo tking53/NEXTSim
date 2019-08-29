@@ -62,6 +62,9 @@ void nDetConstructionMessenger::addAllCommands(){
 
 	addCommand(new G4UIcmdWithAString("/nDet/detector/searchForMaterial", this));
 	addGuidance("Search for a material in the list of pre-defined NEXTSim materials OR in the NIST database");
+
+	addCommand(new G4UIcmdWithAString("/nDet/detector/readMaterial", this));
+	addGuidance("Construct a new material by reading an input file");
 	
 	///////////////////////////////////////////////////////////////////////////////
 	// PMT & digitizer commands
@@ -159,10 +162,13 @@ void nDetConstructionMessenger::SetNewChildValue(G4UIcommand* command, G4String 
 	else if(index == 12){
 		fDetector->GetMaterials()->searchForMaterial(newValue);
 	}
+	else if(index == 13){
+		fDetector->GetMaterials()->buildNewMaterial(newValue);
+	}
 	else{ // Digitizer command
 		pmtResponse *prL = fDetector->GetPmtResponseL();
 		pmtResponse *prR = fDetector->GetPmtResponseR();
-		index = index - 13;
+		index = index - 14;
 		if(index == 0){
 			G4double val = command->ConvertToDouble(newValue);
 			prL->setRisetime(val);
