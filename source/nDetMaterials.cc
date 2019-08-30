@@ -134,7 +134,12 @@ void nDetMaterials::setLightYield(const G4double &yield){
 		defineScintillators();
 }
 
-G4Element* nDetMaterials::searchForElement(const G4String &name){
+bool nDetMaterials::searchForElement(const G4String &name){
+	size_t dummy;
+	return nist.searchElementList(name, dummy);
+}
+
+G4Element* nDetMaterials::getElement(const G4String &name){
 	std::map<G4String, G4Element*>::iterator iter = elementList.find(name);
 	if(iter != elementList.end()) // Found element in the dictionary
 		return iter->second;
@@ -148,8 +153,13 @@ G4Element* nDetMaterials::searchForElement(const G4String &name){
 	
 	return NULL;
 }
-	
-G4Material* nDetMaterials::searchForMaterial(const G4String &name){
+
+bool nDetMaterials::searchForMaterial(const G4String &name){
+	size_t dummy;
+	return nist.searchMaterialList(name, dummy);
+}
+
+G4Material* nDetMaterials::getMaterial(const G4String &name){
 	std::map<G4String, G4Material*>::iterator iter = materialList.find(name);
 	if(iter != materialList.end()) // Found material in the dictionary
 		return iter->second;
@@ -163,14 +173,14 @@ G4Material* nDetMaterials::searchForMaterial(const G4String &name){
 	return NULL;
 }
 
-G4OpticalSurface* nDetMaterials::searchForOpticalSurface(const G4String &name){
+G4OpticalSurface* nDetMaterials::getOpticalSurface(const G4String &name){
 	std::map<G4String, G4OpticalSurface*>::iterator iter = opticalSurfaceList.find(name);
 	if(iter != opticalSurfaceList.end()) // Found optical surface in the dictionary
 		return iter->second;
 	return NULL;
 }
 	
-G4VisAttributes* nDetMaterials::searchForVisualAttributes(const G4String &name){
+G4VisAttributes* nDetMaterials::getVisualAttributes(const G4String &name){
 	std::map<G4String, G4VisAttributes*>::iterator iter = visAttributesList.find(name);
 	if(iter != visAttributesList.end()) // Found optical surface in the dictionary
 		return iter->second;
@@ -178,7 +188,9 @@ G4VisAttributes* nDetMaterials::searchForVisualAttributes(const G4String &name){
 }
 
 void nDetMaterials::listAll() const {
-	std::cout << "\n Materials:\n";
+	std::cout << "/////////////////////////////\n";
+	std::cout << "// Defined Materials\n";
+	std::cout << "/////////////////////////////\n\n";
 	for(auto material : materialList){
 		std::cout << "  " << material.first << std::endl;
 	}
@@ -207,7 +219,7 @@ bool nDetMaterials::buildNewMaterial(const G4String &filename){
 }
 
 void nDetMaterials::printMaterial(const G4String &name){
-	G4Material *mat = searchForMaterial(name);
+	G4Material *mat = getMaterial(name);
 	if(mat){
 		std::cout << "/////////////////////////////\n";
 		std::cout << "// Material (" << name << ")\n";
@@ -219,25 +231,30 @@ void nDetMaterials::printMaterial(const G4String &name){
 		std::cout << "// Properties\n";
 		std::cout << "/////////////////////////////\n\n";
 		G4MaterialPropertiesTable* MPT = mat->GetMaterialPropertiesTable();
-		std::vector<G4String> propNames = MPT->GetMaterialPropertyNames(); // Ugh...
-		std::vector<G4String> cpropNames = MPT->GetMaterialConstPropertyNames(); // UGH... WHY, GEANT???
-		for(auto prop : (*MPT->GetPropertyMap())){ // Iterate over variable properties
-			G4PhysicsVector *vec = prop.second;
-			G4String propertyName = propNames[prop.first];
-			std::cout << std::string(propertyName.length(), '-') << std::endl;
-			std::cout << propertyName << std::endl;
-			std::cout << std::string(propertyName.length(), '-') << std::endl;
-			if(vec != NULL){
-				// Now I re-write G4PhysicsVector::DumpValues() for the same reason
-				for (size_t i = 0; i < prop.second->GetVectorLength(); i++) // Iterate over all values in the vectors
-					std::cout << vec->Energy(i) << "\t" << (*vec)[i] << std::endl;
+		if(MPT){
+			std::vector<G4String> propNames = MPT->GetMaterialPropertyNames(); // Ugh...
+			std::vector<G4String> cpropNames = MPT->GetMaterialConstPropertyNames(); // UGH... WHY, GEANT???
+			for(auto prop : (*MPT->GetPropertyMap())){ // Iterate over variable properties
+				G4PhysicsVector *vec = prop.second;
+				G4String propertyName = propNames[prop.first];
+				std::cout << std::string(propertyName.length(), '-') << std::endl;
+				std::cout << propertyName << std::endl;
+				std::cout << std::string(propertyName.length(), '-') << std::endl;
+				if(vec != NULL){
+					// Now I re-write G4PhysicsVector::DumpValues() for the same reason
+					for (size_t i = 0; i < prop.second->GetVectorLength(); i++) // Iterate over all values in the vectors
+						std::cout << vec->Energy(i) << "\t" << (*vec)[i] << std::endl;
+				}
 			}
+			std::cout << "\n/////////////////////////////\n";
+			std::cout << "// Constant Properties\n";
+			std::cout << "/////////////////////////////\n\n";
+			for(auto cprop : (*MPT->GetConstPropertyMap())) // Iterate over constant properties
+				std::cout << cpropNames[cprop.first] << " = " << cprop.second << std::endl;
 		}
-		std::cout << "\n/////////////////////////////\n";
-		std::cout << "// Constant Properties\n";
-		std::cout << "/////////////////////////////\n\n";
-		for(auto cprop : (*MPT->GetConstPropertyMap())) // Iterate over constant properties
-			std::cout << cpropNames[cprop.first] << " = " << cprop.second << std::endl;
+		else{
+			std::cout << " No properties table defined for this material\n";
+		}
 		std::cout << std::endl;
 	}
 }

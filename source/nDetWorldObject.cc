@@ -131,7 +131,7 @@ void nDetWorldPrimitive::placeObject(G4LogicalVolume *parent, nDetMaterials *mat
 		return;
 	}
 	if(buildGeometry()){
-		G4Material *mat = materials->searchForMaterial(material);
+		G4Material *mat = materials->getMaterial(material);
 		if(mat){
 			geometry_logV = new G4LogicalVolume(geometry, mat, "");
 			geometry_logV->SetVisAttributes(materials->visShadow);
@@ -396,7 +396,7 @@ std::string gdmlObject::syntaxStr() const {
 	return std::string("loadGDML <filename> <posX> <posY> <posZ> <rotX> <rotY> <rotZ> <material>");
 }
 
-void gdmlObject::placeObject(G4LogicalVolume *parent, nDetMaterials *materials){
+void gdmlObject::placeObject(G4LogicalVolume *parent, nDetMaterials *){
 	if(!solid.isLoaded()) 
 		return;
 

@@ -45,6 +45,14 @@ size_t nistDatabase::searchElementList(const G4String &name) const {
 	return count;
 }
 
+bool nistDatabase::searchElementList(const G4String &name, size_t &index) const {
+	for(index = 0; index < elements.size(); index++){
+		if(elements.at(index) == name)
+			return true;
+	}
+	return false;
+}
+
 size_t nistDatabase::searchMaterialList(const G4String &name) const {
 	size_t count = 0;
 	for(size_t i = 0; i < materials.size(); i++){
@@ -56,19 +64,43 @@ size_t nistDatabase::searchMaterialList(const G4String &name) const {
 	return count;
 }
 
+bool nistDatabase::searchMaterialList(const G4String &name, size_t &index) const {
+	for(index = 0; index < materials.size(); index++){
+		if(materials.at(index) == name)
+			return true;
+	}
+	return false;
+}
+
 G4Element *nistDatabase::searchForElement(const G4String &name) const {
-	G4Element *retval = G4NistManager::Instance()->FindOrBuildElement(name);
+	size_t dummy;
+	G4Element* retval = NULL;
+	if(searchElementList(name, dummy)){
+		// Check if the material is in the list, otherwise the NIST manager will attempt to build it,
+		// which could cause issues if the string is nonsense.
+		retval = G4NistManager::Instance()->GetElement(dummy);
+		if(!retval)
+			retval = G4NistManager::Instance()->FindOrBuildElement(name);
+	}
 	if(!retval)
-		Display::ErrorPrint("Failed to find element named \""+name+" in NIST database.", "nistDatabase");
+		Display::ErrorPrint("Failed to find element named \""+name+"\" in NIST database.", "nistDatabase");
 	else
 		std::cout << "nistDatabase: Successfully found element named \"" << name << "\" in NIST database.\n";
 	return retval;
 }
 
 G4Material *nistDatabase::searchForMaterial(const G4String &name) const {
-	G4Material *retval = G4NistManager::Instance()->FindOrBuildMaterial(name);
+	size_t dummy;
+	G4Material* retval = NULL;
+	if(searchMaterialList(name, dummy)){
+		// Check if the material is in the list, otherwise the NIST manager will attempt to build it,
+		// which could cause issues if the string is nonsense.
+		retval = G4NistManager::Instance()->GetMaterial(dummy);
+		if(!retval)
+			retval = G4NistManager::Instance()->FindOrBuildMaterial(name);
+	}
 	if(!retval)
-		Display::ErrorPrint("Failed to find material named \""+name+" in NIST database.", "nistDatabase");
+		Display::ErrorPrint("Failed to find material named \""+name+"\" in NIST database.", "nistDatabase");
 	else
 		std::cout << "nistDatabase: Successfully found material named \"" << name << "\" in NIST database.\n";
 	return retval;

@@ -46,7 +46,7 @@ bool nDetWorld::setWorldFloor(const G4String &input){
 void nDetWorld::buildExpHall(nDetMaterials *materials){
 	solidV = new G4Box("solidV", hallSize.getX()/2, hallSize.getY()/2, hallSize.getZ()/2);
 
-	G4Material *expHallFill = materials->searchForMaterial(fillMaterial);
+	G4Material *expHallFill = materials->getMaterial(fillMaterial);
 	if(!expHallFill){ // Use the default material, if
 		std::cout << Display::WarningStr("nDetWorld") << "Failed to find user-specified world material (" << fillMaterial << ")!" << Display::ResetStr() << std::endl;
 		std::cout << Display::WarningStr("nDetWorld") << " Defaulting to filling world volume with air" << Display::ResetStr() << std::endl;
@@ -58,7 +58,7 @@ void nDetWorld::buildExpHall(nDetMaterials *materials){
 
 	// Add a floor to the experimental hall (disabled by default)
 	if(!floorMaterial.empty() && floorThickness > 0){
-		G4Material *mat = materials->searchForMaterial(floorMaterial);
+		G4Material *mat = materials->getMaterial(floorMaterial);
 		if(mat){
 			G4Box *floorBox = new G4Box("floor", hallSize.getX()/2, floorThickness/2, hallSize.getZ()/2);
 			G4LogicalVolume *floor_logV;

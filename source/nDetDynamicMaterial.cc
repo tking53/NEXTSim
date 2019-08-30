@@ -87,7 +87,7 @@ bool nDetDynamicMaterial::read(const std::string &fname, nDetMaterials* material
 	if(!material){
 		material = new G4Material(name, density, nElements);
 		for(auto el : elements){ // Add elements to it
-			G4Element *element = materials->searchForElement(el.first);
+			G4Element *element = materials->getElement(el.first);
 			if(element)
 				material->AddElement(element, el.second);
 		}

@@ -39,10 +39,8 @@ void nDetMaterialsMessenger::SetNewChildValue(G4UIcommand* command, G4String new
 		fMaterials->listAll();
 	}
 	else if(index == 1){
-		G4Material *mat = fMaterials->searchForMaterial(newValue);
-		if(mat){
-			std::cout << " Found material named \"" << newValue << "\" at location " << mat << std::endl;
-		}
+		if(fMaterials->searchForMaterial(newValue))
+			std::cout << "Found material named \"" << newValue << "\" in material list\n";
 	}
 	else if(index == 2){
 		fMaterials->buildNewMaterial(newValue);

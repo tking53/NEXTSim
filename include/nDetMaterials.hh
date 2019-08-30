@@ -141,29 +141,33 @@ class nDetMaterials{
 	  */	
 	void setLightYield(const G4double &yield);
 
+	bool searchForElement(const G4String &name);
+
 	/** Search for an element name in the pre-defined dictionary
 	  * @note If the specified name corresponds to a pre-defined element, a pointer to that element is returned.
 	  *       Otherwise the name is searched for within the Geant NIST element database.
 	  * @return A pointer to the Geant element if it is found in the pre-defined dictionary OR the NIST database and return NULL otherwise
 	  */
-	G4Element* searchForElement(const G4String &name);
+	G4Element* getElement(const G4String &name);
+
+	bool searchForMaterial(const G4String &name);
 	
 	/** Search for a material name in the pre-defined dictionary
 	  * @note If the specified name corresponds to a pre-defined material, a pointer to that material is returned.
 	  *       Otherwise the name is searched for within the Geant NIST material database.
 	  * @return A pointer to the Geant material if it is found in the pre-defined dictionary OR the NIST database and return NULL otherwise
 	  */
-	G4Material* searchForMaterial(const G4String &name);
+	G4Material* getMaterial(const G4String &name);
 
 	/** Search for an optical surface name in the pre-defined dictionary
 	  * @return A pointer to the Geant optical surface if it is found in the pre-defined dictionary and return NULL otherwise
 	  */
-	G4OpticalSurface* searchForOpticalSurface(const G4String &name);
+	G4OpticalSurface* getOpticalSurface(const G4String &name);
 
 	/** Search for an object visual attributes name in the pre-defined dictionary
 	  * @return A pointer to the Geant visual attributes if it is found in the pre-defined dictionary and return NULL otherwise
 	  */	
-	G4VisAttributes* searchForVisualAttributes(const G4String &name);
+	G4VisAttributes* getVisualAttributes(const G4String &name);
 
 	/** List all materials in the materials dictionary
 	  */

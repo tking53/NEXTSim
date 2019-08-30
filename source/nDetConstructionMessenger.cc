@@ -147,19 +147,10 @@ void nDetConstructionMessenger::SetNewChildValue(G4UIcommand* command, G4String 
 	else if(index == 10){
 		fDetector->PrintAllDetectors();
 	}
-	else if(index == 11){
-		fDetector->GetMaterials()->listAll();
-	}
-	else if(index == 12){
-		fDetector->GetMaterials()->searchForMaterial(newValue);
-	}
-	else if(index == 13){
-		fDetector->GetMaterials()->buildNewMaterial(newValue);
-	}
 	else{ // Digitizer command
 		pmtResponse *prL = fDetector->GetPmtResponseL();
 		pmtResponse *prR = fDetector->GetPmtResponseR();
-		index = index - 14;
+		index = index - 11;
 		if(index == 0){
 			G4double val = command->ConvertToDouble(newValue);
 			prL->setRisetime(val);

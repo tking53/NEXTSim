@@ -41,12 +41,26 @@ class nistDatabase{
 	  * @return The number of elements whose name contain the search string
 	  */
 	size_t searchElementList(const G4String &name) const ;
+
+	/** Search for an element matching a specified name
+	  * @param name The name of the element to search for
+	  * @param index The index of the element in the list, in the event of a match
+	  * @return True if a matching element name is found in the list and return false otherwise
+	  */
+	bool searchElementList(const G4String &name, size_t &index) const ;
 	
 	/** Search for materials containing a search substring
 	  * @param name Search string
 	  * @return The number of elements whose name contain the search string
 	  */
 	size_t searchMaterialList(const G4String &name) const ;
+
+	/** Search for a material matching a specified name
+	  * @param name The name of the material to search for
+	  * @param index The index of the material in the list, in the event of a match
+	  * @return True if a matching material name is found in the list and return false otherwise
+	  */
+	bool searchMaterialList(const G4String &name, size_t &index) const ;
 
 	/** Search for an element in the database
 	  * @param name Name of the NIST element
