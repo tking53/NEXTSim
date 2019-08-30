@@ -5,6 +5,7 @@
 #include "G4SystemOfUnits.hh"
 #include "G4VisAttributes.hh"
 
+#include "termColors.hh"
 #include "nDetMaterials.hh"
 #include "nDetDynamicMaterial.hh"
 
@@ -181,9 +182,21 @@ void nDetMaterials::listAll() const {
 bool nDetMaterials::buildNewMaterial(const G4String &filename){
 	nDetDynamicMaterial dmat;
 	dmat.setScalingFactor(lightYieldScale);
-	if(!dmat.read(filename, this))
+	if(!dmat.read(filename, this)) // Read the material file
 		return false;
-	materialList[dmat.getName()] = dmat.getMaterial();
+	std::string name = dmat.getFilePrefix();
+	int nameCounter = 2;
+	while(materialList.find(name) != materialList.end()){ // Check for material existing in material list
+		std::stringstream stream;
+		stream << name << "-" << nameCounter++;
+		
+		name = stream.str();
+	}
+	if(nameCounter != 2){ // Print a warning about existing material name
+		std::cout << Display::WarningStr("nDetDynamicMaterial") << "Material named \"" << dmat.getFilePrefix() << "\" is already in material list!\n" << Display::ResetStr();
+		std::cout << Display::WarningStr("nDetDynamicMaterial") << " Renaming new material to \"" << name << "\"\n" << Display::ResetStr();
+	}
+	materialList[name] = dmat.getMaterial();
 	return true;
 }
 
@@ -235,9 +248,7 @@ void nDetMaterials::defineMaterials(){
 	// Teflon (C2F4)n
 	/////////////////////////////////////////////////////////////////
 
-    fTeflon= new G4Material("Teflon", 2.2*g/cm3,2);
-    fTeflon->AddElement(fC, 2);
-    fTeflon->AddElement(fF, 4);
+    fTeflon = nist.searchForMaterial("G4_TEFLON");
 
     G4double photonEnergy_teflon[9] = {1.607*eV, 1.743*eV, 1.908*eV, 2.108*eV, 2.354*eV, 2.664*eV, 3.070*eV, 3.621*eV, 4.413*eV};
     G4double reflectivity_teflon[9] = {0.514, 0.583, 0.656, 0.727, 0.789, 0.836, 0.868, 0.887, 0.892}; // https://www.osti.gov/servlets/purl/1184400 (1 layer)
@@ -335,11 +346,7 @@ void nDetMaterials::defineMaterials(){
 	// ACRYLIC (C5O2H8)n -- CRT
 	/////////////////////////////////////////////////////////////////
 
-    fAcrylic = new G4Material("Acrylic", 1.19*g/cm3, 3);
-    
-    fAcrylic->AddElement(fC, 5);
-    fAcrylic->AddElement(fH, 8);
-    fAcrylic->AddElement(fO, 2);
+    fAcrylic = nist.searchForMaterial("G4_PLEXIGLASS");
 
 	// Photon energy (eV)
 	G4double ENERGY_ACRYLIC[11] = {6.1992*eV, 4.95936*eV, 4.1328*eV, 3.5424*eV, 3.0996*eV, 2.7552*eV, 2.47968*eV, 2.25426*eV, 2.0664*eV, 1.90745*eV, 1.7712*eV};
@@ -367,8 +374,7 @@ void nDetMaterials::defineMaterials(){
 	// Natural Aluminum
 	/////////////////////////////////////////////////////////////////
 
-	fAluminum = new G4Material("Aluminum", 2.7*g/cm3, 1);
-	fAluminum->AddElement(fAl, 1);
+	fAluminum = nist.searchForMaterial("G4_Al");
 
 	double AlEnergies[3] = {2.0*eV, 3.0*eV, 4.0*eV};	                       
 	double AlRefIndex[3] = {0.86, 0.50, 0.28};
@@ -404,12 +410,11 @@ void nDetMaterials::defineMaterials(){
     fSiliconOpSurf->SetMaterialPropertiesTable(fSiliconMPT);
 
 	// Aluminized mylar
-    G4Material *Al = nist.searchForMaterial("G4_Al");
     G4Material *Mylar = nist.searchForMaterial("G4_MYLAR");
 
     fMylar = new G4Material("AluminizedMylar", 1.39*g/cm3, 2);
     fMylar->AddMaterial(Mylar, 0.8);
-    fMylar->AddMaterial(Al, 0.2);
+    fMylar->AddMaterial(fAluminum, 0.2);
 
     //G4double RefractiveReal_Mylar[5] = {0.81257,0.72122,0.63324,0.55571,0.48787};
     //G4double RefractiveImg_Mylar[5] = {6.0481,5.7556,5.4544,5.1464,4.8355};

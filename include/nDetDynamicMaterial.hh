@@ -37,6 +37,10 @@ public:
 	/** Toggle debug mode
 	  */
 	bool toggleDebug(){ return (debug = !debug); }
+
+	/** Get the prefix of the input filename
+	  */
+	std::string getFilePrefix() const { return prefix; }
 	
 	/** Get the name of the material
 	  */
@@ -62,6 +66,7 @@ public:
 	bool read(const std::string &fname, nDetMaterials* materials);
 
 private:
+	std::string prefix; ///< The prefix of the input filename
 	std::string name; ///< The name of the material
 
 	bool init; ///< Flag indicating that the material has been initialized
@@ -82,6 +87,8 @@ private:
 	G4MaterialPropertiesTable* mpt; ///< Pointer to the Geant material properties table
 
 	std::vector<double>* currArray; ///< Pointer to the current vector where values which are read from the file will be stored
+
+	nDetMaterials* matHandler; ///< Pointer to the NEXTSim material handler
 	
 	std::map<std::string, std::vector<double> > variables; ///< Map which stores all user-defined value arrays
 

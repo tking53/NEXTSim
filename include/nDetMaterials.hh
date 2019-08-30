@@ -126,6 +126,10 @@ class nDetMaterials{
 	  */
 	G4double getLightYield() const { return lightYieldScale; }
 
+	/** Get a pointer to the database for pre-defined NIST element and materials
+	  */
+	nistDatabase* getNistDatabase(){ return &nist; }
+
 	/** Set the light yield multiplier for scintillator photon production
 	  * @param yield The fraction of the light yield to use for optical photon production in scintillators (default is 1)
 	  */	
