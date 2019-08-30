@@ -11,6 +11,8 @@ class G4MaterialPropertiesTable;
 class G4OpticalSurface;
 class G4VisAttributes;
 
+class nDetMaterialsMessenger;
+
 /** @class nDetMaterials
   * @brief Geant materials and elements used for detector construction
   * @author Cory R. Thornsberry (cthornsb@vols.utk.edu)
@@ -75,7 +77,7 @@ class nDetMaterials{
 	
 	/** Default constructor
 	  */
-	nDetMaterials() : isInitialized(false), scintsAreDefined(false), lightYieldScale(1) { }
+	nDetMaterials();
 	
 	/** Destructor
 	  */
@@ -130,6 +132,10 @@ class nDetMaterials{
 	  */
 	nistDatabase* getNistDatabase(){ return &nist; }
 
+	/** Get a pointer to the messenger for this class
+	  */
+	nDetMaterialsMessenger* getMessenger(){ return messenger; }
+
 	/** Set the light yield multiplier for scintillator photon production
 	  * @param yield The fraction of the light yield to use for optical photon production in scintillators (default is 1)
 	  */	
@@ -169,7 +175,13 @@ class nDetMaterials{
 	  */
 	bool buildNewMaterial(const G4String &filename);
 
+	/**
+	  */
+	void printMaterial(const G4String &name);
+
   private:
+	nDetMaterialsMessenger* messenger; ///< Pointer to the messenger for this class
+
 	bool isInitialized; ///< Flag indicating that all materials have been defined
 	bool scintsAreDefined; ///< Flag indicating that the scintillator materials have been defined
 	

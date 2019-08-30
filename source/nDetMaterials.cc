@@ -7,7 +7,12 @@
 
 #include "termColors.hh"
 #include "nDetMaterials.hh"
+#include "nDetMaterialsMessenger.hh"
 #include "nDetDynamicMaterial.hh"
+
+nDetMaterials::nDetMaterials() : messenger(), isInitialized(false), scintsAreDefined(false), lightYieldScale(1) { 
+	messenger = new nDetMaterialsMessenger(this);
+}
 
 nDetMaterials::~nDetMaterials(){
 	if(isInitialized){
@@ -41,6 +46,7 @@ nDetMaterials::~nDetMaterials(){
 		delete fEJ200MPT;
 		delete fEJ276MPT;
 	}
+	delete messenger;
 }
 
 void nDetMaterials::initialize(){
@@ -198,6 +204,42 @@ bool nDetMaterials::buildNewMaterial(const G4String &filename){
 	}
 	materialList[name] = dmat.getMaterial();
 	return true;
+}
+
+void nDetMaterials::printMaterial(const G4String &name){
+	G4Material *mat = searchForMaterial(name);
+	if(mat){
+		std::cout << "/////////////////////////////\n";
+		std::cout << "// Material (" << name << ")\n";
+		std::cout << "/////////////////////////////\n\n";
+		std::cout << (*mat);
+		// Re-writing G4MaterialPropertiesTable::DumpTable() because it prints to G4cout only
+		// This is messy, but I have to do a lot of workarounds to deal with the strange setup of the G4MaterialPropertiesTable class
+		std::cout << "\n/////////////////////////////\n";
+		std::cout << "// Properties\n";
+		std::cout << "/////////////////////////////\n\n";
+		G4MaterialPropertiesTable* MPT = mat->GetMaterialPropertiesTable();
+		std::vector<G4String> propNames = MPT->GetMaterialPropertyNames(); // Ugh...
+		std::vector<G4String> cpropNames = MPT->GetMaterialConstPropertyNames(); // UGH... WHY, GEANT???
+		for(auto prop : (*MPT->GetPropertyMap())){ // Iterate over variable properties
+			G4PhysicsVector *vec = prop.second;
+			G4String propertyName = propNames[prop.first];
+			std::cout << std::string(propertyName.length(), '-') << std::endl;
+			std::cout << propertyName << std::endl;
+			std::cout << std::string(propertyName.length(), '-') << std::endl;
+			if(vec != NULL){
+				// Now I re-write G4PhysicsVector::DumpValues() for the same reason
+				for (size_t i = 0; i < prop.second->GetVectorLength(); i++) // Iterate over all values in the vectors
+					std::cout << vec->Energy(i) << "\t" << (*vec)[i] << std::endl;
+			}
+		}
+		std::cout << "\n/////////////////////////////\n";
+		std::cout << "// Constant Properties\n";
+		std::cout << "/////////////////////////////\n\n";
+		for(auto cprop : (*MPT->GetConstPropertyMap())) // Iterate over constant properties
+			std::cout << cpropNames[cprop.first] << " = " << cprop.second << std::endl;
+		std::cout << std::endl;
+	}
 }
 
 void nDetMaterials::defineMaterials(){

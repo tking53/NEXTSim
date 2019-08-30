@@ -57,15 +57,6 @@ void nDetConstructionMessenger::addAllCommands(){
 	addCommand(new G4UIcmdWithoutParameter("/nDet/detector/printAll", this));
 	addGuidance("Print construction parameters for all defined detectors");
 
-	addCommand(new G4UIcmdWithoutParameter("/nDet/detector/listMaterials", this));
-	addGuidance("Print all pre-defined materials which are available for use");
-
-	addCommand(new G4UIcmdWithAString("/nDet/detector/searchForMaterial", this));
-	addGuidance("Search for a material in the list of pre-defined NEXTSim materials OR in the NIST database");
-
-	addCommand(new G4UIcmdWithAString("/nDet/detector/readMaterial", this));
-	addGuidance("Construct a new material by reading an input file");
-	
 	///////////////////////////////////////////////////////////////////////////////
 	// PMT & digitizer commands
 	///////////////////////////////////////////////////////////////////////////////
