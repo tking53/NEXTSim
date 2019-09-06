@@ -232,6 +232,7 @@ void nDetMaterials::printMaterial(const G4String &name){
 		std::cout << "/////////////////////////////\n\n";
 		G4MaterialPropertiesTable* MPT = mat->GetMaterialPropertiesTable();
 		if(MPT){
+#ifndef GEANT_OLDER_VERSION
 			std::vector<G4String> propNames = MPT->GetMaterialPropertyNames(); // Ugh...
 			std::vector<G4String> cpropNames = MPT->GetMaterialConstPropertyNames(); // UGH... WHY, GEANT???
 			for(auto prop : (*MPT->GetPropertyMap())){ // Iterate over variable properties
@@ -242,7 +243,7 @@ void nDetMaterials::printMaterial(const G4String &name){
 				std::cout << std::string(propertyName.length(), '-') << std::endl;
 				if(vec != NULL){
 					// Now I re-write G4PhysicsVector::DumpValues() for the same reason
-					for (size_t i = 0; i < prop.second->GetVectorLength(); i++) // Iterate over all values in the vectors
+					for (size_t i = 0; i < vec->GetVectorLength(); i++) // Iterate over all values in the vectors
 						std::cout << vec->Energy(i) << "\t" << (*vec)[i] << std::endl;
 				}
 			}
@@ -251,6 +252,26 @@ void nDetMaterials::printMaterial(const G4String &name){
 			std::cout << "/////////////////////////////\n\n";
 			for(auto cprop : (*MPT->GetConstPropertyMap())) // Iterate over constant properties
 				std::cout << cpropNames[cprop.first] << " = " << cprop.second << std::endl;
+#else
+			const std::map<G4String, G4MaterialPropertyVector*, std::less< G4String > >* pMap = MPT->GetPropertiesMap();
+			const std::map<G4String, G4double, std::less< G4String > >* cpMap = MPT->GetPropertiesCMap();
+			for(auto prop : (*pMap)){ // Iterate over variable properties
+				G4PhysicsVector *vec = prop.second;
+				std::cout << std::string(prop.first.length(), '-') << std::endl;
+				std::cout << prop.first << std::endl;
+				std::cout << std::string(prop.first.length(), '-') << std::endl;
+				if(vec != NULL){
+					// Now I re-write G4PhysicsVector::DumpValues() for the same reason
+					for (size_t i = 0; i < vec->GetVectorLength(); i++) // Iterate over all values in the vectors
+						std::cout << vec->Energy(i) << "\t" << (*vec)[i] << std::endl;
+				}
+			}
+			std::cout << "\n/////////////////////////////\n";
+			std::cout << "// Constant Properties\n";
+			std::cout << "/////////////////////////////\n\n";
+			for(auto cprop : (*cpMap)) // Iterate over constant properties
+				std::cout << cprop.first << " = " << cprop.second << std::endl;
+#endif
 		}
 		else{
 			std::cout << " No properties table defined for this material\n";

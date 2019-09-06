@@ -68,12 +68,18 @@ mark_as_advanced(FORCE GENREFLEX_EXECUTABLE ROOTCINT_EXECUTABLE ROOT_CONFIG_EXEC
 include_directories(${ROOT_INCLUDE_DIR})
 link_directories(${ROOT_LIBRARY_DIR})
 
+#Inform the user about the Geant4 install version
+message(STATUS "Found ROOT install: v${ROOT_VERSION}")
+
 #Find Geant install.
 if(GEANT4_UIVIS)
 	find_package(Geant4 REQUIRED ui_all vis_all)
 else()
 	find_package(Geant4 REQUIRED)
 endif()
+
+#Inform the user about the Geant4 install version
+message(STATUS "Found Geant4 install: v${Geant4_VERSION}")
 
 set(TOP_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
 

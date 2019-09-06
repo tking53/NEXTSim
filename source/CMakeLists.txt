@@ -8,6 +8,14 @@ if(GEANT4_MT)
 	add_definitions(-DUSE_MULTITHREAD)
 endif(GEANT4_MT)
 
+#Check the Geant install version
+# A non-insignificant number of Geant method names changed after 10.4, so we need to check
+if(Geant4_VERSION VERSION_LESS "10.4")
+    # Version 10.3 and below
+    message(WARNING "An older version of Geant4 is being used(${Geant4_VERSION}). Compilation errors may be introduced, as many Geant method names were changed in later version.")
+    add_definitions(-DGEANT_OLDER_VERSION)
+endif()
+
 #Set the scan sources that we will make a lib out of.
 set(NextSimCoreSources nDetRunAction.cc nDetActionInitialization.cc nDetEventAction.cc nDetSteppingAction.cc nDetTrackingAction.cc nDetStackingAction.cc
                        messengerHandler.cc centerOfMass.cc pmtResponse.cc cmcalc.cc photonCounter.cc nistDatabase.cc)
