@@ -445,10 +445,8 @@ void nDetParticleSource::AddDiscreteEnergy(const G4double &energy, const G4doubl
 }
 
 void nDetParticleSource::Reset(){
-	if(numSources > 0){
-		ClearAll();
-		allSources.clear();
-	}
+	ClearAll();
+	allSources.clear();
 	addNewSource();
 	sourceIndex = 0;
 	numSources = 1;
