@@ -134,7 +134,7 @@ void nDetWorldPrimitive::placeObject(G4LogicalVolume *parent, nDetMaterials *mat
 		G4Material *mat = materials->getMaterial(material);
 		if(mat){
 			geometry_logV = new G4LogicalVolume(geometry, mat, "");
-			geometry_logV->SetVisAttributes(materials->visShadow);
+			geometry_logV->SetVisAttributes(materials->getUserVisAttributes(material));
 			if(geometry)
 				geometry_physV = new G4PVPlacement(&rotation, position, geometry_logV, "", parent, false, 0, true);
 		}
