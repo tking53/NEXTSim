@@ -124,6 +124,10 @@ class nDetMaterials{
 	  */
 	G4OpticalSurface* getUserOpticalSurface(const G4String &name);
 
+	/**
+	  */
+	G4VisAttributes* getUserVisAttributes(const G4String &name);
+
 	/** Get the current light yield multiplier used for scintillator photon production
 	  */
 	G4double getLightYield() const { return lightYieldScale; }
@@ -172,6 +176,10 @@ class nDetMaterials{
 	/** List all materials in the materials dictionary
 	  */
 	void listAll() const ;
+
+	/** List all visual attributes in the dictionary
+	  */
+	void listVisAttributes() const ;
 
 	/** Read an input material file and build a new material to add to the list
 	  * @param filename The path to the material file to read

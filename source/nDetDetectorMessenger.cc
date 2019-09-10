@@ -56,11 +56,9 @@ void nDetDetectorMessenger::addAllCommands(){
 	
 	addCommand(new G4UIcmdWithAString("/nDet/detector/setWrapping", this));
 	addGuidance("Set the material to use for reflective wrapping");	
-	addCandidates("teflon silicon mylar esr perfect");
 
 	addCommand(new G4UIcmdWithAString("/nDet/detector/setMaterial", this));
 	addGuidance("Set the material to use for detector construction.");
-	addCandidates("ej200 ej276");
 		
 	addCommand(new G4UIcmdWith3VectorAndUnit("/nDet/detector/setPosition", this)); // position of source in cartesian coordinates (x, y, z).
 	addGuidance("Set the position of the detector in cartesian coordinates (x, y, z)");

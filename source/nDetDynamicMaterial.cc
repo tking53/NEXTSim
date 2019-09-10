@@ -3,6 +3,7 @@
 #include <stdlib.h>
 
 #include "G4Material.hh"
+#include "G4VisAttributes.hh"
 #include "G4MaterialPropertiesTable.hh"
 #include "G4UnitsTable.hh"
 #include "G4Element.hh"
@@ -13,9 +14,9 @@
 #include "optionHandler.hh" // split_str
 
 nDetDynamicMaterial::nDetDynamicMaterial() : prefix(), name(), 
-                                             init(false), debug(false), needsConverted(false), needsScaled(false),
+                                             init(false), debug(false), needsConverted(false), needsScaled(false), newMaterial(false),
                                              density(0), convFactor(1), scalingFactor(1), nElements(0), valuesToRead(0), 
-                                             material(NULL), mpt(NULL), currArray(NULL), matHandler(NULL) { 
+                                             visatt(NULL), material(NULL), mpt(NULL), currArray(NULL), matHandler(NULL) { 
 	validCommands["setDebug"]         = 1;
 	validCommands["setName"]          = 2;
 	validCommands["setDensity"]       = 2;
@@ -25,13 +26,21 @@ nDetDynamicMaterial::nDetDynamicMaterial() : prefix(), name(),
 	validCommands["addScalableArray"] = 3;
 	validCommands["addConstProperty"] = 3;
 	validCommands["addProperty"]      = 4;
+	validCommands["setVisColor"]      = 4;
+	validCommands["setVisLineStyle"]  = 2;
+	validCommands["setVisLineWidth"]  = 2;
+	validCommands["setVisWireframe"]  = 1;
+	validCommands["setVisSolid"]      = 1;
+	visatt = new G4VisAttributes();
 }
 
 nDetDynamicMaterial::~nDetDynamicMaterial(){
 	if(init){
-		delete material;
+		if(newMaterial)
+			delete material;
 		delete mpt;
 	}
+	delete visatt;
 }
 
 bool nDetDynamicMaterial::read(const std::string &fname, nDetMaterials* materials){
@@ -85,6 +94,7 @@ bool nDetDynamicMaterial::read(const std::string &fname, nDetMaterials* material
 	
 	// Define the material
 	if(!material){
+		newMaterial = true;
 		material = new G4Material(name, density, nElements);
 		for(auto el : elements){ // Add elements to it
 			G4Element *element = materials->getElement(el.first);
@@ -104,6 +114,18 @@ bool nDetDynamicMaterial::read(const std::string &fname, nDetMaterials* material
 
 double nDetDynamicMaterial::unitConversion(const double &value, const std::string &unit){
 	return (value*G4UnitDefinition::GetValueOf(unit));
+}
+
+bool nDetDynamicMaterial::getBoolInput(const std::string &input, bool &flag){
+	if(input == "true")
+		flag = true;
+	else if(input == "false")
+		flag = false;
+	else{
+		std::cout << Display::ErrorStr("nDetDynamicMaterial") << "Invalid argument \"" << input << "\"\n" << Display::ResetStr();
+		return false;
+	}
+	return true;
 }
 
 bool nDetDynamicMaterial::decode(const std::vector<std::string> &args){
@@ -136,18 +158,10 @@ bool nDetDynamicMaterial::decode(const std::vector<std::string> &args){
 	}
 
 	if(cmd == "setDebug"){ // setDebug [true|false]
-		if(nArgs < 2) // Toggle the state of the debug flag
+		if(nArgs < 2) // Toggle the state of the flag
 			debug = !debug; 
-		if(nArgs >= 2){ // User specified the state of the debug flag
-			if(args.at(1) == "true")
-				debug = true;
-			else if(args.at(1) == "false")
-				debug = false;
-			else{
-				std::cout << Display::ErrorStr("nDetDynamicMaterial") << "Invalid argument \"" << args.at(1) << "\"\n" << Display::ResetStr();
-				return false;
-			}
-		}	
+		else if(!getBoolInput(args.at(1), debug)) // User specified the state of the flag
+			return false;
 	}
 	else if(cmd == "setName"){ // setName <name>
 		name = args.at(1);
@@ -233,7 +247,44 @@ bool nDetDynamicMaterial::decode(const std::vector<std::string> &args){
 		if(debug)
 			std::cout << " debug: Added property \"" << args.at(1) << "\" to property table\n";
 	}
-
+	else if(cmd == "setVisColor"){
+		double red = strtod(args.at(1).c_str(), NULL);
+		double green = strtod(args.at(2).c_str(), NULL);
+		double blue = strtod(args.at(3).c_str(), NULL);
+		double alpha = (nArgs >= 5 ? strtod(args.at(4).c_str(), NULL) : 1);
+		visatt->SetColor(red, green, blue, alpha);
+		if(debug)
+			std::cout << " debug: Set material color to (" << red << ", " << green << ", " << blue << ") alpha=" << alpha << std::endl;
+	}
+	else if(cmd == "setVisLineStyle"){ // Set the line style of the visual attributes
+		if(args.at(1) == "unbroken")
+			visatt->SetLineStyle(G4VisAttributes::unbroken);
+		else if(args.at(1) == "dashed")
+			visatt->SetLineStyle(G4VisAttributes::dashed);
+		else if(args.at(1) == "dotted")
+			visatt->SetLineStyle(G4VisAttributes::dotted);
+		else
+			std::cout << Display::WarningStr("nDetDynamicMaterial") << "User specified invalid visual line style (" << args.at(1) << ")\n" << Display::ResetStr();
+	}
+	else if(cmd == "setVisLineWidth"){ // Set the line width of the visual attributes
+		double width = strtod(args.at(1).c_str(), NULL);
+		visatt->SetLineWidth(width);
+		if(debug)
+			std::cout << " debug: Set material line width to " << width << std::endl;
+	}
+	else if(cmd == "setVisWireframe"){
+		bool userInput = true;
+		if(nArgs > 2 && !getBoolInput(args.at(1), userInput))
+			return false;
+		visatt->SetForceWireframe(userInput);
+	}
+	else if(cmd == "setVisSolid"){
+		bool userInput = true;
+		if(nArgs > 2 && !getBoolInput(args.at(1), userInput))
+			return false;
+		visatt->SetForceSolid(userInput);
+	}
+	
 	return true;
 }
 

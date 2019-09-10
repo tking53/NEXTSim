@@ -25,20 +25,21 @@ nDetMaterials::~nDetMaterials(){
 		delete fEsrOpSurf;
 		
 		// Materials
-		delete fMylar;
-		delete fAcrylic;
-		delete fAluminum;
-		delete fTeflon;
 		delete fGrease;
 		
 		// Material properties tables
-		delete fTeflonMPT;
-		delete fSiliconMPT;
 		delete fPerfectMPT;
 		delete fGreaseMPT;
 		delete fEsrMPT;
-		delete fSiO2MPT;
-		delete fAluminumMPT;
+
+		// Vis attributes
+		delete visAssembly;
+		delete visSensitive;
+		delete visWindow;
+		delete visGrease;
+		delete visWrapping;
+		delete visScint;
+		delete visShadow;
 	}
 	if(scintsAreDefined){
 		delete fEJ200;
@@ -65,6 +66,8 @@ void nDetMaterials::initialize(){
 	materialList["air"] = fAir;
 	materialList["vacuum"] = fVacuum;
 	materialList["teflon"] = fTeflon;
+    materialList["ej200"] = fEJ200;
+    materialList["ej276"] = fEJ276; 
 	materialList["grease"] = fGrease;
 	materialList["quartz"] = fSiO2;
 	materialList["silicon"] = fSilicon;
@@ -89,27 +92,39 @@ void nDetMaterials::initialize(){
 }
 
 G4Material* nDetMaterials::getUserDetectorMaterial(const G4String &name){
+	G4Material *mat = NULL;
 	if(name == "ej200")
-		return fEJ200;
+		mat = fEJ200;
 	else if(name == "ej276")
-		return fEJ276;
+		mat = fEJ276;
+	else
+		mat = getMaterial(name);
 	
-	return fEJ200; // default
+	if(!mat) // Material was not found
+		std::cout << Display::ErrorStr("nDetDynamicMaterial") << "Detector material named \"" << name << "\" was not found in list!\n" << Display::ResetStr();
+		
+	return mat;
 }
 
 G4Material* nDetMaterials::getUserSurfaceMaterial(const G4String &name){
-    if(name == "mylar")
-    	return fMylar;
-    else if(name == "teflon")
-    	return fTeflon;
-    else if(name == "esr")
-    	return fMylar; //fEsr; CRT!!!
-    else if(name == "silicon")
-    	return fSilicon;
-    else if(name == "perfect")
-    	return fMylar;
-    
-    return fMylar; // default
+	G4Material *mat = NULL;
+	if(name == "mylar")
+		mat = fMylar;
+	else if(name == "teflon")
+		mat = fTeflon;
+	else if(name == "esr")
+		mat = fMylar; //fEsr; CRT!!!
+	else if(name == "silicon")
+		mat = fSilicon;
+	else if(name == "perfect")
+		mat = fMylar;
+	else
+		mat = getMaterial(name);
+
+	if(!mat) // Material was not found
+		std::cout << Display::ErrorStr("nDetDynamicMaterial") << "Wrapping material named \"" << name << "\" was not found in list!\n" << Display::ResetStr();
+
+	return mat;
 }
 
 G4OpticalSurface* nDetMaterials::getUserOpticalSurface(const G4String &name){
@@ -123,8 +138,19 @@ G4OpticalSurface* nDetMaterials::getUserOpticalSurface(const G4String &name){
     	return fSiliconOpSurf;
     else if(name == "perfect")
     	return fPerfectOpSurf;
-    
+
     return fMylarOpSurf; // default
+}
+
+G4VisAttributes* nDetMaterials::getUserVisAttributes(const G4String &name){
+	G4VisAttributes *visatt = getVisualAttributes(name);
+
+	if(!visatt){ // Visual attributes was not found (use a default)
+		std::cout << Display::WarningStr("nDetDynamicMaterial") << "Visual attributes named \"" << name << "\" was not found in list!\n" << Display::ResetStr();
+		visatt = visAssembly;
+	}
+		
+	return visatt;
 }
 
 void nDetMaterials::setLightYield(const G4double &yield){ 
@@ -197,12 +223,22 @@ void nDetMaterials::listAll() const {
 	std::cout << std::endl;
 }
 
+void nDetMaterials::listVisAttributes() const {
+	std::cout << "/////////////////////////////\n";
+	std::cout << "// Defined Visual Attributes\n";
+	std::cout << "/////////////////////////////\n\n";
+	for(auto visatt : visAttributesList){
+		std::cout << "  " << visatt.first << std::endl;
+	}
+	std::cout << std::endl;
+}
+
 bool nDetMaterials::buildNewMaterial(const G4String &filename){
-	nDetDynamicMaterial dmat;
-	dmat.setScalingFactor(lightYieldScale);
-	if(!dmat.read(filename, this)) // Read the material file
+	nDetDynamicMaterial* dmat = new nDetDynamicMaterial();
+	dmat->setScalingFactor(lightYieldScale);
+	if(!dmat->read(filename, this)) // Read the material file
 		return false;
-	std::string name = dmat.getFilePrefix();
+	std::string name = dmat->getFilePrefix();
 	int nameCounter = 2;
 	while(materialList.find(name) != materialList.end()){ // Check for material existing in material list
 		std::stringstream stream;
@@ -211,10 +247,11 @@ bool nDetMaterials::buildNewMaterial(const G4String &filename){
 		name = stream.str();
 	}
 	if(nameCounter != 2){ // Print a warning about existing material name
-		std::cout << Display::WarningStr("nDetDynamicMaterial") << "Material named \"" << dmat.getFilePrefix() << "\" is already in material list!\n" << Display::ResetStr();
+		std::cout << Display::WarningStr("nDetDynamicMaterial") << "Material named \"" << dmat->getFilePrefix() << "\" is already in material list!\n" << Display::ResetStr();
 		std::cout << Display::WarningStr("nDetDynamicMaterial") << " Renaming new material to \"" << name << "\"\n" << Display::ResetStr();
 	}
-	materialList[name] = dmat.getMaterial();
+	materialList[name] = dmat->getMaterial();
+	visAttributesList[name] = dmat->getVisAttributes();
 	return true;
 }
 

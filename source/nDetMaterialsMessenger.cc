@@ -21,6 +21,9 @@ void nDetMaterialsMessenger::addAllCommands(){
 	addCommand(new G4UIcmdWithoutParameter("/nDet/materials/listMaterials", this));
 	addGuidance("Print all pre-defined materials which are available for use");
 
+	addCommand(new G4UIcmdWithoutParameter("/nDet/materials/listVisAttributes", this));
+	addGuidance("Print all pre-defined visual attributes which are available for use");
+
 	addCommand(new G4UIcmdWithAString("/nDet/materials/searchForMaterial", this));
 	addGuidance("Search for a material in the list of pre-defined NEXTSim materials OR in the NIST database");
 
@@ -39,13 +42,16 @@ void nDetMaterialsMessenger::SetNewChildValue(G4UIcommand* command, G4String new
 		fMaterials->listAll();
 	}
 	else if(index == 1){
+		fMaterials->listVisAttributes();
+	}
+	else if(index == 2){
 		if(fMaterials->searchForMaterial(newValue))
 			std::cout << "Found material named \"" << newValue << "\" in material list\n";
 	}
-	else if(index == 2){
+	else if(index == 3){
 		fMaterials->buildNewMaterial(newValue);
 	}
-	else if(index == 3){
+	else if(index == 4){
 		fMaterials->printMaterial(newValue);
 	}
 }

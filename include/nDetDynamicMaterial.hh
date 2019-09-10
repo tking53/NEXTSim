@@ -54,6 +54,10 @@ public:
 	  */
 	G4MaterialPropertiesTable *getMaterialPropertiesTable(){ return mpt; }
 
+	/** Get a pointer to the visual attributes for this material
+	  */
+	G4VisAttributes *getVisAttributes(){ return visatt; }
+
 	/** Set the value scaling parameter for arrays which are scalable
 	  */
 	void setScalingFactor(const double &factor){ scalingFactor = factor; }
@@ -73,6 +77,7 @@ private:
 	bool debug; ///< Flag indicating whether or not debug information should be printed
 	bool needsConverted; ///< Flag indicating that the next value read from the file should be scaled by @a convFactor
 	bool needsScaled; ///< Flag indicating that the next value read from the file should be scaled by @a scalingFactor
+	bool newMaterial; ///< Flag indicating that the material pointed to by @a material was created locally and should be deleted
 
 	double density; ///< The density of the material (in g/cm^3)
 	double convFactor; ///< The current conversion factor to use for converting input values
@@ -81,6 +86,8 @@ private:
 	int nElements; ///< The number of elements which have been added to the material
 
 	unsigned int valuesToRead; ///< The remaining number of values to read into the current vector
+
+	G4VisAttributes *visatt; ///< Pointer to the Geant visual attributes for this material
 
 	G4Material* material; ///< Pointer to the Geant material
 	
@@ -104,6 +111,13 @@ private:
 	  * @return The value converted to Geant standard units
 	  */
 	double unitConversion(const double &value, const std::string &unit);
+
+	/** Convert a user input string to a bool value
+	  * @param input The input string from the user
+	  * @param flag The boolean flag to set
+	  * @return True if the user input is either "true" or "false" and return false otherwise
+	  */
+	bool getBoolInput(const std::string &input, bool &flag);
 
 	/** Decode an line from the user's input file
 	  * @param args Vector of arguments obtained from a single input line
