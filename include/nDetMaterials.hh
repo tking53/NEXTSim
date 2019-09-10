@@ -181,11 +181,15 @@ class nDetMaterials{
 
 	/** List all materials in the materials dictionary
 	  */
-	void listAll() const ;
+	void listMaterials() const ;
 
 	/** List all visual attributes in the dictionary
 	  */
 	void listVisAttributes() const ;
+
+	/** List all optical surfaces in the dictionary
+	  */
+	void listOptSurfaces() const ;
 
 	/** Read an input material file and build a new material to add to the list
 	  * @param filename The path to the material file to read

@@ -7,6 +7,7 @@
 
 class G4Material;
 class G4MaterialPropertiesTable;
+class G4OpticalSurface;
 
 class nDetMaterials;
 
@@ -52,7 +53,11 @@ public:
 	
 	/** Get a pointer to the Geant material properties table
 	  */
-	G4MaterialPropertiesTable *getMaterialPropertiesTable(){ return mpt; }
+	G4MaterialPropertiesTable* getMaterialPropertiesTable(){ return mpt; }
+
+	/** Get a pointer to the Geant optical surface for this material
+	  */
+	G4OpticalSurface* getOpticalSurface(){ return optsurf; }
 
 	/** Get a pointer to the visual attributes for this material
 	  */
@@ -92,6 +97,8 @@ private:
 	G4Material* material; ///< Pointer to the Geant material
 	
 	G4MaterialPropertiesTable* mpt; ///< Pointer to the Geant material properties table
+
+	G4OpticalSurface* optsurf; ///< Pointer to the Geant optical surface for this material
 
 	std::vector<double>* currArray; ///< Pointer to the current vector where values which are read from the file will be stored
 

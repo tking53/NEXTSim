@@ -213,7 +213,7 @@ G4VisAttributes* nDetMaterials::getVisualAttributes(const G4String &name){
 	return NULL;
 }
 
-void nDetMaterials::listAll() const {
+void nDetMaterials::listMaterials() const {
 	std::cout << "/////////////////////////////\n";
 	std::cout << "// Defined Materials\n";
 	std::cout << "/////////////////////////////\n\n";
@@ -229,6 +229,16 @@ void nDetMaterials::listVisAttributes() const {
 	std::cout << "/////////////////////////////\n\n";
 	for(auto visatt : visAttributesList){
 		std::cout << "  " << visatt.first << std::endl;
+	}
+	std::cout << std::endl;
+}
+
+void nDetMaterials::listOptSurfaces() const {
+	std::cout << "/////////////////////////////\n";
+	std::cout << "// Defined Optical Surfaces\n";
+	std::cout << "/////////////////////////////\n\n";
+	for(auto optsurf : opticalSurfaceList){
+		std::cout << "  " << optsurf.first << std::endl;
 	}
 	std::cout << std::endl;
 }
@@ -252,6 +262,7 @@ bool nDetMaterials::buildNewMaterial(const G4String &filename){
 	}
 	materialList[name] = dmat->getMaterial();
 	visAttributesList[name] = dmat->getVisAttributes();
+	opticalSurfaceList[name] = dmat->getOpticalSurface();
 	return true;
 }
 

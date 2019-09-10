@@ -5,6 +5,7 @@
 #include "G4Material.hh"
 #include "G4VisAttributes.hh"
 #include "G4MaterialPropertiesTable.hh"
+#include "G4OpticalSurface.hh"
 #include "G4SystemOfUnits.hh"
 #include "G4UnitsTable.hh"
 #include "G4Element.hh"
@@ -40,6 +41,7 @@ nDetDynamicMaterial::~nDetDynamicMaterial(){
 		if(newMaterial)
 			delete material;
 		delete mpt;
+		delete optsurf;
 	}
 	delete visatt;
 }
@@ -62,6 +64,7 @@ bool nDetDynamicMaterial::read(const std::string &fname, nDetMaterials* material
 	
 	init = true;
 	mpt = new G4MaterialPropertiesTable();
+	optsurf = new G4OpticalSurface(name);
 	matHandler = materials;
 	
 	std::string line;
@@ -106,6 +109,7 @@ bool nDetDynamicMaterial::read(const std::string &fname, nDetMaterials* material
 	
 	// Link the properties table to the material
 	material->SetMaterialPropertiesTable(mpt);
+	optsurf->SetMaterialPropertiesTable(mpt);
 	
 	// Close the file
 	ifile.close();
