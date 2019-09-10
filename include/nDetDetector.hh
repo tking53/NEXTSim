@@ -38,7 +38,7 @@ class nDetDetectorParams{
 	                   detectorMaterialName("ej200"), wrappingMaterialName("mylar"),
 	                   constantWidth(true), constantHeight(true),
 	                   geomType(GEOM_RECTANGLE),
-	                   scintMaterial(NULL), wrappingMaterial(NULL),
+	                   scintMaterial(NULL), wrappingMaterial(NULL), wrappingOpSurf(NULL),
 	                   scintVisAtt(NULL), wrappingVisAtt(NULL),
 	                   materials(NULL), fMessenger(NULL) { }
 	                   
@@ -302,6 +302,8 @@ class nDetDetectorParams{
 
 	G4Material* scintMaterial; ///< Pointer to the detector scintillator material
 	G4Material* wrappingMaterial; ///< Pointer to the detector wrapping material
+
+	G4OpticalSurface* wrappingOpSurf; ///< Pointer to the wrapping optical surface
 	
 	G4VisAttributes* scintVisAtt; ///< Pointer to the detector scintillator visual attributes
 	G4VisAttributes* wrappingVisAtt; ///< Pointer to the detector wrapping visual attributes

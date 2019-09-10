@@ -100,6 +100,7 @@ void nDetDetectorParams::SetWrappingMaterial(const G4String &material){
 	wrappingMaterialName = material; 
 	wrappingMaterial = materials->getUserDetectorMaterial(wrappingMaterialName);
 	wrappingVisAtt = materials->getUserVisAttributes(wrappingMaterialName);
+	wrappingOpSurf = materials->getUserOpticalSurface(wrappingMaterialName);
 }
 
 void nDetDetectorParams::SetUnsegmented(){
@@ -434,7 +435,6 @@ void nDetDetector::buildModule(){
 
 	// Define logical reflector surfaces.
 	if(WrappingEnabled()){ 
-		G4OpticalSurface *wrappingOpSurf = materials->getUserOpticalSurface(wrappingMaterialName);
 		for(int col = 0; col < Ncol; col++){
 			for(int row = 0; row < Nrow; row++){
 				G4PVPlacement *cellPhysical = cellScint_physV[col][row];
@@ -643,7 +643,6 @@ void nDetDetector::constructPSPmts(){
 		
 		addMirroredComponents(greaseWrapping_physV[0], greaseWrapping_physV[1], greaseWrapping_logV, wrappingZ, "Wrapping");
 		
-		G4OpticalSurface *wrappingOpSurf = materials->getUserOpticalSurface(wrappingMaterialName);
 		if(grease_physV[0] && grease_physV[1]){
 			new G4LogicalBorderSurface("Wrapping", grease_physV[0], greaseWrapping_physV[0], wrappingOpSurf);
 			new G4LogicalBorderSurface("Wrapping", grease_physV[1], greaseWrapping_physV[1], wrappingOpSurf);
@@ -772,7 +771,6 @@ void nDetDetector::applyLightGuide(const G4double &x1, const G4double &x2, const
 			G4PVPlacement *trapWrappingR = addRightComponent(wrapping_logV, trapezoidZ, trapName, rightRotation);
 		
 			// Reflective wrapping.
-			G4OpticalSurface *wrappingOpSurf = materials->getUserOpticalSurface(wrappingMaterialName);
 			new G4LogicalBorderSurface("Wrapping", trapPhysicalL, trapWrappingL, wrappingOpSurf);
 			new G4LogicalBorderSurface("Wrapping", trapPhysicalR, trapWrappingR, wrappingOpSurf);
 		}
