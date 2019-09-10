@@ -35,10 +35,12 @@ class nDetDetectorParams{
 	                   fDetectorLength(600), fDetectorHeight(30), fDetectorWidth(30), fTrapezoidLength(0), fTrapezoidAngle(60), fDiffuserLength(0), fSegmentWidth(0), fSegmentHeight(0),
 	                   fNumColumns(1), fNumRows(1), fNumColumnsPmt(-1), fNumRowsPmt(-1), scintCopyNum(1), 
 	                   fPolishedInterface(true), fSquarePMTs(true), isStart(false), 
-	                   detectorMaterial("ej200"), wrappingMaterial("mylar"),
+	                   detectorMaterialName("ej200"), wrappingMaterialName("mylar"),
 	                   constantWidth(true), constantHeight(true),
 	                   geomType(GEOM_RECTANGLE),
-	                   fMessenger(NULL) { }
+	                   scintMaterial(NULL), wrappingMaterial(NULL),
+	                   scintVisAtt(NULL), wrappingVisAtt(NULL),
+	                   materials(NULL), fMessenger(NULL) { }
 	                   
 	/** Initialize the detector parameter messenger for this class
 	  * @note Since there may be multiple detectors in any given setup, the nDetDetectorMessenger class
@@ -161,12 +163,12 @@ class nDetDetectorParams{
 	/** Set the name of the detector scintillator material
 	  * @note See nDetMaterials::getUserDetectorMaterial() for valid material names
 	  */
-	void SetDetectorMaterial(const G4String &material){ detectorMaterial = material; }
+	void SetDetectorMaterial(const G4String &material);
 
 	/** Set the name of the optical reflector material
 	  * @note See nDetMaterials::getUserWrappingMaterial() for valid material names
 	  */
-	void SetWrappingMaterial(const G4String &material){ wrappingMaterial = material; }
+	void SetWrappingMaterial(const G4String &material);
 
 	/** Set or unset this detector as a start signal for timing
 	  */
@@ -175,6 +177,10 @@ class nDetDetectorParams{
 	/** Set this detector as non-segmented
 	  */
 	void SetUnsegmented();
+	
+	/** Set the pointer to the materials container object
+	  */
+	void SetMaterials(nDetMaterials *matptr){ materials = matptr; }
 
 	/** Get the length (Z) of the detector (in mm)
 	  */
@@ -283,8 +289,8 @@ class nDetDetectorParams{
 	G4bool fSquarePMTs; ///< Flag indicating that the added PMTs are square. If set to false, the PMTs will be circular, and the parameter @a pmtWidth will be used as the diameter
 	G4bool isStart; ///< Flag indicating that this detector is used as a start signal for timing
 	
-	G4String detectorMaterial; ///< String indicating the material to use for the detector scintillator body
-	G4String wrappingMaterial; ///< String indicating the material to use for the inner and outer detector wrapping
+	G4String detectorMaterialName; ///< String indicating the material to use for the detector scintillator body
+	G4String wrappingMaterialName; ///< String indicating the material to use for the inner and outer detector wrapping
 
 	G4ThreeVector detectorPosition; ///< Position of detector in the lab frame
 	G4RotationMatrix detectorRotation; ///< Rotation of detector in the lab frame
@@ -293,6 +299,14 @@ class nDetDetectorParams{
 	bool constantHeight; ///< Flag indicating that the user has specified a constant detector height, i.e. segment height will be variable
 
 	int geomType; ///< Integer value indicating the of the detector geometry
+
+	G4Material* scintMaterial; ///< Pointer to the detector scintillator material
+	G4Material* wrappingMaterial; ///< Pointer to the detector wrapping material
+	
+	G4VisAttributes* scintVisAtt; ///< Pointer to the detector scintillator visual attributes
+	G4VisAttributes* wrappingVisAtt; ///< Pointer to the detector wrapping visual attributes
+
+	nDetMaterials *materials; ///< Pointer to the NEXTSim Geant materials container
 	
 	nDetDetectorMessenger *fMessenger; ///< Geant messenger to use for this class
 	
@@ -314,7 +328,7 @@ class nDetDetector : public nDetDetectorParams {
 	nDetDetector() : nDetDetectorParams(),
 	                 assembly_logV(NULL), assembly_physV(NULL), layerSizeX(0), layerSizeY(0), offsetZ(0),
 	                 parentCopyNum(0), firstSegmentCopyNum(0), lastSegmentCopyNum(0),
-	                 checkOverlaps(false), materials(NULL) { }
+	                 checkOverlaps(false) { }
 	
 	/** Detector constructor
 	  * @param detector Pointer to a nDetConstruction object where the current detector is defined
@@ -619,8 +633,6 @@ class nDetDetector : public nDetDetectorParams {
 
 	bool checkOverlaps; ///< Flag indicating that Geant should check for overlaps between all placed objects
 
-	nDetMaterials *materials; ///< Pointer to the NEXTSim Geant materials container
-
 	centerOfMass cmL; ///< Center-of-mass calculator for the left PMT
 	centerOfMass cmR; ///< Center-of-mass calculator for the right PMT
 
@@ -691,18 +703,6 @@ class nDetDetector : public nDetDetectorParams {
 	  * @return A pointer to the new G4CSGSolid (Constructed Solid Geometry) volume 
 	  */
 	G4CSGSolid *getLightGuideVolume(const G4String &name, const G4double &w1, const double &w2, const double &h1, const double &h2, const G4double &length);
-
-	/** Get a pointer to the user-defined scintillator material
-	  */
-	G4Material* getUserDetectorMaterial();
-
-	/** Get a pointer to the user-defined surface material
-	  */
-	G4Material* getUserSurfaceMaterial();
-
-	/** Get a pointer to the user-defined optical surface
-	  */
-	G4OpticalSurface* getUserOpticalSurface();
 };
 
 #endif

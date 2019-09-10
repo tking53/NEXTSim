@@ -45,6 +45,9 @@ nDetConstruction::nDetConstruction(){
 	
 	// Initialize the detector parameter messenger
 	params.InitializeMessenger();
+
+	// Link the materials handler to the detector parameter object
+	params.SetMaterials(&materials);
 	
 	expHall = new nDetWorld();
 }

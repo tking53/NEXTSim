@@ -90,6 +90,18 @@ void nDetDetectorParams::SetRotation(const G4ThreeVector &rotation){
 	detectorRotation.rotateZ(rotation.getZ()*deg);  
 }
 
+void nDetDetectorParams::SetDetectorMaterial(const G4String &material){ 
+	detectorMaterialName = material;
+	scintMaterial = materials->getUserDetectorMaterial(detectorMaterialName);
+	scintVisAtt = materials->getUserVisAttributes(detectorMaterialName);		
+}
+
+void nDetDetectorParams::SetWrappingMaterial(const G4String &material){ 
+	wrappingMaterialName = material; 
+	wrappingMaterial = materials->getUserDetectorMaterial(wrappingMaterialName);
+	wrappingVisAtt = materials->getUserVisAttributes(wrappingMaterialName);
+}
+
 void nDetDetectorParams::SetUnsegmented(){
 	fSegmentWidth = 0;
 	fSegmentHeight = 0;
@@ -113,8 +125,8 @@ void nDetDetectorParams::Print() const {
 	std::cout << " Wrapping Thickness   = " << fWrappingThickness << " mm\n";
 	std::cout << " Trapezoid Length     = " << fTrapezoidLength << " mm\n";
 	std::cout << " Diffuser Length      = " << fDiffuserLength << " mm\n";
-	std::cout << " Wrapping Material    = \"" << wrappingMaterial << "\"\n";
-	std::cout << " Detector Material    = \"" << detectorMaterial << "\"\n";
+	std::cout << " Wrapping Material    = \"" << wrappingMaterialName << "\"\n";
+	std::cout << " Detector Material    = \"" << detectorMaterialName << "\"\n";
 	std::cout << " Geometry Type        = " << geomType << "\n";
 	std::cout << " CopyNum  = " << scintCopyNum << std::endl;
 	std::cout << " Position = (x=" << detectorPosition.getX() << ", y=" << detectorPosition.getY() << ", z=" << detectorPosition.getZ() << ")\n";
@@ -165,9 +177,10 @@ void nDetDetectorParams::UpdateSize(){
 nDetDetector::nDetDetector(nDetConstruction *detector, nDetMaterials *matptr) : nDetDetectorParams(detector->GetDetectorParameters()),
                                                                                 assembly_logV(NULL), assembly_physV(NULL), layerSizeX(0), layerSizeY(0), offsetZ(0),
 	                                                                            parentCopyNum(0), firstSegmentCopyNum(0), lastSegmentCopyNum(0), 
-	                                                                            checkOverlaps(false), materials(matptr) 
+	                                                                            checkOverlaps(false)
 {
 	copyCenterOfMass(*detector->GetCenterOfMassL(), *detector->GetCenterOfMassR());
+	materials = matptr;
 }
 
 nDetDetector::~nDetDetector(){
@@ -358,8 +371,8 @@ void nDetDetector::buildModule(){
 
     // Construct the scintillator cell
     G4Box *cellScint = new G4Box("scintillator", cellWidth/2, cellHeight/2, fDetectorLength/2);
-    G4LogicalVolume *cellScint_logV = new G4LogicalVolume(cellScint, getUserDetectorMaterial(), "scint_log");
-    cellScint_logV->SetVisAttributes(materials->visScint);
+    G4LogicalVolume *cellScint_logV = new G4LogicalVolume(cellScint, scintMaterial, "scint_log");
+    cellScint_logV->SetVisAttributes(scintVisAtt);
 
 	G4Box *mylarVertLayer = NULL;
 	G4Box *mylarHorizLayer = NULL;
@@ -375,8 +388,8 @@ void nDetDetector::buildModule(){
 		G4Box *scintBox = new G4Box("scintBox", fDetectorWidth/2, fDetectorHeight/2, fDetectorLength/2);
 		
 		G4SubtractionSolid *wrappingBody = new G4SubtractionSolid("wrapping", wrappingBox, scintBox);
-		G4LogicalVolume *wrapping_logV = new G4LogicalVolume(wrappingBody, getUserSurfaceMaterial(), "wrapping_logV");
-		wrapping_logV->SetVisAttributes(materials->visWrapping);
+		G4LogicalVolume *wrapping_logV = new G4LogicalVolume(wrappingBody, wrappingMaterial, "wrapping_logV");
+		wrapping_logV->SetVisAttributes(wrappingVisAtt);
 		
 		// Place the outer wrapping into the assembly.
 		wrapping_physV = addToDetectorBody(wrapping_logV, "Wrapping");
@@ -385,11 +398,11 @@ void nDetDetector::buildModule(){
 		mylarVertLayer = new G4Box("mylarVertLayer", fWrappingThickness/2, fDetectorHeight/2, fDetectorLength/2);
 		mylarHorizLayer = new G4Box("mylarHorizLayer", cellWidth/2, fWrappingThickness/2, fDetectorLength/2);
 
-		mylarVertLayer_logV = new G4LogicalVolume(mylarVertLayer, getUserSurfaceMaterial(), "mylarVertLayer_logV");
-		mylarHorizLayer_logV = new G4LogicalVolume(mylarHorizLayer, getUserSurfaceMaterial(), "mylarHorizLayer_logV");
+		mylarVertLayer_logV = new G4LogicalVolume(mylarVertLayer, wrappingMaterial, "mylarVertLayer_logV");
+		mylarHorizLayer_logV = new G4LogicalVolume(mylarHorizLayer, wrappingMaterial, "mylarHorizLayer_logV");
 		
-		mylarVertLayer_logV->SetVisAttributes(materials->visWrapping);
-		mylarHorizLayer_logV->SetVisAttributes(materials->visWrapping);
+		mylarVertLayer_logV->SetVisAttributes(wrappingVisAtt);
+		mylarHorizLayer_logV->SetVisAttributes(wrappingVisAtt);
 	}
 
 	// Place the scintillator segments into the assembly.
@@ -421,6 +434,7 @@ void nDetDetector::buildModule(){
 
 	// Define logical reflector surfaces.
 	if(WrappingEnabled()){ 
+		G4OpticalSurface *wrappingOpSurf = materials->getUserOpticalSurface(wrappingMaterialName);
 		for(int col = 0; col < Ncol; col++){
 			for(int row = 0; row < Nrow; row++){
 				G4PVPlacement *cellPhysical = cellScint_physV[col][row];
@@ -429,20 +443,20 @@ void nDetDetector::buildModule(){
 				int rightCol = col+1;
 				int downRow = row-1;
 				int upRow = row+1;
-					
+				
 				// Border with the outer wrapping.
 				if((col == 0 || row == 0) || (col == Ncol-1 || row == Nrow-1)) 
-					new G4LogicalBorderSurface("Wrapping", cellPhysical, wrapping_physV, getUserOpticalSurface());
+					new G4LogicalBorderSurface("Wrapping", cellPhysical, wrapping_physV, wrappingOpSurf);
 				
 				// Internal reflector layers.
 				if(leftCol >= 0 && leftCol < Ncol) // Left side vertical layer.
-					new G4LogicalBorderSurface("Wrapping", cellPhysical, mylarVertLayer_physV.at(col-1), getUserOpticalSurface());
+					new G4LogicalBorderSurface("Wrapping", cellPhysical, mylarVertLayer_physV.at(col-1), wrappingOpSurf);
 				if(rightCol >= 0 && rightCol < Ncol) // Right side vertical layer.
-					new G4LogicalBorderSurface("Wrapping", cellPhysical, mylarVertLayer_physV.at(col), getUserOpticalSurface());
+					new G4LogicalBorderSurface("Wrapping", cellPhysical, mylarVertLayer_physV.at(col), wrappingOpSurf);
 				if(downRow >= 0 && downRow < Nrow) // Bottom side horizontal layer.
-					new G4LogicalBorderSurface("Wrapping", cellPhysical, mylarHorizLayer_physV.at(col).at(row-1), getUserOpticalSurface());
+					new G4LogicalBorderSurface("Wrapping", cellPhysical, mylarHorizLayer_physV.at(col).at(row-1), wrappingOpSurf);
 				if(upRow >= 0 && upRow < Nrow) // Top side vertical layer.
-					new G4LogicalBorderSurface("Wrapping", cellPhysical, mylarHorizLayer_physV.at(col).at(row), getUserOpticalSurface());
+					new G4LogicalBorderSurface("Wrapping", cellPhysical, mylarHorizLayer_physV.at(col).at(row), wrappingOpSurf);
 			}
 		}
 	}
@@ -471,8 +485,8 @@ void nDetDetector::buildEllipse(){
 	trapRot->rotateY(180*deg);
 	G4UnionSolid *scintBody1 = new G4UnionSolid("", innerBody, innerTrapezoid, 0, G4ThreeVector(0, 0, +bodyLength/2+fTrapezoidLength/2));
 	G4UnionSolid *scintBody2 = new G4UnionSolid("scint", scintBody1, innerTrapezoid, trapRot, G4ThreeVector(0, 0, -bodyLength/2-fTrapezoidLength/2));
-	G4LogicalVolume *scint_logV = new G4LogicalVolume(scintBody2, getUserDetectorMaterial(), "scint_logV");	
-    scint_logV->SetVisAttributes(materials->visScint);
+	G4LogicalVolume *scint_logV = new G4LogicalVolume(scintBody2, scintMaterial, "scint_logV");	
+    scint_logV->SetVisAttributes(scintVisAtt);
 
 	// Place the scintillator inside the assembly.
 	G4PVPlacement *ellipseBody_physV = addToDetectorBody(scint_logV, "Scint");
@@ -485,8 +499,8 @@ void nDetDetector::buildEllipse(){
 		G4UnionSolid *wrappingBody1 = new G4UnionSolid("", outerBody, outerTrapezoid, 0, G4ThreeVector(0, 0, +bodyLength/2+fTrapezoidLength/2));
 		G4UnionSolid *wrappingBody2 = new G4UnionSolid("", wrappingBody1, outerTrapezoid, trapRot, G4ThreeVector(0, 0, -bodyLength/2-fTrapezoidLength/2));
 		G4SubtractionSolid *wrappingBody3 = new G4SubtractionSolid("wrapping", wrappingBody2, scintBody2);
-		G4LogicalVolume *wrapping_logV = new G4LogicalVolume(wrappingBody3, getUserSurfaceMaterial(), "wrapping_logV");		
-		wrapping_logV->SetVisAttributes(materials->visWrapping);
+		G4LogicalVolume *wrapping_logV = new G4LogicalVolume(wrappingBody3, wrappingMaterial, "wrapping_logV");		
+		wrapping_logV->SetVisAttributes(wrappingVisAtt);
 
 		// Place the wrapping around the scintillator.
 		ellipseWrapping_physV = addToDetectorBody(wrapping_logV, "Wrapping");
@@ -502,13 +516,13 @@ void nDetDetector::buildEllipse(){
 
     // Reflective wrapping.
     if(WrappingEnabled())
-	    new G4LogicalBorderSurface("Wrapping", ellipseBody_physV, ellipseWrapping_physV, getUserOpticalSurface());
+	    new G4LogicalBorderSurface("Wrapping", ellipseBody_physV, ellipseWrapping_physV, materials->getUserOpticalSurface(wrappingMaterialName));
 }
 
 void nDetDetector::buildRectangle(){
 	G4Box *plateBody = new G4Box("", fDetectorWidth/2, fDetectorHeight/2, fDetectorLength/2);
-    G4LogicalVolume *plateBody_logV = new G4LogicalVolume(plateBody, getUserDetectorMaterial(), "plateBody_logV");
-    plateBody_logV->SetVisAttributes(materials->visScint);
+    G4LogicalVolume *plateBody_logV = new G4LogicalVolume(plateBody, scintMaterial, "plateBody_logV");
+    plateBody_logV->SetVisAttributes(scintVisAtt);
 
 	// Place the scintillator inside the assembly.
 	G4PVPlacement *plateBody_physV = addToDetectorBody(plateBody_logV, "Scint");
@@ -519,14 +533,14 @@ void nDetDetector::buildRectangle(){
 	if(WrappingEnabled()){
 		G4Box *plateWrappingBox = new G4Box("", fDetectorWidth/2 + fWrappingThickness, fDetectorHeight/2 + fWrappingThickness, fDetectorLength/2);
 		G4SubtractionSolid *plateWrapping = new G4SubtractionSolid("", plateWrappingBox, plateBody);
-		G4LogicalVolume *plateWrapping_logV = new G4LogicalVolume(plateWrapping, getUserSurfaceMaterial(), "plateWrapping_logV");
-		plateWrapping_logV->SetVisAttributes(materials->visWrapping);
+		G4LogicalVolume *plateWrapping_logV = new G4LogicalVolume(plateWrapping, wrappingMaterial, "plateWrapping_logV");
+		plateWrapping_logV->SetVisAttributes(wrappingVisAtt);
 		
 		// Place the wrapping around the scintillator.
 		G4PVPlacement *plateWrapping_physV = addToDetectorBody(plateWrapping_logV, "Wrapping");
 		
 		// Reflective wrapping.
-		new G4LogicalBorderSurface("Wrapping", plateBody_physV, plateWrapping_physV, getUserOpticalSurface());
+		new G4LogicalBorderSurface("Wrapping", plateBody_physV, plateWrapping_physV, materials->getUserOpticalSurface(wrappingMaterialName));
 	}
 	
 	// Update the Z offset and layer width/height
@@ -540,8 +554,8 @@ void nDetDetector::buildCylinder(){
 	fDetectorHeight = fDetectorWidth;
 
     G4Tubs *cylinderBody = new G4Tubs("scintBody", 0, fDetectorWidth/2, fDetectorLength/2, 0, 2*CLHEP::pi);
-    G4LogicalVolume *cylinderBody_logV = new G4LogicalVolume(cylinderBody, getUserDetectorMaterial(), "cylinderBody_logV");
-    cylinderBody_logV->SetVisAttributes(materials->visScint);
+    G4LogicalVolume *cylinderBody_logV = new G4LogicalVolume(cylinderBody, scintMaterial, "cylinderBody_logV");
+    cylinderBody_logV->SetVisAttributes(scintVisAtt);
 
 	// Place the scintillator inside the assembly.
 	G4PVPlacement *cylinderBody_physV = addToDetectorBody(cylinderBody_logV, "Scint");
@@ -552,14 +566,14 @@ void nDetDetector::buildCylinder(){
 	if(WrappingEnabled()){
 		G4Tubs *cylinderWrappingBox = new G4Tubs("outerWrapping", 0, fDetectorWidth/2 + fWrappingThickness, fDetectorLength/2, 0, 2*CLHEP::pi);
 		G4SubtractionSolid *cylinderWrapping = new G4SubtractionSolid("", cylinderWrappingBox, cylinderBody);
-		G4LogicalVolume *cylinderWrapping_logV = new G4LogicalVolume(cylinderWrapping, getUserSurfaceMaterial(), "cylinderWrapping_logV");
-		cylinderWrapping_logV->SetVisAttributes(materials->visWrapping);
+		G4LogicalVolume *cylinderWrapping_logV = new G4LogicalVolume(cylinderWrapping, wrappingMaterial, "cylinderWrapping_logV");
+		cylinderWrapping_logV->SetVisAttributes(wrappingVisAtt);
 		
 		// Place the wrapping around the scintillator.
 		G4PVPlacement *cylinderWrapping_physV = addToDetectorBody(cylinderWrapping_logV, "Wrapping");	
 		
 		// Reflective wrapping.
-		new G4LogicalBorderSurface("Wrapping", cylinderBody_physV, cylinderWrapping_physV, getUserOpticalSurface());
+		new G4LogicalBorderSurface("Wrapping", cylinderBody_physV, cylinderWrapping_physV, materials->getUserOpticalSurface(wrappingMaterialName));
 	}
 	
 	// Update the Z offset and layer width/height
@@ -619,8 +633,8 @@ void nDetDetector::constructPSPmts(){
 		G4CSGSolid *wrappingBox = getVolume("", pmtWidth + 2*fWrappingThickness, pmtHeight + 2*fWrappingThickness, wrappingThickness);
 		
 		G4SubtractionSolid *greaseWrapping = new G4SubtractionSolid("", wrappingBox, boundingBox);
-		G4LogicalVolume *greaseWrapping_logV = new G4LogicalVolume(greaseWrapping, getUserSurfaceMaterial(), "greaseWrapping_logV");
-		greaseWrapping_logV->SetVisAttributes(materials->visWrapping);
+		G4LogicalVolume *greaseWrapping_logV = new G4LogicalVolume(greaseWrapping, wrappingMaterial, "greaseWrapping_logV");
+		greaseWrapping_logV->SetVisAttributes(wrappingVisAtt);
 		
 		G4double wrappingZ = offsetZ + fGreaseThickness/2 + fWindowThickness/2;
 
@@ -629,13 +643,14 @@ void nDetDetector::constructPSPmts(){
 		
 		addMirroredComponents(greaseWrapping_physV[0], greaseWrapping_physV[1], greaseWrapping_logV, wrappingZ, "Wrapping");
 		
+		G4OpticalSurface *wrappingOpSurf = materials->getUserOpticalSurface(wrappingMaterialName);
 		if(grease_physV[0] && grease_physV[1]){
-			new G4LogicalBorderSurface("Wrapping", grease_physV[0], greaseWrapping_physV[0], getUserOpticalSurface());
-			new G4LogicalBorderSurface("Wrapping", grease_physV[1], greaseWrapping_physV[1], getUserOpticalSurface());
+			new G4LogicalBorderSurface("Wrapping", grease_physV[0], greaseWrapping_physV[0], wrappingOpSurf);
+			new G4LogicalBorderSurface("Wrapping", grease_physV[1], greaseWrapping_physV[1], wrappingOpSurf);
 		}
 		if(window_physV[0] && window_physV[1]){
-			new G4LogicalBorderSurface("Wrapping", window_physV[0], greaseWrapping_physV[0], getUserOpticalSurface());
-			new G4LogicalBorderSurface("Wrapping", window_physV[1], greaseWrapping_physV[1], getUserOpticalSurface());
+			new G4LogicalBorderSurface("Wrapping", window_physV[0], greaseWrapping_physV[0], wrappingOpSurf);
+			new G4LogicalBorderSurface("Wrapping", window_physV[1], greaseWrapping_physV[1], wrappingOpSurf);
 		}
 	}
 	
@@ -749,16 +764,17 @@ void nDetDetector::applyLightGuide(const G4double &x1, const G4double &x2, const
 		if(WrappingEnabled()){
 			G4CSGSolid *wrappingSolid = getLightGuideVolume("wrapping", x1+2*deltaX, x2+2*deltaY, y1+2*deltaX, y2+2*deltaY, thickness);
 			G4SubtractionSolid *wrapping = new G4SubtractionSolid("wrapping", wrappingSolid, lightGuide);
-			G4LogicalVolume *wrapping_logV = new G4LogicalVolume(wrapping, getUserSurfaceMaterial(), "wrapping_logV");		
-			wrapping_logV->SetVisAttributes(materials->visWrapping);
+			G4LogicalVolume *wrapping_logV = new G4LogicalVolume(wrapping, wrappingMaterial, "wrapping_logV");		
+			wrapping_logV->SetVisAttributes(wrappingVisAtt);
 
 			// Place the wrapping around the light guides.
 			G4PVPlacement *trapWrappingL = addLeftComponent(wrapping_logV, trapezoidZ, trapName);
 			G4PVPlacement *trapWrappingR = addRightComponent(wrapping_logV, trapezoidZ, trapName, rightRotation);
 		
 			// Reflective wrapping.
-			new G4LogicalBorderSurface("Wrapping", trapPhysicalL, trapWrappingL, getUserOpticalSurface());
-			new G4LogicalBorderSurface("Wrapping", trapPhysicalR, trapWrappingR, getUserOpticalSurface());
+			G4OpticalSurface *wrappingOpSurf = materials->getUserOpticalSurface(wrappingMaterialName);
+			new G4LogicalBorderSurface("Wrapping", trapPhysicalL, trapWrappingL, wrappingOpSurf);
+			new G4LogicalBorderSurface("Wrapping", trapPhysicalR, trapWrappingR, wrappingOpSurf);
 		}
 		
 		// Offset the other layers to account for the light-guide
@@ -802,16 +818,4 @@ void nDetDetector::loadLightGuide(gdmlSolid *solid, const G4ThreeVector &rotatio
 	layerSizeY = solid->getThickness();
 	offsetZ += solid->getLength();
 	fTrapezoidLength = solid->getLength()*mm;
-}
-
-G4Material* nDetDetector::getUserDetectorMaterial(){
-	return materials->getUserDetectorMaterial(detectorMaterial);
-}
-
-G4Material* nDetDetector::getUserSurfaceMaterial(){
-	return materials->getUserSurfaceMaterial(wrappingMaterial);
-}
-
-G4OpticalSurface* nDetDetector::getUserOpticalSurface(){
-	return materials->getUserOpticalSurface(wrappingMaterial);
 }
