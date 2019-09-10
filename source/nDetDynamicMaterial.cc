@@ -33,6 +33,11 @@ nDetDynamicMaterial::nDetDynamicMaterial() : prefix(), name(),
 	validCommands["setVisLineWidth"]  = 2;
 	validCommands["setVisWireframe"]  = 1;
 	validCommands["setVisSolid"]      = 1;
+	validCommands["setOptType"]       = 2;
+	validCommands["setOptFinish"]     = 2;
+	validCommands["setOptModel"]      = 2;
+	validCommands["setOptSigmaAlpha"] = 2;
+	validCommands["setOptPolish"]     = 2;
 	visatt = new G4VisAttributes();
 }
 
@@ -288,6 +293,107 @@ bool nDetDynamicMaterial::decode(const std::vector<std::string> &args){
 		if(nArgs > 2 && !getBoolInput(args.at(1), userInput))
 			return false;
 		visatt->SetForceSolid(userInput);
+	}
+	else if(cmd == "setOptType"){
+		std::string type = args.at(1);
+		if(type == "dielectric_metal")
+			optsurf->SetType(dielectric_metal);
+		else if(type == "dielectric_dielectric")
+			optsurf->SetType(dielectric_dielectric);
+		else if(type == "dielectric_LUT")
+			optsurf->SetType(dielectric_LUT);
+		else if(type == "firsov")
+			optsurf->SetType(firsov);
+		else if(type == "x_ray")
+			optsurf->SetType(x_ray);
+		else
+			std::cout << Display::WarningStr("nDetDynamicMaterial") << "User specified invalid optical surface type (" << args.at(1) << ")\n" << Display::ResetStr();
+	}
+	else if(cmd == "setOptFinish"){ // This sucks btw
+		std::string finish = args.at(1);
+		if(finish == "polished")
+			optsurf->SetFinish(polished);
+		else if(finish == "polishedfrontpainted")
+			optsurf->SetFinish(polishedfrontpainted);
+		else if(finish == "polishedbackpainted")
+			optsurf->SetFinish(polishedbackpainted);
+		else if(finish == "ground")
+			optsurf->SetFinish(ground);
+		else if(finish == "groundfrontpainted")
+			optsurf->SetFinish(groundfrontpainted);
+		else if(finish == "groundbackpainted")
+			optsurf->SetFinish(groundbackpainted);
+		else if(finish == "polishedlumirrorair")
+			optsurf->SetFinish(polishedlumirrorair);
+		else if(finish == "polishedlumirrorglue")
+			optsurf->SetFinish(polishedlumirrorglue);
+		else if(finish == "polishedair")
+			optsurf->SetFinish(polishedair);
+		else if(finish == "polishedteflonair")
+			optsurf->SetFinish(polishedteflonair);
+		else if(finish == "polishedtioair")
+			optsurf->SetFinish(polishedtioair);
+		else if(finish == "polishedtyvekair")
+			optsurf->SetFinish(polishedtyvekair);
+		else if(finish == "polishedvm2000air")
+			optsurf->SetFinish(polishedvm2000air);
+		else if(finish == "polishedvm2000glue")
+			optsurf->SetFinish(polishedvm2000glue);
+		else if(finish == "etchedlumirrorair")
+			optsurf->SetFinish(etchedlumirrorair);
+		else if(finish == "etchedlumirrorglue")
+			optsurf->SetFinish(etchedlumirrorglue);
+		else if(finish == "etchedair")
+			optsurf->SetFinish(etchedair);
+		else if(finish == "etchedteflonair")
+			optsurf->SetFinish(etchedteflonair);
+		else if(finish == "etchedtioair")
+			optsurf->SetFinish(etchedtioair);
+		else if(finish == "etchedtyvekair")
+			optsurf->SetFinish(etchedtyvekair);
+		else if(finish == "etchedvm2000air")
+			optsurf->SetFinish(etchedvm2000air);
+		else if(finish == "etchedvm2000glue")
+			optsurf->SetFinish(etchedvm2000glue);
+		else if(finish == "groundlumirrorair")
+			optsurf->SetFinish(groundlumirrorair);
+		else if(finish == "groundlumirrorglue")
+			optsurf->SetFinish(groundlumirrorglue);
+		else if(finish == "groundair")
+			optsurf->SetFinish(groundair);
+		else if(finish == "groundteflonair")
+			optsurf->SetFinish(groundteflonair);
+		else if(finish == "groundtioair")
+			optsurf->SetFinish(groundtioair);
+		else if(finish == "groundtyvekair")
+			optsurf->SetFinish(groundtyvekair);
+		else if(finish == "groundvm2000air")
+			optsurf->SetFinish(groundvm2000air);
+		else if(finish == "groundvm2000glue")
+			optsurf->SetFinish(groundvm2000glue);
+		else
+			std::cout << Display::WarningStr("nDetDynamicMaterial") << "User specified invalid optical surface type (" << args.at(1) << ")\n" << Display::ResetStr();
+	}
+	else if(cmd == "setOptModel"){
+		std::string model = args.at(1);
+		if(model == "glisur")
+			optsurf->SetModel(glisur);
+		else if(model == "unified")
+			optsurf->SetModel(unified);
+		else if(model == "LUT")
+			optsurf->SetModel(LUT);
+		else
+			std::cout << Display::WarningStr("nDetDynamicMaterial") << "User specified invalid optical surface model (" << args.at(1) << ")\n" << Display::ResetStr();
+	}
+	else if(cmd == "setOptSigmaAlpha"){
+		optsurf->SetSigmaAlpha(strtod(args.at(1).c_str(), NULL));
+		if(debug)
+			std::cout << " debug: Set optical surface sigma-alpha to " << optsurf->GetSigmaAlpha() << std::endl;
+	}
+	else if(cmd == "setOptPolish"){
+		optsurf->SetPolish(strtod(args.at(1).c_str(), NULL));
+		if(debug)
+			std::cout << " debug: Set optical surface polish level to " << optsurf->GetPolish() << std::endl;
 	}
 	
 	return true;
