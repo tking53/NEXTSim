@@ -124,7 +124,7 @@ class nDetMaterials{
 	  */
 	G4OpticalSurface* getUserOpticalSurface(const G4String &name);
 
-	/**
+	/** Get a pointer to the visual attributes corresponding to @a name
 	  */
 	G4VisAttributes* getUserVisAttributes(const G4String &name);
 
@@ -145,6 +145,9 @@ class nDetMaterials{
 	  */	
 	void setLightYield(const G4double &yield);
 
+	/** Search for an element in the NIST database 
+	  * @return True if the element is found in the NIST database and return false otherwise
+	  */
 	bool searchForElement(const G4String &name);
 
 	/** Search for an element name in the pre-defined dictionary
@@ -154,6 +157,9 @@ class nDetMaterials{
 	  */
 	G4Element* getElement(const G4String &name);
 
+	/** Search for a material in the NIST database 
+	  * @return True if the material is found in the NIST database and return false otherwise
+	  */
 	bool searchForMaterial(const G4String &name);
 	
 	/** Search for a material name in the pre-defined dictionary
@@ -201,13 +207,13 @@ class nDetMaterials{
 
 	nistDatabase nist; ///< Database for pre-defined NIST element and material lookups
 
-	std::map<G4String, G4Element*> elementList;
+	std::map<G4String, G4Element*> elementList; ///< List of elements which are available for use
 	
-	std::map<G4String, G4Material*> materialList;
+	std::map<G4String, G4Material*> materialList; ///< List of materials which are available for use
 	
-	std::map<G4String, G4OpticalSurface*> opticalSurfaceList;
+	std::map<G4String, G4OpticalSurface*> opticalSurfaceList; ///< List of optical surfaces which are available for use
 	
-	std::map<G4String, G4VisAttributes*> visAttributesList;
+	std::map<G4String, G4VisAttributes*> visAttributesList; ///< List of visual attributes which are available for use
 
 	/** Define materials and optical surfaces
 	  */
