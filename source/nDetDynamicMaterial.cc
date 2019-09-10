@@ -5,6 +5,7 @@
 #include "G4Material.hh"
 #include "G4VisAttributes.hh"
 #include "G4MaterialPropertiesTable.hh"
+#include "G4SystemOfUnits.hh"
 #include "G4UnitsTable.hh"
 #include "G4Element.hh"
 
@@ -169,9 +170,9 @@ bool nDetDynamicMaterial::decode(const std::vector<std::string> &args){
 			std::cout << " debug: Set name to \"" << name << "\"\n";
 	}
 	else if(cmd == "setDensity"){ // setDensity <density>
-		density = strtod(args.at(1).c_str(), NULL);
+		density = strtod(args.at(1).c_str(), NULL)*g/cm3;
 		if(debug)
-			std::cout << " debug: Set density to " << density << " g/cm^3\n";
+			std::cout << " debug: Set density to " << density/(g/cm3) << " g/cm^3\n";
 	}
 	else if(cmd == "setMaterial"){ // setMaterial <name>
 		G4Material *nistMat = matHandler->getNistDatabase()->searchForMaterial(args.at(1));
