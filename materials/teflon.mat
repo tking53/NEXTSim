@@ -74,8 +74,13 @@ addArray absorption 9
 
 setMaterial G4_TEFLON
 
+# Set visualization properties
 setVisColor 1 0.5 0.6 0.5 # Watermelon (50% opacity)
 setVisSolid
+
+# Set optical surface properties
+setOptFinish ground
+setOptType dielectric_dielectric
 
 #############################
 # Add variable properties
