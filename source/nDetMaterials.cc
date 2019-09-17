@@ -82,23 +82,21 @@ void nDetMaterials::initialize(){
 	opticalSurfaceList["perfect"] = fPerfectOpSurf;
 	opticalSurfaceList["grease"] = fGreaseOpSurf;
 
-	visAttributesList["assembly"] = visAssembly;
-	visAttributesList["sensitive"] = visSensitive;
-	visAttributesList["window"] = visWindow;
+	//visAttributesList["air"] = &G4VisAttributes::Invisible;
+	//visAttributesList["vacuum"] = &G4VisAttributes::Invisible;
+	visAttributesList["teflon"] = visWrapping;
+	visAttributesList["ej200"] = visScint;
+	visAttributesList["ej276"] = visScint;
 	visAttributesList["grease"] = visGrease;
-	visAttributesList["wrapping"] = visWrapping;
-	visAttributesList["scint"] = visScint;
-	visAttributesList["shadow"] = visShadow;
+	visAttributesList["quartz"] = visWindow;
+	visAttributesList["silicon"] = visSensitive;
+	visAttributesList["mylar"] = visWrapping;
+	visAttributesList["acrylic"] = visWindow;
+	visAttributesList["aluminum"] = visShadow;
 }
 
 G4Material* nDetMaterials::getUserDetectorMaterial(const G4String &name){
-	G4Material *mat = NULL;
-	if(name == "ej200")
-		mat = fEJ200;
-	else if(name == "ej276")
-		mat = fEJ276;
-	else
-		mat = getMaterial(name);
+	G4Material *mat = getMaterial(name);
 	
 	if(!mat) // Material was not found
 		std::cout << Display::ErrorStr("nDetDynamicMaterial") << "Detector material named \"" << name << "\" was not found in list!\n" << Display::ResetStr();
@@ -108,15 +106,7 @@ G4Material* nDetMaterials::getUserDetectorMaterial(const G4String &name){
 
 G4Material* nDetMaterials::getUserSurfaceMaterial(const G4String &name){
 	G4Material *mat = NULL;
-	if(name == "mylar")
-		mat = fMylar;
-	else if(name == "teflon")
-		mat = fTeflon;
-	else if(name == "esr")
-		mat = fMylar; //fEsr; CRT!!!
-	else if(name == "silicon")
-		mat = fSilicon;
-	else if(name == "perfect")
+	if(name == "mylar" || name == "esr" || name == "perfect")
 		mat = fMylar;
 	else
 		mat = getMaterial(name);
@@ -128,22 +118,20 @@ G4Material* nDetMaterials::getUserSurfaceMaterial(const G4String &name){
 }
 
 G4OpticalSurface* nDetMaterials::getUserOpticalSurface(const G4String &name){
-    if(name == "mylar")
-    	return fMylarOpSurf;
-    else if(name == "teflon")
-    	return fTeflonOpSurf;
-    else if(name == "esr")
-    	return fEsrOpSurf;
-    else if(name == "silicon")
-    	return fSiliconOpSurf;
-    else if(name == "perfect")
-    	return fPerfectOpSurf;
+	G4OpticalSurface *opt = getOpticalSurface(name);
 
-    return fMylarOpSurf; // default
+	if(!opt) // Surface was not found
+		std::cout << Display::ErrorStr("nDetDynamicMaterial") << "Optical surface named \"" << name << "\" was not found in list!\n" << Display::ResetStr();
+
+    return opt; // default
 }
 
 G4VisAttributes* nDetMaterials::getUserVisAttributes(const G4String &name){
-	G4VisAttributes *visatt = getVisualAttributes(name);
+	G4VisAttributes *visatt = NULL;
+	if(name == "mylar" || name == "teflon" || name == "esr" || name == "perfect")
+		visatt = visWrapping;
+	else
+		visatt = getVisualAttributes(name);
 
 	if(!visatt){ // Visual attributes was not found (use a default)
 		std::cout << Display::WarningStr("nDetDynamicMaterial") << "Visual attributes named \"" << name << "\" was not found in list!\n" << Display::ResetStr();

@@ -92,15 +92,10 @@ void nDetDetectorParams::SetRotation(const G4ThreeVector &rotation){
 
 void nDetDetectorParams::SetDetectorMaterial(const G4String &material){ 
 	detectorMaterialName = material;
-	scintMaterial = materials->getUserDetectorMaterial(detectorMaterialName);
-	scintVisAtt = materials->getUserVisAttributes(detectorMaterialName);		
 }
 
 void nDetDetectorParams::SetWrappingMaterial(const G4String &material){ 
 	wrappingMaterialName = material; 
-	wrappingMaterial = materials->getUserDetectorMaterial(wrappingMaterialName);
-	wrappingVisAtt = materials->getUserVisAttributes(wrappingMaterialName);
-	wrappingOpSurf = materials->getUserOpticalSurface(wrappingMaterialName);
 }
 
 void nDetDetectorParams::SetUnsegmented(){
@@ -284,6 +279,13 @@ void nDetDetector::construct(){
 
 	// Build the assembly volume
 	constructAssembly();
+
+	// Get materials and visual attributes
+	scintMaterial = materials->getUserDetectorMaterial(detectorMaterialName);
+	scintVisAtt = materials->getUserVisAttributes(detectorMaterialName);
+	wrappingMaterial = materials->getUserSurfaceMaterial(wrappingMaterialName);
+	wrappingVisAtt = materials->getUserVisAttributes(wrappingMaterialName);
+	wrappingOpSurf = materials->getUserOpticalSurface(wrappingMaterialName);
 
 	// Build the detector.
 	if(geomType == GEOM_MODULE)
@@ -516,7 +518,7 @@ void nDetDetector::buildEllipse(){
 
     // Reflective wrapping.
     if(WrappingEnabled())
-	    new G4LogicalBorderSurface("Wrapping", ellipseBody_physV, ellipseWrapping_physV, materials->getUserOpticalSurface(wrappingMaterialName));
+	    new G4LogicalBorderSurface("Wrapping", ellipseBody_physV, ellipseWrapping_physV, wrappingOpSurf);
 }
 
 void nDetDetector::buildRectangle(){
@@ -540,7 +542,8 @@ void nDetDetector::buildRectangle(){
 		G4PVPlacement *plateWrapping_physV = addToDetectorBody(plateWrapping_logV, "Wrapping");
 		
 		// Reflective wrapping.
-		new G4LogicalBorderSurface("Wrapping", plateBody_physV, plateWrapping_physV, materials->getUserOpticalSurface(wrappingMaterialName));
+		
+		new G4LogicalBorderSurface("Wrapping", plateBody_physV, plateWrapping_physV, wrappingOpSurf);
 	}
 	
 	// Update the Z offset and layer width/height
@@ -573,7 +576,7 @@ void nDetDetector::buildCylinder(){
 		G4PVPlacement *cylinderWrapping_physV = addToDetectorBody(cylinderWrapping_logV, "Wrapping");	
 		
 		// Reflective wrapping.
-		new G4LogicalBorderSurface("Wrapping", cylinderBody_physV, cylinderWrapping_physV, materials->getUserOpticalSurface(wrappingMaterialName));
+		new G4LogicalBorderSurface("Wrapping", cylinderBody_physV, cylinderWrapping_physV, wrappingOpSurf);
 	}
 	
 	// Update the Z offset and layer width/height
