@@ -99,8 +99,9 @@ void nDetConstructionMessenger::addAllCommands(){
 	addCommand(new G4UIcmdWithAnInteger("/nDet/output/trace/setBitRange", this));
 	addGuidance("Set the ADC dynamic bit range");
 
-	addCommand(new G4UIcmdWithAnInteger("/nDet/output/trace/setFunction", this));
+	addCommand(new G4UIcmdWithAString("/nDet/output/trace/setFunction", this));
 	addGuidance("Set the single photon response function (default=0)");
+	addCandidates("expo 0 vandle 1 gauss 2");
 
 	addCommand(new G4UIcmdWithAString("/nDet/output/trace/print", this));
 	addGuidance("Print the digitized light pulse");
@@ -211,9 +212,18 @@ void nDetConstructionMessenger::SetNewChildValue(G4UIcommand* command, G4String 
 			prR->setBitRange(val);
 		}
 		else if(index == 12){
-			G4int val = command->ConvertToInt(newValue);
-			prL->setFunctionType(val);
-			prR->setFunctionType(val);
+			if(newValue == "expo" || newValue == "0"){
+				prL->setFunctionType(pmtResponse::EXPO);
+				prR->setFunctionType(pmtResponse::EXPO);
+			}
+			else if(newValue == "vandle" || newValue == "1"){
+				prL->setFunctionType(pmtResponse::VANDLE);
+				prR->setFunctionType(pmtResponse::VANDLE);
+			}
+			else if(newValue == "gauss" || newValue == "0"){
+				prL->setFunctionType(pmtResponse::GAUSS);
+				prR->setFunctionType(pmtResponse::GAUSS);
+			}
 		}
 		else if(index == 13){
 			prL->setPrintTrace((newValue == "true") ? true : false);

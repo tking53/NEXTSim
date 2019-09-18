@@ -119,14 +119,14 @@ void spectralResponse::clear(){
 pmtResponse::pmtResponse() : risetime(4.0), falltime(20.0), timeSpread(0), traceDelay(50), gain(1E4), maximum(-9999), baseline(-9999),
                              baselineFraction(0), baselineJitterFraction(0), polyCfdFraction(0.5), pulseIntegralLow(5), pulseIntegralHigh(10),
                              maxIndex(0), adcBins(4096), pulseLength(100), isDigitized(false), useSpectralResponse(false), pulseIsSaturated(false),
-                             printTrace(false), rawPulse(), pulseArray(), spec(), minimumArrivalTime(0), functionType(0) {
+                             printTrace(false), rawPulse(), pulseArray(), spec(), minimumArrivalTime(0), functionType(EXPO) {
 	this->setPulseLength(pulseLength);
 }
 
 pmtResponse::pmtResponse(const double &risetime_, const double &falltime_) : risetime(risetime_), falltime(falltime_), timeSpread(0), traceDelay(50), gain(1E4), maximum(-9999), baseline(-9999),
                                                                              baselineFraction(0), baselineJitterFraction(0), polyCfdFraction(0.5), pulseIntegralLow(5), pulseIntegralHigh(10),
                                                                              maxIndex(0), adcBins(4096), pulseLength(100), isDigitized(false), useSpectralResponse(false), pulseIsSaturated(false),
-                                                                             printTrace(false), rawPulse(), pulseArray(), spec(), minimumArrivalTime(0), functionType(0) {
+                                                                             printTrace(false), rawPulse(), pulseArray(), spec(), minimumArrivalTime(0), functionType(EXPO) {
 	this->setPulseLength(pulseLength);
 }
 
@@ -169,10 +169,7 @@ void pmtResponse::setPulseLengthInNanoSeconds(const double &length){
 
 /// Set the dynamic bit range of the ADC.
 void pmtResponse::setBitRange(const size_t &len){
-	adcBins = 1;
-	for(size_t i = 0; i < len; i++){
-		adcBins *= 2;
-	}
+	adcBins = (unsigned int)std::pow(2, len);
 }
 
 /// Load PMT spectral response from root file.
@@ -226,11 +223,11 @@ void pmtResponse::digitize(const double &baseline_/*=0*/, const double &jitter_/
 		if(jitter_ != 0) 
 			value += (-jitter_ + 2*G4UniformRand()*jitter_)*adcBins;
 			
-		if(value <= 65535) // Pulse is not saturated.
+		if(value <= adcBins-1) // Pulse is not saturated.
 			pulseArray[i] = (unsigned short)value;
 		else{ // Pulse is saturated.
 			pulseIsSaturated = true;
-			pulseArray[i] = 65535;
+			pulseArray[i] = adcBins-1;
 		}
 	}
 	isDigitized = true;
@@ -384,11 +381,24 @@ void pmtResponse::clear(){
 
 void pmtResponse::print(){
 	std::cout << "***********************************************************\n";
-	std::cout << "* risetime : " << risetime << " ns" << std::endl;
-	std::cout << "* falltime : " << falltime << " ns" <<  std::endl;
+	if(functionType == EXPO){
+		std::cout << "* response : exponential\n";
+		std::cout << "* risetime : " << risetime << " ns" << std::endl;
+		std::cout << "* falltime : " << falltime << " ns" <<  std::endl;
+	}
+	else if(functionType == VANDLE){
+		std::cout << "* response : vandle\n";
+		std::cout << "* beta     : " << risetime << " ns" << std::endl;
+		std::cout << "* gamma    : " << falltime << " ns" <<  std::endl;		
+	}
+	else if(functionType == GAUSS){
+		std::cout << "* response : gaussian\n";
+		std::cout << "* sigma    : " << risetime << " ns" << std::endl;
+	}
 	std::cout << "* spread   : " << timeSpread << " ns" << std::endl;
 	std::cout << "* delay    : " << traceDelay << " ns" << std::endl;
 	std::cout << "* gain     : " << gain << "x" << std::endl;
+	std::cout << "* range    : " << adcBins << " channels\n";
 	std::cout << "* baseline : " << baselineFraction*100 << "% (" << (int)(baselineFraction*adcBins) << " channels)" << std::endl;
 	std::cout << "* jitter   : " << baselineJitterFraction*100 << "% (+-" << (int)(baselineJitterFraction*adcBins) << " channels)" << std::endl;
 	std::cout << "* CfdF     : " << polyCfdFraction << std::endl;
@@ -470,15 +480,15 @@ double pmtResponse::calculateP3(const short &x, unsigned short *y, double *p, do
 }
 
 double pmtResponse::eval(const double &t, const double &dt/*=0*/){
-	if(functionType == 0){ // Standard single photon response function.
+	if(functionType == EXPO){ // Standard single photon response function.
 		if(t-dt <= 0) return 0;
 		return gain*(1/(falltime-risetime))*(std::exp(-(t-dt)/falltime)-std::exp(-(t-dt)/risetime));
 	}
-	else if(functionType == 1){ // "Vandle" function. The risetime is BETA and the decay time is GAMMA.
+	else if(functionType == VANDLE){ // "Vandle" function. The risetime is BETA and the decay time is GAMMA.
 		if(t-dt <= 0) return 0;
 		return (100*gain*std::exp((dt-t)*risetime)*(1 - std::exp(-std::pow((t-dt)*falltime,4))));
 	}
-	else if(functionType == 2){ // Normalized gaussian function. The risetime is sigma and the decay time is not used.
+	else if(functionType == GAUSS){ // Normalized gaussian function. The risetime is sigma and the decay time is not used.
 		return gain*((1/(risetime*sqrt2pi))*std::exp(-0.5*std::pow((t-dt)/risetime, 2.0)));
 	}
 	return 0;

@@ -75,7 +75,11 @@ class spectralResponse{
   */
 
 class pmtResponse{
-  public:
+public:
+	/** Types of single-photon light response functions
+	  */
+	enum photonResponseType {EXPO, VANDLE, GAUSS};
+
 	/** Default constructor
 	  */
 	pmtResponse();
@@ -190,15 +194,15 @@ class pmtResponse{
 	/** Set the single photon response function type. The available function types with their usage of the fall time and rise time 
 	  * parameters (set by setFalltime() and setRisetime() respectively) are described in the table below
 	  *
-	  * | Type        | Description | Fall Time | Rise Time |
-	  * |-------------|-------------|-----------|-----------|
-	  * | 0 (default) | [Double exponential function](https://iopscience.iop.org/article/10.1088/0031-9155/54/21/004) | Decay time of pulse (in ns) | Rise time of pulse (in ns) |
-	  * | 1           | [Vandle function](https://www.sciencedirect.com/science/article/pii/S0168900213015672) | Gamma (in ns) | Beta (in ns) |
-	  * | 2           | Normalized gaussian | Not used | Sigma (in ns) |
+	  * | Type           | Description | Fall Time | Rise Time |
+	  * |----------------|-------------|-----------|-----------|
+	  * | EXPO (default) | [Double exponential function](https://iopscience.iop.org/article/10.1088/0031-9155/54/21/004) | Decay time of pulse (in ns) | Rise time of pulse (in ns) |
+	  * | VANDLE         | [Vandle function](https://www.sciencedirect.com/science/article/pii/S0168900213015672) | Gamma (in ns) | Beta (in ns) |
+	  * | GAUSS          | Normalized gaussian | Not used | Sigma (in ns) |
 	  *
 	  * @param type The single photon response function to use
 	  */
-	void setFunctionType(const int &type){ functionType = type; }
+	void setFunctionType(const photonResponseType &type){ functionType = type; }
 
 	/** Set the height of the digitized pulse baseline
 	  * @param percentage The amplitude of the pulse baseline (percentage of the total ADC dynamic range)
@@ -348,7 +352,7 @@ class pmtResponse{
 	  */
 	static double calculateP3(const short &x0, unsigned short *y, double *p, double &xmax);
 
-  private:
+private:
 	double cfdPar[7]; ///< Cfd fitting parameters.	
 
 	double risetime; ///< Risetime of the single photon response function
@@ -387,7 +391,7 @@ class pmtResponse{
 
 	double minimumArrivalTime; ///< Minimum photon arrival time
 
-	int functionType; ///< Integer indicating the single photon response function to use to build the light response pulse
+	photonResponseType functionType; ///< Integer indicating the single photon response function to use to build the light response pulse
 
 	std::vector<double> arrivalTimes; ///< Vector of all photon arrival times
 	std::vector<double> photonWeights; ///< Vector of the gain of all photon detections
