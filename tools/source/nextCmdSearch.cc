@@ -7,6 +7,8 @@
 #include "nDetConstructionMessenger.hh"
 #include "nDetDetectorMessenger.hh"
 #include "nDetParticleSourceMessenger.hh"
+#include "nDetMaterialsMessenger.hh"
+#include "nDetWorldMessenger.hh"
 
 void help(char * prog_name_){
 	std::cout << "  SYNTAX: " << prog_name_ << " [str1 str2 ...]\n";
@@ -32,13 +34,13 @@ int main(int argc, char *argv[]){
 		index++;
 	}
 
-	nDetMasterOutputFileMessenger outputMessenger;
-	nDetConstructionMessenger constructionMessenger;
-	nDetDetectorMessenger detectorMessenger;
-	nDetParticleSourceMessenger sourceMessenger;
-
-	const size_t numMessengers = 4;
-	messengerHandler *handlers[numMessengers] = {&outputMessenger, &constructionMessenger, &detectorMessenger, &sourceMessenger};
+	const size_t numMessengers = 6;
+	messengerHandler *handlers[numMessengers] = {new nDetConstructionMessenger,
+	                                             new nDetDetectorMessenger,
+	                                             new nDetMasterOutputFileMessenger,
+	                                             new nDetMaterialsMessenger,
+	                                             new nDetParticleSourceMessenger,
+	                                             new nDetWorldMessenger};
 
 	std::string msgNames[numMessengers];
 	size_t msgNumCmds[numMessengers];
@@ -90,6 +92,11 @@ int main(int argc, char *argv[]){
 			}
 			std::cout << std::endl;
 		}
+	}
+
+	// Delete all messengers
+	for(size_t i = 0; i < numMessengers; i++){
+		delete handlers[i];
 	}
 
 	return 0;
