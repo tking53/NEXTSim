@@ -103,6 +103,12 @@ void nDetConstructionMessenger::addAllCommands(){
 	addGuidance("Set the single photon response function (default=0)");
 	addCandidates("expo 0 vandle 1 gauss 2");
 
+	addCommand(new G4UIcmdWithADouble("/nDet/output/trace/setAdcClock", this));
+	addGuidance("Set the period of the ADC clock (ns)");
+	
+	addCommand(new G4UIcmdWithADouble("/nDet/output/trace/setAdcClockFrequency", this));
+	addGuidance("Set the frequency of the ADC clock (MHz)");	
+
 	addCommand(new G4UIcmdWithAString("/nDet/output/trace/print", this));
 	addGuidance("Print the digitized light pulse");
 	addCandidates("true false");
@@ -226,10 +232,20 @@ void nDetConstructionMessenger::SetNewChildValue(G4UIcommand* command, G4String 
 			}
 		}
 		else if(index == 13){
+			G4double val = command->ConvertToDouble(newValue);
+			prL->setAdcClockInNanoseconds(val);
+			prR->setAdcClockInNanoseconds(val);
+		}
+		else if(index == 14){
+			G4double val = command->ConvertToDouble(newValue);
+			prL->setAdcClockFrequency(val);
+			prR->setAdcClockFrequency(val);
+		}
+		else if(index == 15){
 			prL->setPrintTrace((newValue == "true") ? true : false);
 			prR->setPrintTrace((newValue == "true") ? true : false);
 		}
-		else if(index == 14){
+		else if(index == 16){
 			prL->print(); // Only show the left side, because they're both the same
 		}
 	}

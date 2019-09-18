@@ -9,8 +9,6 @@
 
 #include "pmtResponse.hh"
 
-#define ADC_CLOCK_TICK 4 // ns
-
 const double sqrt2pi = 2.5066282746;
 
 void copyTGraph(TGraph *g, std::vector<double> &xvec, std::vector<double> &yvec){
@@ -117,14 +115,14 @@ void spectralResponse::clear(){
 ///////////////////////////////////////////////////////////////////////////////
 
 pmtResponse::pmtResponse() : risetime(4.0), falltime(20.0), timeSpread(0), traceDelay(50), gain(1E4), maximum(-9999), baseline(-9999),
-                             baselineFraction(0), baselineJitterFraction(0), polyCfdFraction(0.5), pulseIntegralLow(5), pulseIntegralHigh(10),
+                             baselineFraction(0), baselineJitterFraction(0), polyCfdFraction(0.5), adcClockTick(4), pulseIntegralLow(5), pulseIntegralHigh(10),
                              maxIndex(0), adcBins(4096), pulseLength(100), isDigitized(false), useSpectralResponse(false), pulseIsSaturated(false),
                              printTrace(false), rawPulse(), pulseArray(), spec(), minimumArrivalTime(0), functionType(EXPO) {
 	this->setPulseLength(pulseLength);
 }
 
 pmtResponse::pmtResponse(const double &risetime_, const double &falltime_) : risetime(risetime_), falltime(falltime_), timeSpread(0), traceDelay(50), gain(1E4), maximum(-9999), baseline(-9999),
-                                                                             baselineFraction(0), baselineJitterFraction(0), polyCfdFraction(0.5), pulseIntegralLow(5), pulseIntegralHigh(10),
+                                                                             baselineFraction(0), baselineJitterFraction(0), polyCfdFraction(0.5), adcClockTick(4), pulseIntegralLow(5), pulseIntegralHigh(10),
                                                                              maxIndex(0), adcBins(4096), pulseLength(100), isDigitized(false), useSpectralResponse(false), pulseIsSaturated(false),
                                                                              printTrace(false), rawPulse(), pulseArray(), spec(), minimumArrivalTime(0), functionType(EXPO) {
 	this->setPulseLength(pulseLength);
@@ -163,7 +161,7 @@ void pmtResponse::setPulseLength(const size_t &len){
 
 /// Set the length of the pulse in nanoseconds.
 void pmtResponse::setPulseLengthInNanoSeconds(const double &length){
-	size_t len = (size_t)ceil(length/ADC_CLOCK_TICK);
+	size_t len = (size_t)ceil(length/adcClockTick);
 	this->setPulseLength(len);
 }
 
@@ -197,12 +195,12 @@ void pmtResponse::addPhoton(const double &arrival, const double &wavelength/*=0*
 	if(dt < 0) dt = 0;
 	double dy;
 	double time = dt;
-	size_t index = (size_t)floor(dt/ADC_CLOCK_TICK);
-	time += ADC_CLOCK_TICK/2;
+	size_t index = (size_t)floor(dt/adcClockTick);
+	time += adcClockTick/2;
 	while(index < pulseLength){
 		dy = gain_*efficiency*eval(time, dt);
 		rawPulse[index] += dy;
-		time += ADC_CLOCK_TICK;
+		time += adcClockTick;
 		index++;
 	}
 }
@@ -304,7 +302,7 @@ double pmtResponse::analyzeCFD(const double &F_/*=0.5*/, const size_t &D_/*=1*/,
 	
 	delete[] cfdvals;
 
-	return phase*ADC_CLOCK_TICK-traceDelay;
+	return phase*adcClockTick-traceDelay;
 }
 
 
@@ -330,7 +328,7 @@ double pmtResponse::analyzePolyCFD(const double &F_){
 		}
 	}
 
-	return phase*ADC_CLOCK_TICK-traceDelay;
+	return phase*adcClockTick-traceDelay;
 }
 
 /// Perform polynomial CFD analysis on the waveform using F=polyCfdFraction
@@ -402,10 +400,11 @@ void pmtResponse::print(){
 	std::cout << "* baseline : " << baselineFraction*100 << "% (" << (int)(baselineFraction*adcBins) << " channels)" << std::endl;
 	std::cout << "* jitter   : " << baselineJitterFraction*100 << "% (+-" << (int)(baselineJitterFraction*adcBins) << " channels)" << std::endl;
 	std::cout << "* CfdF     : " << polyCfdFraction << std::endl;
-	std::cout << "* Ilow     : " << pulseIntegralLow << " clock ticks (" << pulseIntegralLow*ADC_CLOCK_TICK << " ns)" << std::endl;
-	std::cout << "* Ihigh    : " << pulseIntegralHigh << " clock ticks (" << pulseIntegralHigh*ADC_CLOCK_TICK << " ns)" << std::endl;
+	std::cout << "* sampling : " << getAdcClockFrequency() << " MSPS\n";
+	std::cout << "* Ilow     : " << pulseIntegralLow << " clock ticks (" << pulseIntegralLow*adcClockTick << " ns)" << std::endl;
+	std::cout << "* Ihigh    : " << pulseIntegralHigh << " clock ticks (" << pulseIntegralHigh*adcClockTick << " ns)" << std::endl;
 	std::cout << "* range    : " << adcBins << " channels" << std::endl;
-	std::cout << "* length   : " << pulseLength << " clock ticks (" << pulseLength*ADC_CLOCK_TICK << " ns)" << std::endl;
+	std::cout << "* length   : " << pulseLength << " clock ticks (" << pulseLength*adcClockTick << " ns)" << std::endl;
 	std::cout << "***********************************************************\n";	
 }
 
@@ -414,9 +413,6 @@ void pmtResponse::printRaw(){
 		std::cout << i << "\t" << rawPulse[i] << std::endl;
 	}
 }
-
-/// Return the period of the ADC clock in ns.
-int pmtResponse::getAdcClockTick(){ return ADC_CLOCK_TICK; }
 
 /** Calculate the parameters for a second order polynomial which passes through 3 points.
   * \param[in]  x0 - Initial x value. Sequential x values are assumed to be x0, x0+1, and x0+2.
@@ -499,7 +495,7 @@ double pmtResponse::findMaximum(){
 
 	// Find the baseline.
 	double tempbaseline = 0.0;
-	size_t sample_size = floor(traceDelay/ADC_CLOCK_TICK);
+	size_t sample_size = floor(traceDelay/adcClockTick);
 	sample_size = (sample_size <= pulseLength ? 15:pulseLength);
 	for(size_t i = 0; i < sample_size; i++){
 		tempbaseline += pulseArray[i];

@@ -143,6 +143,14 @@ public:
 	  */
 	bool getPrintTrace() const { return printTrace; }
 
+	/** Get the period of the ADC clock (in ns)
+	  */
+	double getAdcClockInNanoseconds() const { return adcClockTick; }
+
+	/** Get the frequency of the ADC clock (in MHz)
+	  */
+	double getAdcClockFrequency() const { return ((1E9/adcClockTick)/1E6); }
+
 	/** Return true if the anode quantum efficiency will be used, and return false otherwise
 	  */
 	bool getSpectralResponseEnabled() const { return useSpectralResponse; }
@@ -232,6 +240,15 @@ public:
 	/** Set the flag which indicates whether or not the digitized pulse should be printed
 	  */
 	void setPrintTrace(const bool &enabled){ printTrace = enabled; }
+
+	/** Set the period of the ADC clock (in ns)
+	  */
+	void setAdcClockInNanoseconds(const double &period){ adcClockTick = period; }
+
+	/** Set the frequency of the ADC clock (in MHz)
+	  * @return The period of the ADC clock (in ns)
+	  */
+	double setAdcClockFrequency(const double &frequency){ return (adcClockTick = (1/(frequency*1E6))*1E9); }
 
 	/** Disable use of PMT quantum efficiency spectrum
 	  */
@@ -331,10 +348,6 @@ public:
 	  */
 	void printRaw();
 
-	/** Get the period of the ADC clock (in ns)
-	  */
-	static int getAdcClockTick();
-
 	/** Calculate the parameters for a second order polynomial which passes through 3 points.
 	  * @param x0 - Initial x value. Sequential x values are assumed to be x0, x0+1, and x0+2.
 	  * @param y  - Pointer to the beginning of the array of unsigned shorts containing the three y values.
@@ -368,6 +381,8 @@ private:
 	double baselineFraction; ///< Digitized light pulse baseline as a fraction of the total ADC dynamic range
 	double baselineJitterFraction; ///< Digitized light pulse baseline jitter as a fraction of the total ADC dynamic range
 	double polyCfdFraction; ///< PolyCFD F parameter as a fraction of max pulse height minus the baseline
+
+	double adcClockTick; ///< The period of the ADC clock (in ns)
 	
 	short pulseIntegralLow; ///< Number of ADC clock ticks for start of digitized pulse TQDC integral wrt pulse maximum
 	short pulseIntegralHigh; ///< Number of ADC clock ticks for stop of digitized pulse TQDC integral wrt pulse maximum

@@ -284,7 +284,7 @@ bool nDetRunAction::processDetector(nDetDetector* det){
 		std::cout << "* MinimumArrival : " << pmtL->getMinimumPhotonArrivalTime() << "\t" << pmtR->getMinimumPhotonArrivalTime() << std::endl;
 		std::cout << "***********************************************************\n";
 
-		int adcClockTick = pmtL->getAdcClockTick();
+		int adcClockTick = pmtL->getAdcClockInNanoseconds();
 		for(size_t i = 0; i < traceLength; i++){
 			std::cout << i*adcClockTick << "\t" << traceL[i] << "\t" << traceR[i] << std::endl;
 		}
