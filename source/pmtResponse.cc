@@ -117,14 +117,14 @@ void spectralResponse::clear(){
 pmtResponse::pmtResponse() : risetime(4.0), falltime(20.0), timeSpread(0), traceDelay(50), gain(1E4), maximum(-9999), baseline(-9999),
                              baselineFraction(0), baselineJitterFraction(0), polyCfdFraction(0.5), adcClockTick(4), tLatch(0), pulseIntegralLow(5), pulseIntegralHigh(10),
                              maxIndex(0), adcBins(4096), pulseLength(100), isDigitized(false), useSpectralResponse(false), pulseIsSaturated(false),
-                             printTrace(false), rawPulse(), pulseArray(), spec(), minimumArrivalTime(0), functionType(EXPO) {
+                             printTrace(false), pulseArray(), spec(), minimumArrivalTime(0), functionType(EXPO) {
 	this->setPulseLength(pulseLength);
 }
 
 pmtResponse::pmtResponse(const double &risetime_, const double &falltime_) : risetime(risetime_), falltime(falltime_), timeSpread(0), traceDelay(50), gain(1E4), maximum(-9999), baseline(-9999),
                                                                              baselineFraction(0), baselineJitterFraction(0), polyCfdFraction(0.5), adcClockTick(4), tLatch(0), pulseIntegralLow(5), pulseIntegralHigh(10),
                                                                              maxIndex(0), adcBins(4096), pulseLength(100), isDigitized(false), useSpectralResponse(false), pulseIsSaturated(false),
-                                                                             printTrace(false), rawPulse(), pulseArray(), spec(), minimumArrivalTime(0), functionType(EXPO) {
+                                                                             printTrace(false), pulseArray(), spec(), minimumArrivalTime(0), functionType(EXPO) {
 	this->setPulseLength(pulseLength);
 }
 
@@ -154,7 +154,6 @@ void pmtResponse::setFalltime(const double &falltime_){
 /// Set the length of the pulse in ADC bins.
 void pmtResponse::setPulseLength(const size_t &len){
 	pulseLength = len;
-	rawPulse = std::vector<double>(pulseLength, 0);
 	pulseArray = std::vector<unsigned short>(pulseLength, 0);
 	this->clear();
 }
@@ -195,19 +194,15 @@ void pmtResponse::addPhoton(const double &arrival, const double &wavelength/*=0*
 		minimumArrivalTime = arrival;
 }
 
-double pmtResponse::sample(const double &time){
+double pmtResponse::sample(const double &time) const {
 	double retval = 0;
 	for(auto arrival : arrivalTimes)
 		retval += arrival.gain * func(time, arrival.dt);
 	return retval;
 }
 
-void pmtResponse::digitize(const double &baseline_, const double &jitter_){
-	if(isDigitized) 
-		return;
-	pulseIsSaturated = false;
-	
-	// Build the raw light pulse
+void pmtResponse::getRawPulse(std::vector<double> &rawPulse) const {
+	rawPulse = std::vector<double>(pulseLength, 0);
 	double time = tLatch + adcClockTick/2;
 	double prevAmp = 0;
 	for(size_t index = 0; index < pulseLength; index++){
@@ -219,23 +214,30 @@ void pmtResponse::digitize(const double &baseline_, const double &jitter_){
 		prevAmp = rawPulse[index];
 		time += adcClockTick;
 	}
+}
+
+void pmtResponse::digitize(const double &baseline_, const double &jitter_){
+	if(isDigitized) 
+		return;
+	pulseIsSaturated = false;
 	
 	// Digitize the light pulse
+	unsigned int value, bin;
+	double time = tLatch + adcClockTick/2;
 	for(size_t i = 0; i < pulseLength; i++){
-		unsigned int value;
-		unsigned int bin = (unsigned int)floor(rawPulse[i]);
+		bin = (unsigned int)floor(sample(time)); // Sample the total light response spectrum
 		if(bin >= adcBins) bin = adcBins-1;
 		value = bin;
 		value += baseline_*adcBins;
 		if(jitter_ != 0) 
 			value += (-jitter_ + 2*G4UniformRand()*jitter_)*adcBins;
-			
 		if(value <= adcBins-1) // Pulse is not saturated.
 			pulseArray[i] = (unsigned short)value;
 		else{ // Pulse is saturated.
 			pulseIsSaturated = true;
 			pulseArray[i] = (unsigned short)(adcBins-1);
 		}
+		time += adcClockTick;
 	}
 	isDigitized = true;
 }
@@ -379,10 +381,8 @@ void pmtResponse::clear(){
 	
 	isDigitized = false;
 	
-	for(size_t i = 0; i < pulseLength; i++){
-		rawPulse[i] = 0;
+	for(size_t i = 0; i < pulseLength; i++)
 		pulseArray[i] = 0;
-	}
 }
 
 void pmtResponse::print(){
@@ -416,9 +416,9 @@ void pmtResponse::print(){
 }
 
 void pmtResponse::printRaw(){
-	for(size_t i = 0; i < pulseLength; i++){
+	/*for(size_t i = 0; i < pulseLength; i++){
 		std::cout << i << "\t" << rawPulse[i] << std::endl;
-	}
+	}*/
 }
 
 double pmtResponse::calculateP2(const short &x0, unsigned short *y, double *p){
@@ -470,7 +470,7 @@ double pmtResponse::calculateP3(const short &x, unsigned short *y, double *p, do
 	return (p[0] + p[1]*xmax + p[2]*xmax*xmax + p[3]*xmax*xmax*xmax);
 }
 
-double pmtResponse::func(const double &t, const double &dt/*=0*/){
+double pmtResponse::func(const double &t, const double &dt/*=0*/) const {
 	if(functionType == EXPO){ // Standard single photon response function.
 		if(t-dt <= 0) return 0;
 		return gain*(1/(falltime-risetime))*(std::exp(-(t-dt)/falltime)-std::exp(-(t-dt)/risetime));

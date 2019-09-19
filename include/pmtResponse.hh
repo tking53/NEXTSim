@@ -139,10 +139,6 @@ public:
 	  */
 	unsigned short getMaximumIndex() const { return maxIndex; }
 
-	/** Get a pointer to the raw light pulse array
-	  */
-	double *getRawPulse(){ return rawPulse.data(); }
-	
 	/** Get a pointer to the digitized pulse array
 	  */
 	unsigned short *getDigitizedPulse(){ return pulseArray.data(); }
@@ -154,6 +150,11 @@ public:
 	/** Get the gain-weighted arrival time of the photon pulse (in ns)
 	  */
 	double getWeightedPhotonArrivalTime() const ;
+
+	/** Get the total light response spectrum by sampling the single-photon response
+	  * spectra of each detected optical photon
+	  */
+	void getRawPulse(std::vector<double> &rawPulse) const ;
 
 	/** Get the minimum photon arrival time of the pulse (in ns)
 	  */
@@ -301,7 +302,7 @@ public:
 	  * @param time The time at which the full photon light response will be sampled (ns)
 	  * @return The full photon light response at the specified time
 	  */
-	double sample(const double &time);
+	double sample(const double &time) const ;
 
 	/** Build the raw light response pulse by stepping through the trace and sampling the sum of the 
 	  * response of all detected optical photons and then digitize the spectrum
@@ -431,8 +432,6 @@ private:
 	bool pulseIsSaturated; ///< Flag indicating that the digitized pulse has exceeded the maximum ADC dynamic range
 	bool printTrace; ///< Flag indicating that the left and right digitized PMT traces will be printed to the screen
 	
-	std::vector<double> rawPulse; ///< Array to store un-digitized raw light response pulse
-
 	std::vector<unsigned short> pulseArray; ///< Array to store digitized light response pulse
 
 	spectralResponse spec; ///< Anode quantum efficiency
@@ -448,7 +447,7 @@ private:
 	  * @param dt The offset of the pulse along the time axis (in ns)
 	  * @return The value of the single-photon-response function at the user specified time
 	  */
-	double func(const double &t, const double &dt=0);
+	double func(const double &t, const double &dt=0) const ;
 	
 	/** Compute the baseline and maximum of the light pulse
 	  * @return The maximum of the light pulse if the array is properly initialized and return -9999 otherwise
