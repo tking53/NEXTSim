@@ -115,14 +115,14 @@ void spectralResponse::clear(){
 ///////////////////////////////////////////////////////////////////////////////
 
 pmtResponse::pmtResponse() : risetime(4.0), falltime(20.0), timeSpread(0), traceDelay(50), gain(1E4), maximum(-9999), baseline(-9999),
-                             baselineFraction(0), baselineJitterFraction(0), polyCfdFraction(0.5), adcClockTick(4), pulseIntegralLow(5), pulseIntegralHigh(10),
+                             baselineFraction(0), baselineJitterFraction(0), polyCfdFraction(0.5), adcClockTick(4), tLatch(0), pulseIntegralLow(5), pulseIntegralHigh(10),
                              maxIndex(0), adcBins(4096), pulseLength(100), isDigitized(false), useSpectralResponse(false), pulseIsSaturated(false),
                              printTrace(false), rawPulse(), pulseArray(), spec(), minimumArrivalTime(0), functionType(EXPO) {
 	this->setPulseLength(pulseLength);
 }
 
 pmtResponse::pmtResponse(const double &risetime_, const double &falltime_) : risetime(risetime_), falltime(falltime_), timeSpread(0), traceDelay(50), gain(1E4), maximum(-9999), baseline(-9999),
-                                                                             baselineFraction(0), baselineJitterFraction(0), polyCfdFraction(0.5), adcClockTick(4), pulseIntegralLow(5), pulseIntegralHigh(10),
+                                                                             baselineFraction(0), baselineJitterFraction(0), polyCfdFraction(0.5), adcClockTick(4), tLatch(0), pulseIntegralLow(5), pulseIntegralHigh(10),
                                                                              maxIndex(0), adcBins(4096), pulseLength(100), isDigitized(false), useSpectralResponse(false), pulseIsSaturated(false),
                                                                              printTrace(false), rawPulse(), pulseArray(), spec(), minimumArrivalTime(0), functionType(EXPO) {
 	this->setPulseLength(pulseLength);
@@ -136,9 +136,9 @@ double pmtResponse::getWeightedPhotonArrivalTime() const {
 	double weightedAverage = 0;
 	double totalWeight = 0;
 	std::vector<double>::const_iterator iter1, iter2;
-	for(iter1 = arrivalTimes.begin(), iter2 = photonWeights.begin(); iter1 != arrivalTimes.end() && iter2 != photonWeights.end(); iter1++, iter2++){
-		weightedAverage += (*iter2)*(*iter1);
-		totalWeight += (*iter2);
+	for(auto arrival : arrivalTimes){
+		weightedAverage += arrival.time * arrival.gain;
+		totalWeight += arrival.gain;
 	}
 	return weightedAverage/totalWeight;
 }
@@ -181,42 +181,51 @@ void pmtResponse::addPhoton(const double &arrival, const double &wavelength/*=0*
 		efficiency = spec.eval(wavelength)/100;
 	}
 
-	arrivalTimes.push_back(arrival);
-	photonWeights.push_back(gain_);
-
-	if(arrival < minimumArrivalTime)
-		minimumArrivalTime = arrival;
-
-	//double dt = arrival - peakOffset + traceDelay; // Arrival time is the peak of the pulse.
+	// Compute the offset of the response function due to the trace delay and the time spread of the PMT
 	double dt = arrival + traceDelay; // Arrival time is the leading edge of the pulse.
 	if(timeSpread > 0){ // Smear the time offset based on the photo-electron transit time spread.
 		dt += (G4UniformRand()-0.5)*timeSpread;
 	}
-	if(dt < 0) dt = 0;
-	double dy;
-	double time = dt;
-	size_t index = (size_t)floor(dt/adcClockTick);
-	time += adcClockTick/2;
-	while(index < pulseLength){
-		dy = gain_*efficiency*eval(time, dt);
-		rawPulse[index] += dy;
-		time += adcClockTick;
-		index++;
-	}
+
+	// Add the photon to the list of arrival times
+	arrivalTimes.push_back(photonArrivalTime(arrival, gain_*efficiency, (dt >= 0 ? dt : 0)));
+
+	// Check if this is the first photon
+	if(arrival < minimumArrivalTime)
+		minimumArrivalTime = arrival;
 }
 
-void pmtResponse::digitize(const double &baseline_/*=0*/, const double &jitter_/*=0*/){
-	if(isDigitized) return;
+double pmtResponse::sample(const double &time){
+	double retval = 0;
+	for(auto arrival : arrivalTimes)
+		retval += arrival.gain * func(time, arrival.dt);
+	return retval;
+}
+
+void pmtResponse::digitize(const double &baseline_, const double &jitter_){
+	if(isDigitized) 
+		return;
 	pulseIsSaturated = false;
+	
+	// Build the raw light pulse
+	double time = tLatch + adcClockTick/2;
+	double prevAmp = 0;
+	for(size_t index = 0; index < pulseLength; index++){
+		rawPulse[index] = sample(time); // Sample the total light response spectrum
+		if(rawPulse[index] < prevAmp && rawPulse[index] < 1){ // Amplitude is less than one ADC bin
+			rawPulse[index] = 0;
+			break;
+		}
+		prevAmp = rawPulse[index];
+		time += adcClockTick;
+	}
+	
+	// Digitize the light pulse
 	for(size_t i = 0; i < pulseLength; i++){
 		unsigned int value;
-		if(rawPulse[i] == 0)
-			value = 0;
-		else{
-			unsigned int bin = (unsigned int)floor(rawPulse[i]);
-			if(bin >= adcBins) bin = adcBins-1;
-			value = bin;
-		}
+		unsigned int bin = (unsigned int)floor(rawPulse[i]);
+		if(bin >= adcBins) bin = adcBins-1;
+		value = bin;
 		value += baseline_*adcBins;
 		if(jitter_ != 0) 
 			value += (-jitter_ + 2*G4UniformRand()*jitter_)*adcBins;
@@ -225,7 +234,7 @@ void pmtResponse::digitize(const double &baseline_/*=0*/, const double &jitter_/
 			pulseArray[i] = (unsigned short)value;
 		else{ // Pulse is saturated.
 			pulseIsSaturated = true;
-			pulseArray[i] = adcBins-1;
+			pulseArray[i] = (unsigned short)(adcBins-1);
 		}
 	}
 	isDigitized = true;
@@ -302,7 +311,7 @@ double pmtResponse::analyzeCFD(const double &F_/*=0.5*/, const size_t &D_/*=1*/,
 	
 	delete[] cfdvals;
 
-	return phase*adcClockTick-traceDelay;
+	return (phase*adcClockTick-traceDelay+tLatch);
 }
 
 
@@ -328,7 +337,7 @@ double pmtResponse::analyzePolyCFD(const double &F_){
 		}
 	}
 
-	return phase*adcClockTick-traceDelay;
+	return (phase*adcClockTick-traceDelay+tLatch);
 }
 
 /// Perform polynomial CFD analysis on the waveform using F=polyCfdFraction
@@ -365,7 +374,6 @@ void pmtResponse::clear(){
 	minimumArrivalTime = 1E6;
 
 	arrivalTimes.clear();
-	photonWeights.clear();
 
 	maxIndex = 0;
 	
@@ -396,11 +404,10 @@ void pmtResponse::print(){
 	std::cout << "* spread   : " << timeSpread << " ns" << std::endl;
 	std::cout << "* delay    : " << traceDelay << " ns" << std::endl;
 	std::cout << "* gain     : " << gain << "x" << std::endl;
-	std::cout << "* range    : " << adcBins << " channels\n";
 	std::cout << "* baseline : " << baselineFraction*100 << "% (" << (int)(baselineFraction*adcBins) << " channels)" << std::endl;
 	std::cout << "* jitter   : " << baselineJitterFraction*100 << "% (+-" << (int)(baselineJitterFraction*adcBins) << " channels)" << std::endl;
 	std::cout << "* CfdF     : " << polyCfdFraction << std::endl;
-	std::cout << "* sampling : " << getAdcClockFrequency() << " MSPS\n";
+	std::cout << "* sampling : " << getAdcClockFrequency() << " MSPS (" << adcClockTick << " ns)\n";
 	std::cout << "* Ilow     : " << pulseIntegralLow << " clock ticks (" << pulseIntegralLow*adcClockTick << " ns)" << std::endl;
 	std::cout << "* Ihigh    : " << pulseIntegralHigh << " clock ticks (" << pulseIntegralHigh*adcClockTick << " ns)" << std::endl;
 	std::cout << "* range    : " << adcBins << " channels" << std::endl;
@@ -414,12 +421,6 @@ void pmtResponse::printRaw(){
 	}
 }
 
-/** Calculate the parameters for a second order polynomial which passes through 3 points.
-  * \param[in]  x0 - Initial x value. Sequential x values are assumed to be x0, x0+1, and x0+2.
-  * \param[in]  y  - Pointer to the beginning of the array of unsigned shorts containing the three y values.
-  * \param[out] p  - Pointer to the array of doubles for storing the three polynomial parameters.
-  * \return The maximum/minimum of the polynomial.
-  */
 double pmtResponse::calculateP2(const short &x0, unsigned short *y, double *p){
 	double x1[3], x2[3];
 	for(size_t i = 0; i < 3; i++){
@@ -437,12 +438,6 @@ double pmtResponse::calculateP2(const short &x0, unsigned short *y, double *p){
 	return (p[0] - p[1]*p[1]/(4*p[2]));
 }
 
-/** Calculate the parameters for a third order polynomial which passes through 4 points.
-  * \param[in]  x0 - Initial x value. Sequential x values are assumed to be x0, x0+1, x0+2, and x0+3.
-  * \param[in]  y  - Pointer to the beginning of the array of unsigned shorts containing the four y values.
-  * \param[out] p  - Pointer to the array of doubles for storing the three polynomial parameters.
-  * \return The local maximum/minimum of the polynomial.
-  */
 double pmtResponse::calculateP3(const short &x, unsigned short *y, double *p, double &xmax){
 	double x1[4], x2[4], x3[4];
 	for(size_t i = 0; i < 4; i++){
@@ -475,7 +470,7 @@ double pmtResponse::calculateP3(const short &x, unsigned short *y, double *p, do
 	return (p[0] + p[1]*xmax + p[2]*xmax*xmax + p[3]*xmax*xmax*xmax);
 }
 
-double pmtResponse::eval(const double &t, const double &dt/*=0*/){
+double pmtResponse::func(const double &t, const double &dt/*=0*/){
 	if(functionType == EXPO){ // Standard single photon response function.
 		if(t-dt <= 0) return 0;
 		return gain*(1/(falltime-risetime))*(std::exp(-(t-dt)/falltime)-std::exp(-(t-dt)/risetime));

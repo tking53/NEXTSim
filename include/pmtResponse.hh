@@ -76,6 +76,26 @@ class spectralResponse{
 
 class pmtResponse{
 public:
+	/** @class photonArrivalTime
+	  * @brief Simple structure to contain an optical photon's arrival time, its gain, and its time offset
+	  * @author Cory R. Thornsberry (cthornsb@vols.utk.edu)
+	  * @date September 19, 2019
+	  */
+	class photonArrivalTime{
+	public:
+		double time; ///< Optical photon arrival time (in ns)
+		double gain; ///< The gain of the single-photon response
+		double dt; ///< The offset of the response function due to PMT time spread (in ns)
+
+		/** Default constructor
+		  */
+		photonArrivalTime() : time(0), gain(1), dt(0) { }
+	
+		/** Arrival time constructor
+		  */
+		photonArrivalTime(const double &time_, const double &gain_, const double &dt_) : time(time_), gain(gain_), dt(dt_) { }
+	};
+
 	/** Types of single-photon light response functions
 	  */
 	enum photonResponseType {EXPO, VANDLE, GAUSS};
@@ -250,6 +270,11 @@ public:
 	  */
 	double setAdcClockFrequency(const double &frequency){ return (adcClockTick = (1/(frequency*1E6))*1E9); }
 
+	/** Set the ADC latching time (in clock ticks)
+	  * @return The latching time (in ns)
+	  */
+	double setAdcLatchTicks(const double &latch){ return (tLatch = adcClockTick*latch); }
+
 	/** Disable use of PMT quantum efficiency spectrum
 	  */
 	void disableSpectralResponse(){ useSpectralResponse = false; }
@@ -272,7 +297,14 @@ public:
 	  */
 	void addPhoton(const double &arrival, const double &wavelength=0, const double &gain_=1);
 
-	/** Digitize the raw light pulse
+	/** Sample the total photon response by iterating over the list of single-photon arrival times
+	  * @param time The time at which the full photon light response will be sampled (ns)
+	  * @return The full photon light response at the specified time
+	  */
+	double sample(const double &time);
+
+	/** Build the raw light response pulse by stepping through the trace and sampling the sum of the 
+	  * response of all detected optical photons and then digitize the spectrum
 	  * @param baseline The light pulse baseline as a fraction of the full ADC dynamic range
 	  * @param jitter The random jitter in the light pulse baseline as a fraction of the full ADC dynamic range
 	  */
@@ -348,19 +380,19 @@ public:
 	  */
 	void printRaw();
 
-	/** Calculate the parameters for a second order polynomial which passes through 3 points.
-	  * @param x0 - Initial x value. Sequential x values are assumed to be x0, x0+1, and x0+2.
-	  * @param y  - Pointer to the beginning of the array of unsigned shorts containing the three y values.
-	  * @param p  - Pointer to the array of doubles for storing the three polynomial parameters.
+	/** Calculate the parameters for a second order polynomial which passes through 3 points
+	  * @param x0 Initial x value. Sequential x values are assumed to be x0, x0+1, and x0+2
+	  * @param y Pointer to the beginning of the array of unsigned shorts containing the three y values
+	  * @param p Pointer to the array of doubles for storing the three polynomial parameters
 	  * @return The maximum/minimum of the polynomial
 	  */
 	static double calculateP2(const short &x0, unsigned short *y, double *p);
 
-	/** Calculate the parameters for a third order polynomial which passes through 4 points.
-	  * @param x0   - Initial x value. Sequential x values are assumed to be x0, x0+1, x0+2, and x0+3.
-	  * @param y    - Pointer to the beginning of the array of unsigned shorts containing the four y values.
-	  * @param p    - Pointer to the array of doubles for storing the three polynomial parameters.
-	  * @param xmax - X value at the peak of the pulse.
+	/** Calculate the parameters for a third order polynomial which passes through 4 points
+	  * @param x0 Initial x value. Sequential x values are assumed to be x0, x0+1, x0+2, and x0+3
+	  * @param y Pointer to the beginning of the array of unsigned shorts containing the four y values
+	  * @param p Pointer to the array of doubles for storing the three polynomial parameters
+	  * @param xmax  X value at the peak of the pulse
 	  * @return The local maximum/minimum of the polynomial
 	  */
 	static double calculateP3(const short &x0, unsigned short *y, double *p, double &xmax);
@@ -383,6 +415,7 @@ private:
 	double polyCfdFraction; ///< PolyCFD F parameter as a fraction of max pulse height minus the baseline
 
 	double adcClockTick; ///< The period of the ADC clock (in ns)
+	double tLatch; ///< ADC clock latching time (in ns)
 	
 	short pulseIntegralLow; ///< Number of ADC clock ticks for start of digitized pulse TQDC integral wrt pulse maximum
 	short pulseIntegralHigh; ///< Number of ADC clock ticks for stop of digitized pulse TQDC integral wrt pulse maximum
@@ -408,15 +441,14 @@ private:
 
 	photonResponseType functionType; ///< Integer indicating the single photon response function to use to build the light response pulse
 
-	std::vector<double> arrivalTimes; ///< Vector of all photon arrival times
-	std::vector<double> photonWeights; ///< Vector of the gain of all photon detections
+	std::vector<photonArrivalTime> arrivalTimes; ///< Vector of all optical photon arrival times and their individual single-photon response gains
 	
 	/** Evaluate the single-photon-response function for a given time and time offset
 	  * @param t The time to along the pulse at which to evaluate the single-photon-response function (in ns)
 	  * @param dt The offset of the pulse along the time axis (in ns)
 	  * @return The value of the single-photon-response function at the user specified time
 	  */
-	double eval(const double &t, const double &dt=0);
+	double func(const double &t, const double &dt=0);
 	
 	/** Compute the baseline and maximum of the light pulse
 	  * @return The maximum of the light pulse if the array is properly initialized and return -9999 otherwise

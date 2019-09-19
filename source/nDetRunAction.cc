@@ -1,5 +1,6 @@
 #include "time.h"
 
+#include "Randomize.hh"
 #include "G4Timer.hh"
 #include "G4Run.hh"
 
@@ -239,6 +240,14 @@ bool nDetRunAction::processDetector(nDetDetector* det){
 	pmtResponse *pmtL = cmL->getPmtResponse();
 	pmtResponse *pmtR = cmR->getPmtResponse();
 
+	// The ADC clock is running continuously so the PMT signals may arrive at any time relative
+	// to the clock. To remove any inherent bias from this, we latch the ADCs at a random time 
+	// in the range [-adcTick/2, +adcTick/2]. The pmtResponse class will automatically remove 
+	// the latching time after running the CFD.
+	double latch = G4UniformRand()-0.5; // [-0.5, 0.5]
+	pmtL->setAdcLatchTicks(latch);
+	pmtR->setAdcLatchTicks(latch);
+	
 	// "Digitize" the light pulses.
 	pmtL->digitize();
 	pmtR->digitize();
@@ -291,7 +300,7 @@ bool nDetRunAction::processDetector(nDetDetector* det){
 	}
 	
 	// Get the digitizer response of the anodes.
-	pmtResponse *anodeResponseL = cmL->getAnodeResponse();
+	/*pmtResponse *anodeResponseL = cmL->getAnodeResponse();
 	pmtResponse *anodeResponseR = cmR->getAnodeResponse();
 
 	// Digitize anode waveforms and integrate.
@@ -301,7 +310,7 @@ bool nDetRunAction::processDetector(nDetDetector* det){
 		anodeResponseR[i].digitize();
 		debugData.anodeQDC[0][i] = anodeResponseL[i].integratePulseFromMaximum();
 		debugData.anodeQDC[1][i] = anodeResponseR[i].integratePulseFromMaximum();
-	}		
+	}	
 	
 	// Compute the anode positions.
 	for(size_t i = 0; i < 2; i++){
@@ -309,14 +318,14 @@ bool nDetRunAction::processDetector(nDetDetector* det){
 		debugData.reconDetComY[i] = ((anodeQDC[i][1]+anodeQDC[i][2])-(anodeQDC[i][3]+anodeQDC[i][0]))/(anodeQDC[i][0]+anodeQDC[i][1]+anodeQDC[i][2]+anodeQDC[i][3]);
 	}
 	outData.reconComX = (debugData.reconDetComX[0] + debugData.reconDetComX[1]) / 2;
-	outData.reconComY = (debugData.reconDetComY[0] + debugData.reconDetComY[1]) / 2;
+	outData.reconComY = (debugData.reconDetComY[0] + debugData.reconDetComY[1]) / 2;*/
 	
 	if(outputDebug){
 		// Perform CFD on digitized anode waveforms.
-		for(size_t i = 0; i < 4; i++){
+		/*for(size_t i = 0; i < 4; i++){
 			debugData.anodePhase[0][i] = anodeResponseL[i].analyzePolyCFD() + targetTimeOffset; // left
 			debugData.anodePhase[1][i] = anodeResponseR[i].analyzePolyCFD() + targetTimeOffset; // right
-		}
+		}*/
 
 		G4ThreeVector nCenterMass(debugData.nComX, debugData.nComY, debugData.nComZ);
 		G4ThreeVector nIncidentPos(debugData.nEnterPosX, debugData.nEnterPosY, debugData.nEnterPosZ);
