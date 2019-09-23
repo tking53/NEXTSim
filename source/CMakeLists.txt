@@ -43,6 +43,11 @@ add_library(NextSimPeripheral STATIC $<TARGET_OBJECTS:NextSimPeripheralObj>)
 #Link the NextSim output library with the root dictionary
 target_link_libraries(NextSimOutput ${DICTIONARY_NAME})
 
+#Capture the current commit (version) number
+execute_process(COMMAND ../version.sh OUTPUT_VARIABLE VersionString OUTPUT_STRIP_TRAILING_WHITESPACE)
+message(STATUS "Source version: ${VersionString}")
+add_definitions(-DNEXTSIM_VERSION_STRING="${VersionString}")
+
 #Build simpleScan executable.
 add_executable(nextSim nextSim.cc)
 target_link_libraries(nextSim NextSimOutput NextSimDetector NextSimGenerator NextSimPeripheral NextSimCore ${Geant4_LIBRARIES} ${ROOT_LIBRARIES})

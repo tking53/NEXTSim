@@ -1,18 +1,3 @@
-//
-// ********************************************************************
-// * The beutron detector program is used to simulate an				*
-// * optimize the performance of the scintillation detector in the	* 
-// * framework of Geant4.10.00.p01 and ROOT v5.34.14.				 *
-// *	by Dr. Xiaodong Zhang on Sept., 2015.							 *
-// *																	*
-// ********************************************************************
-//
-// log: nDet.cc,v1.0	Sept., 2015
-// --------------------------------------------------------------
-//
-																		 
-// c/c++ headers
-
 #include "G4UImanager.hh"
 #include "G4ios.hh"
 
@@ -51,6 +36,10 @@
 #include "Randomize.hh"
 #include "time.h"
 
+#ifndef NEXTSIM_VERSION_STRING
+#define NEXTSIM_VERSION_STRING "UNDEFINED"
+#endif
+
 int main(int argc, char** argv){
 	optionHandler handler;
 	handler.add(optionExt("input", required_argument, NULL, 'i', "<filename>", "Specify an input geant macro."));
@@ -60,6 +49,7 @@ int main(int argc, char** argv){
 	handler.add(optionExt("yield", required_argument, NULL, 'Y', "<multiplier>", "Specify the light yield multiplier to use when producing photons (default=1)."));
 	handler.add(optionExt("verbose", no_argument, NULL, 'V', "", "Toggle verbose mode."));
 	handler.add(optionExt("delay", required_argument, NULL, 'D', "<seconds>", "Set the time delay between successive event counter updates (default=10s)."));
+	handler.add(optionExt("version", no_argument, NULL, 0x0, "", "Print the nextSim version number."));
 #ifdef USE_MULTITHREAD
 	handler.add(optionExt("mt-thread-limit", required_argument, NULL, 'n', "<threads>", "Set the number of threads to use (uses all threads for n <= 0)."));
 	handler.add(optionExt("mt-max-threads", no_argument, NULL, 'T', "", "Print the maximum number of threads."));
@@ -97,17 +87,22 @@ int main(int argc, char** argv){
 	if(handler.getOption(6)->active) // Set the output time delay.
 		userTimeDelay = strtol(handler.getOption(6)->argument.c_str(), NULL, 0);	
 
+	if(handler.getOption(7)->active){ // Print the version number
+		std::cout << argv[0] << " version " << NEXTSIM_VERSION_STRING << std::endl;
+		return 0;
+	}
+
 #ifdef USE_MULTITHREAD
 	G4int numberOfThreads = 1; // Sequential mode by default.
-	if(handler.getOption(7)->active){ 
-		G4int userInput = strtol(handler.getOption(7)->argument.c_str(), NULL, 10);
+	if(handler.getOption(8)->active){ 
+		G4int userInput = strtol(handler.getOption(8)->argument.c_str(), NULL, 10);
 		if(userInput > 0) // Set the number of threads to use.
 			numberOfThreads = std::min(userInput, G4Threading::G4GetNumberOfCores());
 		else // Use all available threads.
 			numberOfThreads = G4Threading::G4GetNumberOfCores();
 	}
 	
-	if(handler.getOption(8)->active){ // Print maximum number of threads.
+	if(handler.getOption(9)->active){ // Print maximum number of threads.
 		std::cout << "nextSim: Max number of threads on this machine is " << G4Threading::G4GetNumberOfCores() << ".\n";
 		return 0;
 	}
