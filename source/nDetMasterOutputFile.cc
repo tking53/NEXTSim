@@ -93,7 +93,7 @@ bool nDetMasterOutputFile::openRootFile(const G4Run* aRun){
 		time ( &rawtime );
 		timeinfo = localtime ( &rawtime );
 
-		strftime (buffer,180,"_%H:%M:%S_%a_%b_%d_%Y",timeinfo);
+		strftime (buffer,180,"_%H-%M-%S_%a_%b_%d_%Y",timeinfo);
 
 		// Create a root file for the current run
 		char defaultFilename[300];
@@ -157,7 +157,7 @@ bool nDetMasterOutputFile::openRootFile(const G4Run* aRun){
 
 	// Create root tree.
 	if(treename.empty()) treename = "data"; //"neutronEvent";
-	fTree = new TTree(treename.c_str(),"Photons produced by thermal neutrons");
+	fTree = new TTree(treename.c_str(), "Primary particle scattering data");
 
 	// Add the branches
 	fTree->Branch("event", evtData);
