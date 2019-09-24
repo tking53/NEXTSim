@@ -5,3 +5,5 @@ doc/html
 doc/latex
 
 *.gdml
+
+version.hh

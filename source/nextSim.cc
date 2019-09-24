@@ -30,14 +30,19 @@
 #include "nDetTrackingAction.hh"
 #include "optionHandler.hh"
 #include "termColors.hh"
+#include "version.hh"
 
 #include "G4OpticalPhysics.hh"
 
 #include "Randomize.hh"
 #include "time.h"
 
-#ifndef NEXTSIM_VERSION_STRING
-#define NEXTSIM_VERSION_STRING "UNDEFINED"
+#ifndef VERSION_STRING
+#define VERSION_STRING "UNDEFINED"
+#endif
+
+#ifndef PROGRAM_NAME
+#define PROGRAM_NAME "nextSim"
 #endif
 
 int main(int argc, char** argv){
@@ -47,9 +52,9 @@ int main(int argc, char** argv){
 	handler.add(optionExt("gui", no_argument, NULL, 'g', "", "Run interactive GUI session."));
 	handler.add(optionExt("tree", required_argument, NULL, 't', "<treename>", "Set the output TTree name (default=\"data\")."));
 	handler.add(optionExt("yield", required_argument, NULL, 'Y', "<multiplier>", "Specify the light yield multiplier to use when producing photons (default=1)."));
-	handler.add(optionExt("verbose", no_argument, NULL, 'V', "", "Toggle verbose mode."));
+	handler.add(optionExt("verbose", no_argument, NULL, 'v', "", "Toggle verbose mode."));
 	handler.add(optionExt("delay", required_argument, NULL, 'D', "<seconds>", "Set the time delay between successive event counter updates (default=10s)."));
-	handler.add(optionExt("version", no_argument, NULL, 0x0, "", "Print the nextSim version number."));
+	handler.add(optionExt("version", no_argument, NULL, 'V', "", "Print the version number."));
 #ifdef USE_MULTITHREAD
 	handler.add(optionExt("mt-thread-limit", required_argument, NULL, 'n', "<threads>", "Set the number of threads to use (uses all threads for n <= 0)."));
 	handler.add(optionExt("mt-max-threads", no_argument, NULL, 'T', "", "Print the maximum number of threads."));
@@ -88,7 +93,7 @@ int main(int argc, char** argv){
 		userTimeDelay = strtol(handler.getOption(6)->argument.c_str(), NULL, 0);	
 
 	if(handler.getOption(7)->active){ // Print the version number
-		std::cout << argv[0] << " version " << NEXTSIM_VERSION_STRING << std::endl;
+		std::cout << argv[0] << " version " << VERSION_STRING << std::endl;
 		return 0;
 	}
 
@@ -103,13 +108,13 @@ int main(int argc, char** argv){
 	}
 	
 	if(handler.getOption(9)->active){ // Print maximum number of threads.
-		std::cout << "nextSim: Max number of threads on this machine is " << G4Threading::G4GetNumberOfCores() << ".\n";
+		std::cout << PROGRAM_NAME << ": Max number of threads on this machine is " << G4Threading::G4GetNumberOfCores() << ".\n";
 		return 0;
 	}
 #endif
 
 	if(batchMode && inputFilename.empty()){
-		Display::ErrorPrint("Input macro filename not specified!", "nextSim");
+		Display::ErrorPrint("Input macro filename not specified!", PROGRAM_NAME);
 		return 1;
 	}
 
@@ -123,7 +128,7 @@ int main(int argc, char** argv){
 	G4long seed = time(NULL);
 	CLHEP::HepRandom::setTheSeed(seed);
 	
-	std::cout << "nextSim: Using random seed " << seed << std::endl;
+	std::cout << PROGRAM_NAME << ": Using random seed " << seed << std::endl;
 	
 	//////////////////////////////////////
 
@@ -133,12 +138,12 @@ int main(int argc, char** argv){
 	if(batchMode && numberOfThreads > 1){
 		runManager = new G4MTRunManager();
 		((G4MTRunManager*)runManager)->SetNumberOfThreads(numberOfThreads);
-		std::cout << "nextSim: Multi-threading mode enabled.\n";
-		std::cout << "nextSim: Set number of threads to " << ((G4MTRunManager*)runManager)->GetNumberOfThreads() << std::endl;
+		std::cout << PROGRAM_NAME << ": Multi-threading mode enabled.\n";
+		std::cout << PROGRAM_NAME << ": Set number of threads to " << ((G4MTRunManager*)runManager)->GetNumberOfThreads() << std::endl;
 	}
 	else{
 		runManager = new G4RunManager();
-		std::cout << "nextSim: Using sequential mode.\n";
+		std::cout << PROGRAM_NAME << ": Using sequential mode.\n";
 	}
 #else
 	G4RunManager* runManager = new G4RunManager();
@@ -148,7 +153,7 @@ int main(int argc, char** argv){
 	// Initialize the detector
 	nDetConstruction* detector = &nDetConstruction::getInstance(); // The detector builder is a singleton class.
 	if(yieldMult > 0){ // Modify the photon yield of the detector
-		std::cout << "nextSim: Setting photon yield multiplier to " << yieldMult << std::endl;
+		std::cout << PROGRAM_NAME << ": Setting photon yield multiplier to " << yieldMult << std::endl;
 		detector->SetLightYieldMultiplier(yieldMult);
 	}
 	runManager->SetUserInitialization(detector);
@@ -216,6 +221,9 @@ int main(int argc, char** argv){
 	std::stringstream stream;
 	stream << seed;
 	output->writeInfoToFile("seed", stream.str());
+
+	// Write the program version number to the file.
+	output->writeInfoToFile("version", VERSION_STRING);
 
 	// Close the root file.
 	output->closeRootFile();

@@ -44,9 +44,19 @@ add_library(NextSimPeripheral STATIC $<TARGET_OBJECTS:NextSimPeripheralObj>)
 target_link_libraries(NextSimOutput ${DICTIONARY_NAME})
 
 #Capture the current commit (version) number
-execute_process(COMMAND ../version.sh OUTPUT_VARIABLE VersionString OUTPUT_STRIP_TRAILING_WHITESPACE)
-message(STATUS "Source version: ${VersionString}")
-add_definitions(-DNEXTSIM_VERSION_STRING="${VersionString}")
+set(VERSION_SCRIPT ${TOP_DIRECTORY}/cmake/version.sh)
+set(VERSION_HEADER ${TOP_DIRECTORY}/include/version.hh)
+set(INTERNAL_VERSION_HEADER ${CMAKE_CURRENT_BINARY_DIR}/version.hh)
+set(GIT_DIR ${TOP_DIRECTORY}/.git)
+
+#Workaround because 'cut' wouldn't work correctly through cmake
+execute_process(COMMAND cat ${GIT_DIR}/HEAD OUTPUT_VARIABLE GIT_HEAD_DIR OUTPUT_STRIP_TRAILING_WHITESPACE)
+string(REPLACE "ref: " "" GIT_HEAD ${GIT_HEAD_DIR})
+set(GIT_HEAD_REF ${GIT_DIR}/${GIT_HEAD})
+
+add_custom_target(GetVersion ALL DEPENDS ${VERSION_HEADER})
+add_custom_command(OUTPUT ${INTERNAL_VERSION_HEADER} COMMAND ${VERSION_SCRIPT} > ${INTERNAL_VERSION_HEADER} DEPENDS ${GIT_HEAD_REF} ${VERSION_SCRIPT} VERBATIM)
+add_custom_command(OUTPUT ${VERSION_HEADER} COMMAND cp ${INTERNAL_VERSION_HEADER} ${VERSION_HEADER} DEPENDS ${INTERNAL_VERSION_HEADER} VERBATIM)
 
 #Build simpleScan executable.
 add_executable(nextSim nextSim.cc)
