@@ -168,7 +168,7 @@ bool nDetConstruction::AddGeometry(const G4String &geom){
 	else if(geom == "cylinder")
 		currentDetector = new cylindricalType(this, &materials);
 	else{ // Invalid detector type
-		Display::ErrorPrint("User specified un-recognized detector type!", "nDetConstruction");
+		std::cout << Display::ErrorStr("nDetConstruction") << "User specified un-recognized detector type (" << geom << ")!" << Display::ResetStr() << std::endl;
 		return false;
 	}
 
