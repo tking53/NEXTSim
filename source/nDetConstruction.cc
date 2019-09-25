@@ -49,6 +49,7 @@ nDetConstruction::nDetConstruction(){
 	// Link the materials handler to the detector parameter object
 	params.SetMaterials(&materials);
 	
+	// Setup the experimental setup area
 	expHall = new nDetWorld();
 }
 
@@ -70,14 +71,14 @@ G4VPhysicalVolume* nDetConstruction::ConstructDetector(){
 	expHall->buildExpHall(&materials);
 
 	// Place all detectors.
-	for(std::vector<nDetDetector>::iterator iter = userDetectors.begin(); iter != userDetectors.end(); iter++){
-		currentDetector = &(*iter);
+	for(auto det : userDetectors){
+		currentDetector = det;
 
 		// Build the detector
-		iter->construct();
+		det->construct();
 
 		// Place the detector into the world.
-		iter->placeDetector(expHall->getLogicalVolume());
+		det->placeDetector(expHall->getLogicalVolume());
 	}
 
 	return expHall->getPhysicalVolume();
@@ -99,6 +100,8 @@ void nDetConstruction::ClearGeometry(){
 	expHall->reset();
 	
 	// Clear previous construction.
+	for(auto det : userDetectors)
+		delete det;
 	userDetectors.clear();
 	
 	// Reset the scintillator copy number.
@@ -126,23 +129,23 @@ void nDetConstruction::UpdateGeometry(){
 	if(currentDetector)
 		nDetParticleSource::getInstance().SetDetector(currentDetector);
 
-	for(std::vector<nDetDetector>::iterator iter = userDetectors.begin(); iter != userDetectors.end(); iter++){
-		iter->copyCenterOfMass(center[0], center[1]);
+	for(auto det : userDetectors){
+		det->copyCenterOfMass(center[0], center[1]);
 
 		if(params.PmtIsSegmented()){
-			iter->getCenterOfMassL()->setSegmentedPmt(&params);
-			iter->getCenterOfMassR()->setSegmentedPmt(&params);	
+			det->getCenterOfMassL()->setSegmentedPmt(&params);
+			det->getCenterOfMassR()->setSegmentedPmt(&params);	
 
 			// Copy the PMT anode gain matrix
-			iter->getCenterOfMassL()->copyGainMatrix(&center[0]);
-			iter->getCenterOfMassR()->copyGainMatrix(&center[1]);
+			det->getCenterOfMassL()->copyGainMatrix(&center[0]);
+			det->getCenterOfMassR()->copyGainMatrix(&center[1]);
 		}
 	
 		// Copy the PMT anode quantum efficiency curve
-		if(iter->getCenterOfMassL()->getPmtResponse()->getSpectralResponseEnabled())
-			iter->getCenterOfMassL()->copySpectralResponse(&center[0]);
-		if(iter->getCenterOfMassR()->getPmtResponse()->getSpectralResponseEnabled())
-			iter->getCenterOfMassR()->copySpectralResponse(&center[1]);
+		if(det->getCenterOfMassL()->getPmtResponse()->getSpectralResponseEnabled())
+			det->getCenterOfMassL()->copySpectralResponse(&center[0]);
+		if(det->getCenterOfMassR()->getPmtResponse()->getSpectralResponseEnabled())
+			det->getCenterOfMassR()->copySpectralResponse(&center[1]);
 	}
 	
 	// Update the detector lists of all user run actions
@@ -155,18 +158,25 @@ void nDetConstruction::UpdateGeometry(){
 }
 
 bool nDetConstruction::AddGeometry(const G4String &geom){
-	// Add a new detector assembly to the vector of detectors
-	// Copy the detector attributes to the new detector
-	userDetectors.push_back(nDetDetector(this, &materials));
-	currentDetector = &userDetectors.back();
-
-	// Enable/disable overlap checking
-	currentDetector->setCheckOverlaps(fCheckOverlaps);
-
-	if(!currentDetector->setGeometry(geom)){ // Set the detector type
+	// Define a new detector of the specified type
+	if(geom == "next" || geom == "module")
+		currentDetector = new nextModuleType(this, &materials);
+	else if(geom == "ellipse")
+		currentDetector = new ellipticalType(this, &materials);
+	else if(geom == "rectangle")
+		currentDetector = new rectangularType(this, &materials);
+	else if(geom == "cylinder")
+		currentDetector = new cylindricalType(this, &materials);
+	else{ // Invalid detector type
 		Display::ErrorPrint("User specified un-recognized detector type!", "nDetConstruction");
 		return false;
 	}
+
+	// Add the new detector assembly to the vector of detectors
+	userDetectors.push_back(currentDetector);
+	
+	// Enable/disable overlap checking
+	currentDetector->setCheckOverlaps(fCheckOverlaps);
 
 	// Update the detector's copy numbers.
 	currentDetector->setParentCopyNumber(userDetectors.size()-1);
@@ -264,10 +274,10 @@ void nDetConstruction::SetLightYieldMultiplier(const G4double &yield){
 
 void nDetConstruction::PrintAllDetectors() const {
 	int detCount = 0;
-	for(std::vector<nDetDetector>::const_iterator iter = userDetectors.begin(); iter != userDetectors.end(); iter++){
+	for(auto det : userDetectors){
 		std::cout << "***********************************************************\n";
 		std::cout << " Detector ID          = " << detCount++ << std::endl;
-		iter->Print();
+		det->Print();
 	}
 	std::cout << "***********************************************************\n";
 }

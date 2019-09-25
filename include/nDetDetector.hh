@@ -19,8 +19,6 @@ class nDetDetectorMessenger;
 class nDetWorldObject;
 class gdmlSolid;
 
-enum GEOMTYPES {GEOM_MODULE, GEOM_ELLIPSE, GEOM_RECTANGLE, GEOM_CYLINDER, GEOM_TEST};
-
 /** @class nDetDetectorParams
   * @brief Physical attributes of a detector assembly
   * @author Cory R. Thornsberry (cthornsb@vols.utk.edu)
@@ -28,7 +26,7 @@ enum GEOMTYPES {GEOM_MODULE, GEOM_ELLIPSE, GEOM_RECTANGLE, GEOM_CYLINDER, GEOM_T
   */
   
 class nDetDetectorParams{
-  public:
+public:
 	/** Default constructor
 	  */
 	nDetDetectorParams() : pmtWidth(30), pmtHeight(30), fWrappingThickness(0), fGreaseThickness(0.1), fWindowThickness(0.1), fSensitiveThickness(1), 
@@ -37,7 +35,8 @@ class nDetDetectorParams{
 	                   fPolishedInterface(true), fSquarePMTs(true), isStart(false), 
 	                   detectorMaterialName("ej200"), wrappingMaterialName("mylar"),
 	                   constantWidth(true), constantHeight(true),
-	                   geomType(GEOM_RECTANGLE),
+	                   geomType("undefined"),
+	                   maxBodySize(30, 30, 600),
 	                   scintMaterial(NULL), wrappingMaterial(NULL), wrappingOpSurf(NULL),
 	                   scintVisAtt(NULL), wrappingVisAtt(NULL),
 	                   materials(NULL), fMessenger(NULL) { }
@@ -262,7 +261,7 @@ class nDetDetectorParams{
 	  */
 	void Print() const ;
 
-  protected:
+protected:
 	G4double pmtWidth; ///< The width (x-axis) of the PMT (in mm)
 	G4double pmtHeight; ///< The height (y-axis) of the PMT (in mm)
 	G4double fWrappingThickness; ///< Thickness of the inner and outer detector wrapping (in mm)
@@ -298,7 +297,9 @@ class nDetDetectorParams{
 	bool constantWidth; ///< Flag indicating that the user has specified a constant detector width, i.e. segment width will be variable
 	bool constantHeight; ///< Flag indicating that the user has specified a constant detector height, i.e. segment height will be variable
 
-	int geomType; ///< Integer value indicating the of the detector geometry
+	G4String geomType; ///< Integer value indicating the of the detector geometry
+
+	G4ThreeVector maxBodySize; ///< The maximum size of the detector body
 
 	G4Material* scintMaterial; ///< Pointer to the detector scintillator material
 	G4Material* wrappingMaterial; ///< Pointer to the detector wrapping material
@@ -324,7 +325,7 @@ class nDetDetectorParams{
   */
 
 class nDetDetector : public nDetDetectorParams {
-  public:
+public:
 	/** Default constructor
 	  */
 	nDetDetector() : nDetDetectorParams(),
@@ -340,7 +341,7 @@ class nDetDetector : public nDetDetectorParams {
 
 	/** Destructor
 	  */
-	~nDetDetector();
+	virtual ~nDetDetector();
 	
 	/** Get a pointer to the logical volume of the detector assembly
 	  */
@@ -397,12 +398,6 @@ class nDetDetector : public nDetDetectorParams {
 	/** Set the copy number of this detector (i.e. the detector ID)
 	  */
 	void setParentCopyNumber(const G4int &num){ parentCopyNum = num; }
-
-	/** Set the detector geometry 
-	  * @note Currently supported geometry names are @a next, @a module, @a ellipse, @a rectangle, @a cylinder, and @a test
-	  * @return True if the specified type is recognized and return false otherwise
-	  */
-	bool setGeometry(const G4String &geom);
 
 	/** Build the detector body, add component layers, and attach photo-sensitive surfaces
 	  */
@@ -621,7 +616,7 @@ class nDetDetector : public nDetDetectorParams {
 	  */
 	void loadLightGuide(gdmlSolid *solid, const G4ThreeVector &rotation);
 
-  private:
+protected:
 	G4LogicalVolume *assembly_logV; ///< Pointer to the logical volume of the mother of the detector
 	G4PVPlacement* assembly_physV; ///< Pointer to the physical volume of the mother of the detector
 
@@ -642,37 +637,21 @@ class nDetDetector : public nDetDetectorParams {
 
 	std::vector<G4PVPlacement*> scintBody_physV; ///< Vector of all physical volumes of all scintillator segments
 
-	/** Build a segmented detector module
-	  *
-	  * The detector will have @a fNumColumns columns (horizontal) and @a fNumRows rows (vertical). If @a fWrappingThickness is
-	  * greater than zero, the user selected wrapping material will be applied between all segments and around the outside
-	  * of the detector.
+	/** Prepare for the detector volume to be built. In this method, the user should set the maximum
+	  * size constraints of the body of the detector (@a maxBodySize) so that the detector handler knows
+	  * how large to make its bounding assembly volume.
+	  * @note By default, the maximum body size is taken from @a fDetectorWidth, @a fDetectorHeight, and @a fDetectorLength
 	  */
-	void buildModule();
+	virtual void prepareToBuild();
 
-	/** Build a single-segment elliptical detector (football)
-	  * 
-	  * The parameter @a fDetectorLength is used as the length of the central rectangular body while @a fTrapezoidLength is
-	  * used for the length of the trapezoids on either side. The total detector length is equal to 2*fTrapezoidLength+fDetectorLength.
-	  * The internal trapezoid angle is equal to @a fTrapezoidAngle
-	  */	
-	void buildEllipse();
+	/** Build the physical detector volume for the detector handler
+	  */
+	virtual void buildDetector(){ }
+	
+	/** Perform tasks after the detector assembly has been placed into the setup area
+	  */
+	virtual void afterPlacement(){ }
 
-	/** Build a single-segment rectangular detector
-	  */
-	void buildRectangle();
-	
-	/** Build a single-segment cylindrical detectector
-	  *
-	  * The parameter @a fDetectorWidth is used as the diameter of the cylindrical body, @a fDetectorheight is not used
-	  */
-	void buildCylinder();
-	
-	/** Build test assembly
-	  * @note Not currently implemented
-	  */
-	void buildTestAssembly();
-	
 	/** Build PMTs for the current detector and place them in the assembly volume
 	  * 
 	  * Each PMT consists of an optical grease layer, a quartz window, and a photo-sensitive surface. Additionally,

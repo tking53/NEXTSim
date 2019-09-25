@@ -22,10 +22,10 @@ void nDetDetectorMessenger::addAllCommands(){
 	addGuidance("Defines the size of the SiPMs in mm. SYNTAX: setPmtDimensions <sizeX> [sizeY]");
 
 	addCommand(new G4UIcmdWithADouble("/nDet/detector/setDetectorLength", this));
-	addGuidance("Defines the size of the plastic in cm");
+	addGuidance("Defines the length (Z) of the detector in cm");
 
 	addCommand(new G4UIcmdWithADouble("/nDet/detector/setDetectorWidth", this));
-	addGuidance("Defines the width of the plastic in cm");
+	addGuidance("Defines the width (X) of the detector in cm");
 
 	addCommand(new G4UIcmdWithADouble("/nDet/detector/setDetectorThickness", this));
 	addGuidance("Defines the thickness of the plastic in mm");
@@ -94,6 +94,9 @@ void nDetDetectorMessenger::addAllCommands(){
 
 	addCommand(new G4UIcmdWithADouble("/nDet/detector/setTrapezoidAngle", this));
 	addGuidance("Defines the angle of the trapezoidal part of ellipse wrt the edge of the rectangular body (in degrees)");
+
+	addCommand(new G4UIcmdWithADouble("/nDet/detector/setDetectorHeight", this));
+	addGuidance("Defines the height (Y) of the detector in cm");	
 }
 
 void nDetDetectorMessenger::SetNewChildValue(G4UIcommand* command, G4String newValue){
@@ -190,5 +193,9 @@ void nDetDetectorMessenger::SetNewChildValue(G4UIcommand* command, G4String newV
 	}
 	else if(index == 24){
 		fDetector->SetTrapezoidAngle(command->ConvertToDouble(newValue));
+	}
+	else if(index == 25) {
+		G4double thickness = command->ConvertToDouble(newValue);
+		fDetector->SetDetectorHeight(thickness*cm);
 	}
 }

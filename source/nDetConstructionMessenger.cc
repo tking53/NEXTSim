@@ -24,7 +24,6 @@ void nDetConstructionMessenger::addAllCommands(){
 
 	addCommand(new G4UIcmdWithAString("/nDet/detector/addGeometry", this));
 	addGuidance("Defines the Geometry of the detector");
-	addCandidates("next module ellipse rectangle cylinder test");
 
 	addCommand(new G4UIcommand("/nDet/detector/update", this));
 	addGuidance("Updates the detector Geometry");

@@ -9,6 +9,7 @@
 
 #include "centerOfMass.hh"
 #include "nDetDetector.hh"
+#include "nDetDetectorTypes.hh"
 #include "nDetMaterials.hh"
 
 // Class declarations
@@ -101,7 +102,7 @@ class nDetConstruction : public G4VUserDetectorConstruction{
 
 	/** Get a copy of the current vector of detectors
 	  */
-	std::vector<nDetDetector> GetUserDetectors() const { return userDetectors; }
+	std::vector<nDetDetector*> GetUserDetectors() const { return userDetectors; }
 
 	/** Get the current user defined detector parameters
 	  */
@@ -167,7 +168,7 @@ class nDetConstruction : public G4VUserDetectorConstruction{
 
 	G4bool fCheckOverlaps; ///< Flag indicating that Geant should check for overlaps between all placed objects
 
-	std::vector<nDetDetector> userDetectors; ///< Vector of all detectors added by the user
+	std::vector<nDetDetector*> userDetectors; ///< Vector of all detectors added by the user
 	
 	nDetDetector *currentDetector; ///< Pointer to the current detector added by the user
 
