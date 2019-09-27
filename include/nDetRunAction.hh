@@ -161,25 +161,25 @@ class nDetRunAction : public G4UserRunAction
 	  * @param index The index of the detector in the list of defined detectors
 	  * @return The pointer to the dynode response if @a index corresponds to a defined detector and return NULL otherwise
 	  */
-	pmtResponse *getPmtResponseLeft(const size_t &index=0){ return (index < userDetectors.size() ? userDetectors.at(index)->getCenterOfMassL()->getPmtResponse() : NULL); }
+	pmtResponse *getPmtResponseLeft(const size_t &index=0){ return (index < userDetectors.size() ? userDetectors.at(index).getCenterOfMassL()->getPmtResponse() : NULL); }
 
 	/** Get a pointer to the right PMT dynode response object of one of the defined detectors
 	  * @param index The index of the detector in the list of defined detectors
 	  * @return The pointer to the dynode response if @a index corresponds to a defined detector and return NULL otherwise
 	  */
-	pmtResponse *getPmtResponseRight(const size_t &index=0){ return (index < userDetectors.size() ? userDetectors.at(index)->getCenterOfMassR()->getPmtResponse() : NULL); }
+	pmtResponse *getPmtResponseRight(const size_t &index=0){ return (index < userDetectors.size() ? userDetectors.at(index).getCenterOfMassR()->getPmtResponse() : NULL); }
 
 	/** Get a pointer to the array of left PMT anode response objects of one of the defined detectors
 	  * @param index The index of the detector in the list of defined detectors
 	  * @return The pointer to the array of anode responses if @a index corresponds to a defined detector and return NULL otherwise
 	  */
-	pmtResponse *getAnodeResponseLeft(const size_t &index=0){ return (index < userDetectors.size() ? userDetectors.at(index)->getCenterOfMassL()->getAnodeResponse() : NULL); }
+	pmtResponse *getAnodeResponseLeft(const size_t &index=0){ return (index < userDetectors.size() ? userDetectors.at(index).getCenterOfMassL()->getAnodeResponse() : NULL); }
 
 	/** Get a pointer to the array of right PMT anode response objects of one of the defined detectors
 	  * @param index The index of the detector in the list of defined detectors
 	  * @return The pointer to the array of anode responses if @a index corresponds to a defined detector and return NULL otherwise
 	  */
-	pmtResponse *getAnodeResponseRight(const size_t &index=0){ return (index < userDetectors.size() ? userDetectors.at(index)->getCenterOfMassR()->getAnodeResponse() : NULL); }	
+	pmtResponse *getAnodeResponseRight(const size_t &index=0){ return (index < userDetectors.size() ? userDetectors.at(index).getCenterOfMassR()->getAnodeResponse() : NULL); }	
 
 	/** Get the total number of optical photons which have been produced during this run
 	  */
@@ -266,7 +266,7 @@ class nDetRunAction : public G4UserRunAction
 
 	nDetDetector *startDetector; ///< Pointer to the detector used as a start signal for timing
 
-	std::vector<nDetDetector*> userDetectors; ///< Vector of detectors added by the user
+	std::vector<nDetDetector> userDetectors; ///< Vector of detectors added by the user
 
 	/** Pop a primary scatter off the stack. Set all initial event conditions if this is the first scatter
 	  * @return True if the stack of primary scatters is not empty after popping off a scatter and return false otherwise

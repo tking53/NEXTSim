@@ -176,6 +176,17 @@ nDetDetector::~nDetDetector(){
 	userLayers.clear();*/
 }
 
+nDetDetector nDetDetector::clone() const {
+	// Clone this detector's parameters
+	nDetDetector retval(*this);
+	
+	// Copy the center of mass calculators explicitly
+	retval.cmL = cmL.clone();
+	retval.cmR = cmR.clone();
+
+	return retval;
+}
+
 void nDetDetector::getCurrentOffset(G4double &x_, G4double &y_, G4double &z_){
 	x_ = layerSizeX;
 	y_ = layerSizeY;
@@ -213,8 +224,8 @@ void nDetDetector::clear(){
 }
 
 void nDetDetector::copyCenterOfMass(const centerOfMass &left, const centerOfMass &right){
-	cmL = left;
-	cmR = right;
+	cmL = left.clone();
+	cmR = right.clone();
 }
 
 bool nDetDetector::checkPmtCopyNumber(const G4int &num, bool &isLeft) const { 

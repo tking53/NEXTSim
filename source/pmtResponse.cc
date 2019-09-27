@@ -31,12 +31,22 @@ spectralResponse::~spectralResponse(){
 	clear();
 }
 
+spectralResponse spectralResponse::clone() const {
+	spectralResponse retval;
+	retval.xmin = xmin;
+	retval.xmax = xmax;
+	retval.size = size;
+	retval.wavelength = wavelength;
+	retval.percentage = percentage;
+	return retval;
+}
+
 void spectralResponse::getRange(double &min_, double &max_) const {
 	min_ = xmin;
 	max_ = xmax;
 }
 
-void spectralResponse::copy(spectralResponse *other){
+void spectralResponse::copy(const spectralResponse *other){
 	clear();
 	wavelength = other->getWavelength();
 	percentage = other->getPercentage();
@@ -129,6 +139,29 @@ pmtResponse::pmtResponse(const double &risetime_, const double &falltime_) : ris
 }
 
 pmtResponse::~pmtResponse(){
+}
+
+pmtResponse pmtResponse::clone() const {
+	pmtResponse retval;
+	retval.risetime = risetime;
+	retval.falltime = falltime;
+	retval.timeSpread = timeSpread;
+	retval.traceDelay = traceDelay;
+	retval.gain = gain;
+	retval.baselineFraction = baselineFraction;
+	retval.baselineJitterFraction = baselineJitterFraction;
+	retval.polyCfdFraction = polyCfdFraction;
+	retval.adcClockTick = adcClockTick;
+	retval.pulseIntegralLow = pulseIntegralLow;
+	retval.pulseIntegralHigh = pulseIntegralHigh;
+	retval.adcBins = adcBins;
+	retval.pulseLength = pulseLength;
+	retval.useSpectralResponse = useSpectralResponse;
+	retval.printTrace = printTrace;
+	retval.pulseArray = pulseArray;
+	retval.spec = spec.clone();
+	retval.functionType = functionType;
+	return retval;
 }
 
 /// Return the gain-weighted arrival time of the photon pulse.

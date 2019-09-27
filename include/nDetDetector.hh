@@ -333,6 +333,13 @@ public:
 	                 parentCopyNum(0), firstSegmentCopyNum(0), lastSegmentCopyNum(0),
 	                 checkOverlaps(false) { }
 	
+	/** Detector parameter copier constructor
+	  */
+	nDetDetector(const nDetDetectorParams* params) : nDetDetectorParams((*params)),
+	                                                 assembly_logV(NULL), assembly_physV(NULL), layerSizeX(0), layerSizeY(0), offsetZ(0),
+	                                                 parentCopyNum(0), firstSegmentCopyNum(0), lastSegmentCopyNum(0),
+	                                                 checkOverlaps(false) { }
+	
 	/** Detector constructor
 	  * @param detector Pointer to a nDetConstruction object where the current detector is defined
 	  * @param matptr Pointer to the Geant materials handler class which will be used for detector construction
@@ -342,6 +349,11 @@ public:
 	/** Destructor
 	  */
 	virtual ~nDetDetector();
+
+	/** Clone this detector
+	  * @return A new copy of this detector instance
+	  */
+	nDetDetector clone() const ;
 	
 	/** Get a pointer to the logical volume of the detector assembly
 	  */
@@ -651,6 +663,11 @@ protected:
 	/** Perform tasks after the detector assembly has been placed into the setup area
 	  */
 	virtual void afterPlacement(){ }
+
+	/** Handle cloning of derived classes
+	  * @note Should usually do nothing, but the derived class may need to modify some nDetDetector members
+	  */
+	virtual void cloneChild(nDetDetector &) const { }
 
 	/** Build PMTs for the current detector and place them in the assembly volume
 	  * 

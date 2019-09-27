@@ -33,6 +33,10 @@ class centerOfMass{
 	  */
 	~centerOfMass();
 
+	/** Clone this object
+	  */
+	centerOfMass clone() const ;
+
 	/** Check whether there are detected photons
 	  * @return True if there has been at least one detected photon and return false otherwise
 	  */	
@@ -119,9 +123,17 @@ class centerOfMass{
 	  */
 	pmtResponse *getPmtResponse(){ return &response; }
 	
+	/** Get a const pointer to the dynode light pulse response
+	  */	
+	const pmtResponse *getConstPmtResponse() const { return (const pmtResponse*)(&response); }
+	
 	/** Get a pointer to the array containing the four Anger Logic output responses
 	  */
 	pmtResponse *getAnodeResponse(){ return anodeResponse; }
+
+	/** Get a const pointer to the array containing the four Anger Logic output responses
+	  */
+	const pmtResponse *getConstAnodeResponse() const { return (const pmtResponse*)anodeResponse; }
 	
 	/** Get the four Anger Logic currents {V1, V2, V3, V4}
 	  * @param array Array of at least 4 doubles
@@ -190,10 +202,20 @@ class centerOfMass{
 	  */
 	void copySpectralResponse(centerOfMass *other);
 
+	/** Copy the anode quantum efficiency spectrum from another centerOfMass object
+	  * @param other Pointer to a centerOfMass object from which to copy the anode quantum efficiency spectrum
+	  */	
+	void copySpectralResponse(const centerOfMass *other);
+
 	/** Copy the anode gain matrix from another centerOfMass object
 	  * @param other Pointer to a centerOfMass object from which to copy the matrix of anode gain percentages
 	  */	
 	void copyGainMatrix(centerOfMass *other);
+
+	/** Copy the anode gain matrix from another centerOfMass object
+	  * @param other Pointer to a centerOfMass object from which to copy the matrix of anode gain percentages
+	  */	
+	void copyGainMatrix(const centerOfMass *other);
 	
 	/** Clear all detected photons
 	  */

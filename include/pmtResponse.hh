@@ -19,6 +19,10 @@ class spectralResponse{
 	  */
 	~spectralResponse();
 
+	/** Clone this object
+	  */
+	spectralResponse clone() const ;
+
 	/** Get the range of the quantum efficiency spectrum
 	  * @param min_ The minimum wavelength defined in the spectrum (in nm)
 	  * @param max_ The maximum wavelength defined in the spectrum (in nm)
@@ -40,7 +44,7 @@ class spectralResponse{
 	/** Copy the quantum efficiency spectrum from another spectralResponse object
 	  * @param other Pointer to another spectralResponse from which the spectrum will be copied
 	  */
-	void copy(spectralResponse *other);
+	void copy(const spectralResponse *other);
 
 	/** Load the quantum efficiency spectrum from a root file
 	  * @param fname Path to a root file containing a TGraph named 'spec' or to an ascii file with two columns of values
@@ -114,6 +118,10 @@ public:
 	  */
 	~pmtResponse();
 
+	/** Clone this object
+	  */
+	pmtResponse clone() const ;
+
 	/** Get the length of the light pulse (in ADC clock ticks)
 	  */
 	size_t getPulseLength() const { return pulseLength; }
@@ -178,7 +186,11 @@ public:
 
 	/** Get a pointer to the PMT quantum efficiency spectrum
 	  */
-	spectralResponse *getSpectralResponse(){ return &spec; }
+	spectralResponse* getSpectralResponse(){ return &spec; }
+
+	/** Get a const pointer to the PMT quantum efficiency spectrum
+	  */
+	const spectralResponse* getConstSpectralResponse() const { return (const spectralResponse*)(&spec); }	
 
 	/** Set the rise time of the single photon pulse
 	  * @param risetime_ The rise time of the single photon response function (in ns)
@@ -289,7 +301,7 @@ public:
 	/** Copy quantum efficiency spectrum from another pmtResponse object
 	  * @param spec_ Pointer to a spectralResponse from which the spectrum will be copied
 	  */
-	void copySpectralResponse(spectralResponse *spec_){ spec.copy(spec_); }
+	void copySpectralResponse(const spectralResponse *spec_){ spec.copy(spec_); }
 
 	/** Add a photon signal to the raw pulse
 	  * @param arrival Arrival time of the optical photon (in ns)

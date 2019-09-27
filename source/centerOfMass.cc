@@ -16,6 +16,16 @@ const double coeff = 1.23984193E-3; // hc = Mev * nm
 centerOfMass::~centerOfMass(){
 }
 
+centerOfMass centerOfMass::clone() const {
+	centerOfMass retval;
+	retval.response = response.clone();
+	for(size_t i = 0; i < 4; i++)
+		retval.anodeResponse[i] = anodeResponse[i].clone();
+	retval.gainMatrix = gainMatrix;
+	retval.countMatrix = countMatrix;
+	return retval;
+}
+
 G4ThreeVector centerOfMass::getCenter() const {
 	return (totalMass > 0 ? (1/totalMass)*center : center);
 }
@@ -67,29 +77,32 @@ double centerOfMass::getReconstructedY() const {
 
 short centerOfMass::setNumColumns(const short &col_){ 
 	Ncol = col_;
-	pixelWidth = activeWidth / Ncol;
+	pixelWidth = activeWidth / (Ncol > 0 ? Ncol : 1);
 	return Ncol; 
 }
 
 short centerOfMass::setNumRows(const short &row_){
 	Nrow = row_;
-	pixelHeight = activeHeight / Nrow;
+	pixelHeight = activeHeight / (Nrow > 0 ? Nrow : 1);
 	return Nrow; 
 }
 
 double centerOfMass::setActiveAreaWidth(const double &width_){
 	activeWidth = width_;
-	pixelWidth = activeWidth / Ncol;
+	pixelWidth = activeWidth / (Ncol > 0 ? Ncol : 1);
 	return activeWidth;
 }
 
 double centerOfMass::setActiveAreaHeight(const double &height_){
 	activeHeight = height_;
-	pixelHeight = activeHeight / Nrow;
+	pixelHeight = activeHeight / (Nrow > 0 ? Nrow : 1);
 	return activeHeight;
 }
 
 void centerOfMass::setSegmentedPmt(const nDetDetectorParams *params){
+	if(params->GetNumPmtColumns() <= 0 || params->GetNumPmtRows() <= 0)
+		return;
+
 	Ncol = params->GetNumPmtColumns();
 	Nrow = params->GetNumPmtRows();
 	activeWidth = params->GetPmtWidth();
@@ -136,7 +149,15 @@ void centerOfMass::copySpectralResponse(centerOfMass *other){
 	response.copySpectralResponse(other->getPmtResponse()->getSpectralResponse());
 }
 
+void centerOfMass::copySpectralResponse(const centerOfMass *other){
+	response.copySpectralResponse(other->getConstPmtResponse()->getConstSpectralResponse());
+}
+
 void centerOfMass::copyGainMatrix(centerOfMass *other){
+	other->getGainMatrix(gainMatrix);
+}
+
+void centerOfMass::copyGainMatrix(const centerOfMass *other){
 	other->getGainMatrix(gainMatrix);
 }
 
@@ -243,13 +264,12 @@ void centerOfMass::print() const {
 }
 
 void centerOfMass::increment(const int &x, const int &y){
-	if((x < 0 || x >= Ncol) || (y < 0 || y >= Nrow)) return;
+	if((x < 0 || x >= Ncol) || (y < 0 || y >= Nrow) || countMatrix.empty()) return;
 	countMatrix[x][y]++;
 }
 
-
 double centerOfMass::getGain(const int &x, const int &y){
-	if((x < 0 || x >= Ncol) || (y < 0 || y >= Nrow)) return 0;
+	if((x < 0 || x >= Ncol) || (y < 0 || y >= Nrow) || gainMatrix.empty()) return 0;
 	return gainMatrix[x][y]/100;
 }
 

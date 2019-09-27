@@ -114,17 +114,6 @@ void nDetConstruction::UpdateGeometry(){
 	G4RunManager::GetRunManager()->GeometryHasBeenModified();
 	G4RunManager::GetRunManager()->ReinitializeGeometry();
 
-	// Segment the PMT photo-sensitive surface
-	if(params.PmtIsSegmented()){
-		setSegmentedPmt();
-		if(!gainMatrixFilename.empty())
-			loadPmtGainMatrix();
-	}
-	
-	// Load the anode quantum efficiency
-	if(!spectralResponseFilename.empty())
-		loadPmtSpectralResponse();
-	
 	// Update the particle source
 	if(currentDetector)
 		nDetParticleSource::getInstance().SetDetector(currentDetector);
@@ -152,6 +141,17 @@ bool nDetConstruction::AddGeometry(const G4String &geom){
 		std::cout << Display::ErrorStr("nDetConstruction") << "User specified un-recognized detector type (" << geom << ")!" << Display::ResetStr() << std::endl;
 		return false;
 	}
+
+	// Segment the PMT photo-sensitive surface
+	if(params.PmtIsSegmented()){
+		setSegmentedPmt();
+		if(!gainMatrixFilename.empty())
+			loadPmtGainMatrix();
+	}
+	
+	// Load the anode quantum efficiency
+	if(!spectralResponseFilename.empty())
+		loadPmtSpectralResponse();
 
 	// Copy the center-of-mass calculators to the new detector
 	centerOfMass *cmL = currentDetector->getCenterOfMassL();
@@ -282,4 +282,9 @@ void nDetConstruction::PrintAllDetectors() const {
 		det->Print();
 	}
 	std::cout << "***********************************************************\n";
+}
+
+void nDetConstruction::GetCopiesOfDetectors(std::vector<nDetDetector> &detectors) const {
+	for(auto det : userDetectors)
+		detectors.push_back(det->clone());
 }

@@ -160,6 +160,10 @@ class nDetConstruction : public G4VUserDetectorConstruction{
 	/** Print detailed information about all defined detectors
 	  */
 	void PrintAllDetectors() const ;
+
+	/** Get clones of all currently defined detectors
+	  */
+	void GetCopiesOfDetectors(std::vector<nDetDetector> &detectors) const ;
 	
   private:
 	nDetConstructionMessenger *fDetectorMessenger; ///< Geant messenger to use for this class
