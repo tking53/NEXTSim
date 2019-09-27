@@ -15,6 +15,22 @@
 class nDetConstruction;
 class nDetMaterials;
 
+namespace nDetDetectorTypes{
+
+/** Get a pointer to a new detector
+  * @param geom The name of the detector type
+  * @return A pointer to the new nDetDetector instance
+  */
+nDetDetector* getDetectorType(const G4String &geom);
+
+/** Get a pointer to a new detector
+  * @param geom The name of the detector type
+  * @param detector Pointer to the detector construction handler
+  * @param matptr Pointer to the materials handler
+  * @return A pointer to the new nDetDetector instance
+  */
+nDetDetector* getDetectorType(const G4String &geom, nDetConstruction *detector, nDetMaterials *matptr);
+
 /** @class nextModuleType
   * @author Cory R. Thornsberry (cthornsb@vols.utk.edu)
   * @date September 25, 2019
@@ -164,5 +180,7 @@ public:
 
 protected:
 };
+
+} // namespace nDetDetectorTypes
 
 #endif

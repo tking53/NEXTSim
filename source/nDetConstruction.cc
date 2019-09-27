@@ -129,18 +129,15 @@ void nDetConstruction::UpdateGeometry(){
 
 bool nDetConstruction::AddGeometry(const G4String &geom){
 	// Define a new detector of the specified type
-	if(geom == "next" || geom == "module")
-		currentDetector = new nextModuleType(this, &materials);
-	else if(geom == "ellipse")
-		currentDetector = new ellipticalType(this, &materials);
-	else if(geom == "rectangle")
-		currentDetector = new rectangularType(this, &materials);
-	else if(geom == "cylinder")
-		currentDetector = new cylindricalType(this, &materials);
-	else{ // Invalid detector type
+	nDetDetector *newDetector = nDetDetectorTypes::getDetectorType(geom, this, &materials);
+	
+	if(!newDetector){ // Invalid detector type
 		std::cout << Display::ErrorStr("nDetConstruction") << "User specified un-recognized detector type (" << geom << ")!" << Display::ResetStr() << std::endl;
 		return false;
 	}
+	
+	// Set the current detector to the new one
+	currentDetector = newDetector;
 
 	// Segment the PMT photo-sensitive surface
 	if(params.PmtIsSegmented()){

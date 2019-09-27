@@ -12,6 +12,34 @@
 
 #include "nDetDetectorTypes.hh"
 
+using namespace nDetDetectorTypes;
+
+nDetDetector* nDetDetectorTypes::getDetectorType(const G4String &geom){
+	nDetDetector *retval = NULL;
+	if(geom == "next" || geom == "module") // Next module (segmented)
+		retval = new nextModuleType();
+	else if(geom == "ellipse") // Elliptical detector (football)
+		retval = new ellipticalType();
+	else if(geom == "rectangle") // Rectangular detector
+		retval = new rectangularType();
+	else if(geom == "cylinder") // Cylindrical detector
+		retval = new cylindricalType();
+	return retval;
+}
+
+nDetDetector* nDetDetectorTypes::getDetectorType(const G4String &geom, nDetConstruction *construction, nDetMaterials *matptr){
+	nDetDetector *retval = NULL;
+	if(geom == "next" || geom == "module") // Next module (segmented)
+		retval = new nextModuleType(construction, matptr);
+	else if(geom == "ellipse") // Elliptical detector (football)
+		retval = new ellipticalType(construction, matptr);
+	else if(geom == "rectangle") // Rectangular detector
+		retval = new rectangularType(construction, matptr);
+	else if(geom == "cylinder") // Cylindrical detector
+		retval = new cylindricalType(construction, matptr);
+	return retval;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // class nextModuleType
 ///////////////////////////////////////////////////////////////////////////////
