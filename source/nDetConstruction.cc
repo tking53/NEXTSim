@@ -129,25 +129,6 @@ void nDetConstruction::UpdateGeometry(){
 	if(currentDetector)
 		nDetParticleSource::getInstance().SetDetector(currentDetector);
 
-	for(auto det : userDetectors){
-		det->copyCenterOfMass(center[0], center[1]);
-
-		if(params.PmtIsSegmented()){
-			det->getCenterOfMassL()->setSegmentedPmt(&params);
-			det->getCenterOfMassR()->setSegmentedPmt(&params);	
-
-			// Copy the PMT anode gain matrix
-			det->getCenterOfMassL()->copyGainMatrix(&center[0]);
-			det->getCenterOfMassR()->copyGainMatrix(&center[1]);
-		}
-	
-		// Copy the PMT anode quantum efficiency curve
-		if(det->getCenterOfMassL()->getPmtResponse()->getSpectralResponseEnabled())
-			det->getCenterOfMassL()->copySpectralResponse(&center[0]);
-		if(det->getCenterOfMassR()->getPmtResponse()->getSpectralResponseEnabled())
-			det->getCenterOfMassR()->copySpectralResponse(&center[1]);
-	}
-	
 	// Update the detector lists of all user run actions
 	nDetThreadContainer *container = &nDetThreadContainer::getInstance();
 	if(container->getMultithreadingMode())
@@ -171,6 +152,27 @@ bool nDetConstruction::AddGeometry(const G4String &geom){
 		std::cout << Display::ErrorStr("nDetConstruction") << "User specified un-recognized detector type (" << geom << ")!" << Display::ResetStr() << std::endl;
 		return false;
 	}
+
+	// Copy the center-of-mass calculators to the new detector
+	centerOfMass *cmL = currentDetector->getCenterOfMassL();
+	centerOfMass *cmR = currentDetector->getCenterOfMassR();
+	currentDetector->copyCenterOfMass(center[0], center[1]);
+
+	// Segment the PMT anodes
+	if(params.PmtIsSegmented()){
+		cmL->setSegmentedPmt(&params);
+		cmR->setSegmentedPmt(&params);	
+
+		// Copy the PMT anode gain matrix
+		cmL->copyGainMatrix(&center[0]);
+		cmR->copyGainMatrix(&center[1]);
+	}
+
+	// Copy the PMT anode quantum efficiency curve
+	if(center[0].getPmtResponse()->getSpectralResponseEnabled())
+		cmL->copySpectralResponse(&center[0]);
+	if(center[1].getPmtResponse()->getSpectralResponseEnabled())
+		cmR->copySpectralResponse(&center[1]);
 
 	// Add the new detector assembly to the vector of detectors
 	userDetectors.push_back(currentDetector);
