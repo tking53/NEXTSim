@@ -1,0 +1,322 @@
+# Material: EJ276 N(H)=48.1%, N(C)=51.9%
+# Author: Cory R. Thornsberry
+# Date: August 30, 2019
+# Particle light yield data taken form V.V. Verbinski et al, Nucl. Instrum. & Meth. 65 (1968) 8-25
+#  and scaled down to 86% as per Eljen spec sheet for EJ276. 
+# Photon efficiency taken from Eljen spec sheet for EJ200
+
+setDebug true
+
+#############################
+# Array definitions 
+#############################
+
+addArray photonEnergy 44 eV
+2.004
+2.058
+2.112
+2.166
+2.22
+2.274
+2.328
+2.382
+2.436
+2.49
+2.517
+2.552
+2.585
+2.613
+2.635
+2.656
+2.686
+2.72
+2.749
+2.772
+2.791
+2.809
+2.826
+2.842
+2.861
+2.884
+2.919
+2.946
+2.954
+2.961
+2.967
+2.974
+2.981
+2.987
+2.994
+3.001
+3.009
+3.018
+3.029
+3.041
+3.056
+3.083
+3.137
+3.191
+
+#############################
+
+addArray efficiency 44
+0
+0.001
+0.001
+0.002
+0.003
+0.006
+0.01
+0.018
+0.033
+0.06
+0.084
+0.122
+0.175
+0.234
+0.294
+0.356
+0.416
+0.473
+0.533
+0.594
+0.657
+0.72
+0.784
+0.846
+0.903
+0.962
+1
+0.917
+0.857
+0.798
+0.732
+0.669
+0.604
+0.542
+0.48
+0.422
+0.359
+0.297
+0.237
+0.17
+0.105
+0.028
+0.004
+0
+
+#############################
+
+addArray particleEnergy 36 MeV
+0.00
+0.10
+0.13
+0.17
+0.20
+0.24
+0.30
+0.34
+0.40
+0.48
+0.60
+0.72
+0.84
+1.00
+1.30
+1.70
+2.00
+2.40
+3.00
+3.40
+4.00
+4.80
+6.00
+7.20
+8.40
+10.00
+11.00
+12.00
+13.00
+14.00
+15.00
+16.00
+17.00
+18.00
+19.00
+20.00
+
+#############################
+
+addScalableArray electronYield 36
+0
+860
+1118
+1462
+1720
+2064
+2580
+2924
+3440
+4128
+5160
+6192
+7224
+8600
+11180
+14620
+17200
+20640
+25800
+29240
+34400
+41280
+51600
+61920
+72240
+86000
+94600
+103200
+111800
+120400
+129000
+137600
+146200
+154800
+163400
+172000
+
+#############################
+
+addScalableArray protonYield 36
+0.6966
+77.9074
+102.8646
+140.137
+170.0908
+213.3918
+285.606
+336.69
+423.765
+560.763
+787.158
+1056.51
+1364.175
+1813.482
+2768.985
+4249.26
+5485.725
+7256.25
+10054.26
+12097.62
+15406.47
+19945.98
+26819.1
+34249.5
+42028.2
+52825.5
+60170.803
+67702.21
+75519.7992
+83623.8114
+92014.1262
+100690.7436
+109653.6636
+118902.8862
+128438.4114
+138260.2392
+
+#############################
+
+addScalableArray ionYield 36
+0.172
+8.944
+10.922
+13.502
+15.394
+17.888
+21.586
+23.994
+27.434
+31.648
+37.496
+43.172
+48.934
+56.502
+69.918
+87.376
+100.19
+117.218
+142.932
+160.906
+187.996
+224.03
+278.21
+333.25
+388.29
+464.314
+512.13
+560.548
+609.482
+658.932
+708.812
+759.294
+810.292
+861.806
+913.836
+966.382
+
+#############################
+
+addArray photonEnergy2 2 eV
+2.004
+3.191
+
+#############################
+
+addArray refIndex 2
+1.580
+1.580
+
+#############################
+
+addArray absorption 2 cm
+400
+400
+
+#############################
+# Define the material
+#############################
+
+setName EJ276
+setDensity 1.096
+addElement H 0.07216
+addElement C 0.92784
+
+setVisColor 0 1 1 0.5 # Cyan (50% opacity)
+setVisSolid
+
+#############################
+# Add constant properties
+#############################
+
+addConstProperty SCINTILLATIONYIELD 8600 #1/MeV
+addConstProperty RESOLUTIONSCALE 1
+addConstProperty FASTSCINTILLATIONRISETIME 0.9 ns
+addConstProperty FASTTIMECONSTANT 2.1 ns
+addConstProperty YIELDRATIO 1
+
+#############################
+# Add variable properties
+#############################
+
+addProperty RINDEX photonEnergy2 refIndex
+addProperty ABSLENGTH photonEnergy2 absorption
+addProperty FASTCOMPONENT photonEnergy efficiency
+
+#############################
+# Add photon production
+#############################
+
+addProperty ELECTRONSCINTILLATIONYIELD particleEnergy electronYield
+addProperty PROTONSCINTILLATIONYIELD particleEnergy protonYield
+addProperty IONSCINTILLATIONYIELD particleEnergy ionYield

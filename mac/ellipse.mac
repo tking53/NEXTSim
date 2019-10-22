@@ -1,0 +1,75 @@
+# ellipse.mac
+# Cory R Thornsberry
+# Simulates an elliptical bar (football) with a 1 MeV beam of neutrons
+
+/nDet/detector/setPmtDimensions 6
+
+# Mylar and optical grease thickness.
+/nDet/detector/setMylarThickness 0.025
+/nDet/detector/setGreaseThickness 0.1
+
+################
+# OUTPUT SETUP #
+################
+
+# Set the output filename prefix
+/nDet/output/filename ellipse.root
+/nDet/output/title 10 cm ellipse prototype w/ 6x6 mm^2 SiPMs and 1 MeV neutron pencil beam at 1 m (wrapped with mylar)
+/nDet/output/debug true
+
+# Setup information about the PMT response
+/nDet/output/trace/setRisetime 2
+/nDet/output/trace/setFalltime 20
+/nDet/output/trace/setTimeSpread 0.35
+/nDet/output/trace/setGain 2E4
+/nDet/output/trace/setBaseline 7.5
+/nDet/output/trace/setJitter 0.15
+
+# Setup the PMT light pulse output
+/nDet/output/trace/setTraceDelay 60
+/nDet/output/trace/setTraceLength 500
+/nDet/output/trace/setBitRange 16
+
+/nDet/output/trace/setCfdFraction 0.5
+/nDet/output/trace/setIntegralLow 5
+/nDet/output/trace/setIntegralHigh 10
+
+##################
+# DETECTOR SETUP #
+##################
+
+# Ellipse prototype
+/nDet/detector/setDetectorLength 6
+/nDet/detector/setDetectorThickness 6
+/nDet/detector/setWrapping mylar
+
+/nDet/detector/setTrapezoidLength 2
+/nDet/detector/setTrapezoidAngle 45
+
+# Set the position and rotation of the detector in the lab frame.
+/nDet/detector/setPosition 100 0 0 cm
+/nDet/detector/setRotation 0 0 90
+
+# Update the detector.
+/nDet/detector/addGeometry ellipse
+/nDet/detector/update
+
+################
+# SOURCE SETUP #
+################
+
+# Available source types: 137Cs 60Co 133Ba 241Am 90Sr 252Cf
+#/nDet/source/type 60Co
+
+/nDet/source/type neutron 1
+#/nDet/source/spot 20
+
+# Set isotropic source (0=off, 1=psuedo, 2=realistic)
+#/nDet/source/iso 1
+
+###############
+# RUN CONTROL #
+###############
+
+#/run/beamOn 10000
+

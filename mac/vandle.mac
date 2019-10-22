@@ -1,0 +1,87 @@
+# vandle.mac
+# Cory R Thornsberry
+# Simulates a small, medium, or large VANDLE bar with a 1 MeV beam of neutrons
+
+# Mylar and optical grease thickness.
+/nDet/detector/setMylarThickness 0.025
+/nDet/detector/setGreaseThickness 1
+
+################
+# OUTPUT SETUP #
+################
+
+# Set the output filename prefix
+/nDet/output/filename vandle.root
+/nDet/output/title 3x3x60 cm^3 small VANDLE bar with 1 MeV neutron pencil beam at 1 m (wrapped with mylar)
+/nDet/output/debug true
+
+# Setup information about the PMT response
+/nDet/output/trace/setRisetime 2
+/nDet/output/trace/setFalltime 20
+/nDet/output/trace/setTimeSpread 0.35
+/nDet/output/trace/setGain 2E3
+/nDet/output/trace/setBaseline 7.5
+/nDet/output/trace/setJitter 0.15
+
+# Setup the PMT light pulse output
+/nDet/output/trace/setTraceDelay 60
+/nDet/output/trace/setTraceLength 500
+/nDet/output/trace/setBitRange 16
+
+/nDet/output/trace/setCfdFraction 0.5
+/nDet/output/trace/setIntegralLow 5
+/nDet/output/trace/setIntegralHigh 10
+
+##################
+# DETECTOR SETUP #
+##################
+
+# Small VANDLE (3x3x60 cm^3)
+/nDet/detector/setDetectorLength 60.0
+/nDet/detector/setDetectorWidth 3.0
+/nDet/detector/setDetectorThickness 30.0
+/nDet/detector/setPmtDimensions 30.0
+
+# Medium VANDLE (5x3x120 cm^3)
+#/nDet/detector/setDetectorLength 120.0
+#/nDet/detector/setDetectorWidth 3.0
+#/nDet/detector/setDetectorThickness 50.0
+#/nDet/detector/setPmtDimensions 30.0
+
+# Large VANDLE (5x5x200 cm^3)
+#/nDet/detector/setDetectorLength 200.0
+#/nDet/detector/setDetectorWidth 5.0
+#/nDet/detector/setDetectorThickness 50.0
+#/nDet/detector/setPmtDimensions 50.0
+
+# Set the position and rotation of the detector in the lab frame.
+/nDet/detector/setPosition 100 0 0 cm
+/nDet/detector/setRotation 0 0 0
+
+# Update the detector.
+/nDet/detector/addGeometry rectangle
+/nDet/detector/update
+
+################
+# SOURCE SETUP #
+################
+
+# Available source types: 137Cs 60Co 133Ba 241Am 90Sr 252Cf
+#/nDet/source/type 252Cf
+
+/nDet/source/type neutron 1.00
+#/nDet/source/type 60Co
+#/nDet/source/type gamma 0.03
+
+#/nDet/source/spot 25
+#/nDet/source/spot 15
+
+# Set isotropic source (0=off, 1=psuedo, 2=realistic)
+#/nDet/source/iso 1
+
+###############
+# RUN CONTROL #
+###############
+
+#/run/beamOn 10000
+

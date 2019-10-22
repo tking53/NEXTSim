@@ -1,46 +1,39 @@
-//
-// $Id: nDetSteppingAction.hh,v 1.0 Jan., 2015 $
-// GEANT4 tag $Name: geant4-09-03-patch-01 $
-// by Dr. Xiaodong Zhang:q
-//
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-#ifndef nDetSteppingAction_h
-#define nDetSteppingAction_h 1
+#ifndef NDET_STEPPING_ACTION_HH
+#define NDET_STEPPING_ACTION_HH
 
 #include "G4UserSteppingAction.hh"
 
-//class nDetConstruction;
-//class nDetEventAction;
-#include "nDetConstruction.hh"
-#include "nDetRunAction.hh"
-#include "nDetEventAction.hh"
+class nDetConstruction;
+class nDetRunAction;
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+/** @class nDetSteppingAction
+  * @brief Performs actions which take place at the start and end of processing of a particle step
+  * @date August 9, 2019
+  */
 
+class nDetSteppingAction : public G4UserSteppingAction {
+  public:
+	/** Constructor taking a pointer to a user run action
+	  */
+	nDetSteppingAction(nDetRunAction*);
 
-class nDetSteppingAction : public G4UserSteppingAction
-{
-public:
-  nDetSteppingAction(nDetConstruction*,
-			nDetRunAction*, 
-			nDetEventAction*);
-  virtual ~nDetSteppingAction();
+	/** Destructor
+	  */
+	virtual ~nDetSteppingAction();
 
-  void UserSteppingAction(const G4Step*);
+	/** Perform processing on a particle step
+	  */
+	void UserSteppingAction(const G4Step*);
 
-private:
-  nDetConstruction* detector;
-  nDetRunAction* runAction;
-  nDetEventAction*  evtAction;
-  
-  G4long eventID;
+	/** Reset all class parameters
+	  */
+	void Reset();
 
+  private:
+	nDetRunAction* runAction; ///< Pointer to the thread-local user run action
+
+	bool neutronTrack; ///< Flag indicating that a primary particle is being tracked
 };
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
 

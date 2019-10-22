@@ -1,110 +1,203 @@
-//
-// $Id: nDetConstruction.hh,v 1.0 Sept., 2015 $
-//  Written by Dr. Xiaodong Zhang
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+#ifndef NDET_CONSTRUCTION_HH
+#define NDET_CONSTRUCTION_HH
 
-#ifndef nDetConstruction_h
-#define nDetConstruction_h 1
+#include <vector>
 
-#include "globals.hh"
 #include "G4VUserDetectorConstruction.hh"
-
-#include "G4SystemOfUnits.hh"
-#include "G4PhysicalConstants.hh"
-
-#include "nDetSD.hh"
-
-#include "G4NistManager.hh"
-#include "G4Material.hh"
-#include "G4MaterialTable.hh"
-#include "G4Element.hh"
-#include "G4Isotope.hh"
-#include "G4ElementTable.hh"
-#include "G4LogicalBorderSurface.hh"
-#include "G4LogicalSkinSurface.hh"
-#include "G4OpticalSurface.hh"
-#include "G4Box.hh"
-#include "G4Tubs.hh"
-#include "G4Trap.hh"
-#include "G4LogicalVolume.hh"
-#include "G4VisAttributes.hh"
 #include "G4RotationMatrix.hh"
-#include "G4ThreeVector.hh"
-#include "G4Transform3D.hh"
-#include "G4PVPlacement.hh"
-#include "G4OpBoundaryProcess.hh"
-#include "G4RotationMatrix.hh"
-#include "G4Transform3D.hh"
-#include "G4PVParameterised.hh"
-#include "G4VNestedParameterisation.hh"
+#include "globals.hh"
 
-// Replica 
-// Assembly volumes
-// no assembly is used currently
-#include "G4AssemblyVolume.hh"
+#include "centerOfMass.hh"
+#include "nDetDetector.hh"
+#include "nDetDetectorTypes.hh"
+#include "nDetMaterials.hh"
 
+// Class declarations
+class nDetConstructionMessenger;
+class nDetWorld;
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+class G4Material;
+class G4VPhysicalVolume;
 
-class nDetConstruction : public G4VUserDetectorConstruction
-{
+/** @class nDetConstruction
+  * @brief Handles construction of NEXTSim detector setups
+  * @author Cory R. Thornsberry (cthornsb@vols.utk.edu)
+  * @date July 10, 2019
+  */
+
+class nDetConstruction : public G4VUserDetectorConstruction{
   public:
-    nDetConstruction();
-   ~nDetConstruction();
+	/** Destructor
+	  */
+	~nDetConstruction();
 
-  public:
-    G4VPhysicalVolume* Construct();
+	/** Copy constructor. Not implemented for singleton class
+	  */
+	nDetConstruction(nDetConstruction const &copy);
 
+	/** Assignment operator. Not implemented for singleton class
+	  */	
+	nDetConstruction &operator=(nDetConstruction const &copy);
+
+	/** Return an instance of this class
+	  */
+	static nDetConstruction &getInstance();
+
+	/** Construct the detector setup
+	  * @note This method does nothing on its own, all the work is done by ConstructDetector()
+	  * @return A pointer to the world physical volume
+	  */
+	G4VPhysicalVolume* Construct();
+
+	/** Build the world volume and place all detectors defined in the detector list
+	  * @return A pointer to the world physical volume
+	  */
+	G4VPhysicalVolume* ConstructDetector();
+
+	/** Add a detector geometry to the list of detectors
+	  * @note See nDetDetector::setGeometry() for accepted geometry names
+	  * @return True if the specified type is recognized and return false otherwise
+	  */
+	bool AddGeometry(const G4String &geom);
+
+	/** Setup segmented PMTs
+	  */
+	void setSegmentedPmt();
+
+	/** Load PMT quantum efficiency spectrum from a file
+	  * @note See centerOfMass::loadSpectralResponse() for information on required file contents
+	  * @param fname Path to file containing anode quantum efficiency spectrum
+	  */
+	void setPmtSpectralResponse(const std::string &fname){ spectralResponseFilename = fname; }
+
+	/** Load segmented PMT anode gain matrix from a file
+	  * @note See centerOfMass::loadGainMatrix() for information on required file contents
+	  * @param fname Path to file containing a matrix of anode gain percentages
+	  */
+	void setPmtGainMatrix(const std::string &fname){ gainMatrixFilename = fname; }
+
+	/** Get a pointer to the NEXTSim materials handler
+	  */
+	nDetMaterials *GetMaterials(){ return &materials; }
+
+	/** Get a pointer to the messenger used for this class
+	  */
+	nDetConstructionMessenger *GetMessenger(){ return fDetectorMessenger; }
+
+	/** Return a pointer to the optical photon center-of-mass calculator for the left PMT
+	  */
+	centerOfMass *GetCenterOfMassL(){ return &center[0]; }
+
+	/** Return a pointer to the optical photon center-of-mass calculator for the right PMT
+	  */
+	centerOfMass *GetCenterOfMassR(){ return &center[1]; }
+
+	/** Return a pointer to the PMT response for the left PMT
+	  */
+	pmtResponse *GetPmtResponseL(){ return center[0].getPmtResponse(); }
+
+	/** Return a pointer to the PMT response for the right PMT
+	  */
+	pmtResponse *GetPmtResponseR(){ return center[1].getPmtResponse(); }
+
+	/** Get a copy of the current vector of detectors
+	  */
+	std::vector<nDetDetector*> GetUserDetectors() const { return userDetectors; }
+
+	/** Get the current user defined detector parameters
+	  */
+	nDetDetectorParams GetDetectorParameters() const { return params; }
+
+	/** Get a pointer to the current detector
+	  */
+	nDetDetector *getCurrentDetector(){ return currentDetector; }
+
+	/** Clear all volumes, surfaces, and detectors
+	  */
+	void ClearGeometry();
+
+	/** Place all detectors into the world and copy the list of detectors to all user run actions
+	  */	
+	void UpdateGeometry();
+
+	/** Load a light guide model from a file using parameters from a space-delimited input string and place it into the current detector assembly
+	  * @note See nDetDetector::addLightGuideGDML(const G4String &) for input string syntax
+	  */
+	void AddLightGuideGDML(const G4String &input);
+
+	/** Apply a grease layer to the current detector assembly using dimensions from a space-delimited input string
+	  * @note See nDetDetector::addGreaseLayer(const G4String &) for input string syntax
+	  */
+	void AddGrease(const G4String &input);
+
+	/** Apply a straight light diffuser layer (quartz) to the current detector assembly using dimensions from a space-delimited input string
+	  * @note See nDetDetector::addDiffuserLayer(const G4String &) for input string syntax
+	  */
+	  void AddDiffuser(const G4String &input);
+
+	/** Apply a trapezoidal light guide layer (quartz) to the current detector assembly using dimensions from a space-delimited input string
+	  * @note See nDetDetector::addLightGuideLayer(const G4String &) for input string syntax
+	  */
+	void AddLightGuide(const G4String &input);
+	
+	/** Add an array of detectors in a cylindrical setup
+	  * @note String syntax: <geom> <r0> <startTheta> <stopTheta> <Ndet> <br>
+	  * | Parameter  | Description |
+	  * |------------|-------------|
+	  * | geom       | Name of detector geometry (see nDetDetector::setGeometry() for valid types)
+	  * | r0         | Radius of the center of the detectors (in cm)
+	  * | startTheta | The angle of the first detector (in degrees)
+	  * | stopTheta  | The angle of the final detector (in degrees)
+	  * | Ndet       | Number of detectors in the array
+	  */
+	void AddDetectorArray(const G4String &input);
+
+	/** Set the light yield multiplier for scintillator photon production
+	  * @param yield The fraction of the light yield to use for optical photon production in scintillators (default is 1)
+	  */	
+	void SetLightYieldMultiplier(const G4double &yield);
+	
+	/** Print detailed information about all defined detectors
+	  */
+	void PrintAllDetectors() const ;
+
+	/** Get clones of all currently defined detectors
+	  */
+	void GetCopiesOfDetectors(std::vector<nDetDetector> &detectors) const ;
+	
   private:
-    // data of detector structure; half of size
-    G4double expHallX;		// width
-    G4double expHallY;		// length
-    G4double expHallZ;		// thickness
+	nDetConstructionMessenger *fDetectorMessenger; ///< Geant messenger to use for this class
+	
+	nDetDetectorParams params; ///< Physical attributes of the current detector assembly
 
-    G4double assemblyBoxX;
-    G4double assemblyBoxY;
-    G4double assemblyBoxZ;
+	G4bool fCheckOverlaps; ///< Flag indicating that Geant should check for overlaps between all placed objects
 
-    G4double assemblyPx;
-    G4double assemblyPy;
-    G4double assemblyPz;
+	std::vector<nDetDetector*> userDetectors; ///< Vector of all detectors added by the user
+	
+	nDetDetector *currentDetector; ///< Pointer to the current detector added by the user
 
-    G4double ej200X;
-    G4double ej200Y;
-    G4double ej200Z;
+	centerOfMass center[2]; ///< Objects used to compute the detected optical photon center-of-mass position for the left and right PMT
 
-    G4double greaseX;
-    G4double greaseY;
-    G4double greaseZ;
+	nDetMaterials materials; ///< Object containing all Geant materials and elements which will be used in detector construction
 
-    G4double qwSiPMx;
-    G4double qwSiPMy;
-    G4double qwSiPMz;
+	std::string gainMatrixFilename; ///< Path to the anode gain matrix
+	std::string spectralResponseFilename; ///< Path to the anode quantum efficiency
 
-    G4double psSiPMx;
-    G4double psSiPMy;
-    G4double psSiPMz;
+	nDetWorld *expHall; ///< Pointer to the experimental hall setup area
 
-    // logical and physical volume
-    G4LogicalVolume* expHall_logV;
-    G4LogicalVolume* assembly_logV;
+	/** Default constructor. Private for singleton class
+	  */
+	nDetConstruction();
 
-    G4LogicalVolume* ej200_logV;    // ej200 scintillator
-    G4LogicalVolume* grease_logV;
-    G4LogicalVolume* qwSiPM_logV;
-    G4LogicalVolume* psSiPM_logV;
+	/** Load PMT quantum efficiency spectrum from a file
+	  * @return True if the quantum efficiency is loaded correctly and return false otherwise
+	  */
+	bool loadPmtSpectralResponse();
 
-    G4VPhysicalVolume* expHall_physV;
-    G4VPhysicalVolume* assembly_physV;
-
-    // member functions
-    void buildExpHall();
-    void buildAssembly();
-
+	/** Load segmented PMT anode gain matrix from a file
+	  * @return True if the anode gain matrix is loaded correctly and return false otherwise
+	  */
+	bool loadPmtGainMatrix();
 };
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-#endif /*nDetConstruction_h*/
+#endif

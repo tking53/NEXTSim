@@ -1,0 +1,27 @@
+# gdml.mac
+# Cory R Thornsberry
+# Demonstrates how to load external GDML models and manipulate them as well
+# as how to add user-defined detector components such as grease and diffusers
+
+# Construct a generic bar detector 3x3 in^2 and 12" long
+/nDet/detector/setDetectorLength 30.48
+/nDet/detector/setDetectorWidth 7.62
+/nDet/detector/setDetectorThickness 76.2
+/nDet/detector/setPmtDimensions 50.8
+/nDet/detector/setMylarThickness 0.025
+/nDet/detector/setGreaseThickness 1
+
+# Set the detector position to 100 cm and add it to the scene
+/nDet/detector/setPosition 100 0 0 cm
+/nDet/detector/addGeometry rectangle
+
+# Add a 5 mm thick quartz diffuser layer (with 1 mm of optical grease)
+/nDet/detector/addGreaseLayer 76.2 76.2 1
+/nDet/detector/addDiffuserLayer 76.2 76.2 5
+
+# Load a test assembly (and some more grease)
+/nDet/detector/addGreaseLayer 76.2 76.2 1
+/nDet/detector/loadLightGuide gdml/LightGuide3in.gdml 90 0 0 G4_SILICON_DIOXIDE
+
+# Update the scene
+/nDet/detector/update

@@ -1,3 +1,9 @@
-*~
-.svn
-.*DS_Store
+install/
+build/
+
+doc/html
+doc/latex
+
+*.gdml
+
+version.hh

@@ -1,0 +1,92 @@
+# 252Cf.mac
+# Cory R Thornsberry
+# Simulates a NEXT module with 8x4 scintillator cells with a 252Cf neutron source
+
+# Set the size of the PSPmt
+/nDet/detector/setPmtDimensions 48.5
+
+# Mylar and optical grease thickness.
+/nDet/detector/setMylarThickness 0.025
+/nDet/detector/setGreaseThickness 0.1
+
+# Light diffuser.
+#/nDet/detector/setDiffuserLength 0.5
+
+# PMT segmentation.
+/nDet/detector/setPmtColumns 8
+/nDet/detector/setPmtRows 8
+
+################
+# OUTPUT SETUP #
+################
+
+# Set the output filename prefix
+/nDet/output/filename next2x2_252Cf_100cm.root
+/nDet/output/title 2x2x10" NExT module 100 cm away from isotropic 252Cf source (mylar, no Cf energy restriction)
+/nDet/output/debug true
+
+# Setup information about the PMT response
+/nDet/output/trace/setRisetime 2
+/nDet/output/trace/setFalltime 20
+/nDet/output/trace/setTimeSpread 0.35
+/nDet/output/trace/setGain 1E4
+/nDet/output/trace/setBaseline 7.5
+/nDet/output/trace/setJitter 0.15
+
+# Setup the PMT light pulse output
+#/nDet/output/trace/enabled true
+/nDet/output/trace/setTraceDelay 60
+/nDet/output/trace/setTraceLength 500
+/nDet/output/trace/setBitRange 16
+
+/nDet/output/trace/setCfdFraction 0.5
+/nDet/output/trace/setIntegralLow 5
+/nDet/output/trace/setIntegralHigh 10
+
+##################
+# DETECTOR SETUP #
+##################
+
+# NEXT 2x2x10 in^3
+/nDet/detector/setDetectorLength 25.4
+/nDet/detector/setDetectorWidth 5.08
+/nDet/detector/setDetectorThickness 50.8
+/nDet/detector/setNumColumns 8
+/nDet/detector/setNumRows 4
+
+# Set the wrapping.
+/nDet/detector/setWrapping mylar
+
+# Set the position and rotation of the detector in the lab frame.
+/nDet/detector/setPosition 100 0 0 cm
+/nDet/detector/setRotation 0 0 0
+
+# Load PSPMT gain matrix 
+/nDet/detector/setGainMatrix gains/hamamatsuH12700A_LA0967.dat
+
+# Load PSPMT spectral response function
+/nDet/detector/setSpectralResponse spectral/hamamatsuH12700A.root
+
+# Update the detector.
+/nDet/detector/addGeometry module
+/nDet/detector/update
+
+################
+# SOURCE SETUP #
+################
+
+# Available source types: 137Cs 60Co 133Ba 241Am 90Sr 252Cf
+/nDet/source/type 252Cf
+
+# Set isotropic source (0=off, 1=psuedo, 2=realistic)
+/nDet/source/iso 1
+
+# Set the energy distribution sampling range (in MeV)
+#/nDet/source/range 1.175 1.225 0
+
+###############
+# RUN CONTROL #
+###############
+
+#/run/beamOn 10000
+
