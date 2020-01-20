@@ -68,6 +68,12 @@ mark_as_advanced(FORCE GENREFLEX_EXECUTABLE ROOTCINT_EXECUTABLE ROOT_CONFIG_EXEC
 include_directories(${ROOT_INCLUDE_DIR})
 link_directories(${ROOT_LIBRARY_DIR})
 
+#Find CADMesh
+find_package (cadmesh)
+message(${CADMESH_INCLUDE_DIRS})
+include_directories(${CADMESH_INCLUDE_DIRS})
+#link_directories(${cadmesh_LIBRARIES})
+
 #Inform the user about the Geant4 install version
 message(STATUS "Found ROOT install: v${ROOT_VERSION}")
 
@@ -87,12 +93,14 @@ set(TOP_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
 include(${Geant4_USE_FILE})
 include_directories(include)
 include_directories(dict/include)
+include_directories(olaInclude)
 
 #Add the root dictionary directory.
 add_subdirectory(dict)
 
 #Add the source directories.
 add_subdirectory(source)
+#add_subdirectory(olaSrc)
 
 if(BUILD_TOOLS)
 	option(BUILD_TOOLS_NISTLIST "Build NIST library list program." OFF)
