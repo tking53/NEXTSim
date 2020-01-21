@@ -1,0 +1,126 @@
+#
+# create empty scene
+#
+
+/nDet/detector/addGeometry module
+
+# Use a GDML file for the light guides.
+# NOTE: This MUST be done BEFORE calling '/nDet/detector/update'
+#/nDet/detector/loadGDML gdml/modifiedLightGuide.gdml
+#/nDet/detector/loadGDML gdml/nonSegmentedLightGuide.gdml
+#/nDet/detector/setTrapezoidLength 1.27
+
+#/nDet/detector/setGDMLrotation 90 0 0
+
+# This is important to set for GDML light-guide because
+#  we cannot obtain the information from the model itself.
+/nDet/detector/setPmtDimensions 48.5
+
+# Mylar and optical grease thickness.
+/nDet/detector/setMylarThickness 0.025
+/nDet/detector/setGreaseThickness 0.1
+
+# Light diffuser.
+#/nDet/detector/setDiffuserLength 0.5
+
+# PMT segmentation.
+/nDet/detector/setPmtColumns 8
+/nDet/detector/setPmtRows 8
+
+##################
+# DETECTOR SETUP #
+##################
+
+# NEXT 2x2x10 in^3
+/nDet/detector/setDetectorLength 25.4
+/nDet/detector/setDetectorWidth 5.08
+/nDet/detector/setDetectorThickness 50.8
+/nDet/detector/setNumColumns 8
+/nDet/detector/setNumRows 4
+
+# NEXT 3x3x10 in^3
+#/nDet/detector/setDetectorLength 25.4
+#/nDet/detector/setDetectorWidth 7.62
+#/nDet/detector/setDetectorThickness 76.2
+#/nDet/detector/setNumColumns 12
+#/nDet/detector/setNumRows 6
+
+# Set the wrapping.
+/nDet/detector/setWrapping mylar
+
+# Set the position and rotation of the detector in the lab frame.
+/nDet/detector/setCylindrical 100 0 0
+/nDet/detector/setRotation 0 0 90
+
+# Update the detector.
+/nDet/detector/update
+
+# Load PSPMT gain matrix 
+# NOTE: This MUST be done AFTER calling '/nDet/detector/update' otherwise it will fail
+/nDet/detector/setGainMatrix gains/hamamatsuH12700A_LA0967.dat
+
+# Load PSPMT spectral response function
+/nDet/detector/setSpectralResponse spectral/hamamatsuH12700A.root
+
+################
+# OUTPUT SETUP #
+################
+
+# Set the output filename prefix
+/nDet/output/filename next_test_1m.root
+/nDet/output/title NEXT, 0.5 MeV, 1 m from detector
+#/nDet/output/index 69
+#/nDet/output/overwrite true
+#/nDet/output/persistent true
+#/nDet/output/enabled false
+#/nDet/output/badEvents true
+/nDet/output/debug true
+
+# Setup information about the PMT response
+/nDet/output/trace/setRisetime 2
+/nDet/output/trace/setFalltime 20
+/nDet/output/trace/setTimeSpread 0.35
+/nDet/output/trace/setGain 1E4
+/nDet/output/trace/setBaseline 7.5
+/nDet/output/trace/setJitter 0.15
+
+# Setup the PMT light pulse output
+#/nDet/output/trace/enabled true
+/nDet/output/trace/setTraceDelay 60
+/nDet/output/trace/setTraceLength 500
+/nDet/output/trace/setBitRange 16
+
+/nDet/output/trace/setCfdFraction 0.5
+/nDet/output/trace/setIntegralLow 5
+/nDet/output/trace/setIntegralHigh 10
+
+################
+# SOURCE SETUP #
+################
+
+# Available source types: 137Cs 60Co 133Ba 241Am 90Sr 252Cf
+#/nDet/source/type 252Cf
+
+/nDet/source/type neutron 0.5
+#/nDet/source/beam gamma 0.25
+#/nDet/source/beam 137Cs
+#/nDet/source/beam gamma 0.03
+
+#/nDet/source/spot 38.1
+#/nDet/source/spot 25.4
+#/nDet/source/spot 12.7
+
+# Optical laser beam.
+#/nDet/source/beam laser 360
+#/nDet/source/position 0.1 0 -13.5 cm
+#/nDet/source/direction 0 90 0 
+
+#/nDet/source/iso true
+
+#/nDet/source/range 1.175 1.225 0
+
+###############
+# RUN CONTROL #
+###############
+
+/run/beamOn 10000

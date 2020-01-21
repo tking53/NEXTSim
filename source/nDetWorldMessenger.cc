@@ -33,6 +33,10 @@ void nDetWorldMessenger::addAllCommands(){
 	
 	addCommand(new G4UIcmdWithAString("/nDet/world/loadGDML", this));
 	addGuidance("Load a GDML geometry from a file and place it in the setup area. SYNTAX: loadGDML <filename> <posX> <posY> <posZ> <rotX> <rotY> <rotZ> <matString>");
+
+	addCommand(new G4UIcmdWithoutParameter("/nDet/world/BuildIDS", this));
+	addGuidance("Build basic (non-sensitive) elements of ISOLDE Decay Station like support frames, tape box, and floor");
+
 }
 
 void nDetWorldMessenger::SetNewChildValue(G4UIcommand* command, G4String newValue){
@@ -62,5 +66,8 @@ void nDetWorldMessenger::SetNewChildValue(G4UIcommand* command, G4String newValu
 	}
 	else if(index == 7){
 		fWorld->loadGDML(newValue);
+	}
+	else if(index==8){
+		fWorld->BuildCERNElements();
 	}
 }

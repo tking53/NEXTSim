@@ -4,6 +4,12 @@ build/
 doc/html
 doc/latex
 
+*is632*
+
 *.gdml
+*.stl
+*STL*
+
+*vscode*
 
 version.hh

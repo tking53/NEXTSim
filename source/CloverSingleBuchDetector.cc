@@ -10,8 +10,8 @@
  *************************************************************************/
 
 #include "CloverSingleBuchDetector.hh"
-#include "CloverSingleBuchHit.hh"
-#include "CloverSingleBuchSD.hh"
+//#include "CloverSingleBuchHit.hh"
+//#include "CloverSingleBuchSD.hh"
 #include "CADMesh.hh"
 #include <TText.h>
 #include "G4NistManager.hh"
@@ -46,8 +46,8 @@ G4VPhysicalVolume* CloverSingleBuchDetector::Construct()
     // Detector Construction
     //
     // Meshing
-    mesh_CloverSingle =  new CADMesh(const_cast<char*>(Form("../STL_export/Clover_Bucharest_RefFace/Clover_Assembly_Bucharest_RefModif_Crystal2_%i.stl",cr_nb+2)), mm,  G4ThreeVector( 0*cm, 0*cm, 0*cm), false);
-    G4cout << Form("../STL_export/Clover_Bucharest_RefFace/Clover_Assembly_Bucharest_RefModif_Crystal2_%i.stl",cr_nb+1) << G4endl; 
+    mesh_CloverSingle =  new CADMesh(const_cast<char*>(Form("/home/jheidema/opt/NEXTSim/STL_export/Clover_Bucharest_RefFace/Clover_Assembly_Bucharest_RefModif_Crystal2_%i.stl",cr_nb+2)), mm,  G4ThreeVector( 0*cm, 0*cm, 0*cm), false);
+    G4cout << Form("/home/jheidema/opt/NEXTSim/STL_export/Clover_Bucharest_RefFace/Clover_Assembly_Bucharest_RefModif_Crystal2_%i.stl",cr_nb+1) << G4endl; 
     CloverSingle_sol = mesh_CloverSingle->TessellatedMesh();
     CloverSingle_log = new G4LogicalVolume(CloverSingle_sol, HPGe, Form("/Clover%i_Crystal%i_Buch_log",cl_nb ,cr_nb));
     CloverSingle_log -> SetVisAttributes(det_vis_att);
@@ -55,10 +55,10 @@ G4VPhysicalVolume* CloverSingleBuchDetector::Construct()
    
     CloverSingle_phys = new G4PVPlacement(transformation, Form("/Clover%iCrystal%i_Buch_phys", cl_nb, cr_nb), CloverSingle_log, mother, false, 0);
 
-    G4SDManager* SDman = G4SDManager::GetSDMpointer();
-    cloverSingleBuchSD = new CloverSingleBuchSD(Form("/Clover%i_Crystal%i_Buch_SD", cl_nb, cr_nb));
-    SDman->AddNewDetector(cloverSingleBuchSD);
-    CloverSingle_log->SetSensitiveDetector(cloverSingleBuchSD);
+    //G4SDManager* SDman = G4SDManager::GetSDMpointer();
+    //cloverSingleBuchSD = new CloverSingleBuchSD(Form("/Clover%i_Crystal%i_Buch_SD", cl_nb, cr_nb));
+    //SDman->AddNewDetector(cloverSingleBuchSD);
+    //CloverSingle_log->SetSensitiveDetector(cloverSingleBuchSD);
 
 //    G4cout << "CloverSingle Sensitive Detector Name = " << cloverSingleSD->GetName() << flush << G4endl;
     

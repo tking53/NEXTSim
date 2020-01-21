@@ -13,7 +13,7 @@
 # Set the output filename prefix
 /nDet/output/filename vandle.root
 /nDet/output/title 3x3x60 cm^3 small VANDLE bar with 1 MeV neutron pencil beam at 1 m (wrapped with mylar)
-/nDet/output/debug true
+#/nDet/output/debug true
 
 # Setup information about the PMT response
 /nDet/output/trace/setRisetime 2

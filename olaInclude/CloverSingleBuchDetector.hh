@@ -31,7 +31,7 @@
 #include "G4Transform3D.hh"
 #include "G4PVPlacement.hh"
 #include "G4SDManager.hh"
-#include "CloverSingleBuchSD.hh"
+//#include "CloverSingleBuchSD.hh"
 #include "G4ios.hh"
 #include "CADMesh.hh"
 
@@ -64,7 +64,7 @@ class CloverSingleBuchDetector : public G4VUserDetectorConstruction
 
       G4LogicalVolume* CloverSingle_log;
 
-      CloverSingleBuchSD* cloverSingleBuchSD;
+      //CloverSingleBuchSD* cloverSingleBuchSD;
   
       // Physical and Logical volumes of the environnement
       //

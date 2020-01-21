@@ -21,9 +21,17 @@ set(NextSimCoreSources nDetRunAction.cc nDetActionInitialization.cc nDetEventAct
                        messengerHandler.cc centerOfMass.cc pmtResponse.cc cmcalc.cc photonCounter.cc nistDatabase.cc)
 
 set(NextSimOutputSources nDetMasterOutputFile.cc nDetMasterOutputFileMessenger.cc nDetDataPack.cc)
+#set(NextSimDetectorSources nDetMaterials.cc nDetMaterialsMessenger.cc nDetConstruction.cc nDetConstructionMessenger.cc nDetWorld.cc nDetWorldMessenger.cc
+#                           nDetWorldObject.cc nDetDetector.cc nDetDetectorTypes.cc nDetDetectorMessenger.cc nDetDetectorLayer.cc gdmlSolid.cc nDetDynamicMaterial.cc
+#                           )
 set(NextSimDetectorSources nDetMaterials.cc nDetMaterialsMessenger.cc nDetConstruction.cc nDetConstructionMessenger.cc nDetWorld.cc nDetWorldMessenger.cc
                            nDetWorldObject.cc nDetDetector.cc nDetDetectorTypes.cc nDetDetectorMessenger.cc nDetDetectorLayer.cc gdmlSolid.cc nDetDynamicMaterial.cc
-                           CERNSupport.cc CERNFrame.cc CERNTapeBox.cc MaterialsManager.cc ArgoneFrame.cc)
+                           CERNFrame.cc CERNTapeBox.cc MaterialsManager.cc
+                           CERNSupport.cc ArgoneFrame.cc
+                           CERNFloor.cc
+                           Polyhedron.cc IS530_Chamber.cc IS530_Plastic.cc Tape.cc
+                           CloverQuadBuchDetector.cc CloverQuadDetector.cc CloverSingleBuchDetector.cc CloverSingleDetector.cc
+                           )
 set(NextSimGeneratorSources nDetParticleSource.cc nDetParticleSourceMessenger.cc)
 set(NextSimPeripheralSources optionHandler.cc termColors.cc)
 
@@ -61,6 +69,6 @@ add_custom_command(OUTPUT ${VERSION_HEADER} COMMAND cp ${INTERNAL_VERSION_HEADER
 
 #Build simpleScan executable.
 add_executable(nextSim nextSim.cc)
-target_link_libraries(nextSim NextSimOutput NextSimDetector NextSimGenerator NextSimPeripheral NextSimCore ${Geant4_LIBRARIES} ${ROOT_LIBRARIES})
-#target_link_libraries(nextSim NextSimOutput NextSimDetector NextSimGenerator NextSimPeripheral NextSimCore ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} ${cadmesh_LIBRARIES})
+#target_link_libraries(nextSim NextSimOutput NextSimDetector NextSimGenerator NextSimPeripheral NextSimCore ${Geant4_LIBRARIES} ${ROOT_LIBRARIES})
+target_link_libraries(nextSim NextSimOutput NextSimDetector NextSimGenerator NextSimPeripheral NextSimCore ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} ${cadmesh_LIBRARIES})
 install(TARGETS nextSim DESTINATION bin)

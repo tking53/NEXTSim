@@ -1,0 +1,77 @@
+#mock mac file for Isolde VANDLE Setup
+
+################
+# OUTPUT SETUP #
+################
+
+# Set the output filename prefix
+/nDet/output/filename VANDLE_IDS_1MeV.root
+/nDet/output/title Full run with 26 bar array (45,135 deg) and all IDS elements (1.0 MeV, mylar wrapping, pure iso)
+
+#/nDet/output/debug true
+
+# Setup information about the PMT response
+/nDet/output/trace/setRisetime 2
+/nDet/output/trace/setFalltime 20
+/nDet/output/trace/setTimeSpread 0.35
+/nDet/output/trace/setGain 0.5E3
+/nDet/output/trace/setBaseline 7.5
+/nDet/output/trace/setJitter 0.15
+
+# Setup the PMT light pulse output
+/nDet/output/trace/setTraceDelay 60
+/nDet/output/trace/setTraceLength 500
+/nDet/output/trace/setBitRange 16
+
+/nDet/output/trace/setCfdFraction 0.5
+/nDet/output/trace/setIntegralLow 5
+/nDet/output/trace/setIntegralHigh 15
+
+##############
+#eventually this will be an added functionality to call for adding experimental setups
+##############
+#/nDet/World/buildIDS
+
+
+###############
+# ARRAY Setup #
+###############
+
+
+########## Must Have's ###############
+/nDet/detector/setMylarThickness 0.025
+/nDet/detector/setGreaseThickness 1
+/nDet/detector/setWrapping mylar
+/nDet/detector/setWindowThickness 1.0
+######################################
+
+/nDet/detector/setDetectorLength 120.0
+/nDet/detector/setDetectorWidth 3.0
+/nDet/detector/setDetectorThickness 50.0
+/nDet/detector/setPmtDimensions 30.0
+
+/nDet/detector/setPosition 100 0 0 cm
+/nDet/detector/setRotation 0 0 0
+
+/nDet/detector/addArray rectangle 105 45 135 26
+#/nDet/detector/addGeometry rectangle 
+/nDet/detector/update
+
+
+
+
+################
+# SOURCE SETUP #
+################
+
+# Available source types: 137Cs 60Co 133Ba 241Am 90Sr 252Cf
+#/nDet/source/type 60Co
+
+/nDet/source/type neutron 1.0
+/nDet/source/shape point
+
+# Set isotropic source (0=off, 1=psuedo, 2=realistic)
+/nDet/source/iso 2
+
+
+/run/beamOn 5000000

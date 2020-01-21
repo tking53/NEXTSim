@@ -359,7 +359,7 @@ bool nDetRunAction::processDetector(nDetDetector* det){
 	// Compute "bar" variables.
 	outData.barTOF = (debugData.pulsePhase[0]+debugData.pulsePhase[1])/2;
 	outData.barQDC = std::sqrt(debugData.pulseQDC[0]*debugData.pulseQDC[1]);
-	outData.barMaxADC = std::sqrt(debugData.pulseMax[0]*debugData.pulseMax[1]);
+	outData.barMaxADC = std::sqrt(abs(debugData.pulseMax[0])*abs(debugData.pulseMax[1]));
 	outData.photonComX = (debugData.photonDetComX[0] + debugData.photonDetComX[1]) / 2;
 	outData.photonComY = (debugData.photonDetComY[0] + debugData.photonDetComY[1]) / 2;
 

@@ -20,16 +20,16 @@
 #include "IS530_Chamber.hh"
 #include "IS530_Plastic.hh"
 #include "Polyhedron.hh"
-//#include "CloverSingleDetector.hh"
-//#include "CloverQuadDetector.hh"
-//#include "CloverSingleBuchDetector.hh"
-//#include "CloverQuadBuchDetector.hh"
+#include "CloverSingleDetector.hh"
+#include "CloverQuadDetector.hh"
+#include "CloverSingleBuchDetector.hh"
+#include "CloverQuadBuchDetector.hh"
 #include "global.hh"
 
-//#include "CERNFrame.hh"
-//#include "CERNFloor.hh"
-//#include "CERNTapeBox.hh"
-//#include "CERNSupport.hh"
+#include "CERNFrame.hh"
+#include "CERNFloor.hh"
+#include "CERNTapeBox.hh"
+#include "CERNSupport.hh"
 
 #define DEFAULT_FLOOR_MATERIAL "G4_CONCRETE"
 
@@ -104,151 +104,154 @@ void nDetWorld::buildExpHall(nDetMaterials *materials){
 		obj->placeObject(logV, materials);
 	}
 	
-	//BuildCERNStructures();
+	BuildCERNStructures();
 
 	// Place the experimental hall into the world
 	physV = new G4PVPlacement(0, G4ThreeVector(0, 0, 0), logV, "expHallPhysV", 0, false, 0);
+	
+	BuildCERNElements();
 
 	return;
 }
 
-/* void nDetWorld::BuildCERNStructures(){
+void nDetWorld::BuildCERNStructures(){
 
-   //CERNFloor* cernFloor = new CERNFloor();
-   //G4RotationMatrix* floorRot = new G4RotationMatrix();
-   //G4double floorXPos = -126.5*cm;
-   //G4ThreeVector floorPosition = G4ThreeVector(floorXPos,0., 0.);
-   //cernFloor->Place(floorRot, floorPosition, "cernFloor", logV); 
+   CERNFloor* cernFloor = new CERNFloor();
+   G4RotationMatrix* floorRot = new G4RotationMatrix();
+   G4double floorXPos = -126.5*cm;
+   G4ThreeVector floorPosition = G4ThreeVector(floorXPos,0., 0.);
+   cernFloor->Place(floorRot, floorPosition, "cernFloor", logV); 
    
-   //CERNFrame* cernFrame = new CERNFrame();
-   //G4RotationMatrix* rotFrame = new G4RotationMatrix();
-   //rotFrame->rotateX(0*degree);
-   //G4double frameXPos = -22*cm;
-   //G4double frameZPos = 25*cm;
-   //G4ThreeVector framePosition = G4ThreeVector(frameXPos, 0, frameZPos);
-   //cernFrame->Place(rotFrame, framePosition, "cernFrame", logV); 
+   CERNFrame* cernFrame = new CERNFrame();
+   G4RotationMatrix* rotFrame = new G4RotationMatrix();
+   rotFrame->rotateX(0*degree);
+   G4double frameXPos = -22*cm;
+   G4double frameZPos = 25*cm;
+   G4ThreeVector framePosition = G4ThreeVector(frameXPos, 0, frameZPos);
+   cernFrame->Place(rotFrame, framePosition, "cernFrame", logV); 
 
-   //CERNTapeBox* tapeBox = new CERNTapeBox();
-   //G4RotationMatrix* rotTapeBox = new G4RotationMatrix();
-   //G4double tapeBoxXPos = -86.55*cm;
-   //G4ThreeVector tapeBoxPosition = G4ThreeVector(tapeBoxXPos, 0, 0);
-   //tapeBox->Place(rotTapeBox, tapeBoxPosition, "cernTapeBox", logV);                 
+   CERNTapeBox* tapeBox = new CERNTapeBox();
+   G4RotationMatrix* rotTapeBox = new G4RotationMatrix();
+   G4double tapeBoxXPos = -86.55*cm;
+   G4ThreeVector tapeBoxPosition = G4ThreeVector(tapeBoxXPos, 0, 0);
+   tapeBox->Place(rotTapeBox, tapeBoxPosition, "cernTapeBox", logV);                 
     
-   //CERNSupport* cernSupport = new CERNSupport();
-   //G4RotationMatrix* rotSupport = new G4RotationMatrix(); 
-   //G4ThreeVector supportPos(0.0,0.0, 5.7*cm);  
-   //cernSupport->Place(rotSupport, supportPos, "cernSupport", logV);        
+   CERNSupport* cernSupport = new CERNSupport();
+   G4RotationMatrix* rotSupport = new G4RotationMatrix(); 
+   G4ThreeVector supportPos(0.0,0.0, 5.7*cm);  
+   cernSupport->Place(rotSupport, supportPos, "cernSupport", logV);        
 
-   //ConstructCERNElements();
+   //BuildCERNElements();
 	return;
-} */
+}
 
-//void nDetWorld::ConstructCERNElements(){
-//  //vector<CloverQuadDetector*> 		clquad_array;
-//  //vector<CloverQuadBuchDetector*> 	clquadbuch_array;
-//  vector<Tape*>						tape_array;
-//  vector<Polyhedron*>				poly_array;
-//  //vector<Cubic_Chamber*>			cubic_chamber_array;
-//  vector<IS530_Chamber*>			IS530_chamber_array;
-//  vector<IS530_Plastic*>			IS530_plastic_array;
-//
-//	///setup copied from Ola's config file
-//    /* 1	81		 45		-35.26		15		KU-Blue-103
-//       2	75		-45		-35.26		-15		Buch-Red-99
-//       1	82		-45		 35.26		15		Ku-Yellow-102
-//       2	72		 45		 35.26	 	-15		Buch-Green-101
-//       #2	60		180		0		0		Buch-Extra
-//       8	0		0		0		0	        Tape
-//       #10	0		0		0		0		OSIRIS
-//       #9	0		0		0		0		TPiece-Chamber
-//       12	0		0		0		0		IS530-Chamber
-//       13	0		0		0		0		IS530-Plastic
-//       #14	49		180		0		0		VetoPlastic */
-//
-//	Int_t    gType[7]     = {1,2,1,2,8,12,13};
-//	Double_t gDistance[7] = {81,75,82,72,0,0,0};
-//	Double_t gTheta[7]    = {45,-45,-45,45,0,0,0};
-//	Double_t gPhi[7]      = {-35.26,-35.26,35.26,35.26,0,0,0};
-//	Double_t gSpin[7]     = {15,-15,15,-15,0,0,0};
-//	
-//	for(int l=0;l<gLines;l++){
-//		
-//		/* if(1==gType[l]){   									// Clover KU
-//			clquad_array.push_back(new CloverQuadDetector(	experimentalHallPhys,(G4double) gDistance[l]*mm,(G4double) (gTheta[l]*deg),(G4double) (gPhi[l]*deg),(G4double) (gSpin[l]*deg),clquad_array.size()));
-//			
-//		}
-//		if(2==gType[l]){  								// Clover Buch
-//			clquadbuch_array.push_back(	new CloverQuadBuchDetector(	experimentalHallPhys, (G4double) gDistance[l]*mm, (G4double) (gTheta[l]*deg), (G4double) (gPhi[l]*deg), (G4double) (gSpin[l]*deg), clquadbuch_array.size()));
-//		} */
-//
-//		if(8==gType[l]){  								// Tape
-//			tape_array.push_back(new Tape(phsV));
-//			if(1<tape_array.size()){
-//				cout<<"\nYou can only contruct the tape one time!!!\n";
-//				exit(0);
-//			}
-//		}
-//		if(10==gType[l]){  								// Polyhedron 
-//			poly_array.push_back(new Polyhedron(phsV, (G4double) gDistance[l]*mm, (G4double) (gTheta[l]*deg), (G4double) (gPhi[l]*deg), (G4double) (gSpin[l]*deg)));
-//			if(1<poly_array.size()){
-//				cout<<"\nYou can only contruct the Polyhedron frame one time!!!\n";
-//				exit(0);
-//			}
-//		}		
-//		if(12==gType[l]){  				// IS530 Chamber 
-//			IS530_chamber_array.push_back(new IS530_Chamber(phsV, (G4double) gDistance[l]*mm, (G4double) (gTheta[l]*deg), (G4double) (gPhi[l]*deg), (G4double) (gSpin[l]*deg)));
-//			if(1<IS530_chamber_array.size()){
-//				cout<<"\nYou can only contruct the IS530 chamber frame one time!!!\n"; 
-//				exit(0);
-//			}
-//			
-//		}
-//		if(13==gType[l]){  							// IS530 Plastic - non-sensitive detector 
-//			IS530_plastic_array.push_back(new IS530_Plastic(phsV, (G4double) gDistance[l]*mm, (G4double) (gTheta[l]*deg), (G4double) (gPhi[l]*deg), (G4double) (gSpin[l]*deg)));
-//			if(1<IS530_plastic_array.size()){
-//				cout<<"\nYou can only contruct the IS530 Plastic one time!!!\n"; 
-//				exit(0);
-//			}
-//		}
-//			
-//	}
-//
-//  //Construction
-//
-//  // 1. Clover KU Leuven
-//  /* for (int clq=0; clq<clquad_array.size(); clq++){
-//    clquad_array.at(clq)->Construct();
-//  }
-//  // 2. Clover Bucharest
-//  for (int clq=0; clq<clquadbuch_array.size(); clq++){
-//    clquadbuch_array.at(clq)->Construct();
-//  } */
-//
-//  // 8. Tape
-//  for (int t=0; t<tape_array.size(); t++){
-//    tape_array.at(t)->Construct();
-//  }
-//
-//  // 10. OSIRIS chamber
-//  for (int pl=0; pl<poly_array.size(); pl++){
-//    poly_array.at(pl)->Construct();
-//  }
-//  /*
-//  // 11. Cubic chamber
-//  for (int cc=0; cc<cubic_chamber_array.size(); cc++){
-//    cubic_chamber_array.at(cc)->Construct();
-//  }*/
-//  // 12. IS530 chamber
-//  for (int is=0; is<IS530_chamber_array.size(); is++){
-//    IS530_chamber_array.at(is)->Construct();
-//  }
-//  // 13. IS530 plastic - non sensitive detector
-//  for (int is=0; is<IS530_plastic_array.size(); is++){
-//    IS530_plastic_array.at(is)->Construct();
-//  }
-// 
-//  cout << "CERN setup - DONE" <<endl;
-//}
+void nDetWorld::BuildCERNElements(){
+  vector<CloverQuadDetector*> 		clquad_array;
+  vector<CloverQuadBuchDetector*> 	clquadbuch_array;
+  vector<Tape*>						tape_array;
+  vector<Polyhedron*>				poly_array;
+  //vector<Cubic_Chamber*>			cubic_chamber_array;
+  vector<IS530_Chamber*>			IS530_chamber_array;
+  vector<IS530_Plastic*>			IS530_plastic_array;
+
+	///setup copied from Ola's config file
+    /* 1	81		 45		-35.26		15		KU-Blue-103
+       2	75		-45		-35.26		-15		Buch-Red-99
+       1	82		-45		 35.26		15		Ku-Yellow-102
+       2	72		 45		 35.26	 	-15		Buch-Green-101
+       #2	60		180		0		0		Buch-Extra
+       8	0		0		0		0	        Tape
+       #10	0		0		0		0		OSIRIS
+       #9	0		0		0		0		TPiece-Chamber
+       12	0		0		0		0		IS530-Chamber
+       13	0		0		0		0		IS530-Plastic
+       #14	49		180		0		0		VetoPlastic */
+
+	G4int    gType[7]     = {1,2,1,2,8,12,13};
+	G4double gDistance[7] = {81,75,82,72,0,0,0};
+	G4double gTheta[7]    = {45,-45,-45,45,0,0,0};
+	G4double gPhi[7]      = {-35.26,-35.26,35.26,35.26,0,0,0};
+	G4double gSpin[7]     = {15,-15,15,-15,0,0,0};
+	G4int gLines = 7;
+
+	for(int l=0;l<gLines;l++){
+		
+		if(1==gType[l]){   									// Clover KU
+			clquad_array.push_back(new CloverQuadDetector(	physV,(G4double) gDistance[l]*mm,(G4double) (gTheta[l]*deg),(G4double) (gPhi[l]*deg),(G4double) (gSpin[l]*deg),clquad_array.size()));
+			
+		}
+		if(2==gType[l]){  								// Clover Buch
+			clquadbuch_array.push_back(	new CloverQuadBuchDetector(	physV, (G4double) gDistance[l]*mm, (G4double) (gTheta[l]*deg), (G4double) (gPhi[l]*deg), (G4double) (gSpin[l]*deg), clquadbuch_array.size()));
+		}
+
+		if(8==gType[l]){  								// Tape
+			tape_array.push_back(new Tape(physV));
+			if(1<tape_array.size()){
+				cout<<"\nYou can only contruct the tape one time!!!\n";
+				exit(0);
+			}
+		}
+		if(10==gType[l]){  								// Polyhedron 
+			poly_array.push_back(new Polyhedron(physV, (G4double) gDistance[l]*mm, (G4double) (gTheta[l]*deg), (G4double) (gPhi[l]*deg), (G4double) (gSpin[l]*deg)));
+			if(1<poly_array.size()){
+				cout<<"\nYou can only contruct the Polyhedron frame one time!!!\n";
+				exit(0);
+			}
+		}		
+		if(12==gType[l]){  				// IS530 Chamber 
+			IS530_chamber_array.push_back(new IS530_Chamber(physV, (G4double) gDistance[l]*mm, (G4double) (gTheta[l]*deg), (G4double) (gPhi[l]*deg), (G4double) (gSpin[l]*deg)));
+			if(1<IS530_chamber_array.size()){
+				cout<<"\nYou can only contruct the IS530 chamber frame one time!!!\n"; 
+				exit(0);
+			}
+			
+		}
+		if(13==gType[l]){  							// IS530 Plastic - non-sensitive detector 
+			IS530_plastic_array.push_back(new IS530_Plastic(physV, (G4double) gDistance[l]*mm, (G4double) (gTheta[l]*deg), (G4double) (gPhi[l]*deg), (G4double) (gSpin[l]*deg)));
+			if(1<IS530_plastic_array.size()){
+				cout<<"\nYou can only contruct the IS530 Plastic one time!!!\n"; 
+				exit(0);
+			}
+		}
+			
+	}
+
+  //Construction
+
+  // 1. Clover KU Leuven
+  for (int clq=0; clq<clquad_array.size(); clq++){
+    clquad_array.at(clq)->Construct();
+  }
+  // 2. Clover Bucharest
+  for (int clq=0; clq<clquadbuch_array.size(); clq++){
+    clquadbuch_array.at(clq)->Construct();
+  }
+
+  // 8. Tape
+  for (int t=0; t<tape_array.size(); t++){
+    tape_array.at(t)->Construct();
+  }
+
+  // 10. OSIRIS chamber
+  for (int pl=0; pl<poly_array.size(); pl++){
+    poly_array.at(pl)->Construct();
+  }
+  /*
+  // 11. Cubic chamber
+  for (int cc=0; cc<cubic_chamber_array.size(); cc++){
+    cubic_chamber_array.at(cc)->Construct();
+  }*/
+  // 12. IS530 chamber
+  for (int is=0; is<IS530_chamber_array.size(); is++){
+    IS530_chamber_array.at(is)->Construct();
+  }
+  // 13. IS530 plastic - non sensitive detector
+  for (int is=0; is<IS530_plastic_array.size(); is++){
+    IS530_plastic_array.at(is)->Construct();
+  }
+ 
+  cout << "CERN setup - DONE" <<endl;
+}
 
 
 nDetWorldPrimitive *nDetWorld::addNewPrimitive(const G4String &str){

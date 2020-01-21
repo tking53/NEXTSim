@@ -80,11 +80,11 @@ class nDetWorld{
 
 	/** Build the CERN hall structures
 	 */
-	//void BuildCERNStructures();
+	void BuildCERNStructures();
 
 	/** Build the CERN IDS elements
 	 */
-	//void BuildCERNElements();
+	void BuildCERNElements();
 
 	/** Add a new Geant primitive object to the world
 	  * @param str Space-delimited input string with format specified in nDetWorldPrimitive::decodeArgs()
