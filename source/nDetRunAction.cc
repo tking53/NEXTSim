@@ -354,7 +354,8 @@ bool nDetRunAction::processDetector(nDetDetector* det){
 	}
 
 	// Compute the light balance (Z).
-	outData.lightBalance = (debugData.pulseQDC[0]-debugData.pulseQDC[1])/(debugData.pulseQDC[0]+debugData.pulseQDC[1]);
+	//outData.lightBalance = (debugData.pulseQDC[0]-debugData.pulseQDC[1])/(debugData.pulseQDC[0]+debugData.pulseQDC[1]);
+	outData.lightBalance = (debugData.pulsePhase[0]-debugData.pulsePhase[1]);
 
 	// Compute "bar" variables.
 	outData.barTOF = (debugData.pulsePhase[0]+debugData.pulsePhase[1])/2;

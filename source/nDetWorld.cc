@@ -104,12 +104,17 @@ void nDetWorld::buildExpHall(nDetMaterials *materials){
 		obj->placeObject(logV, materials);
 	}
 	
-	BuildCERNStructures();
+	if(!expName.empty() && expName!="isolde" && expName!="RIKEN" && expName!="ORNL2016" && expName!="Argonne") 
+		cout << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n" <<
+				"<<<<<<<<<<<<<<<<<<<<<<<<< Unrecognizable expriment name. Please check for appropriate naming schemes. >>>>>>>>>>>>>>>>>>>>>>>>>\n" <<
+				"<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n";
+			
+	if(expName=="isolde") BuildCERNStructures();
 
 	// Place the experimental hall into the world
 	physV = new G4PVPlacement(0, G4ThreeVector(0, 0, 0), logV, "expHallPhysV", 0, false, 0);
 	
-	BuildCERNElements();
+	if(expName=="isolde") BuildCERNElements();
 
 	return;
 }
@@ -141,7 +146,7 @@ void nDetWorld::BuildCERNStructures(){
    G4ThreeVector supportPos(0.0,0.0, 5.7*cm);  
    cernSupport->Place(rotSupport, supportPos, "cernSupport", logV);        
 
-   //BuildCERNElements();
+   
 	return;
 }
 
@@ -167,14 +172,14 @@ void nDetWorld::BuildCERNElements(){
        13	0		0		0		0		IS530-Plastic
        #14	49		180		0		0		VetoPlastic */
 
-	G4int    gType[7]     = {1,2,1,2,8,12,13};
-	G4double gDistance[7] = {81,75,82,72,0,0,0};
-	G4double gTheta[7]    = {45,-45,-45,45,0,0,0};
-	G4double gPhi[7]      = {-35.26,-35.26,35.26,35.26,0,0,0};
-	G4double gSpin[7]     = {15,-15,15,-15,0,0,0};
-	G4int gLines = 7;
+	G4int    gType[8]     = {1,2,1,2,8,12,13,10};
+	G4double gDistance[8] = {81,75,82,72,0,0,0,0};
+	G4double gTheta[8]    = {45,-45,-45,45,0,0,0,0};
+	G4double gPhi[8]      = {-35.26,-35.26,35.26,35.26,0,0,0,0};
+	G4double gSpin[8]     = {15,-15,15,-15,0,0,0,0};
+	G4int gLines = 8;
 
-	for(int l=0;l<gLines;l++){
+	for(int l=0;l<gLines-1;l++){
 		
 		if(1==gType[l]){   									// Clover KU
 			clquad_array.push_back(new CloverQuadDetector(	physV,(G4double) gDistance[l]*mm,(G4double) (gTheta[l]*deg),(G4double) (gPhi[l]*deg),(G4double) (gSpin[l]*deg),clquad_array.size()));

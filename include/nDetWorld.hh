@@ -78,6 +78,10 @@ class nDetWorld{
 	  */
 	void buildExpHall(nDetMaterials *materials);
 
+	/** Set Name for experimental setup to be constructed
+	 */
+	void SetExp(std::string const expName_){expName = expName_;}
+
 	/** Build the CERN hall structures
 	 */
 	void BuildCERNStructures();
@@ -132,6 +136,8 @@ class nDetWorld{
 
 	std::vector<nDetWorldObject*> objects; ///< Vector of objects to add to the experimental setup area
 	
+	std::string expName;
+
 	nDetWorldMessenger *messenger; ///< Pointer to the messenger used for this class
 };
 

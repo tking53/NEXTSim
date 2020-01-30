@@ -267,6 +267,10 @@ void nDetConstruction::AddDetectorArray(const G4String &input){
 	}
 }
 
+void nDetConstruction::BuildExp(std::string expName_){
+	expHall->SetExp(expName_);
+}
+
 void nDetConstruction::SetLightYieldMultiplier(const G4double &yield){ 
 	materials.setLightYield(yield);
 }

@@ -165,6 +165,10 @@ class nDetConstruction : public G4VUserDetectorConstruction{
 	  */
 	void GetCopiesOfDetectors(std::vector<nDetDetector> &detectors) const ;
 	
+	/** Set the experimental setup name for construction
+	 */
+	void BuildExp(std::string expName_);
+
   private:
 	nDetConstructionMessenger *fDetectorMessenger; ///< Geant messenger to use for this class
 	
@@ -184,6 +188,8 @@ class nDetConstruction : public G4VUserDetectorConstruction{
 	std::string spectralResponseFilename; ///< Path to the anode quantum efficiency
 
 	nDetWorld *expHall; ///< Pointer to the experimental hall setup area
+
+	//std::string expName; ///< Name of Experimental setup to construct in expHall
 
 	/** Default constructor. Private for singleton class
 	  */

@@ -55,6 +55,7 @@ int main(int argc, char** argv){
 	handler.add(optionExt("verbose", no_argument, NULL, 'v', "", "Toggle verbose mode."));
 	handler.add(optionExt("delay", required_argument, NULL, 'D', "<seconds>", "Set the time delay between successive event counter updates (default=10s)."));
 	handler.add(optionExt("version", no_argument, NULL, 'V', "", "Print the version number."));
+	handler.add(optionExt("exp",required_argument,NULL,'e',"<setup>","Specify experimental hall setup to build (default=none)."));
 #ifdef USE_MULTITHREAD
 	handler.add(optionExt("mt-thread-limit", required_argument, NULL, 'n', "<threads>", "Set the number of threads to use (uses all threads for n <= 0)."));
 	handler.add(optionExt("mt-max-threads", no_argument, NULL, 'T', "", "Print the maximum number of threads."));
@@ -97,17 +98,23 @@ int main(int argc, char** argv){
 		return 0;
 	}
 
+	std::string expName;
+	if(handler.getOption(8)->active)
+		expName = handler.getOption(8)->argument;
+
+
+
 #ifdef USE_MULTITHREAD
 	G4int numberOfThreads = 1; // Sequential mode by default.
-	if(handler.getOption(8)->active){ 
-		G4int userInput = strtol(handler.getOption(8)->argument.c_str(), NULL, 10);
+	if(handler.getOption(9)->active){ 
+		G4int userInput = strtol(handler.getOption(9)->argument.c_str(), NULL, 10);
 		if(userInput > 0) // Set the number of threads to use.
 			numberOfThreads = std::min(userInput, G4Threading::G4GetNumberOfCores());
 		else // Use all available threads.
 			numberOfThreads = G4Threading::G4GetNumberOfCores();
 	}
 	
-	if(handler.getOption(9)->active){ // Print maximum number of threads.
+	if(handler.getOption(10)->active){ // Print maximum number of threads.
 		std::cout << PROGRAM_NAME << ": Max number of threads on this machine is " << G4Threading::G4GetNumberOfCores() << ".\n";
 		return 0;
 	}
@@ -152,6 +159,11 @@ int main(int argc, char** argv){
 	// Set mandatory initialization classes
 	// Initialize the detector
 	nDetConstruction* detector = &nDetConstruction::getInstance(); // The detector builder is a singleton class.
+	if(!expName.empty()){
+		detector->BuildExp(expName);
+	}else std::cout << "<<<<<<<<<<<<<<<<<<<<   No experiment specified for \"-e\" argument. No setup will be constructed. >>>>>>>>>>>>>>>>>>>>\n";
+
+
 	if(yieldMult > 0){ // Modify the photon yield of the detector
 		std::cout << PROGRAM_NAME << ": Setting photon yield multiplier to " << yieldMult << std::endl;
 		detector->SetLightYieldMultiplier(yieldMult);

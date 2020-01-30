@@ -14,7 +14,7 @@ endif(BUILD_TOOLS_CONVERTER)
 
 if(BUILD_TOOLS_CMDSEARCH)
 	add_executable(nextCmdSearch nextCmdSearch.cc)
-	target_link_libraries(nextCmdSearch NextSimOutput NextSimDetector NextSimGenerator NextSimPeripheral NextSimCore ${Geant4_LIBRARIES} ${ROOT_LIBRARIES})
+	target_link_libraries(nextCmdSearch NextSimOutput NextSimDetector NextSimGenerator NextSimPeripheral NextSimCore ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} ${cadmesh_LIBRARIES})
 	install(TARGETS nextCmdSearch DESTINATION bin)
 endif(BUILD_TOOLS_CMDSEARCH)
 
