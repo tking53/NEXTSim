@@ -32,6 +32,7 @@ class nDetMaterials{
     G4Element* fF; ///< Flourine
     G4Element* fSi; ///< Silicon
     G4Element* fAl; ///< Aluminium
+	G4Element* fY; ///< Yttrium
 
     G4Material* fAir; ///< Material corresponding to air
     G4Material* fVacuum; ///< Material corresponding to natural vacuum
@@ -44,6 +45,8 @@ class nDetMaterials{
     G4Material* fMylar; ///< Material corresponding to aluminized mylar
     G4Material* fAcrylic; ///< Material corresponding to acrylic
 	G4Material* fAluminum; ///< Material corresponding to aluminum
+	G4Material* fYSO; ///< Material corresponding to yttrium
+
 
     // Material table properties
     G4MaterialPropertiesTable* fAirMPT; ///< Material properties table for air
