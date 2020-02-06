@@ -33,6 +33,8 @@ class nDetMaterials{
     G4Element* fSi; ///< Silicon
     G4Element* fAl; ///< Aluminium
 	G4Element* fY; ///< Yttrium
+	G4Element* fLa; ///< Yttrium
+	G4Element* fBr; ///< Yttrium
 
     G4Material* fAir; ///< Material corresponding to air
     G4Material* fVacuum; ///< Material corresponding to natural vacuum
@@ -46,6 +48,8 @@ class nDetMaterials{
     G4Material* fAcrylic; ///< Material corresponding to acrylic
 	G4Material* fAluminum; ///< Material corresponding to aluminum
 	G4Material* fYSO; ///< Material corresponding to yttrium
+	G4Material* fLaBr3; ///< Material corresponding to Lanthnum
+	G4Material* fPLA; ///<Material correspondint to PLA
 
 
     // Material table properties
@@ -55,7 +59,7 @@ class nDetMaterials{
     G4MaterialPropertiesTable* fEJ276MPT; ///< Material properties table for EJ-276 scintillator
     G4MaterialPropertiesTable* fGreaseMPT; ///< Material properties table for optical grease
     G4MaterialPropertiesTable* fSiO2MPT; ///< Material properties table for quartz
-    G4MaterialPropertiesTable* fSiliconMPT; ///< Material properties table for silicon
+    G4MaterialPropertiesTable* fSiliconMPT; ///< Material properties tlicable for silicon
 	G4MaterialPropertiesTable* fMylarMPT; ///< Material properties table for aluminized mylar
 	G4MaterialPropertiesTable* fPerfectMPT; ///< Material properties table for a perfect reflector
 	G4MaterialPropertiesTable* fAluminumMPT; ///< Material properties table for aluminum

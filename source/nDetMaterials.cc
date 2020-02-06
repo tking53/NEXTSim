@@ -27,6 +27,8 @@ nDetMaterials::~nDetMaterials(){
 		// Materials
 		delete fGrease;
 		delete fYSO;
+		delete fLaBr3;
+		delete fPLA;
 		
 		// Material properties tables
 		delete fPerfectMPT;
@@ -65,7 +67,8 @@ void nDetMaterials::initialize(){
 	elementList["Si"] = fSi;
 	elementList["Al"] = fAl;
 	elementList["Y"] = fY;
-	
+	elementList["La"] = fLa;
+	elementList["Br"] = fBr;
 	materialList["air"] = fAir;
 	materialList["vacuum"] = fVacuum;
 	materialList["teflon"] = fTeflon;
@@ -73,6 +76,8 @@ void nDetMaterials::initialize(){
     materialList["ej276"] = fEJ276; 
 	materialList["grease"] = fGrease;
 	materialList["yso"] = fYSO;
+	materialList["PLA"] = fPLA;
+	materialList["LaBr3"] = fLaBr3;
 	materialList["quartz"] = fSiO2;
 	materialList["silicon"] = fSilicon;
 	materialList["mylar"] = fMylar;
@@ -358,20 +363,43 @@ void nDetMaterials::defineMaterials(){
 	fSi = nist.searchForElement("Si");
 	fAl = nist.searchForElement("Al");
 	fY = nist.searchForElement("Y");
+	fLa = nist.searchForElement("La");
+	fBr = nist.searchForElement("Br");
 
 	// Air
     fAir = nist.searchForMaterial("G4_AIR");
 
 	// Lab vacuum
 	fVacuum = nist.searchForMaterial("G4_Galactic");
-    // YSO
 
-	fYSO =new G4Material("YSO",2.7*g/cm3, 3); 
+
+    // YSO
+	fYSO =new G4Material("YSO", 4.4*g/cm3, 3); 
 	fYSO->AddElement(fY,2);
 	fYSO->AddElement(fO,5);
 	fYSO->AddElement(fSi,1);
 
 	materialList["yso"] = fYSO;
+
+ // Lanthanum Bromide
+    fLaBr3 = new G4Material("LaBr3", 5.06*g/cm3, 2);
+	fLaBr3->AddElement(fLa,1);
+	fLaBr3->AddElement(fBr,3);
+	
+	materialList["LaBr3"] = fLaBr3;
+
+
+	// PLA
+	fPLA = new G4Material("PLA", 1.24*g/cm3, 3);
+	fPLA->AddElement(fH,1);
+	fPLA->AddElement(fO,3);
+	fPLA->AddElement(fC,3);
+	
+	materialList["PLA"] = fPLA;
+
+
+
+
 
 	/////////////////////////////////////////////////////////////////
 	// Teflon (C2F4)n

@@ -114,14 +114,14 @@ void nDetWorld::buildExpHall(nDetMaterials *materials){
 	// Place the experimental hall into the world
 	physV = new G4PVPlacement(0, G4ThreeVector(0, 0, 0), logV, "expHallPhysV", 0, false, 0);
 	
-	if(expName=="isolde") BuildCERNElements();
+	//if(expName=="isolde") BuildCERNElements();
 
 	return;
 }
 
 void nDetWorld::BuildCERNStructures(){
 
-   CERNFloor* cernFloor = new CERNFloor();
+   /*CERNFloor* cernFloor = new CERNFloor();
    G4RotationMatrix* floorRot = new G4RotationMatrix();
    G4double floorXPos = -126.5*cm;
    G4ThreeVector floorPosition = G4ThreeVector(floorXPos,0., 0.);
@@ -139,7 +139,7 @@ void nDetWorld::BuildCERNStructures(){
    G4RotationMatrix* rotTapeBox = new G4RotationMatrix();
    G4double tapeBoxXPos = -86.55*cm;
    G4ThreeVector tapeBoxPosition = G4ThreeVector(tapeBoxXPos, 0, 0);
-   tapeBox->Place(rotTapeBox, tapeBoxPosition, "cernTapeBox", logV);                 
+   tapeBox->Place(rotTapeBox, tapeBoxPosition, "cernTapeBox", logV); */                
     
    CERNSupport* cernSupport = new CERNSupport();
    G4RotationMatrix* rotSupport = new G4RotationMatrix(); 

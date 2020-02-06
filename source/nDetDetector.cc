@@ -73,7 +73,9 @@ void nDetDetectorParams::SetPmtDimension(const G4double &width, const G4double &
 void nDetDetectorParams::SetPositionCylindrical(const G4ThreeVector &position){ 
 	double x = position.getX()*std::cos(position.getY()*deg);
 	double z = position.getX()*std::sin(position.getY()*deg);
-	detectorPosition = G4ThreeVector(x*cm, position.getZ()*cm, z*cm);
+	detectorPosition = G4ThreeVector(x*cm, z*cm, 0);
+	//detectorPosition = G4ThreeVector(x*cm, position.getZ()*cm, z*cm);
+
 }
 
 void nDetDetectorParams::SetPositionSpherical(const G4ThreeVector &position){ 

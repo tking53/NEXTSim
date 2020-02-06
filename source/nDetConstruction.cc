@@ -262,7 +262,7 @@ void nDetConstruction::AddDetectorArray(const G4String &input){
 	for(int i = 0; i < Ndet; i++){
 		//std::cout << " nDetConstruction: Adding detector (type=" << args.at(0) << ", r=" << r0 << ", theta=" << startTheta+dTheta*i << ")\n";
 		params.SetPositionCylindrical(G4ThreeVector(r0, startTheta+dTheta*i, 0));
-		params.SetRotation(G4ThreeVector(90, 0, startTheta+dTheta*i));
+		params.SetRotation(G4ThreeVector(180, 0, startTheta+dTheta*i));
 		AddGeometry(args.at(0));
 	}
 }
