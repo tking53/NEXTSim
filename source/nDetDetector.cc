@@ -283,6 +283,33 @@ void nDetDetector::construct(){
 
 	// Attach PMTs.
 	constructPSPmts();
+
+	
+   // HaGRID_Construction()
+   
+	auto n_daughter = assembly_logV->GetNoDaughters();
+	std::vector<G4ThreeVector> hagrid_transformation = {G4ThreeVector(0,0,10*cm), G4ThreeVector(0,0,2*cm), G4ThreeVector(0,0,3*cm), G4ThreeVector(0,0,4*cm) };
+	for (int i = 0; i < n_daughter ; i++) {
+		auto logV = assembly_logV->GetDaughter(i);
+		if(logV->GetName()=="3in_hag_3in_hag_pmt_p"){
+			for(auto & vec : hagrid_transformation){
+				std::string name = "hagrid" + std::to_string(i);
+				new G4PVPlacement(NULL, vec, logV->GetLogicalVolume(), name, assembly_logV, false, i);
+			}
+		}
+		std::cout << logV->GetName() << std::endl;
+	/*	if(logV->GetName("3in_hag_3in_hag_crystal_p")){
+			new G4PVPlacement();
+		}
+		if(logV->GetName("3in_hag_3in_hag_shell_p")){
+			new G4PVPlacement();
+		}*/
+	
+	}
+
+
+
+
 }
 
 G4LogicalVolume *nDetDetector::constructAssembly(){
@@ -548,7 +575,8 @@ void nDetDetector::loadGDML(gdmlSolid *solid){
 		return;
 
 	std::cout << " nDetDetector: Loaded GDML model (name=" << solid->getName() << ") with size x=" << solid->getWidth() << " mm, y=" << solid->getThickness() << " mm, z=" << solid->getLength() << " mm\n";
-	
+
+	std::cout << solid->getPhysicalVolume()->GetName() << std::endl;
 	// Place loaded model into the assembly.
 	solid->placeSolid(assembly_logV, checkOverlaps);
 }

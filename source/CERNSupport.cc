@@ -48,7 +48,7 @@ void CERNSupport::Place(G4RotationMatrix *pRot,
 
     frameMaterial = materialsManager->GetAluminum();
     
-	G4VSolid* ribsSolid =  argoneFrame->GetRibsSolid();
+/*	G4VSolid* ribsSolid =  argoneFrame->GetRibsSolid();
     //G4VSolid* ribsTotSolid = AddHolders(ribsSolid); 
 
     G4LogicalVolume* ribLogical = new G4LogicalVolume(ribsSolid, 
@@ -57,9 +57,9 @@ void CERNSupport::Place(G4RotationMatrix *pRot,
                                                       
                                                       
                                                       
-    /*G4LogicalVolume* ribLogical = new G4LogicalVolume(ribsTotSolid, 
+    G4LogicalVolume* ribLogical = new G4LogicalVolume(ribsTotSolid, 
                                                       frameMaterial, 
-                                                      "ribsTotSolid"); */
+                                                      "ribsTotSolid"); 
 	ribLogical->SetVisAttributes(argSupportVisAtt); 
 	//left
 	G4double distRibs = 45.593/2.0*cm;
@@ -88,8 +88,9 @@ void CERNSupport::Place(G4RotationMatrix *pRot,
 	                   pMotherLogical, 
 	                   0, 
 	                   0 ); 
+                       */
    //G4ThreeVector offset = G4ThreeVector(0, 0, 0);
-   std::string file1 = "/ARCHIVE/Ddata/geant4_stl/vandle/riken2018/riken_8020_frame.stl";
+   std::string file1 = "/ARCHIVE/Ddata/geant4_stl/vandle/riken2018/RIKEN_VANDLE_FULL_Simplified_Part_new.stl";
    CADMesh * rebMesh = new CADMesh((char*)file1.c_str());
    rebMesh->SetScale(cm);
 
@@ -99,14 +100,15 @@ void CERNSupport::Place(G4RotationMatrix *pRot,
    ribLogic->SetVisAttributes(argSupportVisAtt);
    
    G4RotationMatrix ribRot(*pRot);
-   ribRot.rotateY(-90.0*deg);
-   G4ThreeVector ribPos(-1.225*m,0, 163.*cm);
+   ribRot.rotateX(-90.0*deg);
+   ribRot.rotateY(180.0*deg);
+   G4ThreeVector ribPos(0 ,-5.0*cm, -7.0*cm);
    ribPos = tlate + ribPos;
    G4Transform3D transfRib(ribRot,ribPos);     
    new G4PVPlacement(transfRib,ribLogic,"frameRibs", pMotherLogical, 0, 0);
 	
 	
-	//PlaceSkeleton(pRot, tlate, pName, pMotherLogical, pCopyNo);
+  // PlaceSkeleton(pRot, tlate, pName, pMotherLogical, pCopyNo);
 //112.9284
 
 }

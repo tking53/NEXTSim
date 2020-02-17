@@ -28,7 +28,7 @@ set(NextSimDetectorSources nDetMaterials.cc nDetMaterialsMessenger.cc nDetConstr
                            nDetWorldObject.cc nDetDetector.cc nDetDetectorTypes.cc nDetDetectorMessenger.cc nDetDetectorLayer.cc gdmlSolid.cc nDetDynamicMaterial.cc
                            CERNFrame.cc CERNTapeBox.cc MaterialsManager.cc
                            CERNSupport.cc ArgoneFrame.cc
-                           CERNFloor.cc
+                           CERNFloor.cc 
                            Polyhedron.cc IS530_Chamber.cc IS530_Plastic.cc Tape.cc
                            CloverQuadBuchDetector.cc CloverQuadDetector.cc CloverSingleBuchDetector.cc CloverSingleDetector.cc
                            )

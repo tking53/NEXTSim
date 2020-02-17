@@ -86,9 +86,18 @@ class nDetWorld{
 	 */
 	void BuildCERNStructures();
 
+    /** Build the RIKEN hall structures
+	 */
+	void BuildRIKENStructures();
+
 	/** Build the CERN IDS elements
 	 */
 	void BuildCERNElements();
+
+	/** Build the RIKEN IDS elements
+	 */
+	
+	void BuildRIKENElements();
 
 	/** Add a new Geant primitive object to the world
 	  * @param str Space-delimited input string with format specified in nDetWorldPrimitive::decodeArgs()

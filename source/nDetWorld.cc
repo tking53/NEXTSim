@@ -110,24 +110,54 @@ void nDetWorld::buildExpHall(nDetMaterials *materials){
 				"<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n";
 			
 	if(expName=="isolde") BuildCERNStructures();
+   
+
+	//if(expName=="RIKEN") BuildRIKENStructures();
 
 	// Place the experimental hall into the world
 	physV = new G4PVPlacement(0, G4ThreeVector(0, 0, 0), logV, "expHallPhysV", 0, false, 0);
+ 
+    /**Placing BRIKEN Detector**/
+
+	G4VSolid* BRIKEN_BLOCK = new G4Box("BRIKEN_BLOCK", 450*mm, 450*mm, 375*mm);
+	G4VSolid* BRIKEN_HOLE = new G4Box("BRIKEN_HOLE", 70*mm, 70*mm, 375*mm);
+	G4VSolid* BRIKEN = new G4SubtractionSolid("BRIKEN_BLOCK-BRIKEN_HOLE", BRIKEN_BLOCK, BRIKEN_HOLE, 0 , G4ThreeVector(0,0,0));
+    G4LogicalVolume* BRIKEN_Log = new G4LogicalVolume(BRIKEN, materials->getMaterial("HDPE"), "BRIKEN", 0, 0, 0);
+	G4VPhysicalVolume* BRIKEN_phys = new G4PVPlacement(0, G4ThreeVector(0, 0, 1.0*m), BRIKEN_Log, "BRIKEN_phys", logV, false, 0);
+
+
+    /**Placing Aluminium in the place**/
+ 
+    G4RotationMatrix* PSPMTRot = new G4RotationMatrix();
+    PSPMTRot->rotateZ(45*deg);
+    G4VSolid* PSPMT = new G4Box("PSPMT", 25*mm, 25*mm, 25*mm);
+    G4LogicalVolume* PSPMT_Log = new G4LogicalVolume(PSPMT, materials->getMaterial("G4_Al"), "PSPMT", 0, 0, 0);
+	G4VPhysicalVolume* PSPMT_phys = new G4PVPlacement(PSPMTRot, G4ThreeVector(0, 0, -17.*mm), PSPMT_Log, "PSPMT_phys", logV, false, 0);   
+
+ 
+
 	
+
 	//if(expName=="isolde") BuildCERNElements();
+	
 
 	return;
 }
 
 void nDetWorld::BuildCERNStructures(){
 
-   /*CERNFloor* cernFloor = new CERNFloor();
+   CERNFloor* cernFloor = new CERNFloor();
    G4RotationMatrix* floorRot = new G4RotationMatrix();
+   floorRot->rotateZ(90*deg);
    G4double floorXPos = -126.5*cm;
-   G4ThreeVector floorPosition = G4ThreeVector(floorXPos,0., 0.);
+   G4ThreeVector floorPosition = G4ThreeVector(0, -215*cm, 0);
    cernFloor->Place(floorRot, floorPosition, "cernFloor", logV); 
+
+
+
    
-   CERNFrame* cernFrame = new CERNFrame();
+   
+   /*CERNFrame* cernFrame = new CERNFrame();
    G4RotationMatrix* rotFrame = new G4RotationMatrix();
    rotFrame->rotateX(0*degree);
    G4double frameXPos = -22*cm;
@@ -139,16 +169,28 @@ void nDetWorld::BuildCERNStructures(){
    G4RotationMatrix* rotTapeBox = new G4RotationMatrix();
    G4double tapeBoxXPos = -86.55*cm;
    G4ThreeVector tapeBoxPosition = G4ThreeVector(tapeBoxXPos, 0, 0);
-   tapeBox->Place(rotTapeBox, tapeBoxPosition, "cernTapeBox", logV); */                
-    
+   tapeBox->Place(rotTapeBox, tapeBoxPosition, "cernTapeBox", logV);              
+
+  */
    CERNSupport* cernSupport = new CERNSupport();
    G4RotationMatrix* rotSupport = new G4RotationMatrix(); 
    G4ThreeVector supportPos(0.0,0.0, 5.7*cm);  
-   cernSupport->Place(rotSupport, supportPos, "cernSupport", logV);        
+   cernSupport->Place(rotSupport, supportPos, "cernSupport", logV);       
 
-   
-	return;
+   return;
 }
+
+/*
+void nDetWorld::BuildRIKENStructures(){
+
+   RIKENFloor* RIKENFloor = new RIKENFloor();
+   G4RotationMatrix* floorRot = new G4RotationMatrix();
+   G4double floorRikenYPos = -126.5*cm;
+   G4ThreeVector floorPosition = G4ThreeVector(0. ,floorRikenYPos, 0.);
+   RIKENFloor->Place(floorRot, floorPosition, "RIKENFloor", logV); 
+   return;
+}
+*/
 
 void nDetWorld::BuildCERNElements(){
   vector<CloverQuadDetector*> 		clquad_array;

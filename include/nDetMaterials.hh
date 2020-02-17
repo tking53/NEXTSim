@@ -50,6 +50,7 @@ class nDetMaterials{
 	G4Material* fYSO; ///< Material corresponding to yttrium
 	G4Material* fLaBr3; ///< Material corresponding to Lanthnum
 	G4Material* fPLA; ///<Material correspondint to PLA
+	G4Material* fHDPE; ///<Material correspondint to HDPE
 
 
     // Material table properties

@@ -29,6 +29,7 @@ nDetMaterials::~nDetMaterials(){
 		delete fYSO;
 		delete fLaBr3;
 		delete fPLA;
+		delete fHDPE;
 		
 		// Material properties tables
 		delete fPerfectMPT;
@@ -78,6 +79,7 @@ void nDetMaterials::initialize(){
 	materialList["yso"] = fYSO;
 	materialList["PLA"] = fPLA;
 	materialList["LaBr3"] = fLaBr3;
+	materialList["HDPE"] = fHDPE;
 	materialList["quartz"] = fSiO2;
 	materialList["silicon"] = fSilicon;
 	materialList["mylar"] = fMylar;
@@ -374,28 +376,41 @@ void nDetMaterials::defineMaterials(){
 
 
     // YSO
-	fYSO =new G4Material("YSO", 4.4*g/cm3, 3); 
-	fYSO->AddElement(fY,2);
-	fYSO->AddElement(fO,5);
-	fYSO->AddElement(fSi,1);
+	G4int ncomp = 3;
+	fYSO =new G4Material("YSO", 4.5*g/cm3, ncomp); 
+	G4int nAtoms;
+	fYSO->AddElement(fY,  nAtoms=2);
+	fYSO->AddElement(fSi,  nAtoms=1);
+	fYSO->AddElement(fO,  nAtoms=5);
+	
 
 	materialList["yso"] = fYSO;
-
- // Lanthanum Bromide
-    fLaBr3 = new G4Material("LaBr3", 5.06*g/cm3, 2);
-	fLaBr3->AddElement(fLa,1);
-	fLaBr3->AddElement(fBr,3);
+    
+    // Lanthanum Bromide
+	G4int ncomp_labr3 = 2;
+    fLaBr3 = new G4Material("LaBr3", 5.06*g/cm3, ncomp_labr3);
+	fLaBr3->AddElement(fLa,  nAtoms=1);
+	fLaBr3->AddElement(fBr,  nAtoms=3);
 	
 	materialList["LaBr3"] = fLaBr3;
 
-
 	// PLA
-	fPLA = new G4Material("PLA", 1.24*g/cm3, 3);
-	fPLA->AddElement(fH,1);
-	fPLA->AddElement(fO,3);
-	fPLA->AddElement(fC,3);
+	G4int ncomp_PLA = 3;
+	fPLA = new G4Material("PLA", 1.24*g/cm3, ncomp_PLA);
+	fPLA->AddElement(fH,  nAtoms = 1);
+	fPLA->AddElement(fO,  nAtoms = 3);
+	fPLA->AddElement(fC,  nAtoms = 3);
 	
 	materialList["PLA"] = fPLA;
+
+	// HDPE
+	G4int ncomp_HDPE = 2;
+	fHDPE = new G4Material("HDPE", 940*kg/m3, ncomp_HDPE);
+	fHDPE->AddElement(fH,  nAtoms = 4);
+	fHDPE->AddElement(fC,  nAtoms = 2);
+	
+	materialList["HDPE"] = fHDPE;
+
 
 
 
