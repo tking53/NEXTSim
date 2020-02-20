@@ -3,8 +3,8 @@
 /// \file ArgoneFrame.hh
 /// \brief Definition of the ArgoneFrame class
 //
-#ifndef ArgoneFrame_H
-#define ArgoneFrame_H 1
+#ifndef RIKENSupport_H
+#define RIKENSupport_H 1
 #include "G4RotationMatrix.hh"
 #include "G4ThreeVector.hh"
 #include "G4LogicalVolume.hh"
@@ -13,21 +13,18 @@
 #include "G4Material.hh"
 #include "G4VSolid.hh"
 
-class ArgoneFrame
+
+class RIKENSupport
 {
   public:
 
-    ArgoneFrame(); 
-    virtual ~ArgoneFrame(); 
+    RIKENSupport(); 
+    virtual ~RIKENSupport(); 
     void Place(G4RotationMatrix *pRot, 
                G4ThreeVector &tlate, 
                const G4String &pName, 
                G4LogicalVolume *pMotherLogical,  
                G4int pCopyNo = 0);
-    G4VSolid* GetRibsSolid();
-    G4double GetRibsX() {return boxB_x;}
-    G4double GetRibsY() {return boxB_y;}
-    G4double GetRibsZ() {return boxB_z;}
                
   private:
      void SetBasicSizes();
@@ -37,16 +34,13 @@ class ArgoneFrame
                         G4LogicalVolume *pMotherLogical,  
                         G4int pCopyNo = 0);
                         
-     G4VSolid* MakeRibsSolid(); 
      G4VSolid* AddHolders(G4VSolid*ribsSolid);
      G4VisAttributes* argSupportVisAtt;                                                                                        
      MaterialsManager* materialsManager;
      G4Material* frameMaterial;
-     
-     G4double boxB_x;    
-     G4double boxB_y;    
-     G4double boxB_z;
-
+     G4double ribX;
+     G4double ribY;
+     G4double ribZ;
 };
 
 

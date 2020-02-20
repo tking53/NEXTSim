@@ -28,8 +28,10 @@
 
 #include "CERNFrame.hh"
 #include "CERNFloor.hh"
+#include "RIKENFloor.hh"
 #include "CERNTapeBox.hh"
 #include "CERNSupport.hh"
+#include "RIKENSupport.hh"
 
 #define DEFAULT_FLOOR_MATERIAL "G4_CONCRETE"
 
@@ -109,10 +111,10 @@ void nDetWorld::buildExpHall(nDetMaterials *materials){
 				"<<<<<<<<<<<<<<<<<<<<<<<<< Unrecognizable expriment name. Please check for appropriate naming schemes. >>>>>>>>>>>>>>>>>>>>>>>>>\n" <<
 				"<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n";
 			
-	if(expName=="isolde") BuildCERNStructures();
+	//if(expName=="RIKEN") BuildCERNStructures();
    
 
-	//if(expName=="RIKEN") BuildRIKENStructures();
+	if(expName=="RIKEN") BuildRIKENStructures();
 
 	// Place the experimental hall into the world
 	physV = new G4PVPlacement(0, G4ThreeVector(0, 0, 0), logV, "expHallPhysV", 0, false, 0);
@@ -123,74 +125,126 @@ void nDetWorld::buildExpHall(nDetMaterials *materials){
 	G4VSolid* BRIKEN_HOLE = new G4Box("BRIKEN_HOLE", 70*mm, 70*mm, 375*mm);
 	G4VSolid* BRIKEN = new G4SubtractionSolid("BRIKEN_BLOCK-BRIKEN_HOLE", BRIKEN_BLOCK, BRIKEN_HOLE, 0 , G4ThreeVector(0,0,0));
     G4LogicalVolume* BRIKEN_Log = new G4LogicalVolume(BRIKEN, materials->getMaterial("HDPE"), "BRIKEN", 0, 0, 0);
-	G4VPhysicalVolume* BRIKEN_phys = new G4PVPlacement(0, G4ThreeVector(0, 0, 1.0*m), BRIKEN_Log, "BRIKEN_phys", logV, false, 0);
+	G4VPhysicalVolume* BRIKEN_phys = new G4PVPlacement(0, G4ThreeVector(0, 0, 1.25*m), BRIKEN_Log, "BRIKEN_phys", logV, false, 0);
 
 
-    /**Placing Aluminium in the place**/
+    /**Placing PSPMT**/
  
     G4RotationMatrix* PSPMTRot = new G4RotationMatrix();
     PSPMTRot->rotateZ(45*deg);
-    G4VSolid* PSPMT = new G4Box("PSPMT", 25*mm, 25*mm, 25*mm);
+    G4VSolid* PSPMT_Outer = new G4Box("PSPMT_Outer", 25*mm, 25*mm, 25*mm);
+	G4VSolid* PSPMT_Inner = new G4Box("PSPMT_Inner", 23*mm, 23*mm, 23*mm);
+	G4VSolid* PSPMT = new G4SubtractionSolid("PSPMT_Outer-PSPMT_Inner", PSPMT_Outer , PSPMT_Inner, 0 , G4ThreeVector(0,0,0));
     G4LogicalVolume* PSPMT_Log = new G4LogicalVolume(PSPMT, materials->getMaterial("G4_Al"), "PSPMT", 0, 0, 0);
 	G4VPhysicalVolume* PSPMT_phys = new G4PVPlacement(PSPMTRot, G4ThreeVector(0, 0, -17.*mm), PSPMT_Log, "PSPMT_phys", logV, false, 0);   
 
- 
+   
 
 	
 
-	//if(expName=="isolde") BuildCERNElements();
+	if(expName=="RIKEN") BuildRIKENElements();
 	
 
 	return;
 }
-
+/*
 void nDetWorld::BuildCERNStructures(){
-
+  
    CERNFloor* cernFloor = new CERNFloor();
    G4RotationMatrix* floorRot = new G4RotationMatrix();
    floorRot->rotateZ(90*deg);
    G4double floorXPos = -126.5*cm;
-   G4ThreeVector floorPosition = G4ThreeVector(0, -215*cm, 0);
+   G4ThreeVector floorPosition = G4ThreeVector(0, -210*cm, 0);
    cernFloor->Place(floorRot, floorPosition, "cernFloor", logV); 
 
 
-
-   
-   
-   /*CERNFrame* cernFrame = new CERNFrame();
-   G4RotationMatrix* rotFrame = new G4RotationMatrix();
-   rotFrame->rotateX(0*degree);
-   G4double frameXPos = -22*cm;
-   G4double frameZPos = 25*cm;
-   G4ThreeVector framePosition = G4ThreeVector(frameXPos, 0, frameZPos);
-   cernFrame->Place(rotFrame, framePosition, "cernFrame", logV); 
-
-   CERNTapeBox* tapeBox = new CERNTapeBox();
-   G4RotationMatrix* rotTapeBox = new G4RotationMatrix();
-   G4double tapeBoxXPos = -86.55*cm;
-   G4ThreeVector tapeBoxPosition = G4ThreeVector(tapeBoxXPos, 0, 0);
-   tapeBox->Place(rotTapeBox, tapeBoxPosition, "cernTapeBox", logV);              
-
-  */
    CERNSupport* cernSupport = new CERNSupport();
    G4RotationMatrix* rotSupport = new G4RotationMatrix(); 
-   G4ThreeVector supportPos(0.0,0.0, 5.7*cm);  
+   G4ThreeVector supportPos(0.0,4*cm, 7*cm);  
    cernSupport->Place(rotSupport, supportPos, "cernSupport", logV);       
 
    return;
 }
-
-/*
+*/
 void nDetWorld::BuildRIKENStructures(){
-
-   RIKENFloor* RIKENFloor = new RIKENFloor();
+  
+   RIKENFloor* rikenFloor = new RIKENFloor();
    G4RotationMatrix* floorRot = new G4RotationMatrix();
-   G4double floorRikenYPos = -126.5*cm;
-   G4ThreeVector floorPosition = G4ThreeVector(0. ,floorRikenYPos, 0.);
-   RIKENFloor->Place(floorRot, floorPosition, "RIKENFloor", logV); 
+   floorRot->rotateZ(90*deg);
+   G4double floorXPos = -126.5*cm;
+   G4ThreeVector floorPosition = G4ThreeVector(0, -210*cm, 0);
+   rikenFloor->Place(floorRot, floorPosition, "rikenFloor", logV); 
+
+
+   RIKENSupport* rikenSupport = new RIKENSupport();
+   G4RotationMatrix* rotSupport = new G4RotationMatrix(); 
+   G4ThreeVector supportPos(0.0,4*cm, 7*cm);  
+   rikenSupport->Place(rotSupport, supportPos, "rikenSupport", logV);       
+
    return;
 }
-*/
+
+
+
+ 
+void nDetWorld::BuildRIKENElements(){
+
+ vector<CloverQuadDetector*> 		clquad_array;
+ vector<CloverQuadBuchDetector*> 	clquadbuch_array;
+  
+  
+	///setup copied from Ola's config file
+    /* 1	81		 45		-35.26		15		KU-Blue-103
+       2	75		-45		-35.26		-15		Buch-Red-99
+       1	82		-45		 35.26		15		Ku-Yellow-102
+       2	72		 45		 35.26	 	-15		Buch-Green-101
+       #2	60		180		0		0		Buch-Extra
+       8	0		0		0		0	        Tape
+       #10	0		0		0		0		OSIRIS
+       #9	0		0		0		0		TPiece-Chamber
+       12	0		0		0		0		IS530-Chamber
+       13	0		0		0		0		IS530-Plastic
+       #14	49		180		0		0		VetoPlastic */
+
+	G4int    gType[8]     = {1,1};
+	G4double gDistance[8] = {50,50};
+	G4double gTheta[8]    = {90,90,};
+	G4double gPhi[8]      = {135,-135};
+	G4double gSpin[8]     = {0,0};
+	G4int gLines = 2;
+    
+	for(int l=0;l<gLines;l++){
+		
+		if(1==gType[l]){   									// Clover KU
+			clquad_array.push_back(new CloverQuadDetector(	physV,(G4double) gDistance[l]*mm,(G4double) (gTheta[l]*deg),(G4double) (gPhi[l]*deg),(G4double) (gSpin[l]*deg),clquad_array.size()));
+			
+		}
+		if(2==gType[l]){  								// Clover Buch
+			clquadbuch_array.push_back(	new CloverQuadBuchDetector(	physV, (G4double) gDistance[l]*mm, (G4double) (gTheta[l]*deg), (G4double) (gPhi[l]*deg), (G4double) (gSpin[l]*deg), clquadbuch_array.size()));
+		}
+			
+	}
+
+
+
+  //Construction
+
+  // 1. Clover KU Leuven
+  for (int clq=0; clq<clquad_array.size(); clq++){
+    clquad_array.at(clq)->Construct();
+  }
+  // 2. Clover Bucharest
+  for (int clq=0; clq<clquadbuch_array.size(); clq++){
+    clquadbuch_array.at(clq)->Construct();
+  }
+ 
+  cout << "CERN setup - DONE" <<endl;
+
+
+}
+
+
+
 
 void nDetWorld::BuildCERNElements(){
   vector<CloverQuadDetector*> 		clquad_array;
@@ -220,7 +274,7 @@ void nDetWorld::BuildCERNElements(){
 	G4double gPhi[8]      = {-35.26,-35.26,35.26,35.26,0,0,0,0};
 	G4double gSpin[8]     = {15,-15,15,-15,0,0,0,0};
 	G4int gLines = 8;
-
+    
 	for(int l=0;l<gLines-1;l++){
 		
 		if(1==gType[l]){   									// Clover KU
@@ -262,6 +316,8 @@ void nDetWorld::BuildCERNElements(){
 		}
 			
 	}
+
+
 
   //Construction
 

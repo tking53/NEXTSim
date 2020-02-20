@@ -4,7 +4,7 @@
 /// \brief Definition of the CERNFloor class
 //
 #ifndef CERNFloor_H
-#define CERNFloor_H1
+#define CERNFloor_H 1
 #include "G4RotationMatrix.hh"
 #include "G4ThreeVector.hh"
 #include "G4LogicalVolume.hh"
