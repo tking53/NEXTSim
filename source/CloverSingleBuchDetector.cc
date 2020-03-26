@@ -47,7 +47,7 @@ G4VPhysicalVolume* CloverSingleBuchDetector::Construct()
     //
     // Meshing
     mesh_CloverSingle =  new CADMesh(const_cast<char*>(Form("/home/jheidema/opt/NEXTSim/STL_export/Clover_Bucharest_RefFace/Clover_Assembly_Bucharest_RefModif_Crystal2_%i.stl",cr_nb+2)), mm,  G4ThreeVector( 0*cm, 0*cm, 0*cm), false);
-    G4cout << Form("/home/jheidema/opt/NEXTSim/STL_export/Clover_Bucharest_RefFace/Clover_Assembly_Bucharest_RefModif_Crystal2_%i.stl",cr_nb+1) << G4endl; 
+    //G4cout << Form("/home/jheidema/opt/NEXTSim/STL_export/Clover_Bucharest_RefFace/Clover_Assembly_Bucharest_RefModif_Crystal2_%i.stl",cr_nb+1) << G4endl; 
     CloverSingle_sol = mesh_CloverSingle->TessellatedMesh();
     CloverSingle_log = new G4LogicalVolume(CloverSingle_sol, HPGe, Form("/Clover%i_Crystal%i_Buch_log",cl_nb ,cr_nb));
     CloverSingle_log -> SetVisAttributes(det_vis_att);

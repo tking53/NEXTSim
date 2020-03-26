@@ -129,6 +129,11 @@ class nDetRunAction : public G4UserRunAction
 	  */
 	void setOutputDebug(const bool &enabled){ outputDebug = enabled; }
 
+	/** Enable or disable copying of certain debug variables to multi detector data structure
+	  */
+	void setOutputMultiDebug(const bool &enabled){ outputMultiDebug = enabled; }
+
+
 	/** Toggle the verbosity flag and return its state
 	  */
 	bool toggleVerboseMode(){ return (verbose = !verbose); }
@@ -237,6 +242,7 @@ class nDetRunAction : public G4UserRunAction
 	
 	bool outputTraces; ///< Flag indicating that traces will be written to the output tree
 	bool outputDebug; ///< Flag indicating that the user has requested low-level debug to be written to the output file
+	bool outputMultiDebug; ///< Flag indicating reduced debug readout when using multiple detectors
 	bool verbose; ///< Verbosity flag
 
 	nDetEventAction *eventAction; ///< Pointer to the thread-local user event action

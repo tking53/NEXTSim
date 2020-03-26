@@ -15,7 +15,10 @@
 #include "nDetMasterOutputFile.hh"
 #include "termColors.hh"
 
-const double KINETIC_ENERGY_THRESHOLD = 0.001; // MeV
+const double KINETIC_ENERGY_THRESHOLD = 0.02; // MeV
+
+std::default_random_engine generator;
+std::normal_distribution<double> distribution(0.5,0.3);
 
 /// Returns the dot product of two vectors i.e. v1 * v2
 double dotProduct(const G4ThreeVector &v1, const G4ThreeVector &v2){
@@ -78,6 +81,7 @@ nDetRunAction::nDetRunAction(){
 	
 	outputTraces = false;
 	outputDebug = false;
+	outputMultiDebug = false;
 	verbose = false;
 	
 	eventAction = NULL;
@@ -121,6 +125,7 @@ void nDetRunAction::BeginOfRunAction(const G4Run* aRun)
 
 	G4cout << "nDetRunAction::BeginOfRunAction()->"<< G4endl;
 	G4cout << "### Run " << aRun->GetRunID() << " start." << G4endl; 
+	
 	timer->Start();
 
 	// Get a pointer to the output file
@@ -129,8 +134,9 @@ void nDetRunAction::BeginOfRunAction(const G4Run* aRun)
 	nDetThreadContainer *container = &nDetThreadContainer::getInstance();
 	if(userDetectors.size() > 1){
 		if(outputFile->getOutputDebug()){
-			Display::WarningPrint("Debug output is not supported for more than one detector!", "nDetRunAction");
-			outputFile->setOutputDebug((outputDebug = false));		
+			Display::WarningPrint("Main debug output is not supported for more than one detector! Using reduced debug readout.", "nDetRunAction");
+			outputFile->setOutputDebug((outputDebug = false));
+			outputMultiDebug = true;
 		}
 		if(outputFile->getOutputTraces()){
 			Display::WarningPrint("Trace output is not supported for more than one detector!", "nDetRunAction");
@@ -139,6 +145,7 @@ void nDetRunAction::BeginOfRunAction(const G4Run* aRun)
 		for(size_t index = 0; index < container->size(); index++){ // Set options per thread
 			container->getActionManager(index)->getRunAction()->setOutputDebug(false);
 			container->getActionManager(index)->getRunAction()->setOutputTraces(false);
+			container->getActionManager(index)->getRunAction()->setOutputMultiDebug(outputMultiDebug);
 		}
 		outputFile->setMultiDetectorMode(true);
 	}
@@ -323,7 +330,7 @@ bool nDetRunAction::processDetector(nDetDetector* det){
 	outData.reconComX = (debugData.reconDetComX[0] + debugData.reconDetComX[1]) / 2;
 	outData.reconComY = (debugData.reconDetComY[0] + debugData.reconDetComY[1]) / 2;*/
 	
-	if(outputDebug){
+	if(outputDebug || outputMultiDebug){
 		// Perform CFD on digitized anode waveforms.
 		/*for(size_t i = 0; i < 4; i++){
 			debugData.anodePhase[0][i] = anodeResponseL[i].analyzePolyCFD() + targetTimeOffset; // left
@@ -358,7 +365,7 @@ bool nDetRunAction::processDetector(nDetDetector* det){
 	outData.lightBalance = (debugData.pulsePhase[0]-debugData.pulsePhase[1]);
 
 	// Compute "bar" variables.
-	outData.barTOF = (debugData.pulsePhase[0]+debugData.pulsePhase[1])/2;
+	outData.barTOF = (debugData.pulsePhase[0]+debugData.pulsePhase[1])/2-distribution(generator);
 	outData.barQDC = std::sqrt(debugData.pulseQDC[0]*debugData.pulseQDC[1]);
 	outData.barMaxADC = std::sqrt(abs(debugData.pulseMax[0])*abs(debugData.pulseMax[1]));
 	outData.photonComX = (debugData.photonDetComX[0] + debugData.photonDetComX[1]) / 2;
@@ -427,6 +434,11 @@ void nDetRunAction::process(){
 			}
 		}
 	}
+	
+	
+	if(outputMultiDebug) 
+		multData.Append(debugData, evtData.nScatters);
+		
 	
 	// Write the data (mutex protected, thread safe).
 	nDetMasterOutputFile::getInstance().fillBranch(data); // The master output file is a singleton class.
@@ -512,7 +524,7 @@ bool nDetRunAction::scatterEvent(){
 			}
 			return false;
 		}
-		if(outputDebug){
+		if(outputDebug || outputMultiDebug){
 			G4ThreeVector firstScatter = primaryTracks.at(0).pos + primaryTracks.at(1).pos;
 			debugData.nFirstScatterTime = primaryTracks.at(1).gtime;
 			debugData.nFirstScatterLen = firstScatter.mag();
@@ -529,7 +541,7 @@ bool nDetRunAction::scatterEvent(){
 		std::cout << "	dE=" << priTrack->dkE << ", dE2=" << priTrack->kE << ", size=" << primaryTracks.size() << std::endl;
 	}
 
-	if(outputDebug){
+	if(outputDebug || outputMultiDebug){
 		G4int segCol, segRow;
 		G4ThreeVector vertex = priTrack->pos;
 		getSegmentFromCopyNum(priTrack->copyNum, segCol, segRow);
@@ -550,7 +562,7 @@ bool nDetRunAction::scatterEvent(){
 
 void nDetRunAction::initializeNeutron(const G4Step *step){
 	evtData.nInitEnergy = step->GetPreStepPoint()->GetKineticEnergy();
-	if(outputDebug){
+	if(outputDebug || outputMultiDebug){
 		debugData.nEnterTime = step->GetTrack()->GetGlobalTime();
 		debugData.nEnterPosX = step->GetPostStepPoint()->GetPosition().getX();
 		debugData.nEnterPosY = step->GetPostStepPoint()->GetPosition().getY();
@@ -574,7 +586,7 @@ bool nDetRunAction::scatterNeutron(const G4Step *step){
 	if(dE > 0){
 		G4Track *track = step->GetTrack();
 		primaryTracks.push_back(step);
-		if(outputDebug){
+		if(outputDebug || outputMultiDebug){
 			primaryTracks.back().getAngle(prevDirection);
 			primaryTracks.back().getPathLength(prevPosition);
 			prevDirection = primaryTracks.back().dir;
@@ -597,7 +609,7 @@ bool nDetRunAction::scatterNeutron(const G4Step *step){
 void nDetRunAction::finalizeNeutron(const G4Step *step){
 	evtData.nAbsorbed = false;
 	G4Track *track = step->GetTrack();
-	if(outputDebug){
+	if(outputDebug || outputMultiDebug){
 		debugData.nTimeInMat = track->GetGlobalTime() - debugData.nEnterTime;
 		debugData.nExitPosX = step->GetPreStepPoint()->GetPosition().getX();
 		debugData.nExitPosY = step->GetPreStepPoint()->GetPosition().getY();
