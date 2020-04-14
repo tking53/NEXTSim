@@ -43,8 +43,8 @@ LONG	Structure for storing information about NEXTSim primary particles and optic
 BEGIN_TYPES
 u_int	nPhotonsTot	Total number of scintillation photons produced
 u_int	nPhotonsDetTot	Total number of optical photons detected by both PMTs
-double	lightBalance	Ratio of the difference of left and right TQDC to the sum of left and right TQDC	
-double	photonDetEff	Ratio of optical photons detected by a PMT to the total number of photons generated
+double		Ratio of the difference of left and right TQDC to the sum of left and right TQDC	
+double	photlightBalanceonDetEff	Ratio of optical photons detected by a PMT to the total number of photons generated
 double	barTOF	Average of the left and right dynode light pulse phases computed using PolyCFD (in ns)
 double	barQDC	Average of the left and right dynode light pulse integrals
 double	barMaxADC	Average of the left and right dynode light pulse maxima (in ADC channels)
@@ -70,7 +70,7 @@ vector:u_int	nPhotonsDetTot	Total number of optical photons detected by both PMT
 vector:double	lightBalance	Ratio of the difference of left and right TQDC to the sum of left and right TQDC	
 vector:double	photonDetEff	Ratio of optical photons detected by a PMT to the total number of photons generated
 vector:double	barTOF	Average of the left and right dynode light pulse phases computed using PolyCFD (in ns)
-vector:double	barQDC	Average of the left and right dynode light pulse integrals
+vector:double	barQDC	Geometric average of the left and right dynode light pulse integrals
 vector:double	barMaxADC	Average of the left and right dynode light pulse maxima (in ADC channels)
 vector:double	photonComX	Average of the left and right photon center-of-mass X position (in mm)
 vector:double	photonComY	Average of the left and right photon center-of-mass Y position (in mm)

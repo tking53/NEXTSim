@@ -1,20 +1,24 @@
 #include "nDetStructures.hpp"
 
-nDetTraceStructure::nDetTraceStructure(const std::string &name_/*=""*/){
+nDetTraceStructure::nDetTraceStructure(const std::string &name_ /*=""*/)
+{
 	name = name_;
 	mult = 0;
 }
 
-void nDetTraceStructure::Zero(){
+void nDetTraceStructure::Zero()
+{
 	left.clear();
 	right.clear();
 	mult = 0;
 }
 
-void nDetTraceStructure::Append(unsigned short *arrL_, unsigned short *arrR_, const size_t &size_){
-	left.reserve(left.size()+size_);
-	right.reserve(right.size()+size_);
-	for(size_t i = 0; i < size_; i++){
+void nDetTraceStructure::Append(unsigned short *arrL_, unsigned short *arrR_, const size_t &size_)
+{
+	left.reserve(left.size() + size_);
+	right.reserve(right.size() + size_);
+	for (size_t i = 0; i < size_; i++)
+	{
 		left.push_back(arrL_[i]);
 		right.push_back(arrR_[i]);
 	}
@@ -25,7 +29,8 @@ void nDetTraceStructure::Append(unsigned short *arrL_, unsigned short *arrR_, co
 // nDetEventStructure
 ///////////////////////////////////////////////////////////
 
-nDetEventStructure::nDetEventStructure(){
+nDetEventStructure::nDetEventStructure()
+{
 	eventID = 0;
 	threadID = 0;
 	runNb = 0;
@@ -36,7 +41,8 @@ nDetEventStructure::nDetEventStructure(){
 	goodEvent = 0;
 }
 
-void nDetEventStructure::SetValues(const int &eventID_, const short &threadID_, const short &runNb_, const short &nScatters_, const double &nDepEnergy_, const double &nInitEnergy_, const bool &nAbsorbed_, const bool &goodEvent_){
+void nDetEventStructure::SetValues(const int &eventID_, const short &threadID_, const short &runNb_, const short &nScatters_, const double &nDepEnergy_, const double &nInitEnergy_, const bool &nAbsorbed_, const bool &goodEvent_)
+{
 	eventID = eventID_;
 	threadID = threadID_;
 	runNb = runNb_;
@@ -47,10 +53,12 @@ void nDetEventStructure::SetValues(const int &eventID_, const short &threadID_, 
 	goodEvent = goodEvent_;
 }
 
-void nDetEventStructure::Append(){
+void nDetEventStructure::Append()
+{
 }
 
-void nDetEventStructure::Zero(){
+void nDetEventStructure::Zero()
+{
 	eventID = 0;
 	threadID = 0;
 	runNb = 0;
@@ -61,12 +69,12 @@ void nDetEventStructure::Zero(){
 	goodEvent = 0;
 }
 
-
 ///////////////////////////////////////////////////////////
 // nDetOutputStructure
 ///////////////////////////////////////////////////////////
 
-nDetOutputStructure::nDetOutputStructure(){
+nDetOutputStructure::nDetOutputStructure()
+{
 	nPhotonsTot = 0;
 	nPhotonsDet = 0;
 	lightBalance = 0;
@@ -82,7 +90,8 @@ nDetOutputStructure::nDetOutputStructure(){
 	photonComRow = 0;
 }
 
-void nDetOutputStructure::SetValues(const unsigned int &nPhotonsTot_, const unsigned int &nPhotonsDet_, const double &lightBalance_, const double &photonDetEff_, const double &barTOF_, const double &barQDC_, const double &barMaxADC_, const double &photonComX_, const double &photonComY_, const double &reconComX_, const double &reconComY_, const short &photonComCol_, const short &photonComRow_){
+void nDetOutputStructure::SetValues(const unsigned int &nPhotonsTot_, const unsigned int &nPhotonsDet_, const double &lightBalance_, const double &photonDetEff_, const double &barTOF_, const double &barQDC_, const double &barMaxADC_, const double &photonComX_, const double &photonComY_, const double &reconComX_, const double &reconComY_, const short &photonComCol_, const short &photonComRow_)
+{
 	nPhotonsTot = nPhotonsTot_;
 	nPhotonsDet = nPhotonsDet_;
 	lightBalance = lightBalance_;
@@ -98,10 +107,12 @@ void nDetOutputStructure::SetValues(const unsigned int &nPhotonsTot_, const unsi
 	photonComRow = photonComRow_;
 }
 
-void nDetOutputStructure::Append(){
+void nDetOutputStructure::Append()
+{
 }
 
-void nDetOutputStructure::Zero(){
+void nDetOutputStructure::Zero()
+{
 	nPhotonsTot = 0;
 	nPhotonsDet = 0;
 	lightBalance = 0;
@@ -117,19 +128,21 @@ void nDetOutputStructure::Zero(){
 	photonComRow = 0;
 }
 
-
 ///////////////////////////////////////////////////////////
 // nDetMultiOutputStructure
 ///////////////////////////////////////////////////////////
 
-nDetMultiOutputStructure::nDetMultiOutputStructure(){
+nDetMultiOutputStructure::nDetMultiOutputStructure()
+{
 	multiplicity = 0;
 }
 
-void nDetMultiOutputStructure::SetValues(){
+void nDetMultiOutputStructure::SetValues()
+{
 }
 
-void nDetMultiOutputStructure::Append(const unsigned int &nPhotonsTot_, const unsigned int &nPhotonsDet_, const double &lightBalance_, const double &photonDetEff_, const double &barTOF_, const double &barQDC_, const double &barMaxADC_, const double &photonComX_, const double &photonComY_, const double &reconComX_, const double &reconComY_, const short &photonComCol_, const short &photonComRow_, const short &detID_){
+void nDetMultiOutputStructure::Append(const unsigned int &nPhotonsTot_, const unsigned int &nPhotonsDet_, const double &lightBalance_, const double &photonDetEff_, const double &barTOF_, const double &barQDC_, const double &barMaxADC_, const double &photonComX_, const double &photonComY_, const double &reconComX_, const double &reconComY_, const short &photonComCol_, const short &photonComRow_, const short &detID_)
+{
 	nPhotonsTot.push_back(nPhotonsTot_);
 	nPhotonsDet.push_back(nPhotonsDet_);
 	lightBalance.push_back(lightBalance_);
@@ -147,7 +160,8 @@ void nDetMultiOutputStructure::Append(const unsigned int &nPhotonsTot_, const un
 	multiplicity++;
 }
 
-void nDetMultiOutputStructure::Append(const nDetOutputStructure &output, const short &detID_){
+void nDetMultiOutputStructure::Append(const nDetOutputStructure &output, const short &detID_)
+{
 	nPhotonsTot.push_back(output.nPhotonsTot);
 	nPhotonsDet.push_back(output.nPhotonsDet);
 	lightBalance.push_back(output.lightBalance);
@@ -165,24 +179,27 @@ void nDetMultiOutputStructure::Append(const nDetOutputStructure &output, const s
 	multiplicity++;
 }
 
-void nDetMultiOutputStructure::Append(const nDetDebugStructure &debug, const short nScatters_){	
-	for(short iv=0; iv < nScatters_; iv++){
-	nScatterX.push_back(debug.nScatterX.at(iv));
-	nScatterY.push_back(debug.nScatterY.at(iv));
-	nScatterZ.push_back(debug.nScatterZ.at(iv));
-	nScatterAngle.push_back(debug.nScatterAngle.at(iv));
-	nPathLength.push_back(debug.nPathLength.at(iv));
-	nScatterTime.push_back(debug.nScatterTime.at(iv));
-	impartedE.push_back(debug.impartedE.at(iv));
-	//segmentCol.push_back(debug.segmentCol.at(iv));
-	//segmentRow.push_back(debug.segmentRow.at(iv));
-	photonsProd.push_back(debug.photonsProd.at(iv));
-	recoilMass.push_back(debug.recoilMass.at(iv));
-	nScatterScint.push_back(debug.nScatterScint.at(iv));
+void nDetMultiOutputStructure::Append(const nDetDebugStructure &debug, const short nScatters_)
+{
+	for (short iv = 0; iv < nScatters_; iv++)
+	{
+		nScatterX.push_back(debug.nScatterX.at(iv));
+		nScatterY.push_back(debug.nScatterY.at(iv));
+		nScatterZ.push_back(debug.nScatterZ.at(iv));
+		nScatterAngle.push_back(debug.nScatterAngle.at(iv));
+		nPathLength.push_back(debug.nPathLength.at(iv));
+		nScatterTime.push_back(debug.nScatterTime.at(iv));
+		impartedE.push_back(debug.impartedE.at(iv));
+		//segmentCol.push_back(debug.segmentCol.at(iv));
+		//segmentRow.push_back(debug.segmentRow.at(iv));
+		photonsProd.push_back(debug.photonsProd.at(iv));
+		recoilMass.push_back(debug.recoilMass.at(iv));
+		nScatterScint.push_back(debug.nScatterScint.at(iv));
 	}
 }
 
-void nDetMultiOutputStructure::Zero(){
+void nDetMultiOutputStructure::Zero()
+{
 	nPhotonsTot.clear();
 	nPhotonsDet.clear();
 	lightBalance.clear();
@@ -213,16 +230,17 @@ void nDetMultiOutputStructure::Zero(){
 	nScatterScint.clear();
 }
 
-
 ///////////////////////////////////////////////////////////
 // nDetDebugStructure
 ///////////////////////////////////////////////////////////
 
-nDetDebugStructure::nDetDebugStructure(){
+nDetDebugStructure::nDetDebugStructure()
+{
 	Zero();
 }
 
-void nDetDebugStructure::SetValues(const double &nEnterPosX_, const double &nEnterPosY_, const double &nEnterPosZ_, const double &nExitPosX_, const double &nExitPosY_, const double &nExitPosZ_, const double &nComX_, const double &nComY_, const double &nComZ_, const double &neutronWeight_, const double &nFirstScatterTime_, const double &nFirstScatterLen_, const double &nEnterTime_, const double &nTimeInMat_){
+void nDetDebugStructure::SetValues(const double &nEnterPosX_, const double &nEnterPosY_, const double &nEnterPosZ_, const double &nExitPosX_, const double &nExitPosY_, const double &nExitPosZ_, const double &nComX_, const double &nComY_, const double &nComZ_, const double &neutronWeight_, const double &nFirstScatterTime_, const double &nFirstScatterLen_, const double &nEnterTime_, const double &nTimeInMat_)
+{
 	nEnterPosX = nEnterPosX_;
 	nEnterPosY = nEnterPosY_;
 	nEnterPosZ = nEnterPosZ_;
@@ -239,7 +257,8 @@ void nDetDebugStructure::SetValues(const double &nEnterPosX_, const double &nEnt
 	nTimeInMat = nTimeInMat_;
 }
 
-void nDetDebugStructure::Append(const double &nScatterX_, const double &nScatterY_, const double &nScatterZ_, const double &nScatterAngle_, const double &nPathLength_, const double &nScatterTime_, const double &impartedE_, const short &segmentCol_, const short &segmentRow_, const short &photonsProd_, const short &recoilMass_, const bool &nScatterScint_){
+void nDetDebugStructure::Append(const double &nScatterX_, const double &nScatterY_, const double &nScatterZ_, const double &nScatterAngle_, const double &nPathLength_, const double &nScatterTime_, const double &impartedE_, const short &segmentCol_, const short &segmentRow_, const short &photonsProd_, const short &recoilMass_, const bool &nScatterScint_)
+{
 	nScatterX.push_back(nScatterX_);
 	nScatterY.push_back(nScatterY_);
 	nScatterZ.push_back(nScatterZ_);
@@ -255,7 +274,8 @@ void nDetDebugStructure::Append(const double &nScatterX_, const double &nScatter
 	mult++;
 }
 
-void nDetDebugStructure::Zero(){
+void nDetDebugStructure::Zero()
+{
 	nEnterPosX = 0;
 	nEnterPosY = 0;
 	nEnterPosZ = 0;
@@ -282,7 +302,8 @@ void nDetDebugStructure::Zero(){
 	photonsProd.clear();
 	recoilMass.clear();
 	nScatterScint.clear();
-	for(size_t i = 0; i < 2; i++){
+	for (size_t i = 0; i < 2; i++)
+	{
 		pulsePhase[i] = 0;
 		nPhotons[i] = 0;
 		photonMinTime[i] = 0;
@@ -297,11 +318,11 @@ void nDetDebugStructure::Zero(){
 		reconDetComY[i] = 0;
 		centerOfMassColumn[i] = 0;
 		centerOfMassRow[i] = 0;
-		for(size_t j = 0; j < 4; j++){
+		for (size_t j = 0; j < 4; j++)
+		{
 			anodeQDC[i][j] = 0;
 			anodePhase[i][j] = 0;
 		}
 	}
 	mult = 0;
 }
-
