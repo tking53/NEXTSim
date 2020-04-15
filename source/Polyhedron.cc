@@ -298,7 +298,7 @@ G4VPhysicalVolume* Polyhedron::Construct()
     // Meshing and Logical Volumes
     for(int i = 0; i<Polyhedron_name.size(); i++){ 
     //for(int i = 0; i<1; i++){ 
-      G4cout<< Polyhedron_name.at(i) << G4endl;
+      //G4cout<< Polyhedron_name.at(i) << G4endl;
       //mesh_Polyhedron_current.push_back( new CADMesh(const_cast<char*>(Polyhedron_name.at(i)), mm, G4ThreeVector(109.41*cm, 42.58*cm, -50.305*cm), false));
       mesh_Polyhedron_current.push_back( new CADMesh(Polyhedron_name.at(i), mm, G4ThreeVector(109.41*cm, 42.58*cm, -50.305*cm), false));
       //G4cout << "mesh_Polyhedron_current" << G4endl;

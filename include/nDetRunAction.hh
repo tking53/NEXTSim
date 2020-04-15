@@ -43,7 +43,7 @@ class primaryTrackInfo{
 
 	G4int copyNum; ///< Copy number of object inside which the scatter event occured
 	G4int trackID; ///< Geant track ID of the primary particle track
-	G4int atomicMass; ///< Atomic mass of the recoiling particle after the scatter event (NOT WORKING)
+	G4double atomicMass; ///< Atomic mass of the recoiling particle after the scatter event (NOT WORKING)
 	
 	G4bool inScint; ///< Flag indicating that the scatter event occured in a scintillator material
 

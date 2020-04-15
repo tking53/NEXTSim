@@ -239,7 +239,7 @@ void nDetDebugStructure::SetValues(const double &nEnterPosX_, const double &nEnt
 	nTimeInMat = nTimeInMat_;
 }
 
-void nDetDebugStructure::Append(const double &nScatterX_, const double &nScatterY_, const double &nScatterZ_, const double &nScatterAngle_, const double &nPathLength_, const double &nScatterTime_, const double &impartedE_, const short &segmentCol_, const short &segmentRow_, const short &photonsProd_, const short &recoilMass_, const bool &nScatterScint_){
+void nDetDebugStructure::Append(const double &nScatterX_, const double &nScatterY_, const double &nScatterZ_, const double &nScatterAngle_, const double &nPathLength_, const double &nScatterTime_, const double &impartedE_, const short &segmentCol_, const short &segmentRow_, const short &photonsProd_, const double &recoilMass_, const bool &nScatterScint_){
 	nScatterX.push_back(nScatterX_);
 	nScatterY.push_back(nScatterY_);
 	nScatterZ.push_back(nScatterZ_);

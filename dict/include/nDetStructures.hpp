@@ -208,7 +208,7 @@ class nDetDebugStructure : public TObject {
 	std::vector<short> segmentCol; ///< Scintillator segment column for each primary particle scatter event (for modular detectors)
 	std::vector<short> segmentRow; ///< Scintillator segment row for each primary particle scatter event (for modular detectors)
 	std::vector<short> photonsProd; ///< Number of scintillation photons produced for each primary particle scatter event
-	std::vector<short> recoilMass; ///< Mass of the recoil particle for each primary particle scatter event
+	std::vector<double> recoilMass; ///< Mass of the recoil particle for each primary particle scatter event
 	std::vector<bool> nScatterScint; ///< Flag indicating whether or not the scatter event occured in a scintillator material
 	unsigned short mult; ///< Multiplicity of the event (for multiple scatters)
 	double pulsePhase[2]; ///< Phases of the left and right dynode light pulses computed using PolyCFD (in ns)
@@ -268,7 +268,7 @@ class nDetDebugStructure : public TObject {
 	  * @param recoilMass_ Mass of the recoil particle for each primary particle scatter event
 	  * @param nScatterScint_ Flag indicating whether or not the scatter event occured in a scintillator material
 	  */
-	void Append(const double &nScatterX_, const double &nScatterY_, const double &nScatterZ_, const double &nScatterAngle_, const double &nPathLength_, const double &nScatterTime_, const double &impartedE_, const short &segmentCol_, const short &segmentRow_, const short &photonsProd_, const short &recoilMass_, const bool &nScatterScint_);
+	void Append(const double &nScatterX_, const double &nScatterY_, const double &nScatterZ_, const double &nScatterAngle_, const double &nPathLength_, const double &nScatterTime_, const double &impartedE_, const short &segmentCol_, const short &segmentRow_, const short &photonsProd_, const double &recoilMass_, const bool &nScatterScint_);
 
 	/** Zero all variables
 	  */
@@ -315,7 +315,7 @@ class nDetMultiOutputStructure : public TObject {
 	//std::vector<short> segmentCol; ///< Scintillator segment column for each primary particle scatter event (for modular detectors)
 	//std::vector<short> segmentRow; ///< Scintillator segment row for each primary particle scatter event (for modular detectors)
 	std::vector<short> photonsProd; ///< Number of scintillation photons produced for each primary particle scatter event
-	std::vector<short> recoilMass; ///< Mass of the recoil particle for each primary particle scatter event
+	std::vector<double> recoilMass; ///< Mass of the recoil particle for each primary particle scatter event
 	std::vector<bool> nScatterScint; ///< Flag indicating whether or not the scatter event occured in a scintillator material
 
 	/** Default constructor

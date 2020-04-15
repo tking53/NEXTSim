@@ -15,21 +15,35 @@
 #include "nDetMasterOutputFile.hh"
 #include "termColors.hh"
 
-const double KINETIC_ENERGY_THRESHOLD = 0.02; // MeV
+const double KINETIC_ENERGY_THRESHOLD = 0.03; // MeV
 
 std::default_random_engine generator;
-std::normal_distribution<double> distribution(0.5,0.3);
+std::normal_distribution<double> distribution(6.551,0.7);
 
 /// Returns the dot product of two vectors i.e. v1 * v2
 double dotProduct(const G4ThreeVector &v1, const G4ThreeVector &v2){
 	return (v1.getX()*v2.getX() + v1.getY()*v2.getY() + v1.getZ()*v2.getZ());
 }
 
+double calcRecMass(G4double E1, double p1, G4double E2, double p2, G4double Edel, double pdel){
+	double v1 = pow(2*E1/p1,2);
+	double v2 = pow(2*E2/p2,2);
+	double vdel = pow(2*Edel/pdel,2);
+	
+	G4double mx = (v1-v2)/vdel;
+	return mx;
+}
+
 primaryTrackInfo::primaryTrackInfo(const G4Step *step){
 	this->setValues(step->GetTrack());
 	if(step->GetPreStepPoint()->GetPhysicalVolume()->GetName().find("Scint") != std::string::npos) // Scatter event occured inside a scintillator.
 		inScint = true;
-	dkE = -1*(step->GetPostStepPoint()->GetKineticEnergy()-step->GetPreStepPoint()->GetKineticEnergy());
+	//dkE = -1*(step->GetPostStepPoint()->GetKineticEnergy()-step->GetPreStepPoint()->GetKineticEnergy());
+	dkE = -1*step->GetDeltaEnergy();
+	atomicMass = calcRecMass(step->GetPreStepPoint()->GetKineticEnergy(),step->GetPreStepPoint()->GetMomentum().mag(),
+							 step->GetPostStepPoint()->GetKineticEnergy(),step->GetPostStepPoint()->GetMomentum().mag(),
+							 dkE, step->GetDeltaMomentum().mag());
+
 }
 
 primaryTrackInfo::primaryTrackInfo(const G4Track *track){
@@ -72,7 +86,7 @@ void primaryTrackInfo::setValues(const G4Track *track){
 	
 	copyNum = track->GetTouchable()->GetCopyNumber();
 	trackID = track->GetTrackID();
-	atomicMass = part->GetAtomicMass();
+	//atomicMass = part->GetBaryonNumber();
 	inScint = false;
 }
 
