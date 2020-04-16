@@ -165,6 +165,23 @@ void nDetMultiOutputStructure::Append(const nDetOutputStructure &output, const s
 	multiplicity++;
 }
 
+void nDetMultiOutputStructure::Append(const nDetDebugStructure &debug, const short nScatters_){	
+	for(short iv=0; iv < nScatters_; iv++){
+	nScatterX.push_back(debug.nScatterX.at(iv));
+	nScatterY.push_back(debug.nScatterY.at(iv));
+	nScatterZ.push_back(debug.nScatterZ.at(iv));
+	nScatterAngle.push_back(debug.nScatterAngle.at(iv));
+	nPathLength.push_back(debug.nPathLength.at(iv));
+	nScatterTime.push_back(debug.nScatterTime.at(iv));
+	impartedE.push_back(debug.impartedE.at(iv));
+	//segmentCol.push_back(debug.segmentCol.at(iv));
+	//segmentRow.push_back(debug.segmentRow.at(iv));
+	photonsProd.push_back(debug.photonsProd.at(iv));
+	recoilMass.push_back(debug.recoilMass.at(iv));
+	nScatterScint.push_back(debug.nScatterScint.at(iv));
+	}
+}
+
 void nDetMultiOutputStructure::Zero(){
 	nPhotonsTot.clear();
 	nPhotonsDet.clear();
@@ -181,6 +198,19 @@ void nDetMultiOutputStructure::Zero(){
 	photonComRow.clear();
 	detID.clear();
 	multiplicity = 0;
+
+	nScatterX.clear();
+	nScatterY.clear();
+	nScatterZ.clear();
+	nScatterAngle.clear();
+	nPathLength.clear();
+	nScatterTime.clear();
+	impartedE.clear();
+	//segmentCol.clear();
+	//segmentRow.clear();
+	photonsProd.clear();
+	recoilMass.clear();
+	nScatterScint.clear();
 }
 
 
@@ -209,7 +239,7 @@ void nDetDebugStructure::SetValues(const double &nEnterPosX_, const double &nEnt
 	nTimeInMat = nTimeInMat_;
 }
 
-void nDetDebugStructure::Append(const double &nScatterX_, const double &nScatterY_, const double &nScatterZ_, const double &nScatterAngle_, const double &nPathLength_, const double &nScatterTime_, const double &impartedE_, const short &segmentCol_, const short &segmentRow_, const short &photonsProd_, const short &recoilMass_, const bool &nScatterScint_){
+void nDetDebugStructure::Append(const double &nScatterX_, const double &nScatterY_, const double &nScatterZ_, const double &nScatterAngle_, const double &nPathLength_, const double &nScatterTime_, const double &impartedE_, const short &segmentCol_, const short &segmentRow_, const short &photonsProd_, const double &recoilMass_, const bool &nScatterScint_){
 	nScatterX.push_back(nScatterX_);
 	nScatterY.push_back(nScatterY_);
 	nScatterZ.push_back(nScatterZ_);
