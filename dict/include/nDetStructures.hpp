@@ -279,6 +279,7 @@ class nDetDebugStructure : public TObject {
 	/// @endcond
 };
 
+
 /*! \class nDetMultiOutputStructure
  *  \brief Container for NEXTSim simulation variable output
  *  \author Cory R. Thornsbery
