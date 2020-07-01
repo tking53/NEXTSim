@@ -14,7 +14,7 @@
 #include "G4VisAttributes.hh"
 #include "G4SystemOfUnits.hh"
 #include "G4SubtractionSolid.hh"
-
+#include "CADMesh.hh"
 //CERN
 #include "Tape.hh"
 #include "IS530_Chamber.hh"
@@ -104,7 +104,7 @@ void nDetWorld::buildExpHall(nDetMaterials *materials){
 		obj->placeObject(logV, materials);
 	}
 	
-	if(!expName.empty() && expName!="isolde" && expName!="RIKEN" && expName!="ORNL2016" && expName!="Argonne") 
+	if(!expName.empty() && expName!="isolde" && expName!="RIKEN" && expName!="ORNL2016" && expName!="Argonne" && expName!="FDSi") 
 		cout << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n" <<
 				"<<<<<<<<<<<<<<<<<<<<<<<<< Unrecognizable expriment name. Please check for appropriate naming schemes. >>>>>>>>>>>>>>>>>>>>>>>>>\n" <<
 				"<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n";
@@ -115,6 +115,8 @@ void nDetWorld::buildExpHall(nDetMaterials *materials){
 	physV = new G4PVPlacement(0, G4ThreeVector(0, 0, 0), logV, "expHallPhysV", 0, false, 0);
 	
 	if(expName=="isolde") BuildCERNElements();
+
+	if(expName=="FDSi") BuildFDSi(materials);
 
 	return;
 }
@@ -258,6 +260,23 @@ void nDetWorld::BuildCERNElements(){
   cout << "CERN setup - DONE" <<endl;
 }
 
+void nDetWorld::BuildFDSi(nDetMaterials *materials){ 
+	G4RotationMatrix rotation = G4RotationMatrix();
+	rotation.rotateX(90*degree);
+	//CADMesh* Ball_mesh = new CADMesh(const_cast<char*>("/SCRATCH/DScratch3/FDS/stl/FDSI_Clarionet_VANDLE_Ball_Shell.stl"),       mm,  G4ThreeVector(0*cm, 0*cm, 0*cm), false);
+	CADMesh* VANDLEFrame_mesh = new CADMesh(const_cast<char*>("/SCRATCH/DScratch3/FDS/stl/FDSI_Clarionet_VANDLE_moreLow.stl"),       mm,  G4ThreeVector(0*cm, 0*cm, 0*cm), false);
+	//G4VSolid* Ball_sol = Ball_mesh->TessellatedMesh();
+	G4VSolid* VANDLEFrame_sol = VANDLEFrame_mesh->TessellatedMesh();
+	G4Material* Frame_mat = materials->fAluminum;
+	//G4LogicalVolume* Ball_log= new G4LogicalVolume(Ball_sol, Frame_mat,"Ball log");
+	G4LogicalVolume* VANDLEFrame_log= new G4LogicalVolume(VANDLEFrame_sol, Frame_mat,"Ball log");
+    	G4VisAttributes* Al_vis_att 	= new G4VisAttributes(G4Colour(0.65,0.65,0.65));
+	//Ball_log->SetVisAttributes(Al_vis_att);
+	VANDLEFrame_log->SetVisAttributes(Al_vis_att);
+	G4Transform3D transformation(rotation, G4ThreeVector(0, 0, 0));
+	//G4VPhysicalVolume* Ball_phys = new G4PVPlacement(transformation, Ball_log, "Ball_PhysV", logV, false, 0);
+	G4VPhysicalVolume* VANDLEFrame_phys = new G4PVPlacement(transformation, VANDLEFrame_log, "VANDLEFrame_PhysV", logV, false, 0);
+}
 
 nDetWorldPrimitive *nDetWorld::addNewPrimitive(const G4String &str){
 	nDetWorldPrimitive *obj = new nDetWorldPrimitive(str);

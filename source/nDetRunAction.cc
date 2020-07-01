@@ -1,6 +1,6 @@
-include "time.h"
-
+#include "time.h"
 #include "Randomize.hh"
+#include <random>
 #include "G4Timer.hh"
 #include "G4Run.hh"
 
@@ -26,6 +26,11 @@ double dotProduct(const G4ThreeVector &v1, const G4ThreeVector &v2){
 }
 
 double calcRecMass(G4double E1, double p1, G4double E2, double p2, G4double Edel, double pdel){
+	if(std::abs(p1)<=0 || std::abs(p2)<=0 || std::abs(pdel)<=0){
+//		if(verbose)
+//			std::cout << "calcRecMass error\n";
+		return -9999;
+	}
 	double v1 = pow(2*E1/p1,2);
 	double v2 = pow(2*E2/p2,2);
 	double vdel = pow(2*Edel/pdel,2);
@@ -356,7 +361,8 @@ bool nDetRunAction::processDetector(nDetDetector* det){
 		G4ThreeVector nExitPos(debugData.nExitPosX, debugData.nExitPosY, debugData.nExitPosZ);
 
 		// Compute the neutron scatter center-of-mass.
-		nCenterMass = (1/debugData.neutronWeight)*nCenterMass;
+		if(debugData.neutronWeight>0)
+			nCenterMass = (1/debugData.neutronWeight)*nCenterMass;
 	
 		// Convert the neutron incident/exit positions to the frame of the detector.
 		nIncidentPos = nIncidentPos;
@@ -380,7 +386,12 @@ bool nDetRunAction::processDetector(nDetDetector* det){
 
 	// Compute "bar" variables.
 	outData.barTOF = (debugData.pulsePhase[0]+debugData.pulsePhase[1])/2-distribution(generator);
-	outData.barQDC = std::sqrt(debugData.pulseQDC[0]*debugData.pulseQDC[1]);
+	outData.barQDC = std::sqrt(abs(debugData.pulseQDC[0])*abs(debugData.pulseQDC[1]));
+	if(debugData.pulseQDC[0]<0 || debugData.pulseQDC[1]<0){
+		if(verbose)
+			std::cout << "Error: pulseQDC fail" << std::endl;
+		outData.barQDC=-999;
+	}
 	outData.barMaxADC = std::sqrt(abs(debugData.pulseMax[0])*abs(debugData.pulseMax[1]));
 	outData.photonComX = (debugData.photonDetComX[0] + debugData.photonDetComX[1]) / 2;
 	outData.photonComY = (debugData.photonDetComY[0] + debugData.photonDetComY[1]) / 2;

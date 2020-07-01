@@ -43,9 +43,15 @@ double centerOfMass::getCenterZ() const {
 }
 
 bool centerOfMass::getCenterSegment(G4ThreeVector &pos, short &col, short &row) const {
-	double xpos = (pos.getX()+activeWidth/2)/pixelWidth;
-	double ypos = (pos.getY()+activeHeight/2)/pixelHeight;
-	
+	double xpos=0;
+	double ypos=0;
+	if(pixelWidth>0 && pixelHeight>0){
+	xpos = (pos.getX()+activeWidth/2)/pixelWidth;
+	ypos = (pos.getY()+activeHeight/2)/pixelHeight;
+	}
+	else{
+	//std::cout << "Error zero pixel size" << std::endl;
+	}
 	col = (short)floor(xpos);
 	row = (short)floor(ypos);
 	
