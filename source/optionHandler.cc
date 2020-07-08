@@ -107,8 +107,9 @@ bool optionHandler::setup(int argc, char *argv[]){
 			for(std::vector<optionExt>::iterator iter = userOpts.begin(); iter != userOpts.end(); iter++){
 				if(strcmp(iter->name, longOpts[idx].name) == 0){
 					iter->active = true;
-					if(optarg)
+					if (optarg != 0){
 						iter->argument = std::string(optarg);
+					}
 					break;
 				}
 			}
@@ -122,11 +123,20 @@ bool optionHandler::setup(int argc, char *argv[]){
 					help(argv[0]);
 					return false;
 				default:
-					for(std::vector<optionExt>::iterator iter = userOpts.begin(); iter != userOpts.end(); iter++){
-						if(retval == iter->val){
+					for (std::vector<optionExt>::iterator iter = userOpts.begin(); iter != userOpts.end(); iter++){
+						if (retval == iter->val){
 							iter->active = true;
-							if(optarg)
-								iter->argument = std::string(optarg);
+							if (optarg == NULL && argv[optind] != NULL && argv[optind][0] != '-'){ // not an option
+								iter->argument = argv[optind];
+								++optind;
+							} else { // handle case of argument immediately after option
+								if (optarg != NULL){
+									iter->argument = optind;
+								} 
+								if (optarg != 0){
+									iter->argument = std::string(optarg);
+								}
+							}
 							break;
 						}
 					}

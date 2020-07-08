@@ -49,7 +49,7 @@ int main(int argc, char** argv){
 	optionHandler handler;
 	handler.add(optionExt("input", required_argument, NULL, 'i', "<filename>", "Specify an input geant macro."));
 	handler.add(optionExt("output", required_argument, NULL, 'o', "<filename>", "Specify the name of the output file."));
-	handler.add(optionExt("gui", no_argument, NULL, 'g', "", "Run interactive GUI session."));
+	handler.add(optionExt("gui", optional_argument, NULL, 'g', "<UI_Type>", "Run interactive session. UI types are q (Qt) and t (tsch) (default=Qt)"));
 	handler.add(optionExt("tree", required_argument, NULL, 't', "<treename>", "Set the output TTree name (default=\"data\")."));
 	handler.add(optionExt("yield", required_argument, NULL, 'Y', "<multiplier>", "Specify the light yield multiplier to use when producing photons (default=1)."));
 	handler.add(optionExt("verbose", no_argument, NULL, 'v', "", "Toggle verbose mode."));
@@ -74,9 +74,11 @@ int main(int argc, char** argv){
 		outputFilename = handler.getOption(1)->argument;
 
 	bool batchMode = true;
-	if(handler.getOption(2)->active) // Set interactive mode
+	std::string UiType = "";
+	if(handler.getOption(2)->active) {// Set interactive mode
 		batchMode = false;
-
+		UiType = handler.getOption(2)->argument;
+	}
 	std::string outputTreeName;
 	if(handler.getOption(3)->active) // Set output TTree name
 		outputTreeName = handler.getOption(3)->argument;
@@ -206,7 +208,19 @@ int main(int argc, char** argv){
 		// Set root output to a single output file.
 		output->setPersistentMode(true); // The master output file is a singleton class.
 
-		G4UIExecutive *ui = new G4UIExecutive(argc, argv, "");
+		std::string interfaceType;
+		if (UiType == "q" || UiType == "Q"){
+			interfaceType = "qt";
+		} else if (UiType == "t" || UiType == "T"){
+			interfaceType = "tcsh";
+		} else if (UiType.empty() || UiType == ""){
+			interfaceType = "";
+		} else {
+			interfaceType = "";
+		}
+
+
+		G4UIExecutive *ui = new G4UIExecutive(argc, argv, interfaceType.c_str());
 		
 		G4String command = "/control/execute ";
 		command += inputFilename;
