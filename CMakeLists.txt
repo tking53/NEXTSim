@@ -69,7 +69,7 @@ include_directories(${ROOT_INCLUDE_DIR})
 link_directories(${ROOT_LIBRARY_DIR})
 
 #Find CADMesh
-find_package (cadmesh)
+find_package (cadmesh REQUIRED PATHS $ENV{CADMESHSYS})
 message(${CADMESH_INCLUDE_DIRS})
 include_directories(${CADMESH_INCLUDE_DIRS})
 #link_directories(${cadmesh_LIBRARIES})
