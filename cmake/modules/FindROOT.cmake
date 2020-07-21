@@ -10,7 +10,7 @@
 #Last updated by K. Smith (ksmit218@utk.edu) on Apr 10, 2014
 
 #Find the root-config executable
-set(ROOTSYS $ENV{ROOTSYS} CACHE Path "ROOT directory.")
+set(ROOTSYS $ENV{ROOTSYS} CACHE STRING "ROOT directory.")
 find_program(ROOT_CONFIG_EXECUTABLE root-config
   PATHS ${ROOTSYS}/bin)
 find_program(ROOTCINT_EXECUTABLE rootcint PATHS $ENV{ROOTSYS}/bin)
